@@ -29,6 +29,9 @@ const KINDS = {
   mobAbility: 'fa-skull',
   attack: 'fa-crosshairs',
   check: 'fa-dice-d20',
+  defense: 'fa-shield',
+  event: 'fa-bolt',
+  effect: 'fa-hourglass-end',
 };
 
 /** The kinds that are full banners (no speaker header, their own frame). */

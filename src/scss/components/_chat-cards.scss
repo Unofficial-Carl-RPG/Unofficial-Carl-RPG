@@ -59,6 +59,19 @@
   --card-accent: #c23b3b;
 }
 
+// ---- defending rolls, events and effects ending ----------------------------
+.chat-message.carl-kind-defense {
+  --card-accent: #5b7fa6;
+}
+
+.chat-message.carl-kind-event {
+  --card-accent: #d4a53a;
+}
+
+.chat-message.carl-kind-effect {
+  --card-accent: #7a7f88;
+}
+
 // ---- degrees of success ----------------------------------------------------
 // The whole attack or check card takes the colour of how well the roll went.
 .chat-message.carl-degree-critHit {

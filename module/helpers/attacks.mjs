@@ -519,6 +519,7 @@ async function resolveMobTarget(message, index, skip, shift = false) {
         (chosen ? ` (${chosen})` : '') +
         (favor.note ? `<br><em>${favor.note}</em>` : ''),
       rollMode: game.settings.get('core', 'rollMode'),
+      flags: { 'carl-rpg': { card: { kind: 'defense' } } },
     });
     rolled = roll.total;
     natural = naturalD20(roll);

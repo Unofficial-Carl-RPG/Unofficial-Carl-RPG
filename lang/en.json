@@ -964,7 +964,10 @@
         "item": "Item",
         "mobAbility": "Mob ability",
         "attack": "Attack",
-        "check": "Check"
+        "check": "Check",
+        "defense": "Defense",
+        "event": "Event",
+        "effect": "Effect"
       }
     },
     "Party": {

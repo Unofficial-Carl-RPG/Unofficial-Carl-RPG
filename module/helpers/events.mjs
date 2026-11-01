@@ -563,6 +563,7 @@ const HANDLERS = {
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor }),
       content: `<div class="carl-event-message">${text}</div>`,
+      flags: { 'carl-rpg': { card: { kind: 'event' } } },
     });
   },
 

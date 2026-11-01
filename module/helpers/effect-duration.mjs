@@ -21,6 +21,7 @@ async function expire(effect) {
   await effect.unsetFlag(NS, 'roundsLeft');
   await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: effect.actor }),
+    flags: { [NS]: { card: { kind: 'effect' } } },
     content: t('CARL_RPG.Effect.Expired', {
       effect: foundry.utils.escapeHTML(effect.name),
       name: foundry.utils.escapeHTML(effect.actor.name),
