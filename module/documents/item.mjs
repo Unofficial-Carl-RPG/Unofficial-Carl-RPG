@@ -863,10 +863,27 @@ export class CarlRPGItem extends Item {
           )
           .join('')}</ul></div>`
       : '';
-    const content =
-      (description
+    // The card shows the Short Description, with the full one behind an expander.
+    const shortText = (this.system.shortDescription ?? '').trim();
+    const shortHtml = shortText
+      ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(shortText, {
+          secrets: this.isOwner,
+          rollData: this.getRollData(),
+          relativeTo: this,
+        })
+      : '';
+    const descBlock = shortHtml
+      ? `<div class="item-description">${shortHtml}</div>` +
+        (description
+          ? `<details class="item-full"><summary>${game.i18n.localize(
+              'CARL_RPG.ItemDesc.FullDescription'
+            )}</summary><div class="item-description">${description}</div></details>`
+          : '')
+      : description
         ? `<div class="item-description">${description}</div>`
-        : '') +
+        : '';
+    const content =
+      descBlock +
       upgradeList +
       (note ? `<div class="spell-cost">${note}</div>` : '');
 
