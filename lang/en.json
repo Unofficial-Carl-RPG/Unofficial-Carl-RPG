@@ -51,7 +51,9 @@
       "FloorUsage": "Usage: /floor N, where N is the floor.",
       "FloorSet": "The floor is now {floor}.",
       "DaysUsage": "Usage: /days N, where N is the number of days left.",
-      "DaysSet": "Days left set to {days}."
+      "DaysSet": "Days left set to {days}.",
+      "AiFavorUsage": "Usage: /aifavor crawler amount, e.g. /aifavor Name 2 or /aifavor Name -1.",
+      "AnnounceUsage": "Usage: /announce kind text. Kinds: {kinds}."
     },
     "Targeting": {
       "Mode": "Targets",
