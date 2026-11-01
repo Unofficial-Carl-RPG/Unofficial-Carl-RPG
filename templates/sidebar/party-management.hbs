@@ -1,0 +1,64 @@
+{{! Party Management (Dungeon Info tab): the party's name, its leader and each member's title. Everyone sees it; the GM and the party leader can change it. }}
+<section class='gm-section'>
+  <h4>{{localize 'CARL_RPG.Party.Management'}}</h4>
+
+  <label class='resource-label'>{{localize 'CARL_RPG.Party.Name'}}</label>
+  {{#if canManage}}
+    <input
+      class='party-input'
+      type='text'
+      value='{{partyName}}'
+      placeholder='{{defaultParty}}'
+    />
+  {{else}}
+    <p class='info-value'>{{defaultParty}}</p>
+  {{/if}}
+
+  {{#if isGM}}
+    <label class='resource-label'>{{localize 'CARL_RPG.Party.Leader'}}</label>
+    <select class='party-leader'>
+      <option value=''>{{localize 'CARL_RPG.Party.NoLeader'}}</option>
+      {{#each members as |member|}}
+        <option value='{{member.id}}' {{#if member.leader}}selected{{/if}}>{{member.name}}</option>
+      {{/each}}
+    </select>
+  {{/if}}
+
+  <label class='resource-label'>{{localize 'CARL_RPG.Party.Titles'}}</label>
+  {{#each members as |member|}}
+    <div class='member-title-row'>
+      {{! The title comes first, as it does in chat; a long name is cut short (the whole name is in its tooltip) }}
+      {{#if @root.canManage}}
+        <input
+          type='text'
+          class='member-title'
+          data-actor='{{member.id}}'
+          value='{{member.title}}'
+          maxlength='40'
+          placeholder='{{localize "CARL_RPG.Party.TitlePlaceholder"}}'
+        />
+      {{else}}
+        <span class='member-title-text'>{{#if member.title}}{{member.title}}{{else}}&mdash;{{/if}}</span>
+      {{/if}}
+      <span class='member-name' data-tooltip='{{member.name}}'>{{member.name}}</span>
+    </div>
+  {{else}}
+    <p class='hint'>{{localize 'CARL_RPG.Party.NoMembers'}}</p>
+  {{/each}}
+
+  {{! The GM rests the whole party (rests end the effects, injuries for one, that last until a rest) }}
+  {{#if isGM}}
+    <label class='resource-label'>{{localize 'CARL_RPG.GMTab.Rests'}}</label>
+    <div class='rest-buttons'>
+      <button type='button' class='announce-button' data-action='rest' data-rest='short'>
+        <i class='fas fa-mug-hot'></i> {{localize 'CARL_RPG.Rest.Name.short'}}
+      </button>
+      <button type='button' class='announce-button' data-action='rest' data-rest='long'>
+        <i class='fas fa-bed'></i> {{localize 'CARL_RPG.Rest.Name.long'}}
+      </button>
+      <button type='button' class='announce-button' data-action='rest' data-rest='full'>
+        <i class='fas fa-moon'></i> {{localize 'CARL_RPG.Rest.Name.full'}}
+      </button>
+    </div>
+  {{/if}}
+</section>

@@ -1,0 +1,122 @@
+// Everyday chat: the chat log as a game's chat window. Compact dark rows, a thin edge
+// colour for who is speaking, the name in front and the time small and dim, and the
+// dice shown as quiet panels. Nothing animates. Our own cards (chat-cards) sit on top
+// of this and keep their accent colours and banners.
+//
+// Chat sits outside the sheets, so none of this is inside .carl-rpg. The selectors
+// are kept plain so the cards' own, more specific styles override them. They only
+// apply while the page has the class `carl-chat-log`, which the client setting "Game-style
+// chat" adds or removes (see carl-rpg.mjs); :where() keeps them from outranking the cards.
+
+:where(body.carl-chat-log) {
+  .chat-message {
+    margin: 2px 0;
+    padding: 4px 8px 5px;
+    border: 0;
+    border-left: 2px solid var(--dcc-border);
+    border-radius: 2px;
+    background: rgba(20, 17, 15, 0.8);
+    box-shadow: none;
+    color: var(--dcc-text);
+
+    a,
+    .content-link,
+    .entity-link {
+      color: var(--dcc-gold);
+    }
+
+    // Who said it, and when, on one line.
+    .message-header {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin: 0 0 2px;
+      padding: 0;
+      border: 0;
+    }
+
+    .message-sender {
+      flex: 1 1 auto;
+      margin: 0;
+      color: var(--dcc-text);
+      font-size: 0.95em;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-shadow: none;
+    }
+
+    .message-metadata {
+      flex: 0 0 auto;
+      margin: 0;
+      color: var(--dcc-text-dim);
+      font-size: 0.75em;
+    }
+
+    .message-timestamp {
+      color: var(--dcc-text-dim);
+    }
+
+    .flavor-text {
+      color: var(--dcc-text-dim);
+      font-size: 0.85em;
+      font-style: italic;
+    }
+
+    .message-content {
+      color: var(--dcc-text);
+      line-height: 1.35;
+    }
+
+    // Dice: the formula small and dim, the total in a quiet gold panel.
+    .dice-roll {
+      margin: 3px 0 0;
+    }
+
+    .dice-formula {
+      border: 1px solid var(--dcc-border);
+      background: rgba(0, 0, 0, 0.3);
+      color: var(--dcc-text-dim);
+      font-size: 0.8em;
+      text-shadow: none;
+    }
+
+    .dice-total {
+      border: 1px solid var(--dcc-gold-dim);
+      background: rgba(0, 0, 0, 0.4);
+      color: var(--dcc-gold);
+      font-size: 1.25em;
+      font-weight: 700;
+      text-shadow: none;
+    }
+
+    .dice-tooltip {
+      color: var(--dcc-text);
+    }
+
+    .dice-tooltip .dice .dice-rolls .roll {
+      color: var(--dcc-text);
+    }
+  }
+
+  // A thin edge says who spoke: the GM in dim gold, whispers in violet, rolls in gold.
+  .chat-message.carl-from-gm {
+    border-left-color: var(--dcc-gold-dim);
+
+    .message-sender {
+      color: var(--dcc-gold);
+    }
+  }
+
+  .chat-message.carl-from-player {
+    border-left-color: var(--dcc-border);
+  }
+
+  .chat-message.carl-whisper {
+    border-left-color: #8d63c4;
+    background: rgba(30, 21, 40, 0.82);
+
+    .message-sender {
+      color: #c9b0ee;
+    }
+  }
+}

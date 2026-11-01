@@ -1,0 +1,966 @@
+// Chat cards: each kind of card gets its own look (see helpers/chat-cards.mjs, which
+// adds the classes). Chat sits outside the sheets, so none of this is inside .carl-rpg.
+//
+//  - skills, spells, gear, items and mob abilities: an accent colour and a kind badge
+//  - attack and check cards: coloured by degree of success
+//  - achievements and boss announcements: full banners
+//
+// The palette comes from :root (utils/_colors.scss).
+
+// ---- every Carl RPG card ---------------------------------------------------
+.chat-message.carl-card {
+  --card-accent: var(--dcc-gold-dim);
+
+  border: 1px solid color-mix(in srgb, var(--card-accent) 55%, #000);
+  border-left: 4px solid var(--card-accent);
+  border-radius: 3px;
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--card-accent) 16%, transparent),
+    transparent 55%
+  );
+
+  // The kind of card, as a small badge at the top of its content.
+  .card-kind {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin: 0 0 4px;
+    padding: 1px 8px;
+    border: 1px solid color-mix(in srgb, var(--card-accent) 70%, #000);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--card-accent) 22%, transparent);
+    color: color-mix(in srgb, var(--card-accent) 75%, #fff);
+    font-size: 0.7em;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+}
+
+// ---- items, skills and spells ----------------------------------------------
+.chat-message.carl-kind-skill {
+  --card-accent: #3a8fb7;
+}
+
+.chat-message.carl-kind-spell {
+  --card-accent: #9b59d0;
+}
+
+.chat-message.carl-kind-gear {
+  --card-accent: #b08d57;
+}
+
+.chat-message.carl-kind-item {
+  --card-accent: #6fa05a;
+}
+
+.chat-message.carl-kind-mobAbility {
+  --card-accent: #c23b3b;
+}
+
+// ---- degrees of success ----------------------------------------------------
+// The whole attack or check card takes the colour of how well the roll went.
+.chat-message.carl-degree-critHit {
+  --card-accent: #f0b429;
+
+  animation: carl-crit-glow 2.4s ease-in-out infinite;
+}
+
+.chat-message.carl-degree-amazing {
+  --card-accent: #34c759;
+}
+
+.chat-message.carl-degree-success {
+  --card-accent: #3e9b4f;
+}
+
+.chat-message.carl-degree-nearMiss {
+  --card-accent: #e08a26;
+}
+
+.chat-message.carl-degree-fail {
+  --card-accent: #d6282e;
+}
+
+.chat-message.carl-degree-majorFail {
+  --card-accent: #a31a1f;
+}
+
+.chat-message.carl-degree-critFail {
+  --card-accent: #7a1016;
+
+  animation: carl-fail-smoulder 2.8s ease-in-out infinite;
+}
+
+// Each target's row on an attack card is tinted the same way.
+.carl-attack-card .attack-target {
+  --row: transparent;
+
+  padding: 1px 6px;
+  border-left: 3px solid var(--row);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--row) 14%, transparent), transparent 70%);
+
+  &.degree-critHit {
+    --row: #f0b429;
+  }
+
+  &.degree-amazing {
+    --row: #34c759;
+  }
+
+  &.degree-success {
+    --row: #3e9b4f;
+  }
+
+  &.degree-nearMiss {
+    --row: #e08a26;
+  }
+
+  &.degree-fail {
+    --row: #d6282e;
+  }
+
+  &.degree-majorFail {
+    --row: #a31a1f;
+  }
+
+  &.degree-critFail {
+    --row: #7a1016;
+  }
+}
+
+@keyframes carl-crit-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba(240, 180, 41, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 16px rgba(240, 180, 41, 0.75);
+  }
+}
+
+@keyframes carl-fail-smoulder {
+  0%,
+  100% {
+    box-shadow: inset 0 0 6px rgba(163, 26, 31, 0.25);
+  }
+
+  50% {
+    box-shadow: inset 0 0 16px rgba(163, 26, 31, 0.6);
+  }
+}
+
+// ---- banners: no speaker header, their own frame ----------------------------
+.chat-message.carl-banner {
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+
+  .message-header,
+  .card-kind {
+    display: none;
+  }
+
+  .message-content {
+    padding: 0;
+  }
+}
+
+// ---- achievements ----------------------------------------------------------
+.carl-achievement-card {
+  position: relative;
+  overflow: hidden;
+  margin: 2px 0;
+  padding: 0;
+  border: 2px solid var(--dcc-gold);
+  border-radius: 4px;
+  background: radial-gradient(circle at 50% 0%, #3d2b12 0%, #1b1410 72%);
+  box-shadow:
+    0 0 0 1px #000,
+    inset 0 0 18px rgba(224, 165, 38, 0.28),
+    0 0 14px rgba(224, 165, 38, 0.35);
+  color: var(--dcc-text);
+  font-weight: normal;
+
+  // A gleam that sweeps across now and then.
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 40%, rgba(255, 236, 170, 0.28) 50%, transparent 60%);
+    background-size: 260% 100%;
+    background-position: 130% 0;
+    pointer-events: none;
+    animation: carl-ach-gleam 4.5s ease-in-out infinite;
+  }
+
+  .ach-ribbon {
+    position: relative;
+    padding: 3px 0;
+    background: linear-gradient(90deg, #6b4c10, #e0a526 20%, #f3cd62 50%, #e0a526 80%, #6b4c10);
+    color: #1b1410;
+    font-size: 0.72em;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-align: center;
+    text-transform: uppercase;
+
+    span::before,
+    span::after {
+      content: '\2726';
+      margin: 0 0.8em;
+    }
+  }
+
+  .ach-body {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px 12px;
+  }
+
+  .ach-img {
+    flex: 0 0 52px;
+    width: 52px;
+    height: 52px;
+    border: 2px solid var(--dcc-gold);
+    border-radius: 6px;
+    box-shadow: 0 0 10px rgba(224, 165, 38, 0.6);
+    object-fit: cover;
+  }
+
+  .ach-trophy {
+    flex: 0 0 52px;
+    color: var(--dcc-gold);
+    font-size: 2.4em;
+    text-align: center;
+    text-shadow: 0 0 12px rgba(224, 165, 38, 0.8);
+  }
+
+  .ach-name {
+    color: var(--dcc-gold);
+    font-family: var(--dcc-font-display);
+    font-size: 1.3em;
+    line-height: 1.15;
+    letter-spacing: 0.04em;
+    text-shadow: 0 0 8px rgba(224, 165, 38, 0.5), 0 1px 0 #000;
+  }
+
+  .ach-who {
+    margin-top: 2px;
+    color: var(--dcc-text);
+    font-style: italic;
+  }
+
+  .ach-reward {
+    display: inline-block;
+    margin-top: 5px;
+    padding: 1px 8px;
+    border: 1px solid var(--dcc-gold-dim);
+    border-radius: 10px;
+    background: rgba(224, 165, 38, 0.12);
+    color: var(--dcc-gold);
+    font-size: 0.8em;
+  }
+}
+
+@keyframes carl-ach-gleam {
+  0%,
+  55% {
+    background-position: 130% 0;
+  }
+
+  100% {
+    background-position: -30% 0;
+  }
+}
+
+// ---- boss announcements (the chat card) -------------------------------------
+.chat-message .carl-announcement-card {
+  position: relative;
+  overflow: hidden;
+  margin: 2px 0;
+  padding: 0 0 12px;
+  border: 2px solid var(--dcc-blood-bright);
+  border-radius: 4px;
+  background: radial-gradient(ellipse at 50% 0%, #5c0d12 0%, #1a0b0b 78%);
+  box-shadow:
+    0 0 0 1px #000,
+    inset 0 0 24px rgba(214, 40, 46, 0.35),
+    0 0 16px rgba(214, 40, 46, 0.45);
+  color: var(--dcc-text);
+  letter-spacing: normal;
+  text-align: center;
+  text-transform: none;
+  animation: carl-boss-pulse 3.2s ease-in-out infinite;
+
+  .boss-banner {
+    margin-bottom: 10px;
+    padding: 4px 0;
+    background: linear-gradient(90deg, transparent, var(--dcc-blood) 18%, var(--dcc-blood-bright) 50%, var(--dcc-blood) 82%, transparent);
+    color: #fff;
+    font-size: 0.8em;
+    font-weight: 800;
+    letter-spacing: 0.3em;
+    text-shadow: 0 0 8px #ff5a5a;
+    text-transform: uppercase;
+
+    i {
+      margin: 0 0.6em;
+      color: #ffd2a0;
+    }
+  }
+
+  .boss-party {
+    color: var(--dcc-gold);
+    font-family: var(--dcc-font-display);
+    font-size: 1.3em;
+    letter-spacing: 0.12em;
+    text-shadow: 0 0 8px rgba(224, 165, 38, 0.55), 0 1px 0 #000;
+    text-transform: uppercase;
+  }
+
+  .boss-vs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 6px 16px;
+    color: var(--dcc-blood-bright);
+    font-size: 0.95em;
+    font-weight: 800;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--dcc-blood-bright), transparent);
+    }
+  }
+
+  .boss-names {
+    padding: 0 10px;
+    color: #fff;
+    font-family: var(--dcc-font-display);
+    font-size: 1.55em;
+    line-height: 1.15;
+    letter-spacing: 0.06em;
+    text-shadow: 0 0 12px var(--dcc-blood-bright), 0 2px 0 #000;
+    text-transform: uppercase;
+
+    em {
+      margin: 0 0.3em;
+      color: var(--dcc-gold);
+      font-size: 0.55em;
+      font-style: normal;
+      letter-spacing: 0.2em;
+    }
+  }
+}
+
+@keyframes carl-boss-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px #000,
+      inset 0 0 24px rgba(214, 40, 46, 0.3),
+      0 0 10px rgba(214, 40, 46, 0.35);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 1px #000,
+      inset 0 0 30px rgba(214, 40, 46, 0.5),
+      0 0 22px rgba(214, 40, 46, 0.7);
+  }
+}
+
+// ---- the full-screen boss banner -------------------------------------------
+#carl-announcement {
+  background: radial-gradient(ellipse at center, rgba(70, 8, 12, 0.92) 0%, rgba(0, 0, 0, 0.95) 75%);
+
+  .announce-party {
+    color: var(--dcc-gold);
+    text-shadow: 0 0 18px rgba(224, 165, 38, 0.65), 0 3px 0 #000;
+    animation: carl-announce-drop 0.7s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+  }
+
+  .announce-vs {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    width: min(60vw, 700px);
+    color: var(--dcc-blood-bright);
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    animation: carl-announce-drop 0.7s 0.35s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--dcc-blood-bright), transparent);
+    }
+  }
+
+  .announce-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.5rem 1.2rem;
+    animation: carl-announce-slam 0.6s 0.7s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  }
+
+  .announce-boss {
+    color: #fff;
+    text-shadow: 0 0 22px var(--dcc-blood-bright), 0 0 4px var(--dcc-blood-bright), 0 4px 0 #000;
+  }
+
+  .announce-and {
+    color: var(--dcc-gold);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+}
+
+@keyframes carl-announce-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-40px) scale(1.15);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes carl-announce-slam {
+  from {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// ---- loot boxes, by tier ---------------------------------------------------
+// The card takes the colours of its box's tier (the classes come from the card's
+// flag: see helpers/chat-cards.mjs). Higher tiers get more flourish: bronze is plain,
+// silver, gold and platinum gleam, legendary pulses and celestial glitters.
+.chat-message.carl-kind-loot {
+  --tier: #cd7f32;
+  --tier-dark: #2b1a0d;
+  --tier-light: #e8a35f;
+}
+
+.chat-message.carl-tier-bronze {
+  --tier: #cd7f32;
+  --tier-dark: #2b1a0d;
+  --tier-light: #e8a35f;
+}
+
+.chat-message.carl-tier-silver {
+  --tier: #c0c0c0;
+  --tier-dark: #25262a;
+  --tier-light: #f2f2f5;
+}
+
+.chat-message.carl-tier-gold {
+  --tier: #e0a526;
+  --tier-dark: #2e2108;
+  --tier-light: #ffe28a;
+}
+
+.chat-message.carl-tier-platinum {
+  --tier: #8fd3d8;
+  --tier-dark: #0e2a2d;
+  --tier-light: #d9fbff;
+}
+
+.chat-message.carl-tier-legendary {
+  --tier: #b05cff;
+  --tier-dark: #1f0d33;
+  --tier-light: #e2c2ff;
+}
+
+.chat-message.carl-tier-celestial {
+  --tier: #5cc8ff;
+  --tier-dark: #081a2e;
+  --tier-light: #d4f1ff;
+}
+
+.chat-message .carl-loot-card {
+  position: relative;
+  overflow: hidden;
+  margin: 2px 0;
+  padding: 0 0 8px;
+  border: 2px solid var(--tier, #cd7f32);
+  border-radius: 4px;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    color-mix(in srgb, var(--tier, #cd7f32) 30%, var(--tier-dark, #2b1a0d)) 0%,
+    var(--tier-dark, #2b1a0d) 76%
+  );
+  box-shadow:
+    0 0 0 1px #000,
+    inset 0 0 16px color-mix(in srgb, var(--tier, #cd7f32) 30%, transparent),
+    0 0 10px color-mix(in srgb, var(--tier, #cd7f32) 40%, transparent);
+  color: var(--dcc-text);
+
+  .loot-ribbon {
+    position: relative;
+    z-index: 1;
+    padding: 3px 0;
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--tier, #cd7f32) 55%, #000),
+      var(--tier, #cd7f32) 25%,
+      var(--tier-light, #e8a35f) 50%,
+      var(--tier, #cd7f32) 75%,
+      color-mix(in srgb, var(--tier, #cd7f32) 55%, #000)
+    );
+    color: #14110f;
+    font-size: 0.75em;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-align: center;
+    text-transform: uppercase;
+
+    i {
+      margin-right: 0.5em;
+    }
+  }
+
+  .loot-title {
+    position: relative;
+    z-index: 1;
+    padding: 6px 12px 2px;
+    color: var(--tier-light, #e8a35f);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-align: center;
+    text-shadow: 0 0 8px color-mix(in srgb, var(--tier, #cd7f32) 60%, transparent), 0 1px 0 #000;
+    text-transform: none;
+  }
+
+  .loot-list {
+    position: relative;
+    z-index: 1;
+    padding: 4px 14px 0;
+
+    li {
+      margin: 3px 0;
+      padding: 2px 8px;
+      border-left: 3px solid var(--tier, #cd7f32);
+      background: linear-gradient(90deg, color-mix(in srgb, var(--tier, #cd7f32) 16%, transparent), transparent 85%);
+    }
+
+    img {
+      border: 1px solid color-mix(in srgb, var(--tier, #cd7f32) 70%, #000);
+      border-radius: 3px;
+    }
+
+    .loot-gold {
+      color: var(--tier-light, #e8a35f);
+    }
+  }
+}
+
+// Silver, gold and platinum gleam now and then.
+.chat-message.carl-tier-silver .carl-loot-card::after,
+.chat-message.carl-tier-gold .carl-loot-card::after,
+.chat-message.carl-tier-platinum .carl-loot-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.25) 50%, transparent 60%);
+  background-size: 260% 100%;
+  background-position: 130% 0;
+  pointer-events: none;
+  animation: carl-ach-gleam 5s ease-in-out infinite;
+}
+
+// Legendary pulses with light.
+.chat-message.carl-tier-legendary .carl-loot-card {
+  animation: carl-tier-pulse 2.8s ease-in-out infinite;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 38%, rgba(226, 194, 255, 0.3) 50%, transparent 62%);
+    background-size: 260% 100%;
+    background-position: 130% 0;
+    pointer-events: none;
+    animation: carl-ach-gleam 3.6s ease-in-out infinite;
+  }
+}
+
+// Celestial glitters like a night sky, with the same pulse and a gleam.
+.chat-message.carl-tier-celestial .carl-loot-card {
+  animation: carl-tier-pulse 2.4s ease-in-out infinite;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(1.2px 1.2px at 12% 30%, #fff, transparent),
+      radial-gradient(1px 1px at 68% 58%, #fff, transparent),
+      radial-gradient(1.6px 1.6px at 40% 82%, #d4f1ff, transparent),
+      radial-gradient(1px 1px at 86% 22%, #fff, transparent),
+      radial-gradient(1.4px 1.4px at 26% 66%, #bfe8ff, transparent),
+      radial-gradient(1px 1px at 92% 78%, #fff, transparent);
+    pointer-events: none;
+    animation: carl-twinkle 2.6s ease-in-out infinite alternate;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 36%, rgba(212, 241, 255, 0.32) 50%, transparent 64%);
+    background-size: 260% 100%;
+    background-position: 130% 0;
+    pointer-events: none;
+    animation: carl-ach-gleam 3.2s ease-in-out infinite;
+  }
+}
+
+@keyframes carl-tier-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px #000,
+      inset 0 0 14px color-mix(in srgb, var(--tier) 25%, transparent),
+      0 0 8px color-mix(in srgb, var(--tier) 35%, transparent);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 1px #000,
+      inset 0 0 26px color-mix(in srgb, var(--tier) 50%, transparent),
+      0 0 22px color-mix(in srgb, var(--tier) 75%, transparent);
+  }
+}
+
+@keyframes carl-twinkle {
+  from {
+    opacity: 0.35;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+// ---- System announcements ---------------------------------------------------
+// The Show's AI speaking: a card in the colours of what it announces (a crawler's
+// death, a floor boss defeated, the stairwell opening, a new floor, or the System
+// in general), and a matching full-screen banner for the big ones.
+.chat-message.carl-sys-died,
+#carl-system-banner.kind-died {
+  --sys: #b3262c;
+  --sys-dark: #170a0b;
+  --sys-light: #ecc9cb;
+}
+
+.chat-message.carl-sys-boss,
+#carl-system-banner.kind-boss {
+  --sys: #e0a526;
+  --sys-dark: #2a1a08;
+  --sys-light: #ffe6a0;
+}
+
+.chat-message.carl-sys-stairs,
+#carl-system-banner.kind-stairs {
+  --sys: #3fd68a;
+  --sys-dark: #0b2418;
+  --sys-light: #c8ffe2;
+}
+
+.chat-message.carl-sys-floor,
+#carl-system-banner.kind-floor {
+  --sys: #5c8dff;
+  --sys-dark: #0c1430;
+  --sys-light: #d6e2ff;
+}
+
+.chat-message.carl-sys-general,
+#carl-system-banner.kind-general {
+  --sys: #3ad6e0;
+  --sys-dark: #071f24;
+  --sys-light: #c8fbff;
+}
+
+.carl-system-card {
+  position: relative;
+  overflow: hidden;
+  margin: 2px 0;
+  padding: 0 0 10px;
+  border: 2px solid var(--sys, #3ad6e0);
+  border-radius: 4px;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    color-mix(in srgb, var(--sys, #3ad6e0) 28%, var(--sys-dark, #071f24)) 0%,
+    var(--sys-dark, #071f24) 76%
+  );
+  box-shadow:
+    0 0 0 1px #000,
+    inset 0 0 20px color-mix(in srgb, var(--sys, #3ad6e0) 32%, transparent),
+    0 0 12px color-mix(in srgb, var(--sys, #3ad6e0) 42%, transparent);
+  color: var(--sys-light, #c8fbff);
+  text-align: center;
+
+  // Faint scanlines, as if the System were speaking through a screen.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 3px);
+    pointer-events: none;
+  }
+
+  .sys-ribbon {
+    position: relative;
+    padding: 3px 0;
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--sys, #3ad6e0) 55%, #000),
+      var(--sys, #3ad6e0) 25%,
+      var(--sys-light, #c8fbff) 50%,
+      var(--sys, #3ad6e0) 75%,
+      color-mix(in srgb, var(--sys, #3ad6e0) 55%, #000)
+    );
+    color: #0a0a0a;
+    font-size: 0.72em;
+    font-weight: 800;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+
+    i {
+      margin: 0 0.7em;
+    }
+  }
+
+  .sys-headline {
+    position: relative;
+    margin-top: 8px;
+    padding: 0 10px;
+    color: var(--sys-light, #c8fbff);
+    font-family: var(--dcc-font-display);
+    font-size: 1.45em;
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 12px var(--sys, #3ad6e0), 0 2px 0 #000;
+    text-transform: uppercase;
+  }
+
+  .sys-name {
+    position: relative;
+    margin-top: 4px;
+    color: #fff;
+    font-family: var(--dcc-font-display);
+    font-size: 1.25em;
+    letter-spacing: 0.05em;
+    text-shadow: 0 0 8px var(--sys, #3ad6e0), 0 1px 0 #000;
+  }
+
+  .sys-stats,
+  .sys-floor {
+    position: relative;
+    margin-top: 3px;
+    color: color-mix(in srgb, var(--sys-light, #c8fbff) 70%, transparent);
+    font-size: 0.8em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .sys-text {
+    position: relative;
+    margin: 8px 14px 0;
+    padding: 6px 10px;
+    border-top: 1px solid color-mix(in srgb, var(--sys, #3ad6e0) 50%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--sys, #3ad6e0) 50%, transparent);
+    font-style: italic;
+    line-height: 1.35;
+  }
+}
+
+// What each kind adds to the common look.
+.chat-message.carl-sys-died .carl-system-card {
+  // A fallen crawler: heavy, slow, desaturated at the edges.
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(179, 38, 44, 0.32) 0%, transparent 70%),
+    linear-gradient(180deg, #1c1213, #0a0707);
+  animation: carl-sys-throb 4.2s ease-in-out infinite;
+
+  .sys-name {
+    font-size: 1.5em;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+}
+
+.chat-message.carl-sys-boss .carl-system-card,
+.chat-message.carl-sys-stairs .carl-system-card,
+.chat-message.carl-sys-floor .carl-system-card {
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.22) 50%, transparent 60%);
+    background-size: 260% 100%;
+    background-position: 130% 0;
+    pointer-events: none;
+    animation: carl-ach-gleam 4.5s ease-in-out infinite;
+  }
+}
+
+// The stairwell: light spilling up from the open door.
+.chat-message.carl-sys-stairs .carl-system-card {
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(120, 255, 190, 0.42) 0%, transparent 62%),
+    radial-gradient(ellipse at 50% 0%, rgba(63, 214, 138, 0.2) 0%, transparent 70%),
+    var(--sys-dark);
+}
+
+// A new floor: layered depth, a little gold in the blue.
+.chat-message.carl-sys-floor .carl-system-card {
+  background:
+    linear-gradient(180deg, transparent 55%, rgba(224, 165, 38, 0.18) 100%),
+    radial-gradient(ellipse at 50% 0%, rgba(92, 141, 255, 0.36) 0%, transparent 72%),
+    var(--sys-dark);
+}
+
+@keyframes carl-sys-throb {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px #000,
+      inset 0 0 18px rgba(179, 38, 44, 0.28),
+      0 0 8px rgba(179, 38, 44, 0.3);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 1px #000,
+      inset 0 0 28px rgba(179, 38, 44, 0.5),
+      0 0 18px rgba(179, 38, 44, 0.6);
+  }
+}
+
+// The full-screen banner.
+#carl-system-banner {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--sys, #3ad6e0) 22%, #000) 0%,
+    rgba(0, 0, 0, 0.95) 72%
+  );
+  color: var(--sys-light, #c8fbff);
+  cursor: pointer;
+  text-align: center;
+  animation: carl-announce-in 0.4s ease-out;
+  transition: opacity 0.5s;
+
+  &.closing {
+    opacity: 0;
+  }
+
+  .sys-banner-icon {
+    color: var(--sys, #3ad6e0);
+    font-size: 4.5rem;
+    text-shadow: 0 0 24px var(--sys, #3ad6e0);
+    animation: carl-announce-drop 0.7s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+  }
+
+  .sys-banner-ribbon {
+    padding: 0.2rem 2.5rem;
+    background: linear-gradient(90deg, transparent, var(--sys, #3ad6e0) 20%, var(--sys, #3ad6e0) 80%, transparent);
+    color: #0a0a0a;
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    animation: carl-announce-drop 0.7s 0.2s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+  }
+
+  .sys-banner-headline {
+    max-width: 90vw;
+    font-family: var(--dcc-font-display);
+    font-size: 4.2rem;
+    letter-spacing: 0.08em;
+    line-height: 1.05;
+    text-shadow: 0 0 22px var(--sys, #3ad6e0), 0 0 4px var(--sys, #3ad6e0), 0 4px 0 #000;
+    text-transform: uppercase;
+    animation: carl-announce-slam 0.6s 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  }
+
+  .sys-banner-name {
+    color: #fff;
+    font-family: var(--dcc-font-display);
+    font-size: 2.6rem;
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 14px var(--sys, #3ad6e0), 0 3px 0 #000;
+    text-transform: uppercase;
+    animation: carl-announce-drop 0.7s 0.8s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+  }
+
+  .sys-banner-text {
+    max-width: min(70vw, 900px);
+    font-size: 1.6rem;
+    font-style: italic;
+    line-height: 1.35;
+    white-space: pre-line;
+    animation: carl-announce-drop 0.7s 1s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+  }
+
+  .sys-banner-floor {
+    margin-top: 0.6rem;
+    color: color-mix(in srgb, var(--sys-light, #c8fbff) 65%, transparent);
+    font-size: 1.1rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+  }
+}
+// People who ask their system to cut down on motion get still cards.
+@media (prefers-reduced-motion: reduce) {
+  .chat-message.carl-degree-critHit,
+  .chat-message.carl-degree-critFail,
+  .carl-achievement-card::after,
+  .chat-message .carl-announcement-card,
+  .chat-message.carl-sys-died .carl-system-card,
+  .carl-system-card::after,
+  #carl-system-banner .sys-banner-icon,
+  #carl-system-banner .sys-banner-ribbon,
+  #carl-system-banner .sys-banner-headline,
+  #carl-system-banner .sys-banner-name,
+  #carl-system-banner .sys-banner-text,
+  .chat-message[class*='carl-tier-'] .carl-loot-card,
+  .chat-message[class*='carl-tier-'] .carl-loot-card::before,
+  .chat-message[class*='carl-tier-'] .carl-loot-card::after,
+  #carl-announcement .announce-party,
+  #carl-announcement .announce-vs,
+  #carl-announcement .announce-line {
+    animation: none;
+  }
+}

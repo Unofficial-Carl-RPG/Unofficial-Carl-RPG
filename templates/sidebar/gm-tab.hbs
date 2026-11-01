@@ -1,0 +1,141 @@
+{{! GM controls tab (sidebar). A template part must render a single root element. }}
+<div class='gm-tab'>
+  <header class='gm-tab-header'>
+    <h4>{{localize 'CARL_RPG.GMTab.Title'}}</h4>
+  </header>
+
+  {{#if isGM}}
+  <section class='gm-section'>
+    <h4>{{localize 'CARL_RPG.GMTab.Floor'}}</h4>
+    <div class='floor-control'>
+      <a data-action='floorDown' data-tooltip='{{localize "CARL_RPG.GMTab.FloorDown"}}'><i class='fas fa-minus'></i></a>
+      <input class='floor-input' type='number' min='0' step='1' value='{{floor}}' />
+      <a data-action='floorUp' data-tooltip='{{localize "CARL_RPG.GMTab.FloorUp"}}'><i class='fas fa-plus'></i></a>
+    </div>
+  </section>
+
+  {{> "systems/carl-rpg/templates/sidebar/party-management.hbs"}}
+
+  {{! Shown only while loot box approval is turned on in the system settings }}
+  {{#if lootApproval}}
+    <section class='gm-section'>
+      <h4>{{localize 'CARL_RPG.GMTab.LootApproval'}}</h4>
+      <p class='hint'>
+        {{#if waitingCount}}
+          {{localize 'CARL_RPG.GMTab.WaitingCount' count=waitingCount}}
+        {{else}}
+          {{localize 'CARL_RPG.GMTab.NoneWaiting'}}
+        {{/if}}
+      </p>
+    </section>
+  {{/if}}
+
+  {{! Events a player saved are limited until a GM approves them }}
+  {{#if unapproved.length}}
+    <section class='gm-section'>
+      <h4>{{localize 'CARL_RPG.GMTab.EventsToApprove'}}</h4>
+      <ul class='boss-list'>
+        {{#each unapproved as |entry|}}
+          <li>
+            <span class='boss-name'>{{entry.name}}{{#if entry.where}} <small>({{entry.where}})</small>{{/if}}</span>
+            <a data-action='approveEvents' data-uuid='{{entry.uuid}}' data-tooltip='{{localize "CARL_RPG.Events.Approve"}}'><i class='fas fa-check'></i></a>
+          </li>
+        {{/each}}
+      </ul>
+      <button type='button' class='announce-button' data-action='approveAllEvents'>
+        <i class='fas fa-check-double'></i> {{localize 'CARL_RPG.GMTab.ApproveAll'}}
+      </button>
+    </section>
+  {{/if}}
+
+  <section class='gm-section'>
+    <h4>{{localize 'CARL_RPG.GMTab.Awards'}}</h4>
+    {{! One crawler dropdown is shared by the awards below }}
+    <select class='award-crawler'>
+      {{#each crawlers as |crawler|}}
+        <option value='{{crawler.id}}' {{#if crawler.selected}}selected{{/if}}>{{crawler.name}}</option>
+      {{/each}}
+    </select>
+    <label class='resource-label'>{{localize 'CARL_RPG.GMTab.AchievementLabel'}}</label>
+    <select class='award-achievement'>
+      {{#each achievementList as |achievement|}}
+        <option value='{{achievement.id}}' {{#if achievement.selected}}selected{{/if}}>{{achievement.name}}</option>
+      {{/each}}
+    </select>
+    <button type='button' class='announce-button' data-action='awardAchievement'>
+      <i class='fas fa-trophy'></i> {{localize 'CARL_RPG.GMTab.Award'}}
+    </button>
+
+    <label class='resource-label'>{{localize 'CARL_RPG.GMTab.FavorLabel'}}</label>
+    <input class='favor-amount' type='number' value='1' step='1' />
+    <button type='button' class='announce-button' data-action='awardFavor'>
+      <i class='fas fa-star'></i> {{localize 'CARL_RPG.GMTab.AwardFavor'}}
+    </button>
+  </section>
+
+  {{! The System speaks to everyone: a death, a boss defeated, the stairwell, a new floor }}
+  <section class='gm-section'>
+    <h4>{{localize 'CARL_RPG.System.Title'}}</h4>
+    <select class='sys-kind'>
+      {{selectOptions sysKinds selected=sysKind localize=true}}
+    </select>
+    {{#if sysIsDeath}}
+      <label class='resource-label'>{{localize 'CARL_RPG.System.Crawler'}}</label>
+      <select class='sys-crawler'>
+        <option value=''>&mdash;</option>
+        {{#each sysCrawlers as |crawler|}}
+          <option value='{{crawler.id}}' {{#if crawler.selected}}selected{{/if}}>{{crawler.name}}</option>
+        {{/each}}
+      </select>
+    {{/if}}
+    <label class='resource-label'>{{localize 'CARL_RPG.System.Text'}}</label>
+    <textarea class='sys-text' rows='3' placeholder='{{localize "CARL_RPG.System.TextPlaceholder"}}'>{{sysText}}</textarea>
+    <label class='event-option'>
+      <input type='checkbox' class='sys-banner' {{checked sysBanner}} />
+      {{localize 'CARL_RPG.System.Banner'}}
+    </label>
+    <button type='button' class='announce-button' data-action='sendSystem'>
+      <i class='fas fa-bullhorn'></i> {{localize 'CARL_RPG.System.Send'}}
+    </button>
+  </section>
+
+  <section class='gm-section'>
+    <h4>{{localize 'CARL_RPG.GMTab.BossBattle'}}</h4>
+    {{! The bosses are found automatically: boss mobs in the active combat, else on this scene }}
+    {{#if bosses.length}}
+      {{! Each boss after the first can be joined to the one before it with "vs" (a new line) or "and" (the same line) }}
+      <ul class='boss-list'>
+        {{#each bosses as |boss|}}
+          <li>
+            {{#if boss.first}}
+              <span class='boss-join fixed'>{{boss.joinLabel}}</span>
+            {{else}}
+              <a
+                class='boss-join {{boss.join}}'
+                data-action='toggleBossJoin'
+                data-id='{{boss.id}}'
+                data-tooltip='{{localize "CARL_RPG.GMTab.JoinTooltip"}}'
+              >{{boss.joinLabel}}</a>
+            {{/if}}
+            <span class='boss-name'>{{boss.name}}</span>
+          </li>
+        {{/each}}
+      </ul>
+    {{else}}
+      <p class='hint'>{{localize 'CARL_RPG.GMTab.NoBosses'}}</p>
+    {{/if}}
+    <button type='button' class='announce-button' data-action='announceBoss' {{#unless bosses.length}}disabled{{/unless}}>
+      <i class='fas fa-bullhorn'></i> {{localize 'CARL_RPG.GMTab.AnnounceBoss'}}
+    </button>
+  </section>
+  {{else}}
+  {{! Players: the floor and the party name, read-only }}
+  <section class='gm-section'>
+    <h4>{{localize 'CARL_RPG.GMTab.Floor'}}</h4>
+    <p class='info-value'>{{floor}}</p>
+  </section>
+
+  {{! Everyone sees the party; only the GM and the party leader can change it }}
+  {{> "systems/carl-rpg/templates/sidebar/party-management.hbs"}}
+  {{/if}}
+</div>
