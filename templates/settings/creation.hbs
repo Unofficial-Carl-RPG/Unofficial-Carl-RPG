@@ -1,0 +1,71 @@
+{{! Character creation defaults (opened from the system settings) }}
+<div class='creation-settings-body'>
+  <section class='gm-section'>
+    <h4>{{localize 'CARL_RPG.Creation.Menu.StatMethod'}}</h4>
+    <select class='stat-method-select'>
+      {{selectOptions statMethods selected=statMethod localize=true}}
+    </select>
+  </section>
+
+  <section class='gm-section'>
+    <h4>{{localize 'CARL_RPG.Creation.Menu.SkillTag'}}</h4>
+    <input class='skill-tag-input' type='text' value='{{skillTag}}' placeholder='Starter' />
+    <p class='hint'>{{localize 'CARL_RPG.Creation.Menu.SkillTagHint'}}</p>
+    <label class='event-option'>
+      <input type='checkbox' class='allow-any-skill' {{checked allowAnySkill}} />
+      {{localize 'CARL_RPG.Creation.Menu.AllowAnySkill'}}
+    </label>
+  </section>
+
+  <section class='gm-section'>
+    <h4>{{localize 'CARL_RPG.Creation.Menu.FreeSkills'}}</h4>
+    <p class='hint'>{{localize 'CARL_RPG.Creation.Menu.FreeSkillsHint'}}</p>
+    {{#each freeRows as |row|}}
+      <div class='event-row'>
+        {{#if row.img}}<img src='{{row.img}}' width='24' height='24' />{{/if}}
+        <span class='drop-name {{#if row.missing}}missing{{/if}}'>{{row.name}}</span>
+        <label class='event-option'>
+          {{localize 'CARL_RPG.Item.Skill.FIELDS.rank.label'}}
+          <input type='number' class='event-value free-rank' data-index='{{row.index}}' value='{{row.rank}}' min='0' step='1' />
+        </label>
+        <a class='item-control' data-action='removeEntry' data-list='freeSkills' data-index='{{row.index}}'><i class='fas fa-trash'></i></a>
+      </div>
+    {{/each}}
+    <div class='drop-box' data-list='freeSkills'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Creation.Menu.Drop.freeSkills'}}</div>
+  </section>
+
+  <section class='gm-section'>
+    <h4>{{localize 'CARL_RPG.Creation.Menu.Weapons'}}</h4>
+    <p class='hint'>{{localize 'CARL_RPG.Creation.Menu.WeaponsHint'}}</p>
+    {{#each weaponRows as |row|}}
+      <div class='event-row'>
+        {{#if row.img}}<img src='{{row.img}}' width='24' height='24' />{{/if}}
+        <span class='drop-name {{#if row.missing}}missing{{/if}}'>{{row.name}}</span>
+        <a class='item-control' data-action='removeEntry' data-list='weapons' data-index='{{row.index}}'><i class='fas fa-trash'></i></a>
+      </div>
+    {{/each}}
+    <div class='drop-box' data-list='weapons'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Creation.Menu.Drop.weapons'}}</div>
+  </section>
+
+  <section class='gm-section'>
+    <h4>{{localize 'CARL_RPG.Creation.Menu.Gear'}}</h4>
+    <p class='hint'>{{localize 'CARL_RPG.Creation.Menu.GearHint'}}</p>
+    <label class='event-option'>
+      {{localize 'CARL_RPG.Creation.Menu.GearPicks'}}
+      <input type='number' class='event-value gear-picks-input' value='{{gearPicks}}' min='0' step='1' />
+    </label>
+    {{#each gearRows as |row|}}
+      <div class='event-row'>
+        {{#if row.img}}<img src='{{row.img}}' width='24' height='24' />{{/if}}
+        <span class='drop-name {{#if row.missing}}missing{{/if}}'>{{row.name}}</span>
+        <a class='item-control' data-action='removeEntry' data-list='gear' data-index='{{row.index}}'><i class='fas fa-trash'></i></a>
+      </div>
+    {{/each}}
+    <div class='drop-box' data-list='gear'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Creation.Menu.Drop.gear'}}</div>
+  </section>
+
+  <footer class='creation-buttons'>
+    <button type='button' data-action='save'><i class='fas fa-save'></i> {{localize 'CARL_RPG.Creation.Menu.Save'}}</button>
+    <button type='button' data-action='cancel'>{{localize 'Cancel'}}</button>
+  </footer>
+</div>

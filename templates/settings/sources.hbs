@@ -1,0 +1,27 @@
+{{! Compendium sources (opened from the system settings) }}
+<div class='creation-settings-body'>
+  <p class='hint'>{{localize 'CARL_RPG.Sources.Menu.Intro'}}</p>
+
+  {{#each purposes as |purpose|}}
+    <section class='gm-section'>
+      <h4>{{localize purpose.label}}</h4>
+      <label class='event-option'>
+        <input type='checkbox' class='source-world' data-purpose='{{purpose.id}}' {{checked purpose.world}} />
+        {{localize 'CARL_RPG.Sources.World'}}
+      </label>
+      {{#each purpose.packs as |pack|}}
+        <label class='event-option'>
+          <input type='checkbox' class='source-pack' data-purpose='{{purpose.id}}' data-pack='{{pack.id}}' {{checked pack.checked}} />
+          {{pack.title}} <small>({{pack.package}})</small>
+        </label>
+      {{else}}
+        <p class='hint'>{{localize 'CARL_RPG.Sources.NoPacks'}}</p>
+      {{/each}}
+    </section>
+  {{/each}}
+
+  <footer class='creation-buttons'>
+    <button type='button' data-action='save'><i class='fas fa-save'></i> {{localize 'CARL_RPG.Sources.Menu.Save'}}</button>
+    <button type='button' data-action='cancel'>{{localize 'Cancel'}}</button>
+  </footer>
+</div>

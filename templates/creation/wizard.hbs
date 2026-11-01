@@ -1,0 +1,264 @@
+{{! Character creation wizard }}
+<div class='creation-wizard-body'>
+  <ol class='wizard-steps'>
+    {{#each steps as |step|}}
+      {{! Click a step to go to it }}
+      <li
+        class='{{#if step.current}}current{{/if}} {{#if step.done}}done{{/if}}'
+        data-action='goto'
+        data-step='{{step.id}}'
+      >{{localize step.label}}</li>
+    {{/each}}
+  </ol>
+
+  <div class='wizard-page'>
+    {{! ---------- Basics ---------- }}
+    {{#if is.basics}}
+      <p class='hint'>{{localize 'CARL_RPG.Creation.Wizard.BasicsHint'}}</p>
+      <div class='resource'>
+        <label class='resource-label'>{{localize 'CARL_RPG.Creation.Wizard.Name'}}</label>
+        <input type='text' data-field='name' value='{{name}}' />
+      </div>
+      <div class='resource'>
+        <label class='resource-label'>{{localize 'CARL_RPG.Creation.Wizard.Gender'}}</label>
+        <input type='text' data-field='gender' value='{{gender}}' />
+      </div>
+      <div class='resource'>
+        <label class='resource-label'>{{localize 'CARL_RPG.Creation.Wizard.Size'}}</label>
+        <select data-field='size'>
+          {{selectOptions sizes selected=size}}
+        </select>
+      </div>
+    {{/if}}
+
+    {{! ---------- Stats ---------- }}
+    {{#if is.stats}}
+      <p class='hint'>{{#if rollMode}}{{localize 'CARL_RPG.Creation.Wizard.StatsHintRoll'}}{{else}}{{localize 'CARL_RPG.Creation.Wizard.StatsHint'}}{{/if}}</p>
+      <table class='wizard-table'>
+        <thead>
+          <tr>
+            <th>{{localize 'CARL_RPG.Creation.Wizard.StatHeader'}}</th>
+            <th class='value'>{{localize 'CARL_RPG.Creation.Wizard.ValueHeader'}}</th>
+            <th class='mod'>{{localize 'CARL_RPG.Creation.Wizard.ModHeader'}}</th>
+          </tr>
+        </thead>
+        {{#each statRows as |row|}}
+          <tr>
+            <td>{{localize row.label}}</td>
+            {{#if @root.rollMode}}
+              <td class='value'>{{#if row.hasMod}}{{row.value}}{{/if}}</td>
+            {{else}}
+              <td class='stat-buttons'>
+                {{! Click a value to give it to this stat; click it again to clear it. A value another stat has is disabled. }}
+                {{#each row.buttons as |btn|}}
+                  <button
+                    type='button'
+                    class='stat-value {{#if btn.selected}}selected{{/if}}'
+                    data-action='pickStat'
+                    data-stat='{{row.key}}'
+                    data-value='{{btn.value}}'
+                    {{#if btn.disabled}}disabled{{/if}}
+                  >{{btn.value}}</button>
+                {{/each}}
+              </td>
+            {{/if}}
+            <td class='mod'>{{#if row.hasMod}}{{numberFormat row.mod decimals=0 sign=true}}{{/if}}</td>
+          </tr>
+        {{/each}}
+      </table>
+    {{/if}}
+
+    {{! ---------- Skills ---------- }}
+    {{#if is.skills}}
+      <p class='hint'>{{#if anyBackgrounds}}{{localize 'CARL_RPG.Creation.Wizard.SkillsHintBackgrounds'}}{{else}}{{localize 'CARL_RPG.Creation.Wizard.SkillsHint'}}{{/if}}</p>
+      {{#if (lt poolSize poolNeeded)}}
+        <p class='loot-warning'><i class='fas fa-triangle-exclamation'></i> {{localize 'CARL_RPG.Creation.Wizard.PoolSmall'}}</p>
+      {{/if}}
+      {{#each skillGroups as |group|}}
+        <div class='resource skill-group'>
+          <label class='resource-label'>{{localize group.label}} ({{localize 'CARL_RPG.Item.Skill.FIELDS.rank.label'}} {{group.rank}})</label>
+          {{#if group.noOptions}}
+            <p class='loot-warning'><i class='fas fa-triangle-exclamation'></i> {{localize 'CARL_RPG.Creation.Wizard.NoBackgrounds'}}</p>
+          {{/if}}
+          {{! Backgrounds: click one, then click two of its skills. Clicking a skill of another background switches to it. }}
+          {{#if group.showChoices}}
+            <ul class='background-list'>
+              {{#each group.backgrounds as |background|}}
+                <li
+                  class='background {{#if background.selected}}selected{{/if}}'
+                  data-action='pickSource'
+                  data-group='{{group.id}}'
+                  data-source='{{background.uuid}}'
+                >
+                  <strong>{{background.name}}</strong>
+                  {{#each background.skills as |skill|}}
+                    <button
+                      type='button'
+                      class='skill-chip {{#if skill.picked}}picked{{/if}}'
+                      data-action='toggleSkill'
+                      data-group='{{group.id}}'
+                      data-source='{{background.uuid}}'
+                      data-skill='{{skill.uuid}}'
+                      {{#if skill.disabled}}disabled{{/if}}
+                    >{{skill.label}}</button>
+                  {{/each}}
+                </li>
+              {{/each}}
+              {{#if group.allowAny}}
+                <li
+                  class='background any {{#if group.anySelected}}selected{{/if}}'
+                  data-action='pickSource'
+                  data-group='{{group.id}}'
+                  data-source='any'
+                >
+                  <strong>{{localize 'CARL_RPG.Creation.Wizard.AnySkill'}}</strong>
+                </li>
+              {{/if}}
+            </ul>
+          {{/if}}
+          {{#if group.showSelects}}
+            {{! Both dropdowns on one line, under the category and rank }}
+            <div class='skill-selects'>
+              {{#each group.slots as |slot|}}
+                <select data-field='skills.{{slot.index}}' data-redraw='true'>
+                  <option value=''>—</option>
+                  {{#each slot.options as |skill|}}
+                    <option value='{{skill.uuid}}' {{#if (eq skill.uuid slot.value)}}selected{{/if}}>{{skill.label}}</option>
+                  {{/each}}
+                </select>
+              {{/each}}
+            </div>
+          {{/if}}
+        </div>
+      {{/each}}
+    {{/if}}
+
+    {{! ---------- Weapon ---------- }}
+    {{#if is.weapon}}
+      {{#if noWeapons}}
+        <p class='loot-warning'><i class='fas fa-triangle-exclamation'></i> {{localize 'CARL_RPG.Creation.Wizard.NoWeapons'}}</p>
+      {{else}}
+        <select data-field='weapon' data-redraw='true'>
+          <option value=''>—</option>
+          {{#each weapons as |weapon|}}
+            <option value='{{weapon.uuid}}' {{#if weapon.selected}}selected{{/if}}>{{weapon.name}}</option>
+          {{/each}}
+        </select>
+        {{#if weaponSkill}}
+          <p>{{localize 'CARL_RPG.Creation.Wizard.WeaponGrants'}} <strong>{{weaponSkill}}</strong> ({{localize 'CARL_RPG.Item.Skill.FIELDS.rank.label'}} {{weaponRank}})</p>
+        {{/if}}
+      {{/if}}
+      {{#if freeSkills.length}}
+        <h4>{{localize 'CARL_RPG.Creation.Wizard.FreeSkills'}}</h4>
+        <ul class='wizard-list'>
+          {{#each freeSkills as |free|}}
+            <li>{{free.name}} ({{localize 'CARL_RPG.Item.Skill.FIELDS.rank.label'}} {{free.rank}})</li>
+          {{/each}}
+        </ul>
+      {{/if}}
+    {{/if}}
+
+    {{! ---------- Starting gear ---------- }}
+    {{#if is.gear}}
+      <p class='hint'>{{localize 'CARL_RPG.Creation.Wizard.GearHint'}}</p>
+      {{#if noGear}}
+        <p class='hint'>{{localize 'CARL_RPG.Creation.Wizard.NoGear'}}</p>
+      {{else}}
+        <p><strong>{{gearChosen}} / {{gearPicks}}</strong></p>
+        {{#each gear as |item|}}
+          <label class='event-option wizard-gear'>
+            <input type='checkbox' data-gear='{{item.uuid}}' {{checked item.checked}} />
+            <img src='{{item.img}}' width='24' height='24' />
+            {{item.name}}
+          </label>
+        {{/each}}
+      {{/if}}
+    {{/if}}
+
+    {{! ---------- Background ---------- }}
+    {{#if is.bio}}
+      <p class='hint'>{{localize 'CARL_RPG.Creation.Wizard.BioHint'}}</p>
+      {{#each background as |field|}}
+        <div class='resource'>
+          <label class='resource-label'>{{localize field.label}}</label>
+          <textarea data-field='background.{{field.key}}' rows='3'>{{field.value}}</textarea>
+        </div>
+      {{/each}}
+    {{/if}}
+
+    {{! ---------- Review ---------- }}
+    {{#if is.review}}
+      <h4>{{name}}</h4>
+      <table class='wizard-table'>
+        <thead>
+          <tr>
+            <th>{{localize 'CARL_RPG.Creation.Wizard.StatHeader'}}</th>
+            <th class='value'>{{localize 'CARL_RPG.Creation.Wizard.ValueHeader'}}</th>
+            <th class='mod'>{{localize 'CARL_RPG.Creation.Wizard.ModHeader'}}</th>
+          </tr>
+        </thead>
+        {{#each reviewStats as |row|}}
+          <tr>
+            <td>{{localize row.label}}</td>
+            <td class='value'>{{#if row.hasMod}}{{row.value}}{{/if}}</td>
+            <td class='mod'>{{#if row.hasMod}}{{numberFormat row.mod decimals=0 sign=true}}{{/if}}</td>
+          </tr>
+        {{/each}}
+      </table>
+      <h4>{{localize 'CARL_RPG.Creation.Steps.skills'}}</h4>
+      <ul class='wizard-list'>
+        {{#each reviewSkills as |skill|}}
+          <li>{{skill.name}} ({{localize 'CARL_RPG.Item.Skill.FIELDS.rank.label'}} {{skill.rank}})</li>
+        {{/each}}
+      </ul>
+      {{#if reviewWeapon}}
+        <h4>{{localize 'CARL_RPG.Creation.Steps.weapon'}}</h4>
+        <p>{{reviewWeapon}}</p>
+      {{/if}}
+      {{#if reviewGear.length}}
+        <h4>{{localize 'CARL_RPG.Creation.Steps.gear'}}</h4>
+        <ul class='wizard-list'>
+          {{#each reviewGear as |name|}}<li>{{name}}</li>{{/each}}
+        </ul>
+      {{/if}}
+      {{! What still needs filling in (click one to go to its step); Create crawler stays off until nothing is left }}
+      {{#if problems.length}}
+        <div class='loot-warning wizard-problems'>
+          <p><i class='fas fa-triangle-exclamation'></i> {{localize 'CARL_RPG.Creation.Wizard.Problems'}}</p>
+          <ul class='wizard-list'>
+            {{#each problems as |problem|}}
+              <li><a data-action='goto' data-step='{{problem.step}}'>{{problem.text}}</a></li>
+            {{/each}}
+          </ul>
+        </div>
+      {{/if}}
+    {{/if}}
+  </div>
+
+  <footer class='creation-buttons'>
+    {{! Roll For Stats: nothing is rolled until the button is clicked, then one stat at a time. These sit at the left of the button row, so the stats table never shifts. The GM can reset the rolls. }}
+    {{#if is.stats}}{{#if rollMode}}
+      <span class='wizard-left'>
+        {{#unless hasRolled}}
+          <button type='button' class='roll-stats' data-action='rollStats' {{#if rolling}}disabled{{/if}}>
+            <i class='fas fa-dice-d6'></i>
+            {{#if rolling}}{{localize 'CARL_RPG.Creation.Wizard.Rolling'}}{{else}}{{localize 'CARL_RPG.Creation.Wizard.RollStats'}}{{/if}}
+          </button>
+        {{/unless}}
+        {{#if canResetRolls}}
+          <button type='button' class='reset-rolls' data-action='resetRolls' {{#if rolling}}disabled{{/if}}>
+            <i class='fas fa-rotate-left'></i> {{localize 'CARL_RPG.Creation.Wizard.ResetRolls'}}
+          </button>
+        {{/if}}
+      </span>
+    {{/if}}{{/if}}
+    {{#unless isFirst}}
+      <button type='button' data-action='back'><i class='fas fa-arrow-left'></i> {{localize 'CARL_RPG.Creation.Wizard.Back'}}</button>
+    {{/unless}}
+    {{#if isLast}}
+      <button type='button' data-action='finish' {{#unless canFinish}}disabled{{/unless}}><i class='fas fa-check'></i> {{localize 'CARL_RPG.Creation.Wizard.Finish'}}</button>
+    {{else}}
+      <button type='button' data-action='next'>{{localize 'CARL_RPG.Creation.Wizard.Next'}} <i class='fas fa-arrow-right'></i></button>
+    {{/if}}
+  </footer>
+</div>
