@@ -107,6 +107,9 @@ export async function summarizeAction(a, otherEvents = {}) {
     case 'addItem':
       text = t(`${S}addItem`, { amount, name: await nameOf(a.uuid) });
       break;
+    case 'awardAchievement':
+      text = t(`${S}awardAchievement`, { name: await nameOf(a.uuid) });
+      break;
     case 'removeItem':
       text = a.selfItem
         ? t(`${S}removeSelf`)

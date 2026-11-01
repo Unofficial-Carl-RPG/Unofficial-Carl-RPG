@@ -435,6 +435,20 @@ const HANDLERS = {
     await actor.createEmbeddedDocuments('Item', [data]);
   },
 
+  /** Give the target an achievement, once. A new one pays its loot box (see items). */
+  async awardAchievement({ action, actor }) {
+    const doc = await fromUuid(action.uuid);
+    if (!doc || doc.documentName !== 'Item' || doc.type !== 'achievement') {
+      return warn('CARL_RPG.Events.Warn.ItemMissing');
+    }
+    const identifier = doc.system?.identifier?.trim();
+    const held = actor.items.some(
+      (i) => i.type === 'achievement' && (identifier ? i.system.identifier?.trim() === identifier : i.name === doc.name)
+    );
+    if (held) return;
+    await actor.createEmbeddedDocuments('Item', [game.items.fromCompendium(doc)]);
+  },
+
   /** Remove an item from the target (this item, or another by identifier). */
   async removeItem({ item, action, actor }) {
     const target = action.selfItem

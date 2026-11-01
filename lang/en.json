@@ -1213,6 +1213,7 @@
         "toggleEffect": "Buff / debuff",
         "applyEffect": "Apply effect to the target that was hit",
         "addItem": "Add an item",
+      "awardAchievement": "Award an achievement",
         "removeItem": "Remove an item",
         "mana": "Mana",
         "health": "Health",
@@ -1321,6 +1322,7 @@
           },
           "applyEffect": "apply {name} to the target",
           "addItem": "add {amount} of {name}",
+      "awardAchievement": "give the achievement {name}",
           "removeItem": "remove {name}",
           "removeSelf": "remove this item",
           "mana": {

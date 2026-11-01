@@ -434,6 +434,7 @@ CARL_RPG.eventActions = {
   toggleEffect: 'CARL_RPG.Events.Actions.toggleEffect',
   applyEffect: 'CARL_RPG.Events.Actions.applyEffect',
   addItem: 'CARL_RPG.Events.Actions.addItem',
+  awardAchievement: 'CARL_RPG.Events.Actions.awardAchievement',
   removeItem: 'CARL_RPG.Events.Actions.removeItem',
   mana: 'CARL_RPG.Events.Actions.mana',
   health: 'CARL_RPG.Events.Actions.health',

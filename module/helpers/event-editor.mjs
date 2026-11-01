@@ -198,7 +198,7 @@ export async function buildEventRows(events, base) {
                   ? 'table'
                   : 'item';
           const needsDrop =
-            ['useItem', 'macro', 'toggleEffect', 'applyEffect', 'addItem', 'rollTable'].includes(
+            ['useItem', 'macro', 'toggleEffect', 'applyEffect', 'addItem', 'awardAchievement', 'rollTable'].includes(
               a.type
             ) ||
             (a.type === 'removeItem' && !a.selfItem);
