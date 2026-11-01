@@ -338,8 +338,11 @@ function installEmbedOverride() {
   const TE = foundry.applications.ux.TextEditor.implementation;
   const original = TE._embedContent;
   TE._embedContent = async function (match, options) {
-    const uuid = (match.groups?.config ?? '').trim().split(/\s+/)[0];
-    const doc = uuid ? await fromUuid(uuid).catch(() => null) : null;
+    // Read the config the way Foundry does (uuid= and relative references included).
+    const config = this._parseEmbedConfig(match.groups.config, { relative: options.relativeTo });
+    const doc = await foundry.utils
+      .fromUuid(config.uuid, { relative: options.relativeTo })
+      .catch(() => null);
     if (doc && ownsEmbed(doc)) return embedCard(doc, match.groups?.label);
     return original.call(this, match, options);
   };
