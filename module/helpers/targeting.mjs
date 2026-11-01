@@ -61,6 +61,7 @@ function listHtml(cfg, src, limit) {
  */
 export async function chooseTargets(item) {
   const cfg = item.system.targeting;
+  if (cfg?.mode === 'area') return chooseArea(item);
   if (cfg?.mode !== 'count') return true;
   const limit = Math.max(1, Number(cfg.count) || 1);
   const src = sourceToken();
@@ -127,4 +128,47 @@ export async function chooseTargets(item) {
     Hooks.off('targetToken', onTarget);
   }
   return choice === 'ok' && game.user.targets.size > 0;
+}
+
+/**
+ * Place an area with Foundry's own template tool (the shape from the item). The
+ * tokens inside it become the targets, and the area is cleared again. Escape
+ * cancels. Players who can't create templates get a warning; the GM places it.
+ * @param {CarlRPGItem} item
+ * @returns {Promise<boolean>} false if cancelled or not allowed
+ */
+export function chooseArea(item) {
+  const cfg = item.system.targeting;
+  if (!game.user.can('TEMPLATE_CREATE')) {
+    ui.notifications.warn(t('CARL_RPG.Targeting.NoTemplatePermission'));
+    return Promise.resolve(false);
+  }
+  return new Promise((resolve) => {
+    const finish = (ok) => {
+      Hooks.off('createMeasuredTemplate', onCreate);
+      document.removeEventListener('keydown', onKey, true);
+      canvas.tokens.activate();
+      resolve(ok);
+    };
+    const onKey = (ev) => {
+      if (ev.key === 'Escape') finish(false);
+    };
+    const onCreate = async (doc, options, userId) => {
+      if (userId !== game.user.id) return;
+      // The item's size sets how far the area reaches; the player places its origin.
+      const size = Number(cfg.size) || 0;
+      if (size > 0) await doc.update({ distance: size });
+      const area = doc.object ?? canvas.templates.get(doc.id);
+      const inside = canvas.tokens.placeables.filter(
+        (tok) => tok.visible && matchesFilter(tok, cfg.filter) && area?.testPoint(tok.center)
+      );
+      await game.user.updateTokenTargets(inside.map((tok) => tok.id));
+      await doc.delete();
+      finish(true);
+    };
+    Hooks.on('createMeasuredTemplate', onCreate);
+    document.addEventListener('keydown', onKey, true);
+    ui.notifications.info(t('CARL_RPG.Targeting.PlaceArea'));
+    canvas.templates.activate({ tool: cfg.shape });
+  });
 }

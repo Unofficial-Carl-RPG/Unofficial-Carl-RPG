@@ -28,7 +28,9 @@
       "Remove": "Remove",
       "OutOfRange": "out of range",
       "WrongSide": "That token can't be a target for this item.",
-      "Full": "This item targets up to {m}."
+      "Full": "This item targets up to {m}.",
+      "PlaceArea": "Place the area. Escape cancels.",
+      "NoTemplatePermission": "You can't place areas here. Ask the GM to place it."
     },
     "Ability": {
       "Str": { "long": "Strength", "abbr": "str" },
