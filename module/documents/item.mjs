@@ -4,6 +4,7 @@ import { checkRequirements, runEvents } from '../helpers/events.mjs';
 import { grantLoot } from '../helpers/loot.mjs';
 import { resolveCheck } from '../helpers/attacks.mjs';
 import { describeUpgrades, effectiveOf } from '../helpers/upgrades.mjs';
+import { shortTextOf } from '../helpers/item-badges.mjs';
 import { offerAiFavor } from '../helpers/ai-favor.mjs';
 import { spendUse, usesLeft } from '../helpers/uses.mjs';
 import { declareInsteadOfUsing } from '../helpers/declarations.mjs';
@@ -675,7 +676,7 @@ export class CarlRPGItem extends Item {
         this.system.stat && this.system.formula.includes(`@${this.system.stat}.mod`)
           ? this.system.stat
           : statOfFormula(this.system.formula);
-      const chosen = await promptRoll({ title: this.name, stat });
+      const chosen = await promptRoll({ title: this.name, stat, tip: shortTextOf(this) });
       if (!chosen) return null;
       // A mistyped bonus is caught now, before any action or mana is spent.
       if (buildFormula(this.system.formula, chosen) === null) return null;

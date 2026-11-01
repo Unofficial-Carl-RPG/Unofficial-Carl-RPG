@@ -5,6 +5,19 @@
  */
 
 /**
+ * An item's Short Description as plain text (its full description if it has no
+ * short one), cut to a line. Markup is read as text only, never run.
+ * @param {Item} item
+ * @returns {string}
+ */
+export function shortTextOf(item) {
+  const html = (item?.system?.shortDescription ?? '').trim() || (item?.system?.description ?? '');
+  const text = new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
+  const plain = text.replace(/\s+/g, ' ').trim();
+  return plain.length > 160 ? `${plain.slice(0, 157)}...` : plain;
+}
+
+/**
  * @param {Item} item
  * @returns {string[]} The badge labels, in display order.
  */

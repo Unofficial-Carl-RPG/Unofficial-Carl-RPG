@@ -39,7 +39,7 @@ export function statOfFormula(formula) {
  *   it doesn't use one (then the stat menu isn't shown)
  * @returns {Promise<{bonus: string, stat: string|null, mode: 'normal'|'advantage'|'disadvantage'}|null>}
  */
-export async function promptRoll({ title, stat = null }) {
+export async function promptRoll({ title, stat = null, tip = '' }) {
   const abilities = CONFIG.CARL_RPG.abilities;
   const statMenu = stat
     ? `<div class="form-group">
@@ -57,6 +57,7 @@ export async function promptRoll({ title, stat = null }) {
     : '';
 
   const content = `<div class="carl-roll-dialog">
+    ${tip ? `<p class="roll-tip">${esc(tip)}</p>` : ''}
     <div class="form-group">
       <label>${esc(t('CARL_RPG.RollDialog.Bonus'))}</label>
       <input type="text" name="bonus" placeholder="${esc(

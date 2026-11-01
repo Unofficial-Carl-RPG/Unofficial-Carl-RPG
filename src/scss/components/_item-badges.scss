@@ -16,6 +16,13 @@
   white-space: nowrap;
 }
 
+// The Short Description at the top of the roll pop-up.
+.roll-tip {
+  margin: 0 0 6px;
+  font-style: italic;
+  color: var(--dcc-gold-dim);
+}
+
 // Key numbers and upgrades in an expanded item row.
 .row-keys {
   margin-bottom: 4px;

@@ -812,15 +812,6 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
    **************/
 
   /**
-   * Handle changing a Document's image.
-   *
-   * @this CarlRPGItemSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @returns {Promise}
-   * @protected
-   */
-  /**
    * Post this item to chat: its Short Description, with the full text one click away.
    * @this CarlRPGItemSheet
    */
@@ -859,6 +850,15 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
     await this.item.update({ 'system.amenities': amenities });
   }
 
+  /**
+   * Handle changing a Document's image.
+   *
+   * @this CarlRPGItemSheet
+   * @param {PointerEvent} event   The originating click event
+   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
+   * @returns {Promise}
+   * @protected
+   */
   static async _onEditImage(event, target) {
     const attr = target.dataset.edit;
     const current = foundry.utils.getProperty(this.document, attr);
