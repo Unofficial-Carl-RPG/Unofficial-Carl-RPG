@@ -97,6 +97,8 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       openPet: this._openPet,
       // A pet's Upgrades tab: its upgrades, their changes and the events they carry.
       approveEvents: this._approveEvents,
+      addKill: editOnly(this._addKill),
+      removeKill: editOnly(this._removeKill),
       addUpgrade: editOnly(this._addUpgrade),
       removeUpgrade: editOnly(this._removeUpgrade),
       addChange: editOnly(this._addChange),
@@ -115,6 +117,10 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
 
   /** @override */
   static PARTS = {
+    personal: {
+      template: 'systems/carl-rpg/templates/actor/personal.hbs',
+      scrollable: [""],
+    },
     header: {
       template: 'systems/carl-rpg/templates/actor/header.hbs',
     },
@@ -181,7 +187,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
     // Control which parts show based on document subtype
     switch (this.document.type) {
       case 'crawler':
-        options.parts.push('abilities', 'hotlist', 'features', 'spells', 'gear', 'inventory', 'achievements', 'effects');
+        options.parts.push('abilities', 'hotlist', 'features', 'spells', 'gear', 'inventory', 'achievements', 'effects', 'personal');
         break;
       case 'mob':
         options.parts.push('abilities', 'mobAbilities', 'effects');
@@ -523,6 +529,10 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
         case 'features':
           tab.id = 'features';
           tab.label += 'Features';
+          break;
+        case 'personal':
+          tab.id = 'personal';
+          tab.label += 'Personal';
           break;
         case 'spells':
           tab.id = 'spells';
@@ -1091,6 +1101,22 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       if (on && at < 0) list.push(key);
       if (!on && at >= 0) list.splice(at, 1);
     });
+  }
+
+  /**
+   * Add a row to the kills list.
+   * @this CarlRPGActorSheet
+   */
+  static async _addKill() {
+    const kills = [...this.document.system.killLog, { name: '', note: '' }];
+    await this.document.update({ 'system.killLog': kills });
+  }
+
+  /** @this CarlRPGActorSheet */
+  static async _removeKill(event, target) {
+    const index = Number(target.dataset.index);
+    const kills = this.document.system.killLog.filter((_, i) => i !== index);
+    await this.document.update({ 'system.killLog': kills });
   }
 
   /**

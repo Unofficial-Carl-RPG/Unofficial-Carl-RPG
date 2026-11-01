@@ -59,6 +59,7 @@
         "MobAbilities": "Mob Abilities",
         "Effects": "Buffs/Debuffs",
         "Hotlist": "Hotlist",
+        "Personal": "Personal",
         "Upgrades": "Upgrades"
       },
       "base": {
@@ -832,7 +833,12 @@
     },
     "Kills": {
       "Label": "Crawler kills",
-      "Tooltip": "Crawler Killer: {count} other crawler(s) killed"
+      "Tooltip": "Crawler Killer: {count} other crawler(s) killed",
+      "NamePlaceholder": "Name",
+      "NotePlaceholder": "Note",
+      "Empty": "Nothing killed yet.",
+      "Add": "Add a kill",
+      "Remove": "Remove this kill"
     },
     "Tags": {
       "Title": "Tags",
