@@ -207,6 +207,7 @@ Hooks.once('init', function () {
     club: models.CarlRPGClub,
     deity: models.CarlRPGDeity,
     store: models.CarlRPGStore,
+    quest: models.CarlRPGQuest,
   };
 
   // Active Effects are never copied to the Actor,

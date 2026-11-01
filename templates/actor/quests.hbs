@@ -1,0 +1,48 @@
+{{! Quests tab (crawler): the quests the GM gave this crawler. Only the owner and the GM see it. }}
+<section class='tab quests scrollable {{tab.cssClass}}' data-group='primary' data-tab='quests'>
+  {{#unless quests.length}}
+    <p class='hint'>{{localize 'CARL_RPG.Item.Quest.None'}}</p>
+  {{/unless}}
+  {{#each quests as |quest|}}
+    <div class='quest' data-id='{{quest.id}}'>
+      <div class='quest-head'>
+        <img src='{{quest.img}}' width='24' height='24' />
+        <strong>{{quest.name}}</strong>
+        {{#if quest.completed}}<em>({{localize 'CARL_RPG.Item.Quest.Completed'}})</em>{{/if}}
+      </div>
+      {{#if quest.giver}}
+        <p class='hint'>{{localize 'CARL_RPG.Item.Quest.FIELDS.giver.label'}}: {{quest.giver}}</p>
+      {{/if}}
+      {{#if quest.deadlineLabel}}
+        <p class='hint'>{{quest.deadlineLabel}}</p>
+      {{/if}}
+      <ol class='items-list'>
+        {{#each quest.objectives as |objective|}}
+          <li class='item flexrow'>
+            <label>
+              <input
+                class='quest-objective'
+                type='checkbox'
+                data-index='{{objective.index}}'
+                {{#if objective.done}}checked{{/if}}
+                {{#if quest.completed}}disabled{{/if}}
+              />
+              {{objective.text}}
+            </label>
+          </li>
+        {{/each}}
+      </ol>
+      <p class='hint'>
+        {{localize 'CARL_RPG.Item.Quest.Reward'}}: {{quest.gold}} gold{{#if quest.box}}, {{quest.box}}{{/if}}{{#if quest.achievement}}, {{quest.achievement}}{{/if}}
+      </p>
+      <div class='quest-actions'>
+        {{#if quest.canComplete}}
+          <button type='button' data-action='completeQuest'>{{localize 'CARL_RPG.Item.Quest.Complete'}}</button>
+        {{/if}}
+        {{#if @root.isGM}}
+          <button type='button' data-action='removeQuest'>{{localize 'CARL_RPG.Item.Quest.Remove'}}</button>
+        {{/if}}
+      </div>
+    </div>
+  {{/each}}
+</section>

@@ -171,6 +171,7 @@
         "Achievements": "Achievements",
         "MobAbilities": "Mob Abilities",
         "Loot": "Loot",
+        "Quests": "Quests",
         "Effects": "Buffs/Debuffs",
         "Hotlist": "Hotlist",
         "Personal": "Personal",
@@ -351,6 +352,32 @@
         "Restock": "Restock",
         "RestockAmount": "Add how many?",
         "AlreadyUnlimited": "This item's stock is unlimited."
+      },
+      "Quest": {
+        "FIELDS": {
+          "giver": {"label": "Giver"},
+          "deadline": {"label": "Deadline", "value": "Floor or days"},
+          "objectives": {"label": "Objectives"},
+          "rewardGold": {"label": "Gold reward"},
+          "rewardBox": {"label": "Loot box reward"},
+          "rewardAchievement": {"label": "Achievement reward"}
+        },
+        "DeadlineNone": "No deadline",
+        "DeadlineFloor": "Due by floor {floor}",
+        "DeadlineDays": "{days} days left",
+        "Floor": "By floor",
+        "Days": "Days left",
+        "AddObjective": "Add objective",
+        "Give": "Give to a crawler",
+        "Complete": "Complete quest",
+        "Completed": "Completed",
+        "Remove": "Remove",
+        "Reward": "Reward",
+        "DropBox": "Drop a loot box here",
+        "DropAchievement": "Drop an achievement here",
+        "WrongAchievement": "Only an achievement can go here.",
+        "None": "No quests yet.",
+        "Done": "{crawler} completed {quest}."
       },
       "Sponsor": {
         "FIELDS": {
@@ -1571,6 +1598,7 @@
       "mobAbility": "Mob Ability",
       "lootBox": "Loot Box",
         "store": "Store",
+        "quest": "Quest",
       "achievement": "Achievement",
       "race": "Race",
       "class": "Class",

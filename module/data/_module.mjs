@@ -21,3 +21,4 @@ export { default as CarlRPGPersonalSpace } from './item-personal-space.mjs';
 export { default as CarlRPGClub } from './item-club.mjs';
 export { default as CarlRPGDeity } from './item-deity.mjs';
 export { default as CarlRPGStore } from './item-store.mjs';
+export { default as CarlRPGQuest } from './item-quest.mjs';

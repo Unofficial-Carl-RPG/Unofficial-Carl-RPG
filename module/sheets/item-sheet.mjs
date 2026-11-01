@@ -53,6 +53,9 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       removeReward: this._removeReward,
     removeListing: this._removeListing,
     openStore: this._openStore,
+    giveQuest: this._giveQuest,
+    addObjective: this._addObjective,
+    removeObjective: this._removeObjective,
     restockListing: this._restockListing,
       clearReward: this._clearReward,
       addPrerequisite: this._addPrerequisite,
@@ -124,6 +127,9 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
     },
     attributesStore: {
       template: 'systems/carl-rpg/templates/item/attribute-parts/store.hbs',
+    },
+    attributesQuest: {
+      template: 'systems/carl-rpg/templates/item/attribute-parts/quest.hbs',
     },
     attributesAchievement: {
       template: 'systems/carl-rpg/templates/item/attribute-parts/achievement.hbs',
@@ -197,6 +203,9 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       case 'store':
         options.parts.push('attributesStore');
         break;
+      case 'quest':
+        options.parts.push('attributesQuest');
+        break;
       case 'personalSpace':
         options.parts.push('attributesPersonalSpace');
         break;
@@ -246,6 +255,14 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       fields: this.document.schema.fields,
       systemFields: this.document.system.schema.fields,
     };
+
+    // Quests: the names of the reward loot box and achievement (drop boxes show them).
+    if (this.item.type === 'quest') {
+      const { rewardBox, rewardAchievement } = this.item.system;
+      context.rewardBoxName = rewardBox ? (await fromUuid(rewardBox))?.name ?? '' : '';
+      context.rewardAchName = rewardAchievement ? (await fromUuid(rewardAchievement))?.name ?? '' : '';
+      context.isGM = game.user.isGM;
+    }
 
     // Stores: each listing's item, its value, and its price and stock as set
     // (a blank price or stock shows the placeholder).
@@ -601,6 +618,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       case 'attributesAchievement':
       case 'attributesSponsor':
       case 'attributesStore':
+      case 'attributesQuest':
       case 'attributesOrigin':
       case 'attributesBackground':
       case 'grantedSkills':
@@ -786,6 +804,9 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
           // Ignored: the choice just won't be remembered.
         }
       });
+    }
+    for (const input of this.element.querySelectorAll('.quest-obj-text')) {
+      input.addEventListener('change', () => this._saveObjectives());
     }
     // Store prices and stock save the whole list when changed (no form names).
     for (const input of this.element.querySelectorAll('.store-price, .store-quantity')) {
@@ -1106,7 +1127,18 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
 
   /** A drop box was dropped on: store the dropped document's UUID. */
   async _onDropTarget(zone, data) {
-    // The reward loot box of an achievement.
+    // A quest's reward achievement, or an achievement's reward box (below, by field).
+    if (zone.dataset.accept === 'achievement') {
+      const dropped = data.type === 'Item' && data.uuid ? await fromUuid(data.uuid) : null;
+      if (dropped?.type !== 'achievement') {
+        ui.notifications.warn(game.i18n.localize('CARL_RPG.Item.Quest.WrongAchievement'));
+        return false;
+      }
+      await this.item.update({ ['system.' + zone.dataset.field]: dropped.uuid });
+      return true;
+    }
+
+    // The reward loot box of an achievement or a quest.
     if (zone.dataset.accept === 'lootBox') {
       const dropped =
         data.type === 'Item' && data.uuid ? await fromUuid(data.uuid) : null;
@@ -1116,7 +1148,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
         );
         return false;
       }
-      await this.item.update({ 'system.lootBox': dropped.uuid });
+      await this.item.update({ ['system.' + (zone.dataset.field || 'lootBox')]: dropped.uuid });
       return true;
     }
 
@@ -1343,6 +1375,63 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       listing.startStock = quantity === '' ? null : Math.max(0, Math.floor(Number(quantity)) || 0);
     }
     await this.item.update({ 'system.listings': listings });
+  }
+
+  /** Quests: save the objective texts (the rows have no form names). */
+  async _saveObjectives() {
+    const objectives = this.item.toObject().system.objectives;
+    const updated = [...this.element.querySelectorAll('.quest-obj')].map((row, index) => ({
+      text: row.querySelector('.quest-obj-text').value,
+      done: objectives[index]?.done ?? false,
+    }));
+    await this.item.update({ 'system.objectives': updated });
+  }
+
+  /** Quests: add an objective row. */
+  static async _addObjective() {
+    const objectives = this.item.toObject().system.objectives;
+    objectives.push({ text: '', done: false });
+    await this.item.update({ 'system.objectives': objectives });
+  }
+
+  /** Quests: remove an objective row. */
+  static async _removeObjective(event, target) {
+    const index = Number(target.closest('.quest-obj').dataset.index);
+    const objectives = this.item.toObject().system.objectives;
+    objectives.splice(index, 1);
+    await this.item.update({ 'system.objectives': objectives });
+  }
+
+  /** GM: give this quest to a crawler (picked here). It is copied onto their sheet. */
+  static async _giveQuest() {
+    const crawlers = game.actors.filter((a) => a.type === 'crawler');
+    if (!crawlers.length) {
+      ui.notifications.warn(game.i18n.localize('CARL_RPG.Item.Store.NoCrawlers'));
+      return;
+    }
+    const choices = crawlers
+      .map((a) => `<option value="${a.id}">${foundry.utils.escapeHTML(a.name)}</option>`)
+      .join('');
+    const id = await CarlRPGDialog.prompt({
+      window: { title: 'CARL_RPG.Item.Quest.Give' },
+      content: `<div class="form-group"><label>${game.i18n.localize('CARL_RPG.Item.Store.OpenFor')}</label>
+        <select name="crawler">${choices}</select></div>`,
+      ok: {
+        label: 'CARL_RPG.Item.Quest.Give',
+        callback: (event, button) => button.form.elements.crawler.value,
+      },
+    });
+    const actor = id ? game.actors.get(id) : null;
+    if (!actor) return;
+    const data = this.item.toObject();
+    delete data._id;
+    data.system.completed = false;
+    data.system.objectives = data.system.objectives.map((o) => ({ ...o, done: false }));
+    data.flags = {
+      ...(data.flags ?? {}),
+      'carl-rpg': { ...(data.flags?.['carl-rpg'] ?? {}), questSource: this.item.uuid },
+    };
+    await actor.createEmbeddedDocuments('Item', [data]);
   }
 
   /** GM: open the store for the whole party or one crawler, picked here. */

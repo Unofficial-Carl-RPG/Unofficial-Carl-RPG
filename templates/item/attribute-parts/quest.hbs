@@ -1,0 +1,101 @@
+{{! Attributes Tab (Quest): giver, deadline, objectives and rewards }}
+<section
+  class='tab attributes {{tab.cssClass}}'
+  data-group='primary'
+  data-tab='attributes'
+>
+  <div class='resource'>
+    <label class='resource-label' for='system.giver'>{{localize 'CARL_RPG.Item.Quest.FIELDS.giver.label'}}</label>
+    <input type='text' name='system.giver' value='{{system.giver}}' {{#unless editable}}disabled{{/unless}} />
+  </div>
+
+  <div class='grid grid-2col'>
+    <div class='resource'>
+      <label class='resource-label' for='system.deadline.type'>{{localize 'CARL_RPG.Item.Quest.FIELDS.deadline.label'}}</label>
+      <select name='system.deadline.type' {{#unless editable}}disabled{{/unless}}>
+        <option value='none' {{#if (eq system.deadline.type 'none')}}selected{{/if}}>{{localize 'CARL_RPG.Item.Quest.DeadlineNone'}}</option>
+        <option value='floor' {{#if (eq system.deadline.type 'floor')}}selected{{/if}}>{{localize 'CARL_RPG.Item.Quest.Floor'}}</option>
+        <option value='days' {{#if (eq system.deadline.type 'days')}}selected{{/if}}>{{localize 'CARL_RPG.Item.Quest.Days'}}</option>
+      </select>
+    </div>
+    <div class='resource'>
+      <label class='resource-label' for='system.deadline.value'>{{localize 'CARL_RPG.Item.Quest.FIELDS.deadline.value'}}</label>
+      <input
+        type='number'
+        name='system.deadline.value'
+        value='{{system.deadline.value}}'
+        min='0'
+        step='1'
+        data-dtype='Number'
+        {{#unless editable}}disabled{{/unless}}
+      />
+    </div>
+  </div>
+
+  <div class='resource'>
+    <label class='resource-label'>{{localize 'CARL_RPG.Item.Quest.FIELDS.objectives.label'}}</label>
+    <ol class='items-list'>
+      {{#each system.objectives as |objective index|}}
+        <li class='item flexrow quest-obj' data-index='{{index}}'>
+          <input
+            class='quest-obj-text'
+            type='text'
+            value='{{objective.text}}'
+            {{#unless @root.editable}}disabled{{/unless}}
+          />
+          {{#if @root.editable}}
+            <a class='item-control item-delete' data-action='removeObjective'>
+              <i class='fas fa-trash'></i>
+            </a>
+          {{/if}}
+        </li>
+      {{/each}}
+    </ol>
+    {{#if editable}}
+      <button type='button' data-action='addObjective'>
+        <i class='fas fa-plus'></i> {{localize 'CARL_RPG.Item.Quest.AddObjective'}}
+      </button>
+    {{/if}}
+  </div>
+
+  <div class='resource'>
+    <label class='resource-label' for='system.rewardGold'>{{localize 'CARL_RPG.Item.Quest.FIELDS.rewardGold.label'}}</label>
+    <input
+      type='number'
+      name='system.rewardGold'
+      value='{{system.rewardGold}}'
+      min='0'
+      step='1'
+      data-dtype='Number'
+      {{#unless editable}}disabled{{/unless}}
+    />
+  </div>
+
+  <div class='resource'>
+    <label class='resource-label'>{{localize 'CARL_RPG.Item.Quest.FIELDS.rewardBox.label'}}</label>
+    {{#if editable}}
+      <div class='drop-target' data-accept='lootBox' data-field='rewardBox'>
+        {{#if rewardBoxName}}{{rewardBoxName}}{{else}}{{localize 'CARL_RPG.Item.Quest.DropBox'}}{{/if}}
+      </div>
+    {{else}}
+      <p>{{#if rewardBoxName}}{{rewardBoxName}}{{else}}-{{/if}}</p>
+    {{/if}}
+  </div>
+
+  <div class='resource'>
+    <label class='resource-label'>{{localize 'CARL_RPG.Item.Quest.FIELDS.rewardAchievement.label'}}</label>
+    {{#if editable}}
+      <div class='drop-target' data-accept='achievement' data-field='rewardAchievement'>
+        {{#if rewardAchName}}{{rewardAchName}}{{else}}{{localize 'CARL_RPG.Item.Quest.DropAchievement'}}{{/if}}
+      </div>
+    {{else}}
+      <p>{{#if rewardAchName}}{{rewardAchName}}{{else}}-{{/if}}</p>
+    {{/if}}
+  </div>
+
+  {{#if isGM}}
+    <button type='button' data-action='giveQuest'>
+      <i class='fas fa-scroll'></i> {{localize 'CARL_RPG.Item.Quest.Give'}}
+    </button>
+  {{/if}}
+</section>

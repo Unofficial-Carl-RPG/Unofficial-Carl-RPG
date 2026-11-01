@@ -83,6 +83,8 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       clearReward: editOnly(this._clearReward),
       giveReward: this._giveReward,
     lootMob: this._lootMob,
+    completeQuest: this._completeQuest,
+    removeQuest: this._removeQuest,
     removeLoot: this._removeLoot,
       viewDoc: this._viewDoc,
       createDoc: editOnly(this._createDoc),
@@ -172,6 +174,10 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       template: 'systems/carl-rpg/templates/actor/mob-abilities.hbs',
       scrollable: [""],
     },
+    quests: {
+      template: 'systems/carl-rpg/templates/actor/quests.hbs',
+      scrollable: [""],
+    },
     loot: {
       template: 'systems/carl-rpg/templates/actor/mob-loot.hbs',
       scrollable: [""],
@@ -207,7 +213,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
     // Control which parts show based on document subtype
     switch (this.document.type) {
       case 'crawler':
-        options.parts.push('abilities', 'hotlist', 'features', 'spells', 'gear', 'inventory', 'achievements', 'effects', 'personal');
+        options.parts.push('abilities', 'hotlist', 'features', 'spells', 'gear', 'inventory', 'achievements', 'quests', 'effects', 'personal');
         break;
       case 'mob':
         options.parts.push('abilities', 'mobAbilities', 'loot', 'effects');
@@ -224,6 +230,8 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
     // hidden in the Inventory template). Limited viewers keep their Notes.
     if (!this.document.isOwner) {
       options.parts = options.parts.filter((part) => part !== 'hotlist');
+      // Quests are shown to the owner (and the GM) only.
+      if (!this.actor.isOwner) options.parts = options.parts.filter((part) => part !== 'quests');
     } else {
       options.parts.push('biography');
     }
@@ -257,6 +265,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
 
     // Offloading context prep to a helper function
     await this._prepareLootRows(context);
+    await this._prepareQuests(context);
     this._prepareItems(context);
 
     // The crawler's hotlist: one box per slot (`hotlist.size`), each showing the
@@ -561,6 +570,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       case 'achievements':
       case 'mobAbilities':
       case 'loot':
+      case 'quests':
       case 'hotlist':
       case 'personal':
       case 'mount':
@@ -659,6 +669,10 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
         case 'achievements':
           tab.id = 'achievements';
           tab.label += 'Achievements';
+          break;
+        case 'quests':
+          tab.id = 'quests';
+          tab.label += 'Quests';
           break;
         case 'loot':
           tab.id = 'loot';
@@ -958,6 +972,9 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       );
     }
     // Hotlist slot dropdowns save the picked item (they have no form name).
+    for (const box of this.element.querySelectorAll('.quest-objective')) {
+      box.addEventListener('change', (event) => this._saveQuestObjectives(event));
+    }
     for (const input of this.element.querySelectorAll('.loot-chance')) {
       input.addEventListener('change', () => this._saveLootChances());
     }
@@ -1328,6 +1345,78 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
    * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
    * @protected
    */
+  /** The crawler's quests, with their reward and deadline, for the Quests tab. */
+  async _prepareQuests(context) {
+    context.isGM = game.user.isGM;
+    context.quests = await Promise.all(
+      (this.actor.itemTypes?.quest ?? []).map(async (quest) => {
+        const s = quest.system;
+        const box = s.rewardBox ? await fromUuid(s.rewardBox) : null;
+        const ach = s.rewardAchievement ? await fromUuid(s.rewardAchievement) : null;
+        let deadlineLabel = '';
+        if (s.deadline.type === 'floor') {
+          deadlineLabel = game.i18n.format('CARL_RPG.Item.Quest.DeadlineFloor', { floor: s.deadline.value });
+        } else if (s.deadline.type === 'days') {
+          deadlineLabel = game.i18n.format('CARL_RPG.Item.Quest.DeadlineDays', { days: s.deadline.value });
+        }
+        return {
+          id: quest.id,
+          name: quest.name,
+          img: quest.img,
+          giver: s.giver,
+          completed: s.completed,
+          canComplete: game.user.isGM && !s.completed,
+          deadlineLabel,
+          objectives: s.objectives.map((o, index) => ({ index, text: o.text, done: o.done })),
+          gold: s.rewardGold,
+          box: box?.name ?? '',
+          achievement: ach?.name ?? '',
+        };
+      })
+    );
+  }
+
+  /** A quest's objectives: its checkboxes save together. */
+  async _saveQuestObjectives(event) {
+    const questEl = event.currentTarget.closest('.quest');
+    const quest = this.actor.items.get(questEl?.dataset.id);
+    if (!quest) return;
+    const objectives = quest.toObject().system.objectives.map((o, index) => ({
+      ...o,
+      done: !!questEl.querySelector(`.quest-objective[data-index="${index}"]`)?.checked,
+    }));
+    await quest.update({ 'system.objectives': objectives });
+  }
+
+  /** GM: complete a quest on this crawler: pay its gold, give its loot box and achievement. */
+  static async _completeQuest(event, target) {
+    if (!game.user.isGM) return;
+    const quest = this.actor.items.get(target.closest('.quest').dataset.id);
+    if (!quest || quest.system.completed) return;
+    const { rewardGold, rewardBox, rewardAchievement } = quest.system;
+    if (rewardGold) await this.actor.addGold(rewardGold);
+    for (const uuid of [rewardBox, rewardAchievement]) {
+      const doc = uuid ? await fromUuid(uuid) : null;
+      if (doc?.documentName === 'Item') {
+        await this.actor.createEmbeddedDocuments('Item', [game.items.fromCompendium(doc)]);
+      }
+    }
+    await quest.update({ 'system.completed': true });
+    await ChatMessage.create({
+      content: `<div class="carl-quest-card">${game.i18n.format('CARL_RPG.Item.Quest.Done', {
+        crawler: this.actor.name,
+        quest: quest.name,
+      })}</div>`,
+    });
+  }
+
+  /** GM: remove a quest from this crawler. */
+  static async _removeQuest(event, target) {
+    if (!game.user.isGM) return;
+    const quest = this.actor.items.get(target.closest('.quest').dataset.id);
+    await quest?.delete();
+  }
+
   /** GM: loot this defeated mob, giving its loot to the crawler picked. */
   static async _lootMob() {
     await pickCrawlerAndLoot(this.actor);
