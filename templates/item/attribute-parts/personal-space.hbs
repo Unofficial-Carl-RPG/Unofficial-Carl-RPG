@@ -1,0 +1,31 @@
+{{! Attributes Tab (Personal Space) }}
+<section
+  class='tab attributes {{tab.cssClass}}'
+  data-group='primary'
+  data-tab='attributes'
+>
+  <div class='grid grid-2col'>
+    <div class='resource'>
+      <label class='resource-label' for='system.tier'>{{localize 'CARL_RPG.Item.PersonalSpace.FIELDS.tier.label'}}</label>
+      <input type='number' name='system.tier' value='{{system.tier}}' min='0' />
+    </div>
+    <div class='resource'>
+      <label class='resource-label' for='system.size'>{{localize 'CARL_RPG.Item.PersonalSpace.FIELDS.size.label'}}</label>
+      <select name='system.size'>
+        {{selectOptions sizeOptions selected=system.size}}
+      </select>
+    </div>
+  </div>
+
+  <div class='resource'>
+    <label class='resource-label'>{{localize 'CARL_RPG.Item.PersonalSpace.FIELDS.amenities.label'}}</label>
+    {{#each system.amenities as |amenity index|}}
+      <div class='amenity-row'>
+        <input type='text' name='system.amenities.{{index}}.name' value='{{amenity.name}}' placeholder='{{localize "CARL_RPG.Item.PersonalSpace.NamePlaceholder"}}' />
+        <input type='text' name='system.amenities.{{index}}.description' value='{{amenity.description}}' placeholder='{{localize "CARL_RPG.Item.PersonalSpace.DescPlaceholder"}}' />
+        <a class='item-control' data-action='removeAmenity' data-index='{{index}}' data-tooltip='{{localize "CARL_RPG.Item.PersonalSpace.Remove"}}'><i class='fas fa-trash'></i></a>
+      </div>
+    {{/each}}
+    <button type='button' data-action='addAmenity'>{{localize 'CARL_RPG.Item.PersonalSpace.Add'}}</button>
+  </div>
+</section>

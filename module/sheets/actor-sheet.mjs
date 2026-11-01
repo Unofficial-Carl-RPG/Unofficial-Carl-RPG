@@ -376,6 +376,16 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
         img: s.img,
       }));
       context.isGM = game.user.isGM;
+      // The Personal Space (one per crawler), with its amenities shown read-only.
+      const space = this.actor.itemTypes.personalSpace[0] ?? null;
+      context.personalSpace = space
+        ? {
+            name: space.name,
+            tier: space.system.tier,
+            size: CONFIG.CARL_RPG.sizeOptions()[space.system.size] ?? space.system.size,
+            amenities: space.system.amenities,
+          }
+        : null;
     }
 
     // Rank 5+ skills and spells that have already had their advancement try this
@@ -1544,6 +1554,11 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
    */
   async _onDropItemCreate(itemData, event) {
     itemData = itemData instanceof Array ? itemData : [itemData];
+    // A crawler has one Personal Space: a new one replaces the old.
+    if (itemData.some((d) => d.type === 'personalSpace')) {
+      const old = this.actor.itemTypes.personalSpace.map((i) => i.id);
+      if (old.length) await this.actor.deleteEmbeddedDocuments('Item', old);
+    }
     // A crawler can hold up to the sponsor limit (-1 means no limit).
     const limit = game.settings.get('carl-rpg', 'sponsorLimit');
     const incoming = itemData.filter((d) => d.type === 'sponsor');

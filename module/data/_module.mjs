@@ -16,3 +16,4 @@ export { default as CarlRPGAchievement } from './item-achievement.mjs';
 export { CarlRPGOrigin, CarlRPGRace, CarlRPGClass } from './item-origin.mjs';
 export { default as CarlRPGBackground } from './item-background.mjs';
 export { default as CarlRPGSponsor } from './item-sponsor.mjs';
+export { default as CarlRPGPersonalSpace } from './item-personal-space.mjs';

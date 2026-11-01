@@ -188,6 +188,17 @@
           "notes": {"label": "Notes"}
         }
       },
+      "PersonalSpace": {
+        "FIELDS": {
+          "tier": {"label": "Tier"},
+          "size": {"label": "Size"},
+          "amenities": {"label": "Amenities"}
+        },
+        "NamePlaceholder": "Amenity",
+        "DescPlaceholder": "Description",
+        "Add": "Add an amenity",
+        "Remove": "Remove this amenity"
+      },
       "Achievement": {
         "FIELDS": {
           "lootBox": {"label": "Reward loot box"}
@@ -528,6 +539,7 @@
       "NoBoxes": "There are no loot boxes in the world yet.",
       "GiftCard": "{sponsor} sends {name} a gift: {box}!",
       "Cancel": "Cancel",
+      "NoSpace": "No Personal Space yet. Drop one here.",
       "Remove": "Remove this sponsor",
       "Name": "Sponsor name"
     },
@@ -1299,7 +1311,8 @@
       "race": "Race",
       "class": "Class",
       "background": "Background",
-      "sponsor": "Sponsor"
+      "sponsor": "Sponsor",
+      "personalSpace": "Personal Space"
     }
   }
 }

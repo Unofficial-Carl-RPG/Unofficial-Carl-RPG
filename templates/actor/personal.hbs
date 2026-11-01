@@ -24,6 +24,20 @@
     {{/if}}
   </div>
 
+  <div class='space-panel flexcol'>
+    <label class='resource-label'>{{localize 'TYPES.Item.personalSpace'}}</label>
+    {{#if personalSpace}}
+      <p><strong>{{personalSpace.name}}</strong> · {{localize 'CARL_RPG.Item.PersonalSpace.FIELDS.tier.label'}} {{personalSpace.tier}} · {{personalSpace.size}}</p>
+      <ul>
+        {{#each personalSpace.amenities as |amenity|}}
+          <li><strong>{{amenity.name}}</strong> {{amenity.description}}</li>
+        {{/each}}
+      </ul>
+    {{else}}
+      <p class='hint'>{{localize 'CARL_RPG.Sponsors.NoSpace'}}</p>
+    {{/if}}
+  </div>
+
   <div class='kills-panel flexcol'>
     <label class='resource-label'>{{localize 'CARL_RPG.Actor.Crawler.Extras.Kills'}}</label>
     {{#each system.killLog as |kill index|}}

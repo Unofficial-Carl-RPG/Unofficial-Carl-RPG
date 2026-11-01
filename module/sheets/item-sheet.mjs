@@ -36,6 +36,8 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
   static DEFAULT_OPTIONS = {
     classes: ['carl-rpg', 'item'],
     actions: {
+      addAmenity: this._addAmenity,
+      removeAmenity: this._removeAmenity,
       onEditImage: this._onEditImage,
       viewDoc: this._viewEffect,
       createDoc: this._createEffect,
@@ -103,6 +105,9 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
     },
     attributesLootBox: {
       template: 'systems/carl-rpg/templates/item/attribute-parts/loot-box.hbs',
+    },
+    attributesPersonalSpace: {
+      template: 'systems/carl-rpg/templates/item/attribute-parts/personal-space.hbs',
     },
     attributesSponsor: {
       template: 'systems/carl-rpg/templates/item/attribute-parts/sponsor.hbs',
@@ -175,6 +180,9 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
         break;
       case 'sponsor':
         options.parts.push('attributesSponsor');
+        break;
+      case 'personalSpace':
+        options.parts.push('attributesPersonalSpace');
         break;
       case 'race':
       case 'class':
@@ -546,6 +554,10 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
         // Necessary for preserving active tab on re-render
         context.tab = context.tabs[partId];
         break;
+      case 'attributesPersonalSpace':
+        context.tab = context.tabs[partId];
+        context.sizeOptions = CONFIG.CARL_RPG.sizeOptions();
+        break;
       case 'description':
         context.tab = context.tabs[partId];
         // Enrich description info for display
@@ -617,6 +629,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
         case 'attributesLootBox':
         case 'attributesAchievement':
       case 'attributesSponsor':
+      case 'attributesPersonalSpace':
         case 'attributesOrigin':
         case 'attributesBackground':
           tab.id = 'attributes';
@@ -747,6 +760,19 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
    * @returns {Promise}
    * @protected
    */
+  /** Add an empty amenity row to a Personal Space item. */
+  static async _addAmenity() {
+    const amenities = [...this.item.system.amenities, { name: '', description: '' }];
+    await this.item.update({ 'system.amenities': amenities });
+  }
+
+  /** Remove the amenity row the button belongs to. */
+  static async _removeAmenity(event, target) {
+    const index = Number(target.dataset.index);
+    const amenities = this.item.system.amenities.filter((_, i) => i !== index);
+    await this.item.update({ 'system.amenities': amenities });
+  }
+
   static async _onEditImage(event, target) {
     const attr = target.dataset.edit;
     const current = foundry.utils.getProperty(this.document, attr);
