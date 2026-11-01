@@ -298,8 +298,36 @@ function embedCard(doc, label) {
   body.innerHTML = doc.system?.description ?? '';
   card.append(body);
 
-  card.addEventListener('click', () => doc.sheet?.render(true));
+  // Every upgrade the item has, reached or not.
+  const upgrades = Array.isArray(doc.system?.upgrades) ? doc.system.upgrades : [];
+  if (upgrades.length) {
+    const list = document.createElement('div');
+    list.className = 'carl-embed-upgrades';
+    const heading = document.createElement('strong');
+    heading.textContent = loc('Upgrades');
+    list.append(heading);
+    for (const upgrade of [...upgrades].sort((a, b) => a.rank - b.rank)) {
+      const row = document.createElement('div');
+      row.textContent = `${loc('Rank')} ${upgrade.rank}: ${upgrade.description ?? ''}`.trim();
+      list.append(row);
+    }
+    card.append(list);
+  }
+  card.addEventListener('click', () => openEmbed(doc, label));
   return card;
+}
+
+/**
+ * Clicking an embed opens the real sheet for a player who can view the document,
+ * otherwise a read-only preview of the same card.
+ */
+function openEmbed(doc, label) {
+  if (doc.testUserPermission(game.user, 'OBSERVER')) return doc.sheet?.render(true);
+  return CarlRPGDialog.prompt({
+    window: { title: label || doc.name },
+    content: `<div class="carl-embed-preview">${embedCard(doc, label).outerHTML}</div>`,
+    ok: { label: loc('Close'), callback: () => true },
+  });
 }
 
 /**

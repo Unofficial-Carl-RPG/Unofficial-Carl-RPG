@@ -23,6 +23,8 @@
       "Mana": "Mana",
       "Damage": "Damage",
       "Value": "Value",
+      "Upgrades": "Upgrades",
+      "Close": "Close",
       "Degree": {
         "critHit": "Critical Hit",
         "amazing": "Amazing Success",
