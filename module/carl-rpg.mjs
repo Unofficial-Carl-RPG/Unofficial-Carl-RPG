@@ -38,6 +38,7 @@ import { registerRelay } from './helpers/relay.mjs';
 import { registerStores } from './helpers/store.mjs';
 import { registerMobLoot } from './helpers/mob-loot.mjs';
 import { registerJournalEnrichers } from './helpers/journal.mjs';
+import { CarlRPGActorDirectory } from './helpers/crawler-summary.mjs';
 // Import DataModel classes
 import * as models from './data/_module.mjs';
 
@@ -169,6 +170,9 @@ Hooks.once('init', function () {
     type: CarlRPGCreationSettings,
     restricted: true,
   });
+
+  // The Actors directory, with the crawler summary on its right-click menu.
+  CONFIG.ui.actors = CarlRPGActorDirectory;
 
   // The Dungeon Info tab: everyone sees it (players get the floor and the party
   // name, read-only); the GM gets the full controls.

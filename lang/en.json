@@ -1,5 +1,38 @@
 {
   "CARL_RPG": {
+    "Summary": {
+      "Menu": "Crawler summary",
+      "Title": "{name}: summary",
+      "SaveFile": "Save as file",
+      "Crawler": "Crawler",
+      "Race": "Race",
+      "Class": "Class",
+      "Level": "Level",
+      "Floor": "Floor",
+      "Gender": "Gender",
+      "Stats": "Stats",
+      "Skills": "Skills",
+      "Spells": "Spells",
+      "Gear": "Gear",
+      "Inventory": "Inventory",
+      "Gold": "Gold",
+      "Junk": "Misc Junk",
+      "Personal": "Personal",
+      "Sponsor": "Sponsor",
+      "Club": "Club",
+      "Deity": "Deity",
+      "Bio": "Bio",
+      "Notes": "Notes",
+      "Rank": "Rank",
+      "Mana": "Mana",
+      "Equipped": "equipped",
+      "Background": {
+        "pastTrauma": "Past trauma",
+        "popularity": "Popularity",
+        "looseEnds": "Loose ends",
+        "regrets": "Regrets"
+      }
+    },
     "Enrichers": {
       "Check": "Check",
       "CheckButton": "{stat} check, DC {dc}",
