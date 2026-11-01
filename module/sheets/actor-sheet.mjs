@@ -23,6 +23,7 @@ import { degreeOf, naturalD20 } from '../helpers/attacks.mjs';
 import { attemptAdvance, triedThisFloor } from '../helpers/advancement.mjs';
 import { offerAiFavor } from '../helpers/ai-favor.mjs';
 import { CarlRPGDialog } from '../helpers/dialog.mjs';
+import { setupItemFilters } from '../helpers/item-filter.mjs';
 
 const { api, sheets } = foundry.applications;
 
@@ -814,6 +815,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
   async _onRender(context, options) {
     await super._onRender(context, options);
     this._setupItemDescriptions();
+    setupItemFilters(this);
     // A read-only sheet (anyone who isn't an Owner): the links that change
     // something look inactive. Limited users also can't roll.
     this.element.classList.toggle('sheet-readonly', !this.isEditable);

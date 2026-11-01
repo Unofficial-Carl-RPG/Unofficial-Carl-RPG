@@ -583,6 +583,31 @@
       "ShowInChat": "Show in chat",
       "FullDescription": "Full description"
     },
+    "Filter": {
+      "Title": "Filter and sort",
+      "Search": "Search",
+      "Descriptions": "Descriptions",
+      "Clear": "Clear",
+      "Tags": "Tags",
+      "Any": "Any",
+      "All": "All",
+      "Equipped": "Equipped",
+      "NotEquipped": "Not equipped",
+      "Weapon": "Weapon",
+      "Armor": "Armor",
+      "Other": "Other",
+      "Consumable": "Consumable",
+      "SortHint": "Sort",
+      "Sort": {
+        "Manual": "Manual order",
+        "Name": "Name",
+        "Type": "Type",
+        "Rank": "Rank",
+        "Mana": "Mana cost",
+        "Uses": "Uses",
+        "Slot": "Slot"
+      }
+    },
     "Badges": {
       "Attack": "Attack",
       "Passive": "Passive",

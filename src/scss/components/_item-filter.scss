@@ -1,0 +1,70 @@
+// The filter and sort bar above each item list on a sheet.
+.item-filter-bar {
+  margin: 4px 0;
+  font-size: 0.9em;
+}
+
+.item-filter {
+  padding: 2px 4px;
+
+  > summary {
+    cursor: pointer;
+  }
+}
+
+.if-body {
+  padding: 4px 0;
+}
+
+.if-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.if-search {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
+.if-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.if-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.if-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 5px;
+  border: 1px solid color-mix(in srgb, var(--dcc-gold-dim) 60%, #000);
+  border-radius: 3px;
+  white-space: nowrap;
+
+  input {
+    margin: 0;
+  }
+}
+
+.if-tags {
+  margin-top: 4px;
+
+  > summary {
+    cursor: pointer;
+  }
+}
+
+// Rows the filters hide (kept in the DOM so the sort still works).
+.if-out {
+  display: none !important;
+}
