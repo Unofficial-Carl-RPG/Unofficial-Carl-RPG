@@ -12,6 +12,8 @@ export const REST_OUTSIDE_SETTING = 'restsOutsideSafeRoom';
 export const LOOT_OUTSIDE_SETTING = 'lootOutsideSafeRoom';
 export const FLOOR_NOTES_SETTING = 'floorNotes';
 export const FLOOR_RULES_SETTING = 'floorRules';
+export const ENCOUNTER_TABLES_SETTING = 'encounterTables';
+export const AUTO_COMBAT_SETTING = 'autoStartCombat';
 
 /** The two floor states. */
 export const FLOOR_STATES = ['exploring', 'safe'];
@@ -50,6 +52,22 @@ export function registerFloorSetting() {
       initial: null,
     }),
     onChange: () => ui.carlGM?.render(),
+  });
+  // The encounter tables: a roll table per floor (null: every floor).
+  game.settings.register('carl-rpg', ENCOUNTER_TABLES_SETTING, {
+    scope: 'world',
+    config: false,
+    type: Array,
+    default: [],
+    onChange: () => ui.carlGM?.render(),
+  });
+  // Placing mobs with no combat running starts one, when this is on.
+  game.settings.register('carl-rpg', AUTO_COMBAT_SETTING, {
+    name: 'CARL_RPG.Encounters.AutoCombatName',
+    hint: 'CARL_RPG.Encounters.AutoCombatHint',
+    scope: 'world',
+    config: true,
+    type: new foundry.data.fields.BooleanField({ initial: false }),
   });
   // The floor rules: events that run for the whole world (see helpers/events.mjs).
   game.settings.register('carl-rpg', FLOOR_RULES_SETTING, {
@@ -100,6 +118,15 @@ export function getFloorState() {
     return game.settings.get('carl-rpg', FLOOR_STATE_SETTING) ?? 'exploring';
   } catch (err) {
     return 'exploring';
+  }
+}
+
+/** The encounter tables: {floor: number|null, uuid} rows, where null means every floor. */
+export function getEncounterTables() {
+  try {
+    return game.settings.get('carl-rpg', ENCOUNTER_TABLES_SETTING) ?? [];
+  } catch (err) {
+    return [];
   }
 }
 

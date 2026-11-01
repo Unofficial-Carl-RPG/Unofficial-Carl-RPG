@@ -51,6 +51,28 @@
     </button>
   </section>
 
+  <section class='gm-section'>
+    <h4>{{localize 'CARL_RPG.Encounters.Title'}}</h4>
+    {{#each encounterRows}}
+      <div class='note-row enc-row' data-index='{{this.index}}'>
+        <input class='enc-floor' type='number' min='0' step='1' value='{{this.floor}}' placeholder='{{localize "CARL_RPG.Floor.EveryFloor"}}' />
+        <select class='enc-table'>
+          {{selectOptions @root.tableChoices selected=this.uuid blank=(localize 'CARL_RPG.Encounters.NoTableChosen')}}
+        </select>
+        <a data-action='removeEncounterTable' data-index='{{this.index}}' data-tooltip='{{localize "CARL_RPG.Floor.NoteRemove"}}'><i class='fas fa-trash'></i></a>
+      </div>
+    {{/each}}
+    <button type='button' class='announce-button' data-action='addEncounterTable'>
+      <i class='fas fa-plus'></i> {{localize 'CARL_RPG.Encounters.AddTable'}}
+    </button>
+    <button type='button' class='announce-button' data-action='rollEncounter'>
+      <i class='fas fa-dice'></i> {{localize 'CARL_RPG.Encounters.Roll'}}
+    </button>
+    <button type='button' class='announce-button' data-action='openEncounterBuilder'>
+      <i class='fas fa-users'></i> {{localize 'CARL_RPG.Encounters.OpenBuilder'}}
+    </button>
+  </section>
+
   {{> "systems/carl-rpg/templates/sidebar/party-management.hbs"}}
 
   {{! Shown only while loot box approval is turned on in the system settings }}

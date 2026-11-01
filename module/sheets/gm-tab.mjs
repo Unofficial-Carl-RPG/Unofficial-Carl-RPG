@@ -14,8 +14,10 @@ import {
   FLOOR_SETTING,
   FLOOR_STATE_SETTING,
   FLOOR_STATES,
+  ENCOUNTER_TABLES_SETTING,
   FLOOR_NOTES_SETTING,
   getDaysLeft,
+  getEncounterTables,
   getFloor,
   getFloorNotes,
   getFloorState,
@@ -33,6 +35,8 @@ import {
 } from '../helpers/party.mjs';
 import { announceBossBattle, findBosses } from '../helpers/announcement.mjs';
 import { openFloorRules } from './floor-rules.mjs';
+import { openEncounterBuilder } from './encounter-builder.mjs';
+import { rollEncounter } from '../helpers/encounters.mjs';
 import { confirmRest } from '../helpers/rests.mjs';
 import { lootApprovalRequired, waitingApprovals } from '../helpers/loot.mjs';
 
@@ -58,6 +62,10 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
       daysUp: CarlRPGGMTab._onDaysUp,
       noteAdd: CarlRPGGMTab._onNoteAdd,
       openFloorRules: CarlRPGGMTab._onOpenFloorRules,
+      addEncounterTable: CarlRPGGMTab._onAddEncounterTable,
+      removeEncounterTable: CarlRPGGMTab._onRemoveEncounterTable,
+      rollEncounter: CarlRPGGMTab._onRollEncounter,
+      openEncounterBuilder: CarlRPGGMTab._onOpenEncounterBuilder,
       noteRemove: CarlRPGGMTab._onNoteRemove,
       daysDown: CarlRPGGMTab._onDaysDown,
       announceBoss: CarlRPGGMTab._onAnnounceBoss,
@@ -151,6 +159,17 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
     }));
     if (!context.isGM) return context;
     // The bosses to announce, found automatically (see helpers/announcement.mjs).
+    // The encounter tables by floor, and the world's roll tables to choose from.
+    context.encounterRows = getEncounterTables().map((row, index) => ({
+      index,
+      floor: row.floor ?? '',
+      uuid: row.uuid,
+    }));
+    context.tableChoices = Object.fromEntries(
+      game.tables.contents
+        .map((table) => [table.uuid, table.name])
+        .sort((a, b) => a[1].localeCompare(b[1]))
+    );
     context.bosses = this.#bossRows();
     // Loot box approval is a system setting; the tab only shows its section
     // while it is on, with how many requests are waiting for this GM.
@@ -201,6 +220,15 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
     el.querySelector('.floor-state')?.addEventListener('change', (event) =>
       this.#setFloorState(event.currentTarget.value)
     );
+    for (const row of el.querySelectorAll('.enc-row')) {
+      const index = Number(row.dataset.index);
+      row.querySelector('.enc-floor')?.addEventListener('change', (event) =>
+        this.#setEncounterTable(index, { floor: event.currentTarget.value })
+      );
+      row.querySelector('.enc-table')?.addEventListener('change', (event) =>
+        this.#setEncounterTable(index, { uuid: event.currentTarget.value })
+      );
+    }
     for (const row of el.querySelectorAll('.note-row')) {
       const index = Number(row.dataset.index);
       row.querySelector('.note-floor')?.addEventListener('change', (event) =>
@@ -283,6 +311,27 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
     await game.settings.set('carl-rpg', DAYS_SETTING, days);
   }
 
+  /** Save an encounter table row's floor (blank means every floor) or its roll table. */
+  async #setEncounterTable(index, changes) {
+    if (!game.user.isGM) return;
+    const tables = foundry.utils.deepClone(getEncounterTables());
+    const row = tables[index];
+    if (!row) return;
+    if ('floor' in changes) {
+      const text = String(changes.floor ?? '').trim();
+      const n = text === '' ? null : Math.trunc(Number(text));
+      row.floor = Number.isFinite(n) ? Math.max(0, n) : null;
+    }
+    if ('uuid' in changes) row.uuid = String(changes.uuid ?? '');
+    await game.settings.set('carl-rpg', ENCOUNTER_TABLES_SETTING, tables);
+  }
+
+  /** Save the encounter table rows (GM only). */
+  async #saveEncounterTables(tables) {
+    if (!game.user.isGM) return;
+    await game.settings.set('carl-rpg', ENCOUNTER_TABLES_SETTING, tables);
+  }
+
   /** Save the floor notes list (GM only). */
   async #saveNotes(notes) {
     if (!game.user.isGM) return;
@@ -306,6 +355,27 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
   /** Save the party's name. */
   async #setParty(name) {
     await setPartyName(name);
+  }
+
+  /** @this CarlRPGGMTab */
+  static async _onAddEncounterTable() {
+    await this.#saveEncounterTables([...getEncounterTables(), { floor: null, uuid: '' }]);
+  }
+
+  /** @this CarlRPGGMTab */
+  static async _onRemoveEncounterTable(event, target) {
+    const index = Number(target.dataset.index);
+    await this.#saveEncounterTables(getEncounterTables().filter((_, i) => i !== index));
+  }
+
+  /** @this CarlRPGGMTab */
+  static async _onRollEncounter() {
+    await rollEncounter();
+  }
+
+  /** @this CarlRPGGMTab */
+  static _onOpenEncounterBuilder() {
+    openEncounterBuilder();
   }
 
   /** @this CarlRPGGMTab */

@@ -1,0 +1,17 @@
+{{! The encounter builder: several mobs, and how many of each, placed on the map at once. }}
+<div class='encounter-builder'>
+  <p class='hint'>{{localize 'CARL_RPG.Encounters.BuilderHint'}}</p>
+  {{#each rows}}
+    <div class='event-row'>
+      <select class='b-mob' data-index='{{this.index}}'>
+        {{selectOptions @root.mobChoices selected=this.uuid blank=(localize 'CARL_RPG.Encounters.ChooseMob')}}
+      </select>
+      <input class='b-count' type='number' min='1' step='1' value='{{this.count}}' data-index='{{this.index}}' />
+      <a class='item-control item-delete' data-action='removeMob' data-index='{{this.index}}' data-tooltip='{{localize "CARL_RPG.Events.Remove"}}'><i class='fas fa-trash'></i></a>
+    </div>
+  {{/each}}
+  <a class='event-add' data-action='addMob'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Encounters.AddMob'}}</a>
+  <button type='button' class='announce-button' data-action='place'>
+    <i class='fas fa-location-crosshairs'></i> {{localize 'CARL_RPG.Encounters.PlaceButton'}}
+  </button>
+</div>

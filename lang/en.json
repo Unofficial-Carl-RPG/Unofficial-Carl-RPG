@@ -22,6 +22,26 @@
       "RulesHint": "Rules run for the whole world when their trigger happens. To limit one to a floor, add a Floor is exactly condition.",
       "OpenRules": "Edit floor rules"
     },
+    "Encounters": {
+      "Title": "Encounters",
+      "Roll": "Roll encounter",
+      "OpenBuilder": "Encounter builder",
+      "AddTable": "Add a table",
+      "AddMob": "Add a mob",
+      "NoTable": "This floor has no encounter table.",
+      "NoTableChosen": "Choose a roll table",
+      "NoMobs": "There are no mobs to place.",
+      "NoScene": "Open a scene to place mobs.",
+      "ClickToPlace": "Click the map where the mobs should go. Escape cancels.",
+      "Rolled": "Encounter",
+      "PlaceHint": "Confirm, then click the map to place these mobs.",
+      "Builder": "Encounter builder",
+      "BuilderHint": "Pick the mobs and how many of each.",
+      "ChooseMob": "Choose a mob",
+      "PlaceButton": "Place mobs",
+      "AutoCombatName": "Start a combat for encounters",
+      "AutoCombatHint": "When on, placing mobs with no combat running starts one on the scene."
+    },
     "Targeting": {
       "Mode": "Targets",
       "ModeNone": "None (plain use)",
