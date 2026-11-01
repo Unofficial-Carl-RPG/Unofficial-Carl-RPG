@@ -15,6 +15,7 @@ import {
   optionsNote,
   statOfFormula,
 } from '../helpers/roll-dialog.mjs';
+import { chooseTargets } from '../helpers/targeting.mjs';
 import { evaluatePrerequisites, raceOf } from '../helpers/origins.mjs';
 
 /** What identifies an achievement: its identifier, or its name if it has none. */
@@ -682,6 +683,9 @@ export class CarlRPGItem extends Item {
       if (buildFormula(this.system.formula, chosen) === null) return null;
       rollOptions = chosen;
     }
+
+    // Targets are picked before anything is spent or rolled (see helpers/targeting.mjs).
+    if (depth === 0 && this.actor?.type !== 'mob' && !(await chooseTargets(this))) return null;
 
     // In combat, using it takes an action (asking first if there are none left).
     const claim = await this.#claimAction(depth, declared);

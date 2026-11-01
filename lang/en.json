@@ -19,7 +19,16 @@
       "ShapeCone": "Cone",
       "ShapeRay": "Ray",
       "ShapeRect": "Rectangle",
-      "Size": "Area size (feet)"
+      "Size": "Area size (feet)",
+      "Title": "Targets for {name}",
+      "Confirm": "Confirm",
+      "Cancel": "Cancel",
+      "Selected": "Selected {n} of {m}",
+      "Nearest": "Select nearest",
+      "Remove": "Remove",
+      "OutOfRange": "out of range",
+      "WrongSide": "That token can't be a target for this item.",
+      "Full": "This item targets up to {m}."
     },
     "Ability": {
       "Str": { "long": "Strength", "abbr": "str" },
