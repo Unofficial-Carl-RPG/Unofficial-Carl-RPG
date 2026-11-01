@@ -1,3 +1,5 @@
+import { CarlRPGDialog } from '../helpers/dialog.mjs';
+import { openStoreFor } from '../helpers/store.mjs';
 import { skillStatLabel } from '../helpers/creation.mjs';
 import { describeBadges } from '../helpers/item-badges.mjs';
 import {
@@ -50,6 +52,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       removeEmbeddedSkill: this._removeEmbeddedSkill,
       removeReward: this._removeReward,
     removeListing: this._removeListing,
+    openStore: this._openStore,
       clearReward: this._clearReward,
       addPrerequisite: this._addPrerequisite,
       addTag: this._addTag,
@@ -1335,6 +1338,29 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       listing.quantity = quantity === '' ? null : Math.max(0, Math.floor(Number(quantity)) || 0);
     }
     await this.item.update({ 'system.listings': listings });
+  }
+
+  /** GM: open the store for the whole party or one crawler, picked here. */
+  static async _openStore() {
+    const crawlers = game.actors.filter((a) => a.type === 'crawler');
+    if (!crawlers.length) {
+      ui.notifications.warn(game.i18n.localize('CARL_RPG.Item.Store.NoCrawlers'));
+      return;
+    }
+    const choices = [
+      `<option value="party">${game.i18n.localize('CARL_RPG.Item.Store.Party')}</option>`,
+      ...crawlers.map((a) => `<option value="${a.id}">${a.name}</option>`),
+    ].join('');
+    const target = await CarlRPGDialog.prompt({
+      window: { title: 'CARL_RPG.Item.Store.Open' },
+      content: `<div class="form-group"><label>${game.i18n.localize('CARL_RPG.Item.Store.OpenFor')}</label>
+        <select name="target">${choices}</select></div>`,
+      ok: {
+        label: 'CARL_RPG.Item.Store.Open',
+        callback: (event, button) => button.form.elements.target.value,
+      },
+    });
+    if (target) await openStoreFor(this.item, target);
   }
 
   /** Remove one listing from the store. */

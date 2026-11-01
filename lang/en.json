@@ -329,7 +329,19 @@
         "Quantity": "Stock",
         "Unlimited": "Unlimited",
         "Remove": "Remove from the store",
-        "NoStores": "A store can't sell another store."
+        "NoStores": "A store can't sell another store.",
+        "Open": "Open store",
+        "OpenFor": "Open for",
+        "Party": "The whole party",
+        "NoCrawlers": "There are no crawlers yet.",
+        "Buy": "Buy",
+        "SoldOut": "Sold out",
+        "NotEnough": "Not enough gold.",
+        "Gone": "That item is no longer for sale.",
+        "NoGM": "No GM is online to make the purchase.",
+        "Requesting": "Purchase sent to the GM.",
+        "Bought": "{buyer} bought {item} for {price} gold.",
+        "Opened": "{store} is open for {actor}."
       },
       "Sponsor": {
         "FIELDS": {
