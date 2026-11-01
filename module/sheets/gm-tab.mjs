@@ -32,6 +32,7 @@ import {
   setTitle,
 } from '../helpers/party.mjs';
 import { announceBossBattle, findBosses } from '../helpers/announcement.mjs';
+import { openFloorRules } from './floor-rules.mjs';
 import { confirmRest } from '../helpers/rests.mjs';
 import { lootApprovalRequired, waitingApprovals } from '../helpers/loot.mjs';
 
@@ -56,6 +57,7 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
       floorDown: CarlRPGGMTab._onFloorDown,
       daysUp: CarlRPGGMTab._onDaysUp,
       noteAdd: CarlRPGGMTab._onNoteAdd,
+      openFloorRules: CarlRPGGMTab._onOpenFloorRules,
       noteRemove: CarlRPGGMTab._onNoteRemove,
       daysDown: CarlRPGGMTab._onDaysDown,
       announceBoss: CarlRPGGMTab._onAnnounceBoss,
@@ -304,6 +306,11 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
   /** Save the party's name. */
   async #setParty(name) {
     await setPartyName(name);
+  }
+
+  /** @this CarlRPGGMTab */
+  static _onOpenFloorRules() {
+    openFloorRules();
   }
 
   /** @this CarlRPGGMTab */

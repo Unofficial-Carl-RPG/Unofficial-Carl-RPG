@@ -11,6 +11,7 @@ export const DAYS_SETTING = 'daysLeft';
 export const REST_OUTSIDE_SETTING = 'restsOutsideSafeRoom';
 export const LOOT_OUTSIDE_SETTING = 'lootOutsideSafeRoom';
 export const FLOOR_NOTES_SETTING = 'floorNotes';
+export const FLOOR_RULES_SETTING = 'floorRules';
 
 /** The two floor states. */
 export const FLOOR_STATES = ['exploring', 'safe'];
@@ -49,6 +50,13 @@ export function registerFloorSetting() {
       initial: null,
     }),
     onChange: () => ui.carlGM?.render(),
+  });
+  // The floor rules: events that run for the whole world (see helpers/events.mjs).
+  game.settings.register('carl-rpg', FLOOR_RULES_SETTING, {
+    scope: 'world',
+    config: false,
+    type: Array,
+    default: [],
   });
   // The notes for floors: each has a floor number, or null for every floor.
   game.settings.register('carl-rpg', FLOOR_NOTES_SETTING, {
@@ -92,6 +100,15 @@ export function getFloorState() {
     return game.settings.get('carl-rpg', FLOOR_STATE_SETTING) ?? 'exploring';
   } catch (err) {
     return 'exploring';
+  }
+}
+
+/** The floor rules: events the GM set up for the whole world. */
+export function getFloorRules() {
+  try {
+    return game.settings.get('carl-rpg', FLOOR_RULES_SETTING) ?? [];
+  } catch (err) {
+    return [];
   }
 }
 

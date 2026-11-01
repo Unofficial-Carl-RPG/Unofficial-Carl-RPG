@@ -39,6 +39,7 @@ import { allEvents, effectKey, lockedRankFor } from './upgrades.mjs';
 import { summarizeAction } from './event-summary.mjs';
 import { endCombatEffects, tickDurations } from './effect-duration.mjs';
 import { restoreUses } from './uses.mjs';
+import { getFloorRules } from './floor.mjs';
 
 const NS = 'carl-rpg';
 
@@ -101,6 +102,7 @@ async function findOwnedItem(actor, uuid) {
 
 /** The combatant an actor is in the running combat as, if it is. */
 function combatantOf(actor) {
+  if (!actor) return null;
   return game.combat?.started
     ? (game.combat.combatants.find((c) => c.actor === actor) ?? null)
     : null;
@@ -127,6 +129,9 @@ function isKind(actor, kind) {
 
 /** The actors in a group, from the point of view of the one whose event it is. */
 function groupActors(group, owner, ctx) {
+  // Floor rules have no owner: they only reach the crawlers.
+  if (group === 'crawlers') return game.actors.filter((a) => a.type === 'crawler');
+  if (!owner) return [];
   const side = (a) => (a.type === 'mob' ? 'mob' : 'crawler');
   const inPlay = () => {
     const combat = game.combat;
@@ -162,14 +167,17 @@ function groupActors(group, owner, ctx) {
  */
 async function resolveTargets(action, owner, ctx = {}) {
   let actors;
-  if (action.type === 'applyEffect') actors = [ctx.target].filter(Boolean);
+  // A floor rule with no target affects every crawler.
+  if (ctx.world && !action.targetGroup && !action.targetActor && !['applyEffect', 'macro'].includes(action.type)) {
+    actors = groupActors('crawlers', owner, ctx);
+  } else if (action.type === 'applyEffect') actors = [ctx.target].filter(Boolean);
   else if (action.type === 'macro') actors = [owner];
   else if (action.targetGroup) actors = groupActors(action.targetGroup, owner, ctx);
   else if (action.targetActor) {
     const doc = await fromUuid(action.targetActor);
     actors = [doc?.documentName === 'Actor' ? doc : (doc?.actor ?? null)].filter(Boolean);
   } else actors = [owner];
-  return [...new Set(actors)];
+  return [...new Set(actors)].filter(Boolean);
 }
 
 /* -------------------------------------------- */
@@ -296,7 +304,7 @@ async function checkCondition(condition, ctx) {
     case 'lootGold':
       return loot ? loot.gold >= condition.value : false;
     case 'classTag':
-      return classHasTag(actor, condition.tag);
+      return actor ? classHasTag(actor, condition.tag) : false;
     case 'effect': {
       // Does the actor have this effect switched on? (matched like effects always are)
       const template = condition.uuid ? await fromUuid(condition.uuid) : null;
@@ -666,11 +674,52 @@ async function runActions(item, event, ctx) {
  */
 export async function runEventNow(doc, eventId) {
   if (!game.user.isGM) return;
+  // No document: a floor rule (see the floor rules editor).
+  if (doc === null) return runFloorRuleNow(eventId);
   const event = allEvents(doc).find((e) => e.id === eventId);
   const actor = ownerOf(doc);
   if (!event) return;
   if (!actor) return warn('CARL_RPG.Events.Warn.NeedsActor');
   await runActions(doc, event, { actor, trigger: 'manual', depth: 0 });
+}
+
+/** The stand-in "item" that floor rules run as: it has no events of its own. */
+function floorRuleSource() {
+  return {
+    documentName: 'Item',
+    name: game.i18n.localize('CARL_RPG.Floor.Rules'),
+    system: { events: [], upgrades: [] },
+  };
+}
+
+/**
+ * Run the floor rules for a trigger (the GM's client only). A rule with no target
+ * affects every crawler. Its floor is set with a "Floor is exactly" condition.
+ * @param {string} trigger
+ * @param {object} [ctx]
+ */
+export async function runFloorRules(trigger, ctx = {}) {
+  if (!game.user.isGM) return;
+  const source = floorRuleSource();
+  for (const rule of getFloorRules()) {
+    if (!rule.enabled || rule.trigger !== trigger) continue;
+    const full = { ...ctx, actor: null, trigger, depth: 0, world: true };
+    if (!(await conditionsMet(rule, full))) continue;
+    await runActions(source, rule, full);
+  }
+}
+
+/** Try a floor rule out (the GM only): run its actions now. */
+export async function runFloorRuleNow(ruleId) {
+  if (!game.user.isGM) return;
+  const rule = getFloorRules().find((r) => r.id === ruleId);
+  if (!rule) return;
+  await runActions(floorRuleSource(), rule, {
+    actor: null,
+    trigger: 'manual',
+    depth: 0,
+    world: true,
+  });
 }
 
 /** Ask the player whether to do an action (the action is skipped if they say no). */
@@ -746,7 +795,7 @@ export async function applyQueuedEffect(entry, actor) {
 async function performAction(item, event, index, ctx) {
   const action = event.actions[index];
   if (action.type === 'applyEffect') return queueEffect(item, event, index, ctx);
-  if (action.ask && !(await askFirst(item, action, ctx))) return;
+  if (action.ask && !ctx.world && !(await askFirst(item, action, ctx))) return;
 
   // The targeted tokens belong to whoever triggered this, so they are worked out
   // here and travel with the request if it goes to the GM.
@@ -952,6 +1001,7 @@ export function registerEvents() {
           await tickDurations(actor);
           await restoreUses(actor, ['round']);
         });
+        await runFloorRules('roundEnd', {});
       }
     })();
   });
@@ -964,6 +1014,13 @@ export function registerEvents() {
       await restoreUses(actor, ['round', 'combat']);
     })
   );
+
+  // Floor rules that run when a combat starts or ends, or the floor changes.
+  Hooks.on('combatStart', () => runFloorRules('combatStart', {}));
+  Hooks.on('deleteCombat', () => runFloorRules('combatEnd', {}));
+  Hooks.on('updateSetting', (setting) => {
+    if (setting.key === `${NS}.floor`) runFloorRules('floorChange', {});
+  });
 
   // The floor changing: uses that recharge each floor come back.
   Hooks.on('updateSetting', (setting) => {

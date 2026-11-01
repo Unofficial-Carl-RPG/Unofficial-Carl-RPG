@@ -13,7 +13,7 @@
  *    ends them all). An effect's length is `flags.carl-rpg.lastsUntil`.
  */
 import { CarlRPGDialog } from './dialog.mjs';
-import { runActorEvents } from './events.mjs';
+import { runActorEvents, runFloorRules } from './events.mjs';
 import { RECHARGE_BY_REST, restoreUses } from './uses.mjs';
 import { canActOutsideSafeRoom } from './floor.mjs';
 
@@ -122,6 +122,7 @@ export async function restActor(actor, rest) {
     content: `<strong>${title}</strong>${text ? `<br>${text}` : ''}`,
   });
   await runActorEvents(actor, 'restTaken', { rest });
+  await runFloorRules('restTaken', { rest });
 }
 
 /**
@@ -151,6 +152,7 @@ export async function takeRest(rest) {
       await runActorEvents(actor, 'restTaken', { rest });
     }
   }
+  await runFloorRules('restTaken', { rest });
 }
 
 /**

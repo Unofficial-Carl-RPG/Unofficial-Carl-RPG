@@ -17,7 +17,10 @@
       "Notes": "Floor notes",
       "EveryFloor": "Every floor",
       "NoteAdd": "Add a note",
-      "NoteRemove": "Remove this note"
+      "NoteRemove": "Remove this note",
+      "Rules": "Floor rules",
+      "RulesHint": "Rules run for the whole world when their trigger happens. To limit one to a floor, add a Floor is exactly condition.",
+      "OpenRules": "Edit floor rules"
     },
     "Targeting": {
       "Mode": "Targets",

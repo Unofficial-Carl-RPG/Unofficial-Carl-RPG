@@ -44,6 +44,13 @@
     </button>
   </section>
 
+  <section class='gm-section'>
+    <h4>{{localize 'CARL_RPG.Floor.Rules'}}</h4>
+    <button type='button' class='announce-button' data-action='openFloorRules'>
+      <i class='fas fa-scroll'></i> {{localize 'CARL_RPG.Floor.OpenRules'}}
+    </button>
+  </section>
+
   {{> "systems/carl-rpg/templates/sidebar/party-management.hbs"}}
 
   {{! Shown only while loot box approval is turned on in the system settings }}
