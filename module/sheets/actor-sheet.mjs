@@ -1675,6 +1675,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       'name',
       'system.aiFavor',
       'system.gold',
+      'system.junk',
       'system.mana.value',
       'system.health.value',
     ]);

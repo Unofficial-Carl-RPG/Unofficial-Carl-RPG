@@ -314,6 +314,10 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
     // Quantity always goes in the header, for every kind of item that has one
     // (gear, plain items and loot boxes).
     context.headerQuantity = 'quantity' in this.item.system;
+    // The gold value: the GM always sees and sets it; a crawler sees it (read only)
+    // only when an effect grants sight of values (effectModifiers.seeValues).
+    context.isGM = game.user.isGM;
+    context.showValue = game.user.isGM || !!this.item.actor?.system.bonuses?.seeValues;
 
     // Races and classes: categories, granted skills and prerequisites, with
     // every drop target's name resolved.

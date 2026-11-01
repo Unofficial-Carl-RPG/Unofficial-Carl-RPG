@@ -16,6 +16,12 @@
     {{/if}}
   </div>
   {{/if}}
+  {{#if owner}}
+  <div class='gold-row'>
+    <label class='resource-label' for='system.junk'>{{localize 'CARL_RPG.Actor.Crawler.Junk'}}</label>
+    <input type='number' name='system.junk' value='{{system.junk}}' min='0' step='1' data-dtype='Number' />
+  </div>
+  {{/if}}
   {{#if lootBoxes.length}}
     <ol class='items-list loot-boxes'>
       <li class='item flexrow items-header'>

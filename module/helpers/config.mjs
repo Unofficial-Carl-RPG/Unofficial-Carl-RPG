@@ -550,6 +550,9 @@ CARL_RPG.effectModifiers = {
   mana: { label: 'CARL_RPG.Effect.Mods.mana', key: 'system.bonuses.mana' },
   hotlist: { label: 'CARL_RPG.Effect.Mods.hotlist', key: 'system.bonuses.hotlist' },
   actions: { label: 'CARL_RPG.Effect.Mods.actions', key: 'system.bonuses.actions' },
+  // Grants (any value above 0): the crawler sees item values, and can sort by them.
+  seeValues: { label: 'CARL_RPG.Effect.Mods.seeValues', key: 'system.bonuses.seeValues' },
+  sortValue: { label: 'CARL_RPG.Effect.Mods.sortValue', key: 'system.bonuses.sortValue' },
 };
 
 /**

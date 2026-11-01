@@ -53,6 +53,13 @@ export default class CarlRPGCrawler extends CarlRPGActorBase {
       min: 0,
     });
 
+    // Misc Junk: a second currency, a whole number like gold, owned by the crawler.
+    schema.junk = new fields.NumberField({
+      ...requiredInteger,
+      initial: 0,
+      min: 0,
+    });
+
     // Stat points spent so far on leveling up. The points earned come from the
     // level (see `points` in prepareDerivedData).
     schema.statPointsSpent = new fields.NumberField({

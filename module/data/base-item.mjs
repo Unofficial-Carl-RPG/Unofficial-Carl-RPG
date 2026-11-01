@@ -65,6 +65,16 @@ export default class CarlRPGItemBase extends foundry.abstract
     const schema = {};
 
     schema.description = new fields.HTMLField();
+
+    // Gold value. Hidden from crawlers unless an effect grants sight of values
+    // (effectModifiers.seeValues); the GM always sees and sets it.
+    schema.value = new fields.NumberField({
+      required: true,
+      nullable: false,
+      integer: true,
+      min: 0,
+      initial: 0,
+    });
     // Who the item affects when it is used (see the target prompt): none (a plain
     // use), up to a number of targets, the user only, or an area.
     schema.targeting = new fields.SchemaField({

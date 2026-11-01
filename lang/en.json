@@ -216,6 +216,7 @@
           "Size": "Size"
         },
         "Gold": "Gold",
+        "Junk": "Misc Junk",
         "ManaMaxHint": "Maximum mana: your enhanced Intelligence, plus any bonus from effects",
         "Hotlist": {
           "Choose": "— choose —"
@@ -313,7 +314,8 @@
       },
       "Item": {
         "FIELDS": {
-          "quantity": {"label": "Quantity"}
+          "quantity": {"label": "Quantity"},
+          "value": {"label": "Value"}
         }
       },
       "Sponsor": {
@@ -463,7 +465,9 @@
         "surprise": "Surprise (mobs)",
         "mana": "Max Mana (crawlers)",
         "hotlist": "Hotlist slots (crawlers)",
-        "actions": "Actions per round"
+        "actions": "Actions per round",
+        "seeValues": "Can see item values",
+        "sortValue": "Can sort by value"
       }
     },
     "GMTab": {
@@ -718,7 +722,8 @@
         "Rank": "Rank",
         "Mana": "Mana cost",
         "Uses": "Uses",
-        "Slot": "Slot"
+        "Slot": "Slot",
+        "Value": "Value"
       }
     },
     "Weapon": {

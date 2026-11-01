@@ -84,7 +84,7 @@ function matches(item, state) {
 }
 
 /** The sort options that make sense for the items in a list. */
-function sortOptions(items) {
+function sortOptions(items, canSortValue = false) {
   const options = [
     { value: 'manual', label: 'CARL_RPG.Filter.Sort.Manual' },
     { value: 'name', label: 'CARL_RPG.Filter.Sort.Name' },
@@ -104,6 +104,9 @@ function sortOptions(items) {
   if (items.some((i) => i.type === 'gear')) {
     options.push({ value: 'slot', label: 'CARL_RPG.Filter.Sort.Slot' });
   }
+  if (canSortValue) {
+    options.push({ value: 'value', label: 'CARL_RPG.Filter.Sort.Value' });
+  }
   return options;
 }
 
@@ -120,6 +123,8 @@ function compareRows(sort, a, b) {
       );
     case 'rank':
       return (a.item.system.rank ?? 0) - (b.item.system.rank ?? 0) || byName;
+    case 'value':
+      return (a.item.system.value ?? 0) - (b.item.system.value ?? 0) || byName;
     case 'mana':
       return (a.item.system.manaCost ?? 0) - (b.item.system.manaCost ?? 0) || byName;
     case 'uses': {
@@ -206,7 +211,7 @@ export function setupItemFilters(sheet) {
         for (const chip of chipsFor(item)) chipMap.set(`${chip.group}|${chip.key}`, chip);
       }
       const tagList = [...new Set(items.flatMap((item) => item.system?.tags ?? []))].sort();
-      const sortChoices = sortOptions(items);
+      const sortChoices = sortOptions(items, game.user.isGM || !!actor.system.bonuses?.sortValue);
       if (!sortChoices.some((o) => o.value === state.sort)) state.sort = 'manual';
 
       const chipHtml = [...chipMap.values()]
