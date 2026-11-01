@@ -22,6 +22,7 @@ import { changeProblem, describeUpgrades, effectKey } from '../helpers/upgrades.
 import { degreeOf, naturalD20 } from '../helpers/attacks.mjs';
 import { attemptAdvance, triedThisFloor } from '../helpers/advancement.mjs';
 import { offerAiFavor } from '../helpers/ai-favor.mjs';
+import { CarlRPGDialog } from '../helpers/dialog.mjs';
 
 const { api, sheets } = foundry.applications;
 
@@ -98,6 +99,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       // A pet's Upgrades tab: its upgrades, their changes and the events they carry.
       approveEvents: this._approveEvents,
       addKill: editOnly(this._addKill),
+      sendGift: this._sendGift,
       removeKill: editOnly(this._removeKill),
       addUpgrade: editOnly(this._addUpgrade),
       removeUpgrade: editOnly(this._removeUpgrade),
@@ -364,6 +366,16 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
         system.effectiveSize && system.effectiveSize !== system.size
           ? cfg.sizeOptions()[system.effectiveSize]
           : '';
+    }
+
+    // The Personal tab's sponsors (crawlers only), with the loot boxes the GM can send.
+    if (this.actor.type === 'crawler') {
+      context.sponsors = this.actor.itemTypes.sponsor.map((s) => ({
+        id: s.id,
+        name: s.name,
+        img: s.img,
+      }));
+      context.isGM = game.user.isGM;
     }
 
     // Rank 5+ skills and spells that have already had their advancement try this
@@ -1110,6 +1122,52 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
   static async _addKill() {
     const kills = [...this.document.system.killLog, { name: '', note: '' }];
     await this.document.update({ 'system.killLog': kills });
+  }
+
+  /**
+   * GM only: a sponsor sends the crawler a loot box. The GM picks a world loot box,
+   * a copy goes onto the crawler and the sponsor posts a card about it.
+   * @this CarlRPGActorSheet
+   */
+  static async _sendGift(event, target) {
+    if (!game.user.isGM) return;
+    const sponsor = this.document.items.get(target.dataset.sponsor);
+    if (!sponsor) return;
+    const boxes = game.items
+      .filter((i) => i.type === 'lootBox')
+      .sort((a, b) => a.name.localeCompare(b.name));
+    if (!boxes.length) {
+      ui.notifications.warn(game.i18n.localize('CARL_RPG.Sponsors.NoBoxes'));
+      return;
+    }
+    const options = boxes
+      .map((b) => `<option value="${b.uuid}">${foundry.utils.escapeHTML(b.name)}</option>`)
+      .join('');
+    const picked = await CarlRPGDialog.wait({
+      window: { title: game.i18n.localize('CARL_RPG.Sponsors.SendGift') },
+      content: `<p class="hint">${game.i18n.localize('CARL_RPG.Sponsors.GiftHint')}</p><select name="box">${options}</select>`,
+      buttons: [
+        {
+          action: 'send',
+          label: game.i18n.localize('CARL_RPG.Sponsors.SendGift'),
+          default: true,
+          callback: (event, button) => button.form.elements.box.value,
+        },
+        { action: 'cancel', label: game.i18n.localize('CARL_RPG.Sponsors.Cancel') },
+      ],
+    });
+    if (!picked || picked === 'cancel') return;
+    const box = await fromUuid(picked);
+    if (!box) return;
+    await this.document.createEmbeddedDocuments('Item', [box.toObject()]);
+    await ChatMessage.create({
+      content: game.i18n.format('CARL_RPG.Sponsors.GiftCard', {
+        sponsor: sponsor.name,
+        name: this.document.name,
+        box: box.name,
+      }),
+      speaker: ChatMessage.getSpeaker({ actor: this.document }),
+    });
   }
 
   /** @this CarlRPGActorSheet */

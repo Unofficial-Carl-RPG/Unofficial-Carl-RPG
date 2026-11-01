@@ -524,7 +524,12 @@
       "Empty": "No sponsors yet.",
       "Notes": "Notes",
       "SendGift": "Send gift",
-      "GiftHint": "Pick a loot box to give to this crawler from the sponsor."
+      "GiftHint": "Pick a loot box to give to this crawler from the sponsor.",
+      "NoBoxes": "There are no loot boxes in the world yet.",
+      "GiftCard": "{sponsor} sends {name} a gift: {box}!",
+      "Cancel": "Cancel",
+      "Remove": "Remove this sponsor",
+      "Name": "Sponsor name"
     },
     "Pets": {
       "Owner": "Owner",
