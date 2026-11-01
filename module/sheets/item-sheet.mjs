@@ -582,6 +582,14 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
         break;
       case 'description':
         context.tab = context.tabs[partId];
+        context.enrichedShortDescription = await TextEditor.enrichHTML(
+          this.item.system.shortDescription ?? '',
+          {
+            secrets: this.document.isOwner,
+            rollData: this.item.getRollData(),
+            relativeTo: this.item,
+          }
+        );
         // Enrich description info for display
         // Enrichment turns text like `[[/r 1d20]]` into buttons
         context.enrichedDescription = await TextEditor.enrichHTML(
@@ -710,6 +718,24 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
    */
   async _onRender(context, options) {
     await super._onRender(context, options);
+    // Collapsible description blocks: remember open or closed on this computer.
+    for (const block of this.element.querySelectorAll('details.desc-block[data-desc-key]')) {
+      const key = `carl-rpg.desc.${this.item.id}.${block.dataset.descKey}`;
+      try {
+        const saved = localStorage.getItem(key);
+        if (saved === 'closed') block.open = false;
+        if (saved === 'open') block.open = true;
+      } catch (err) {
+        // Storage can be blocked; the default (open) still works.
+      }
+      block.addEventListener('toggle', () => {
+        try {
+          localStorage.setItem(key, block.open ? 'open' : 'closed');
+        } catch (err) {
+          // Ignored: the choice just won't be remembered.
+        }
+      });
+    }
     // Reward weights and quantities save the whole list when changed.
     for (const input of this.element.querySelectorAll(
       '.reward-weight, .reward-quantity, .guaranteed-formula'

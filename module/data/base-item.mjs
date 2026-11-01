@@ -65,6 +65,8 @@ export default class CarlRPGItemBase extends foundry.abstract
     const schema = {};
 
     schema.description = new fields.HTMLField();
+    // A short version for chat cards and tooltips (blank means use the full text).
+    schema.shortDescription = new fields.HTMLField();
 
     // A unique-ish key for the item (used for things like duplicate checks).
     schema.identifier = new fields.StringField({

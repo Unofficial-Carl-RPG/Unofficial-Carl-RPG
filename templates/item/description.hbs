@@ -4,13 +4,27 @@
   data-group='primary'
   data-tab='description'
 >
-  {{! Editors must receive enriched text data from getData to properly handle rolls, UUID links, etc. }}
-  {{#if editable}} 
-    <prose-mirror name="system.description" data-document-uuid="{{item.uuid}}" value="{{system.description}}" collaborate="true" toggled="true">
-      {{{enrichedDescription}}}
-    </prose-mirror>
-  {{else}} {{{enrichedDescription}}}
-  {{/if}}
+  {{! Both descriptions are collapsible; each person's choice is remembered on their own computer. }}
+  <details class='desc-block' data-desc-key='description' open>
+    <summary>{{localize 'CARL_RPG.Item.base.FIELDS.description.label'}}</summary>
+    {{! Editors must receive enriched text data from getData to properly handle rolls, UUID links, etc. }}
+    {{#if editable}}
+      <prose-mirror name="system.description" data-document-uuid="{{item.uuid}}" value="{{system.description}}" collaborate="true" toggled="true">
+        {{{enrichedDescription}}}
+      </prose-mirror>
+    {{else}} {{{enrichedDescription}}}
+    {{/if}}
+  </details>
+
+  <details class='desc-block' data-desc-key='shortDescription' open>
+    <summary>{{localize 'CARL_RPG.Item.base.FIELDS.shortDescription.label'}}</summary>
+    {{#if editable}}
+      <prose-mirror name="system.shortDescription" data-document-uuid="{{item.uuid}}" value="{{system.shortDescription}}" collaborate="true" toggled="true">
+        {{{enrichedShortDescription}}}
+      </prose-mirror>
+    {{else}} {{{enrichedShortDescription}}}
+    {{/if}}
+  </details>
 
   {{! Skills and spells: every upgrade, with the ones not reached yet dimmed }}
   {{#if upgradeList.length}}

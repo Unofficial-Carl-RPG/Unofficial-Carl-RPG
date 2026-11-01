@@ -166,6 +166,7 @@
       "base": {
         "FIELDS": {
           "description": {"label": "Description"},
+          "shortDescription": {"label": "Short Description"},
           "identifier": {"label": "Identifier"},
           "damage": {"label": "Damage"}
         }
