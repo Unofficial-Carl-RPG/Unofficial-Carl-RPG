@@ -110,10 +110,13 @@ export async function pickCrawlerAndLoot(mob) {
  * The combat tracker's list of defeated mobs still to loot, with a Loot button
  * on each (GM only). Shown above the combatants during a combat.
  */
-export function addDefeatedLoot(element) {
+/** Only the mobs defeated in this combat (the same mobs the reminder lists). */
+export function addDefeatedLoot(element, combat) {
   element.querySelector('.carl-defeated-loot')?.remove();
   if (!game.user.isGM) return;
-  const mobs = game.actors.filter(needsLoot);
+  const mobs = game.actors.filter(
+    (actor) => needsLoot(actor) && actor.getFlag('carl-rpg', 'defeatedIn') === combat.id
+  );
   if (!mobs.length) return;
 
   const box = document.createElement('div');

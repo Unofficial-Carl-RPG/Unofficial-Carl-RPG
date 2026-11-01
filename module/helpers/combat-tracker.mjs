@@ -67,7 +67,7 @@ export function registerCombatTracker() {
       banner.append(refill);
     }
 
-    addDefeatedLoot(element);
+    addDefeatedLoot(element, combat);
     renameNextButton(element);
   });
 
