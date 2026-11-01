@@ -52,6 +52,13 @@
   </section>
 
   <section class='gm-section'>
+    <h4>{{localize 'CARL_RPG.Group.Title'}}</h4>
+    <button type='button' class='announce-button' data-action='groupCheck'>
+      <i class='fas fa-dice-d20'></i> {{localize 'CARL_RPG.Group.Start'}}
+    </button>
+  </section>
+
+  <section class='gm-section'>
     <h4>{{localize 'CARL_RPG.Encounters.Title'}}</h4>
     {{#each encounterRows}}
       <div class='note-row enc-row' data-index='{{this.index}}'>

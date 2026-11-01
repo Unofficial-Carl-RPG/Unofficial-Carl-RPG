@@ -1,5 +1,31 @@
 {
   "CARL_RPG": {
+    "Group": {
+      "Title": "Group check",
+      "Start": "Start group check",
+      "Roll": "Roll",
+      "Stat": "Stat",
+      "Skill": "Skill",
+      "SkillPlaceholder": "Skill name (optional)",
+      "None": "None",
+      "DC": "DC",
+      "Rule": "Pass rule",
+      "All": "All must pass",
+      "Most": "Most must pass",
+      "AtLeast": "At least N must pass",
+      "AtLeastText": "At least {n} must pass",
+      "N": "N",
+      "Check": "Check",
+      "Overall": "Group result",
+      "Passed": "{passes} of {total} passed: the group passes",
+      "Failed": "{passes} of {total} passed: the group fails",
+      "NotGM": "Only the GM can start a group check.",
+      "NoCrawlers": "There are no crawlers yet.",
+      "NotInGroup": "Only a crawler in this group can roll.",
+      "AlreadyRolled": "This crawler has already rolled.",
+      "NoSkill": "This crawler has no skill named {name}.",
+      "Usage": "Usage: /group str|skill=Name dc=N all|most|atLeast=N"
+    },
     "Summary": {
       "Menu": "Crawler summary",
       "Title": "{name}: summary",

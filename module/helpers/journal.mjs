@@ -56,7 +56,7 @@ export function refreshLiveValues() {
 const isGM = () => game.user.isGM;
 
 /** A button for an enricher. */
-function button(label, className, onClick) {
+export function button(label, className, onClick) {
   const el = document.createElement('button');
   el.type = 'button';
   el.className = `carl-enrich-button ${className}`;
@@ -69,7 +69,7 @@ function button(label, className, onClick) {
 }
 
 /** Plain text, for players who see no button. */
-function plain(label) {
+export function plain(label) {
   const span = document.createElement('span');
   span.className = 'carl-enrich-text';
   span.textContent = label;
@@ -77,7 +77,7 @@ function plain(label) {
 }
 
 /** The crawler a player's roll is for: their own character, else one they own. */
-function ownCrawler() {
+export function ownCrawler() {
   const own = game.user.character;
   if (own?.type === 'crawler') return own;
   return game.actors.find((a) => a.type === 'crawler' && a.isOwner) ?? null;
@@ -115,7 +115,7 @@ async function pickCrawler(title) {
  * spaces), an optional stat, and an optional DC. With no DC the roll only posts
  * its total.
  */
-function parseCheck(inner) {
+export function parseCheck(inner) {
   let text = inner.trim();
   let skill = null;
   const found = text.match(/skill=(.+?)(?=\s+dc=|\s+(?:str|int|con|dex|cha)\b|$)/i);
@@ -137,7 +137,7 @@ function parseCheck(inner) {
  * The number a check has to reach: a number, floor (10 + Floor) or unopposed
  * (10 + 2 x Floor). Null when there is no DC.
  */
-function checkNumber(dc) {
+export function checkNumber(dc) {
   if (dc === null) return null;
   const { base, unopposedFloorFactor } = CONFIG.CARL_RPG.checks;
   const floor = getFloor();

@@ -19,6 +19,7 @@
  */
 import { FLOOR_SETTING, DAYS_SETTING } from './floor.mjs';
 import { restActor, takeRest } from './rests.mjs';
+import { parseGroupSpec, startGroupCheck } from './group-check.mjs';
 import {
   SYSTEM_KINDS,
   announceSystem,
@@ -27,7 +28,7 @@ import {
 
 const NS = 'carl-rpg';
 const REST_KINDS = ['short', 'long', 'full'];
-const COMMAND = /^\/(rest|floor|days|aifavor|announce)(?:\s+(.*))?$/i;
+const COMMAND = /^\/(rest|floor|days|aifavor|announce|group)(?:\s+(.*))?$/i;
 
 const t = (key, data) =>
   data ? game.i18n.format(key, data) : game.i18n.localize(key);
@@ -135,13 +136,20 @@ async function announce(args) {
   });
 }
 
+/** /group stat|skill=Name dc=N all|most|atLeast=N (GM only) */
+async function group(args) {
+  if (!game.user.isGM) return warn('CARL_RPG.Commands.NotGM', { command: '/group' });
+  if (!args.trim()) return warn('CARL_RPG.Group.Usage');
+  return startGroupCheck(parseGroupSpec(args));
+}
+
 // Read the chat box before a message is sent. Returning false stops the message
 // being posted, so a command never appears in chat.
 Hooks.on('chatMessage', (chatLog, text) => {
   const match = COMMAND.exec(text.trim());
   if (!match) return;
   const [, command, args = ''] = match;
-  const run = { rest, floor, days, aifavor: aiFavor, announce }[command.toLowerCase()];
+  const run = { rest, floor, days, aifavor: aiFavor, announce, group }[command.toLowerCase()];
   run(args.trim()).catch((err) => {
     console.error(`${NS} | chat command failed: ${text}`, err);
   });

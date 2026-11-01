@@ -39,6 +39,7 @@ import { openEncounterBuilder } from './encounter-builder.mjs';
 import { rollEncounter } from '../helpers/encounters.mjs';
 import { confirmRest } from '../helpers/rests.mjs';
 import { lootApprovalRequired, waitingApprovals } from '../helpers/loot.mjs';
+import { promptGroupCheck, startGroupCheck } from '../helpers/group-check.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { AbstractSidebarTab } = foundry.applications.sidebar;
@@ -77,6 +78,7 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
       approveAllEvents: CarlRPGGMTab._onApproveAllEvents,
       sendSystem: CarlRPGGMTab._onSendSystem,
       revealOrigin: CarlRPGGMTab._onRevealOrigin,
+      groupCheck: CarlRPGGMTab._onGroupCheck,
     },
   };
 
@@ -444,6 +446,12 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
   }
 
   /** @this CarlRPGGMTab */
+  /** Dungeon Info: start a group check (GM only). */
+  static async _onGroupCheck() {
+    const spec = await promptGroupCheck();
+    if (spec) await startGroupCheck(spec);
+  }
+
   static async _onApproveEvents(event, target) {
     await approveEvents(target.dataset.uuid);
   }
