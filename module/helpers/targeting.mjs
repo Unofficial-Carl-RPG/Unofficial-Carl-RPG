@@ -7,6 +7,7 @@
  * many are picked against the limit. Range is checked against the controlled token.
  */
 import { CarlRPGDialog } from './dialog.mjs';
+import { applyQueuedEffect } from './events.mjs';
 
 const t = (key, data) => (data ? game.i18n.format(key, data) : game.i18n.localize(key));
 
@@ -163,11 +164,18 @@ export function chooseArea(item) {
         (tok) => tok.visible && matchesFilter(tok, cfg.filter) && area?.testPoint(tok.center)
       );
       await game.user.updateTokenTargets(inside.map((tok) => tok.id));
+      await areaCard(item, inside, t('CARL_RPG.Targeting.AreaCard', { name: item.name }));
       if (cfg.lasting) {
         const rounds = Math.max(0, Number(cfg.lasts) || 0);
         await doc.update({
           fillColor: AREA_COLORS[cfg.kind] ?? doc.fillColor,
-          'flags.carl-rpg.area': { lasts: rounds, roundsLeft: rounds, kind: cfg.kind || '' },
+          'flags.carl-rpg.area': {
+            lasts: rounds,
+            roundsLeft: rounds,
+            kind: cfg.kind || '',
+            itemUuid: item.uuid,
+            filter: cfg.filter,
+          },
         });
       } else {
         await doc.delete();
@@ -193,14 +201,78 @@ Hooks.on('carlrpg.cleanupPhase', async () => {
   if (game.user !== game.users.activeGM || !canvas.scene) return;
   for (const doc of canvas.scene.templates) {
     const area = doc.getFlag('carl-rpg', 'area');
-    const rounds = Number(area?.lasts) || 0;
-    if (!area || rounds < 1) continue;
-    const left = (Number(area.roundsLeft) || rounds) - 1;
-    if (left < 1) {
-      await doc.delete();
-      await ChatMessage.create({ content: t('CARL_RPG.Targeting.AreaEnds', { kind: area.kind || 'area' }) });
-    } else {
+    if (!area) continue;
+    const rounds = Number(area.lasts) || 0;
+    if (rounds > 0) {
+      const left = (Number(area.roundsLeft) || rounds) - 1;
+      if (left < 1) {
+        await doc.delete();
+        await ChatMessage.create({ content: t('CARL_RPG.Targeting.AreaEnds', { kind: area.kind || 'area' }) });
+        continue;
+      }
       await doc.update({ 'flags.carl-rpg.area.roundsLeft': left });
     }
+    // Lasting areas (rounds or not) show who is inside again, for the GM to apply to.
+    const item = area.itemUuid ? await fromUuid(area.itemUuid) : null;
+    if (item) await areaCard(item, insideTokens(doc.object, area.filter), t('CARL_RPG.Targeting.AreaCard', { name: item.name }));
+  }
+});
+
+/** The tokens inside an area (placeable) that the filter allows. */
+function insideTokens(area, filter) {
+  return canvas.tokens.placeables.filter(
+    (tok) => tok.visible && matchesFilter(tok, filter) && area?.testPoint(tok.center)
+  );
+}
+
+/** The item's effects that can be applied to a target: its applyEffect actions. */
+async function applyOptions(item) {
+  const out = [];
+  for (const event of item.system.events ?? []) {
+    for (const [actionIndex, action] of (event.actions ?? []).entries()) {
+      if (action.type !== 'applyEffect') continue;
+      const name = (await fromUuid(action.uuid))?.name ?? t('CARL_RPG.Events.Missing');
+      out.push({ eventId: event.id, actionIndex, name });
+    }
+  }
+  return out;
+}
+
+/**
+ * A chat card for the GM (whispered): the tokens inside an area, each with an Apply
+ * button per effect the item can apply. Nothing is applied automatically.
+ */
+async function areaCard(item, tokens, label) {
+  if (!tokens.length) return;
+  const options = await applyOptions(item);
+  const rows = tokens
+    .map((tok) => {
+      const buttons = options
+        .map(
+          (o) =>
+            `<button type="button" class="carl-area-apply" data-item="${item.uuid}" data-event="${o.eventId}" data-index="${o.actionIndex}" data-token="${tok.id}">${foundry.utils.escapeHTML(o.name)}</button>`
+        )
+        .join('');
+      return `<li><span>${foundry.utils.escapeHTML(tok.name)}</span> ${buttons}</li>`;
+    })
+    .join('');
+  await ChatMessage.create({
+    whisper: ChatMessage.getWhisperRecipients('GM').map((u) => u.id),
+    content: `<div class="carl-area-card"><strong>${foundry.utils.escapeHTML(label)}</strong><ul>${rows}</ul></div>`,
+  });
+}
+
+Hooks.on('renderChatMessageHTML', (message, html) => {
+  if (!game.user.isGM) return;
+  for (const el of html.querySelectorAll('.carl-area-apply')) {
+    el.addEventListener('click', async (event) => {
+      event.preventDefault();
+      el.disabled = true;
+      const ok = await applyQueuedEffect(
+        { itemUuid: el.dataset.item, eventId: el.dataset.event, actionIndex: Number(el.dataset.index) },
+        canvas.tokens.get(el.dataset.token)?.actor
+      );
+      if (!ok) el.disabled = false;
+    });
   }
 });

@@ -39,6 +39,7 @@
       "KindDifficult": "Difficult terrain",
       "KindPoison": "Poison cloud",
       "AreaEnds": "The {kind} area ends.",
+      "AreaCard": "Inside the {name} area",
       "NoTemplatePermission": "You can't place areas here. Ask the GM to place it."
     },
     "Ability": {
