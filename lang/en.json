@@ -940,6 +940,7 @@
       "ApplyTip": "Apply {damage} damage",
       "ApplyAll": "All hits:",
       "ApplyTargeted": "Targeted tokens:",
+      "Undo": "Undo",
       "AppliedAmount": "Applied ({damage} damage)",
       "NoTargets": "No targets were chosen. Target tokens, then apply the damage:",
       "NotFound": "Couldn't find {name} to apply the damage."

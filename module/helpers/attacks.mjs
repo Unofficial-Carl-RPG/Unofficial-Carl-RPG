@@ -663,6 +663,8 @@ const MULTIPLIERS = [
   { value: 0.5, label: '\u00D7\u00BD' },
 ];
 
+import { cancelDying, dyingEffectOf } from './dying.mjs';
+
 /** The damage an attack does at a multiplier (halves round down). */
 const scaled = (damage, multiplier) => Math.floor(damage * multiplier);
 
@@ -704,12 +706,34 @@ async function applyAttackDamage(message, which, multiplier = 1) {
     }
     // Each target has its own damage (an Amazing Success adds the Floor).
     const damage = scaled(target.damage ?? attack.damage, multiplier);
+    const undo = { before: actor.system.health.value, wasDying: !!dyingEffectOf(actor) };
     await actor.applyDamage(damage);
-    // Remember what was applied, so the card can say so.
+    // Remember what was applied, so the card can say so, and what Undo puts back.
     target.applied = true;
+    target.undo = undo;
     target.appliedDamage = damage;
     target.appliedMultiplier = multiplier;
   }
+  await message.setFlag(NS, 'attack', attack);
+}
+
+/**
+ * Undo the last damage applied to a target (GM only, once): puts back the health
+ * it took, and clears a Dying state that the hit caused.
+ */
+async function undoAttackDamage(message, index) {
+  if (!game.user.isGM) return;
+  const attack = foundry.utils.deepClone(message.getFlag(NS, 'attack'));
+  const target = attack?.targets[index];
+  if (!target?.undo) return;
+  const doc = await fromUuid(target.tokenUuid);
+  const actor = doc?.actor ?? (await fromUuid(target.actorUuid));
+  if (actor) {
+    await actor.update({ 'system.health.value': target.undo.before });
+    if (!target.undo.wasDying) await cancelDying(actor);
+  }
+  target.applied = false;
+  target.undo = null;
   await message.setFlag(NS, 'attack', attack);
 }
 
@@ -827,6 +851,11 @@ function renderAttackCard(message, html) {
           t(`CARL_RPG.Attack.InjuryNote.${target.injury}`)
         )}</span>`;
       }
+      if (isGM && target.applied && target.undo) {
+        result += `<button type="button" class="carl-undo-damage" data-index="${i}">${esc(
+          t('CARL_RPG.Attack.Undo')
+        )}</button>`;
+      }
       const damage = target.damage ?? attack.damage;
       const action =
         !damaging || !target.hit
@@ -920,6 +949,14 @@ function renderAttackCard(message, html) {
       } else {
         el.disabled = false;
       }
+    });
+  }
+
+  for (const el of list.querySelectorAll('.carl-undo-damage')) {
+    el.addEventListener('click', async (event) => {
+      event.preventDefault();
+      el.disabled = true;
+      await undoAttackDamage(message, Number(el.dataset.index));
     });
   }
 
