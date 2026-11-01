@@ -19,6 +19,7 @@
  * targets: [{ name, tokenUuid, actorUuid }], resolved }] }`.
  */
 import { CarlRPGDialog } from './dialog.mjs';
+import { chooseTargets } from './targeting.mjs';
 
 const NS = 'carl-rpg';
 
@@ -110,6 +111,9 @@ export async function declareInsteadOfUsing(item) {
   if (actor?.type !== 'mob' || !isDeclarePhase(combat)) return false;
   const combatant = combatantOf(actor, combat);
   if (!combatant) return false;
+  // The GM picks the targets now; they are stored with the declaration. Cancelling
+  // declares nothing.
+  if (!(await chooseTargets(item))) return true;
 
   await add(combat, combatant, {
     kind: 'ability',

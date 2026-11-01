@@ -157,6 +157,11 @@ function placeOneArea(item, n, total) {
   const cfg = item.system.targeting;
   if (!game.user.can('TEMPLATE_CREATE')) {
     ui.notifications.warn(t('CARL_RPG.Targeting.NoTemplatePermission'));
+    // The GM can place it: a whisper tells them who asked.
+    ChatMessage.create({
+      whisper: ChatMessage.getWhisperRecipients('GM').map((u) => u.id),
+      content: t('CARL_RPG.Targeting.GMPlaceAreaNotice', { player: game.user.name, name: item.name }),
+    });
     return Promise.resolve(false);
   }
   return new Promise((resolve) => {

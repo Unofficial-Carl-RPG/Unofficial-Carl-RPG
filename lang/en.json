@@ -43,6 +43,7 @@
       "Areas": "Areas per use",
       "Limit": "Most tokens inside (0: all)",
       "PlaceAreaN": "Place area {n} of {m}. Escape cancels.",
+      "GMPlaceAreaNotice": "{player} asks you to place an area for {name}.",
       "NoTemplatePermission": "You can't place areas here. Ask the GM to place it."
     },
     "Ability": {
