@@ -1,0 +1,8 @@
+<div class="carl-system-message carl-kind-{{kind}}">
+  <div class="carl-system-kind"><i class="fas {{kindIcon}}"></i> {{kindLabel}}</div>
+  {{#if headline}}<h3 class="carl-system-headline">{{headline}}</h3>{{/if}}
+  <div class="carl-system-text">{{{enrichedText}}}</div>
+  {{#if canSend}}
+  <button type="button" class="carl-enrich-button" data-action="sendToChat">{{localize "CARL_RPG.SystemMessage.SendToChat"}}</button>
+  {{/if}}
+</div>

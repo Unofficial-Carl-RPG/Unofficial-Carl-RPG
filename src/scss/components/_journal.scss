@@ -1,3 +1,26 @@
+// System message journal pages: the System look, with a Send to chat button for the GM.
+.carl-system-message {
+  padding: 0.5em 0.75em;
+  font-family: monospace;
+  color: #7cff9b;
+  background: #0d1a10;
+  border-left: 4px solid #3ddc84;
+  border-radius: 3px;
+
+  .carl-system-kind {
+    font-size: 0.85em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #3ddc84;
+  }
+
+  .carl-system-headline {
+    color: #7cff9b;
+    border: 0;
+  }
+}
+
 // Journal pages: the game's look, for pages that opt in with a carl-rpg class.
 // Scoped to journal pages so the sheets (which also use the carl-rpg class) are not restyled.
 .journal-entry-page .carl-rpg {

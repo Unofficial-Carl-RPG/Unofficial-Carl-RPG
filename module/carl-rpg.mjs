@@ -42,6 +42,8 @@ import { CarlRPGActorDirectory } from './helpers/crawler-summary.mjs';
 import { registerGroupChecks } from './helpers/group-check.mjs';
 import { registerChangeLog } from './helpers/change-log.mjs';
 import { registerQuickBar } from './helpers/quick-bar.mjs';
+import CarlRPGSystemMessagePage from './data/page-system-message.mjs';
+import CarlRPGSystemMessageSheet from './sheets/system-message-sheet.mjs';
 // Import DataModel classes
 import * as models from './data/_module.mjs';
 
@@ -243,6 +245,20 @@ Hooks.once('init', function () {
   // the item and always have transfer turned off. See active-effect.mjs.)
   CONFIG.ActiveEffect.legacyTransferral = false;
   CONFIG.ActiveEffect.documentClass = CarlRPGActiveEffect;
+
+  // A System message journal page: a message the GM can post as a System announcement.
+  CONFIG.JournalEntryPage.typeLabels ??= {};
+  CONFIG.JournalEntryPage.dataModels.carlSystemMessage = CarlRPGSystemMessagePage;
+  CONFIG.JournalEntryPage.typeLabels.carlSystemMessage = 'CARL_RPG.SystemMessage.TypeLabel';
+  foundry.applications.apps.DocumentSheetConfig.registerSheet(
+    JournalEntryPage,
+    'carl-rpg',
+    CarlRPGSystemMessageSheet,
+    {
+      types: ['carlSystemMessage'],
+      label: 'CARL_RPG.SystemMessage.Sheet',
+    }
+  );
 
   // Register sheet application classes
   collections.Actors.unregisterSheet('core', sheets.ActorSheet);

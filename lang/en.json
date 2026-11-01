@@ -1,5 +1,19 @@
 {
   "CARL_RPG": {
+    "SystemMessage": {
+      "TypeLabel": "System message",
+      "Sheet": "System message",
+      "Kind": {
+        "Label": "Kind",
+        "general": "General",
+        "boss": "Boss",
+        "stairs": "Stairs",
+        "floor": "Floor"
+      },
+      "Headline": "Headline",
+      "Text": "Text",
+      "SendToChat": "Send to chat"
+    },
     "QuickBar": {
       "Rank": "Rank",
       "Mana": "Mana",
