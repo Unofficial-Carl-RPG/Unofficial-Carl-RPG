@@ -15,6 +15,7 @@ import { CarlRPGGMTab } from './sheets/gm-tab.mjs';
 import { registerFloorSetting, getFloor } from './helpers/floor.mjs';
 import { registerPartySetting, registerPartySocket } from './helpers/party.mjs';
 import { registerAnnouncements } from './helpers/announcement.mjs';
+import './helpers/chat-commands.mjs';
 import { registerLootBoxes } from './helpers/loot.mjs';
 import { registerEvents } from './helpers/events.mjs';
 import { registerDeclarations } from './helpers/declarations.mjs';

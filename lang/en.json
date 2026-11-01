@@ -42,6 +42,17 @@
       "AutoCombatName": "Start a combat for encounters",
       "AutoCombatHint": "When on, placing mobs with no combat running starts one on the scene."
     },
+    "Commands": {
+      "RestUsage": "Usage: /rest short, long or full, then a crawler's name (optional).",
+      "NoCrawler": "There is no crawler of yours to rest. Name one: /rest short Name.",
+      "NoSuchCrawler": "There is no crawler called {name}.",
+      "NotYours": "You can only rest {name} if you own it.",
+      "NotGM": "Only the GM can use {command}.",
+      "FloorUsage": "Usage: /floor N, where N is the floor.",
+      "FloorSet": "The floor is now {floor}.",
+      "DaysUsage": "Usage: /days N, where N is the number of days left.",
+      "DaysSet": "Days left set to {days}."
+    },
     "Targeting": {
       "Mode": "Targets",
       "ModeNone": "None (plain use)",
