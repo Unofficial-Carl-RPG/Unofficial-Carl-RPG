@@ -1,0 +1,52 @@
+{{! Events Tab: requirements (block use) and events (trigger, conditions, actions) }}
+<section
+  class='tab events scrollable {{tab.cssClass}}'
+  data-group='primary'
+  data-tab='events'
+>
+  {{! ---------- Requirements ---------- }}
+  <datalist id='carl-tags-events'>
+    {{#each classTagNames as |name|}}<option value='{{name}}'></option>{{/each}}
+  </datalist>
+  <h3>{{localize 'CARL_RPG.Events.Requirements.Title'}}</h3>
+  <p class='skills-hint'>{{localize 'CARL_RPG.Events.Requirements.Hint'}}</p>
+  {{#each requirementRows as |req|}}
+    <div class='event-row'>
+      <select data-path='{{req.path}}.type'>
+        {{selectOptions @root.eventOptions.requirements selected=req.type localize=true}}
+      </select>
+      {{#if req.showStat}}
+        <select data-path='{{req.path}}.stat'>
+          {{selectOptions @root.eventOptions.stats selected=req.stat localize=true}}
+        </select>
+      {{/if}}
+      {{#unless req.showTag}}
+        <input type='number' class='event-value' data-path='{{req.path}}.value' value='{{req.value}}' step='1' min='0' />
+      {{/unless}}
+      {{#if req.showTag}}
+        <input type='text' class='event-amount tag-field' list='carl-tags-events' data-path='{{req.path}}.tag' value='{{req.tag}}' placeholder='{{localize "CARL_RPG.Tags.Placeholder"}}' />
+      {{/if}}
+      {{#if @root.editable}}
+        <a class='item-control' data-action='removeRequirement' data-ri='{{req.index}}' data-tooltip='{{localize "CARL_RPG.Events.Remove"}}'>
+          <i class='fas fa-trash'></i>
+        </a>
+      {{/if}}
+    </div>
+  {{/each}}
+  {{#if editable}}
+    <a class='event-add' data-action='addRequirement'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Events.Requirements.Add'}}</a>
+  {{/if}}
+
+  {{! ---------- Events ---------- }}
+  <h3>{{localize 'CARL_RPG.Events.Title'}}</h3>
+  {{#if eventRows.length}}
+    {{#unless system.eventsTrusted}}
+      <p class='loot-warning'>
+        <i class='fas fa-triangle-exclamation'></i> {{localize 'CARL_RPG.Events.NotTrusted'}}
+        {{#if isGM}}<a class='event-add' data-action='approveEvents'>{{localize 'CARL_RPG.Events.Approve'}}</a>{{/if}}
+      </p>
+    {{/unless}}
+  {{/if}}
+
+  {{> "systems/carl-rpg/templates/item/event-cards.hbs" rows=eventRows list='events'}}
+</section>

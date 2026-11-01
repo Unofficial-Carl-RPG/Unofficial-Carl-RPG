@@ -1,0 +1,279 @@
+{{! The events editor: a list of event cards (trigger, conditions, actions). Used by the Events tab, each upgrade and the effect sheet. }}
+{{! Takes `rows` (built by the sheet) and `list` (the path of the list, such as 'events' or 'upgrades.0.events'). }}
+{{#each rows as |ev|}}
+  <div class='event-card {{#unless ev.enabled}}disabled{{/unless}}'>
+    <header class='event-header'>
+      <input type='checkbox' data-path='{{ev.path}}.enabled' {{checked ev.enabled}} data-tooltip='{{localize "CARL_RPG.Events.Enabled"}}' />
+      <input type='text' class='event-name' data-path='{{ev.path}}.name' value='{{ev.name}}' placeholder='{{localize "CARL_RPG.Events.NamePlaceholder"}}' />
+      {{#if @root.editable}}
+        <span class='event-controls'>
+          {{#if @root.isGM}}<a class='item-control' data-action='runNow' data-event-id='{{ev.id}}' data-tooltip='{{localize "CARL_RPG.Events.RunNow"}}'><i class='fas fa-play'></i></a>{{/if}}
+          <a class='item-control' data-action='duplicateEvent' data-ei='{{ev.index}}' data-list='{{ev.list}}' data-tooltip='{{localize "CARL_RPG.Events.Duplicate"}}'><i class='fas fa-copy'></i></a>
+          {{#unless ev.first}}<a class='item-control' data-action='moveEvent' data-ei='{{ev.index}}' data-list='{{ev.list}}' data-dir='-1'><i class='fas fa-arrow-up'></i></a>{{/unless}}
+          {{#unless ev.last}}<a class='item-control' data-action='moveEvent' data-ei='{{ev.index}}' data-list='{{ev.list}}' data-dir='1'><i class='fas fa-arrow-down'></i></a>{{/unless}}
+          <a class='item-control item-delete' data-action='removeEvent' data-ei='{{ev.index}}' data-list='{{ev.list}}' data-tooltip='{{localize "CARL_RPG.Events.RemoveEvent"}}'><i class='fas fa-trash'></i></a>
+        </span>
+      {{/if}}
+    </header>
+    <div class='event-header'>
+      <span class='event-label'>{{localize 'CARL_RPG.Events.When'}}</span>
+      <select data-path='{{ev.path}}.trigger'>
+        {{selectOptions @root.eventOptions.triggers selected=ev.trigger localize=true}}
+      </select>
+      {{#if ev.hasPhase}}
+        <select data-path='{{ev.path}}.phase'>
+          {{selectOptions @root.eventOptions.phases selected=ev.phase localize=true}}
+        </select>
+      {{/if}}
+    </div>
+    <p class='event-summary'>{{ev.summary}}</p>
+
+    {{! Conditions }}
+    <div class='event-section'>
+      <span class='event-label'>{{localize 'CARL_RPG.Events.OnlyIf'}}</span>
+      {{#if ev.hasMatch}}
+        <select class='event-match' data-path='{{ev.path}}.match'>
+          {{selectOptions @root.eventOptions.matches selected=ev.match localize=true}}
+        </select>
+      {{/if}}
+      {{#each ev.conditions as |cond|}}
+        <div class='event-row'>
+          <label class='event-not' data-tooltip='{{localize "CARL_RPG.Events.NotHint"}}'>
+            <input type='checkbox' data-path='{{cond.path}}.negate' {{checked cond.negate}} /> {{localize 'CARL_RPG.Events.Not'}}
+          </label>
+          <select data-path='{{cond.path}}.type'>
+            {{selectOptions ev.conditionOptions selected=cond.type localize=true}}
+          </select>
+          {{#if cond.showStat}}
+            <select data-path='{{cond.path}}.stat'>
+              {{selectOptions @root.eventOptions.stats selected=cond.stat localize=true}}
+            </select>
+          {{/if}}
+          {{#if cond.showPhase}}
+            <select data-path='{{cond.path}}.phase'>
+              {{selectOptions @root.eventOptions.phases selected=cond.phase localize=true}}
+            </select>
+          {{/if}}
+          {{#if cond.showDegree}}
+            <select data-path='{{cond.path}}.degree'>
+              {{selectOptions @root.eventOptions.degrees selected=cond.degree localize=true}}
+            </select>
+          {{/if}}
+          {{#if cond.showTargetKind}}
+            <select data-path='{{cond.path}}.text'>
+              {{selectOptions @root.eventOptions.targetKinds selected=cond.text localize=true blank=(localize 'CARL_RPG.Events.Choose')}}
+            </select>
+          {{/if}}
+          {{#if cond.showRestKind}}
+            <select data-path='{{cond.path}}.text'>
+              {{selectOptions @root.eventOptions.restKinds selected=cond.text localize=true blank=(localize 'CARL_RPG.Events.Choose')}}
+            </select>
+          {{/if}}
+          {{#if cond.showValue}}
+            <input type='number' class='event-value' data-path='{{cond.path}}.value' value='{{cond.value}}' step='1' />
+          {{/if}}
+          {{#if cond.showTag}}
+            <input type='text' class='event-amount tag-field' list='carl-tags-events' data-path='{{cond.path}}.tag' value='{{cond.tag}}' placeholder='{{localize "CARL_RPG.Tags.Placeholder"}}' />
+          {{/if}}
+          {{#if cond.showDrop}}
+            <div
+              class='drop-target {{#if cond.docMissing}}missing{{/if}}'
+              data-accept='{{cond.dropAccept}}'
+              data-path='{{cond.path}}'
+              data-field='uuid'
+            >
+              {{#if cond.uuid}}
+                <span class='drop-name'>
+                  {{#if cond.docName}}{{cond.docName}}{{else}}{{localize 'CARL_RPG.Events.Missing'}}{{/if}}
+                </span>
+                {{#if @root.editable}}
+                  <a class='item-control' data-action='clearTarget' data-path='{{cond.path}}' data-field='uuid'><i class='fas fa-xmark'></i></a>
+                {{/if}}
+              {{else}}
+                <span class='drop-hint'>{{localize cond.dropHint}}</span>
+              {{/if}}
+            </div>
+          {{/if}}
+          {{#if @root.editable}}
+            <a class='item-control' data-action='removeCondition' data-ei='{{ev.index}}' data-list='{{ev.list}}' data-ci='{{cond.index}}' data-tooltip='{{localize "CARL_RPG.Events.Remove"}}'><i class='fas fa-trash'></i></a>
+          {{/if}}
+        </div>
+      {{/each}}
+      {{#if @root.editable}}
+        <a class='event-add' data-action='addCondition' data-ei='{{ev.index}}' data-list='{{ev.list}}'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Events.AddCondition'}}</a>
+      {{/if}}
+    </div>
+
+    {{! Actions }}
+    <div class='event-section'>
+      <span class='event-label'>{{localize 'CARL_RPG.Events.Then'}}</span>
+      {{#each ev.actions as |action|}}
+        <div class='event-action'>
+          <div class='event-row'>
+            <select data-path='{{action.path}}.type'>
+              {{selectOptions @root.eventOptions.actions selected=action.type localize=true}}
+            </select>
+            {{#if action.isToggleEffect}}
+              <select data-path='{{action.path}}.mode'>
+                {{selectOptions @root.eventOptions.effectModes selected=action.mode localize=true}}
+              </select>
+            {{/if}}
+            {{#if action.isMana}}
+              <select data-path='{{action.path}}.mode'>
+                {{selectOptions @root.eventOptions.manaModes selected=action.mode localize=true}}
+              </select>
+            {{/if}}
+            {{#if action.isHealth}}
+              <select data-path='{{action.path}}.mode'>
+                {{selectOptions @root.eventOptions.healthModes selected=action.mode localize=true}}
+              </select>
+            {{/if}}
+            {{#if action.isActions}}
+              <select data-path='{{action.path}}.mode'>
+                {{selectOptions @root.eventOptions.actionsModes selected=action.mode localize=true}}
+              </select>
+            {{/if}}
+            {{#if action.isGold}}
+              <select data-path='{{action.path}}.mode'>
+                {{selectOptions @root.eventOptions.goldModes selected=action.mode localize=true}}
+              </select>
+            {{/if}}
+            {{#if action.isAiFavor}}
+              <select data-path='{{action.path}}.mode'>
+                {{selectOptions @root.eventOptions.aiFavorModes selected=action.mode localize=true}}
+              </select>
+            {{/if}}
+            {{#if action.isRunEvent}}
+              <select data-path='{{action.path}}.mode'>
+                {{selectOptions ev.eventChoices selected=action.mode blank=(localize 'CARL_RPG.Events.Choose')}}
+              </select>
+            {{/if}}
+            {{#if action.isMacro}}
+              <select data-path='{{action.path}}.runOn'>
+                {{selectOptions @root.eventOptions.runOn selected=action.runOn localize=true}}
+              </select>
+            {{/if}}
+            {{#if action.showAmount}}
+              <input
+                type='text'
+                class='event-amount'
+                data-path='{{action.path}}.amount'
+                value='{{action.amount}}'
+                placeholder='{{localize "CARL_RPG.Events.AmountPlaceholder"}}'
+                data-tooltip='{{localize "CARL_RPG.Events.AmountHint"}}'
+              />
+            {{/if}}
+            {{#if @root.editable}}
+              <span class='event-controls'>
+                {{#unless action.first}}<a class='item-control' data-action='moveEventAction' data-ei='{{ev.index}}' data-list='{{ev.list}}' data-ai='{{action.index}}' data-dir='-1'><i class='fas fa-arrow-up'></i></a>{{/unless}}
+                {{#unless action.last}}<a class='item-control' data-action='moveEventAction' data-ei='{{ev.index}}' data-list='{{ev.list}}' data-ai='{{action.index}}' data-dir='1'><i class='fas fa-arrow-down'></i></a>{{/unless}}
+                <a class='item-control item-delete' data-action='removeEventAction' data-ei='{{ev.index}}' data-list='{{ev.list}}' data-ai='{{action.index}}' data-tooltip='{{localize "CARL_RPG.Events.Remove"}}'><i class='fas fa-trash'></i></a>
+              </span>
+            {{/if}}
+          </div>
+
+          {{! The text of a chat message }}
+          {{#if action.isMessage}}
+            <input
+              type='text'
+              class='event-text'
+              data-path='{{action.path}}.text'
+              value='{{action.text}}'
+              placeholder='{{localize "CARL_RPG.Events.MessagePlaceholder"}}'
+              data-tooltip='{{localize "CARL_RPG.Events.MessageHint"}}'
+            />
+          {{/if}}
+
+          {{! Options for particular actions }}
+          {{#if action.isAddItem}}
+            <label class='event-option'>
+              <input type='checkbox' data-path='{{action.path}}.skipIfHas' {{checked action.skipIfHas}} />
+              {{localize 'CARL_RPG.Events.SkipIfHas'}}
+            </label>
+          {{/if}}
+          {{#if action.isRemoveItem}}
+            <label class='event-option'>
+              <input type='checkbox' data-path='{{action.path}}.selfItem' {{checked action.selfItem}} />
+              {{localize 'CARL_RPG.Events.ThisItem'}}
+            </label>
+          {{/if}}
+          {{#if action.isHealth}}
+            <label class='event-option'>
+              <input type='checkbox' data-path='{{action.path}}.ignoreDR' {{checked action.ignoreDR}} />
+              {{localize 'CARL_RPG.Events.IgnoreDR'}}
+            </label>
+          {{/if}}
+          <label class='event-option'>
+            <input type='checkbox' data-path='{{action.path}}.ask' {{checked action.ask}} />
+            {{localize 'CARL_RPG.Events.AskFirst'}}
+          </label>
+
+          {{! Drop box for the item, macro, effect or table this action uses }}
+          {{#if action.needsDrop}}
+            <div
+              class='drop-target {{#if action.docMissing}}missing{{/if}}'
+              data-accept='{{action.docAccept}}'
+              data-path='{{action.path}}'
+              data-field='uuid'
+            >
+              {{#if action.uuid}}
+                <span class='drop-name'>
+                  {{#if action.docName}}{{action.docName}}{{else}}{{localize 'CARL_RPG.Events.Missing'}}{{/if}}
+                </span>
+                {{#if @root.editable}}
+                  <a class='item-control' data-action='clearTarget' data-path='{{action.path}}' data-field='uuid'><i class='fas fa-xmark'></i></a>
+                {{/if}}
+              {{else}}
+                <span class='drop-hint'>{{localize action.dropHint}}</span>
+              {{/if}}
+            </div>
+          {{/if}}
+
+          {{! Who the action affects: the owner, a group, or one actor dropped here }}
+          {{#if action.fixedTarget}}
+            {{! Apply effect: always the target that was hit, so there is nothing to choose }}
+            <p class='event-option'><i class='fas fa-bullseye'></i> {{localize 'CARL_RPG.Events.HitTarget'}}</p>
+          {{/if}}
+          {{#if action.canChooseTarget}}
+            <div class='event-row'>
+              <span class='event-option'>{{localize 'CARL_RPG.Events.Affects'}}</span>
+              <select data-path='{{action.path}}.targetGroup'>
+                {{selectOptions @root.eventOptions.targetGroups selected=action.targetGroup localize=true}}
+              </select>
+            </div>
+          {{/if}}
+          {{#if action.showSpecificActor}}
+            <div
+              class='drop-target target-actor {{#if action.targetMissing}}missing{{/if}}'
+              data-accept='actor'
+              data-path='{{action.path}}'
+              data-field='targetActor'
+            >
+              {{#if action.targetActor}}
+                <span class='drop-name'>{{localize 'CARL_RPG.Events.Affects'}} {{action.targetName}}</span>
+                {{#if @root.editable}}
+                  <a class='item-control' data-action='clearTarget' data-path='{{action.path}}' data-field='targetActor'><i class='fas fa-xmark'></i></a>
+                {{/if}}
+              {{else}}
+                <span class='drop-hint'>{{localize 'CARL_RPG.Events.Drop.actor'}}</span>
+              {{/if}}
+            </div>
+          {{/if}}
+        </div>
+      {{/each}}
+      {{#if @root.editable}}
+        <a class='event-add' data-action='addEventAction' data-ei='{{ev.index}}' data-list='{{ev.list}}'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Events.AddAction'}}</a>
+      {{/if}}
+    </div>
+  </div>
+{{/each}}
+{{#if @root.editable}}
+  <a class='event-add event-add-main' data-action='addEvent' data-list='{{list}}'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Events.AddEvent'}}</a>
+  {{! Ready-made events to start from }}
+  <span class='event-templates'>
+    <span class='event-label'>{{localize 'CARL_RPG.Events.FromTemplate'}}</span>
+    {{#each @root.eventOptions.templates as |label key|}}
+      <a class='event-add' data-action='addEventTemplate' data-template='{{key}}' data-list='{{../list}}'>{{localize label}}</a>
+    {{/each}}
+  </span>
+{{/if}}
