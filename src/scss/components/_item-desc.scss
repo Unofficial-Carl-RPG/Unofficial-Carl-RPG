@@ -1,0 +1,30 @@
+// Collapsible item descriptions under the rows of a sheet list.
+
+.item-desc-toggle {
+  cursor: pointer;
+  margin-right: 4px;
+  opacity: 0.8;
+}
+
+.item-desc-all {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  font-size: 0.85em;
+  padding: 2px 4px;
+
+  a {
+    cursor: pointer;
+    text-decoration: underline;
+  }
+}
+
+li.item-desc {
+  padding: 4px 8px 8px 36px;
+  font-size: 0.9em;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+
+  &[hidden] {
+    display: none;
+  }
+}

@@ -634,6 +634,30 @@
   flex: 0 0 200px;
   padding: 0 8px;
 }
+.carl-rpg .item-desc-toggle {
+  cursor: pointer;
+  margin-right: 4px;
+  opacity: 0.8;
+}
+.carl-rpg .item-desc-all {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  font-size: 0.85em;
+  padding: 2px 4px;
+}
+.carl-rpg .item-desc-all a {
+  cursor: pointer;
+  text-decoration: underline;
+}
+.carl-rpg li.item-desc {
+  padding: 4px 8px 8px 36px;
+  font-size: 0.9em;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+.carl-rpg li.item-desc[hidden] {
+  display: none;
+}
 .carl-rpg .effects-header {
   height: 28px;
   margin: 2px 0;

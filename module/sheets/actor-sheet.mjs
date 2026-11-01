@@ -234,6 +234,9 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       systemFields: this.document.system.schema.fields,
     };
 
+    // Item descriptions for the collapsible rows (kept for the render hook).
+    this._itemDescriptions = await this._describeItems();
+
     // Offloading context prep to a helper function
     this._prepareItems(context);
 
@@ -736,8 +739,81 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
    * @protected
    * @override
    */
+  /**
+   * Each item's description, enriched, for the collapsible rows on the lists.
+   * @returns {Promise<Object<string, string>>}  Item id to HTML
+   */
+  async _describeItems() {
+    const out = {};
+    for (const item of this.actor.items) {
+      const desc = item.system.description ?? '';
+      out[item.id] = desc
+        ? await TextEditor.enrichHTML(desc, { async: true, relativeTo: item })
+        : '';
+    }
+    return out;
+  }
+
+  /**
+   * Add a collapsible description under each item row, and an expand / collapse
+   * control above each list. Open rows are remembered per item on this computer.
+   */
+  _setupItemDescriptions() {
+    const descs = this._itemDescriptions ?? {};
+    const key = (id) => `carl-rpg.desc.${id}`;
+    const setOpen = (li, body, open) => {
+      body.hidden = !open;
+      const icon = li.querySelector('.item-desc-toggle i');
+      icon?.classList.toggle('fa-chevron-down', open);
+      icon?.classList.toggle('fa-chevron-right', !open);
+      if (open) localStorage.setItem(key(li.dataset.itemId), '1');
+      else localStorage.removeItem(key(li.dataset.itemId));
+    };
+    for (const li of this.element.querySelectorAll('li.item[data-item-id]')) {
+      if (li.dataset.descReady) continue;
+      li.dataset.descReady = '1';
+      const html = descs[li.dataset.itemId];
+      if (!html) continue;
+      const body = document.createElement('li');
+      body.className = 'item-desc';
+      body.innerHTML = html;
+      li.after(body);
+      const name = li.querySelector('.item-name');
+      const toggle = document.createElement('a');
+      toggle.className = 'item-desc-toggle';
+      toggle.dataset.tooltip = game.i18n.localize('CARL_RPG.ItemDesc.Toggle');
+      toggle.innerHTML = '<i class="fas fa-chevron-right"></i>';
+      name?.prepend(toggle);
+      setOpen(li, body, localStorage.getItem(key(li.dataset.itemId)) === '1');
+      // Clicking the name opens the row; the picture still rolls the item.
+      name?.addEventListener('click', (ev) => {
+        if (ev.target.closest('.rollable')) return;
+        ev.preventDefault();
+        setOpen(li, body, body.hidden);
+      });
+    }
+    for (const list of this.element.querySelectorAll('ol.items-list')) {
+      if (list.previousElementSibling?.classList.contains('item-desc-all')) continue;
+      const bar = document.createElement('div');
+      bar.className = 'item-desc-all';
+      bar.innerHTML =
+        `<a data-act="open">${game.i18n.localize('CARL_RPG.ItemDesc.ExpandAll')}</a>` +
+        ` <a data-act="close">${game.i18n.localize('CARL_RPG.ItemDesc.CollapseAll')}</a>`;
+      list.before(bar);
+      bar.addEventListener('click', (ev) => {
+        const act = ev.target.closest('[data-act]')?.dataset.act;
+        if (!act) return;
+        for (const li of list.querySelectorAll('li.item[data-item-id]')) {
+          const body = li.nextElementSibling;
+          if (body?.classList.contains('item-desc')) setOpen(li, body, act === 'open');
+        }
+      });
+    }
+  }
+
   async _onRender(context, options) {
     await super._onRender(context, options);
+    this._setupItemDescriptions();
     // A read-only sheet (anyone who isn't an Owner): the links that change
     // something look inactive. Limited users also can't roll.
     this.element.classList.toggle('sheet-readonly', !this.isEditable);

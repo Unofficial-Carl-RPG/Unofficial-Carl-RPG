@@ -575,6 +575,11 @@
       "Remove": "Remove this sponsor",
       "Name": "Sponsor name"
     },
+    "ItemDesc": {
+      "Toggle": "Show or hide the description",
+      "ExpandAll": "Expand all",
+      "CollapseAll": "Collapse all"
+    },
     "Pets": {
       "Owner": "Owner",
       "NoOwner": "No owner",
