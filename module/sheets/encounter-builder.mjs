@@ -5,33 +5,19 @@
  * from the visible actor compendiums.
  */
 import { placeEncounter } from '../helpers/encounters.mjs';
+import { sourceActors } from '../helpers/sources.mjs';
 
 const { HandlebarsApplicationMixin, ApplicationV2 } =
   foundry.applications.api;
 
 /**
- * Every mob the GM can pick: the world's mobs, and the mobs in the visible actor
- * compendiums. Keyed by UUID, sorted by name.
+ * Every mob the GM can pick: the world's mobs and those in the mob compendiums
+ * chosen in the compendium sources (see helpers/sources.mjs). Keyed by UUID.
  * @returns {Promise<Object<string, string>>}
  */
 export async function mobChoices() {
-  const mobs = new Map();
-  for (const actor of game.actors) {
-    if (actor.type === 'mob') mobs.set(actor.uuid, actor.name);
-  }
-  for (const pack of game.packs) {
-    if (pack.documentName !== 'Actor' || !pack.visible) continue;
-    try {
-      for (const actor of await pack.getDocuments({ type: 'mob' })) {
-        if (!mobs.has(actor.uuid)) mobs.set(actor.uuid, actor.name);
-      }
-    } catch (err) {
-      console.warn(`carl-rpg | could not read the compendium ${pack.collection}`, err);
-    }
-  }
-  return Object.fromEntries(
-    [...mobs.entries()].sort((a, b) => a[1].localeCompare(b[1]))
-  );
+  const mobs = await sourceActors('mobs');
+  return Object.fromEntries(mobs.map((actor) => [actor.uuid, actor.name]));
 }
 
 export class CarlRPGEncounterBuilder extends HandlebarsApplicationMixin(

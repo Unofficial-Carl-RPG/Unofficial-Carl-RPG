@@ -298,6 +298,8 @@ CARL_RPG.compendiumPurposes = {
   classes: { type: 'class', label: 'CARL_RPG.Sources.Purposes.classes' },
   backgrounds: { type: 'background', label: 'CARL_RPG.Sources.Purposes.backgrounds' },
   skills: { type: 'skill', label: 'CARL_RPG.Sources.Purposes.skills' },
+  // Mobs are actors, so this list draws on actor compendiums.
+  mobs: { type: 'mob', documentName: 'Actor', label: 'CARL_RPG.Sources.Purposes.mobs' },
 };
 
 /**

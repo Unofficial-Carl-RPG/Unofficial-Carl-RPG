@@ -85,6 +85,37 @@ export async function sourceItems(purpose) {
 }
 
 /**
+ * Every actor a purpose offers: the world's actors of its type (if the world counts)
+ * and those of each chosen actor compendium this user can see. Sorted by name, with
+ * no repeats.
+ * @param {string} purpose  A key of CONFIG.CARL_RPG.compendiumPurposes whose documentName is Actor
+ * @returns {Promise<Actor[]>}
+ */
+export async function sourceActors(purpose) {
+  const { type } = CONFIG.CARL_RPG.compendiumPurposes[purpose];
+  const { world, packs } = getSources()[purpose];
+
+  const found = new Map();
+  if (world) {
+    for (const actor of game.actors) {
+      if (actor.type === type) found.set(actor.uuid, actor);
+    }
+  }
+  for (const id of packs) {
+    const pack = game.packs.get(id);
+    if (pack?.documentName !== 'Actor' || !pack.visible) continue;
+    try {
+      for (const doc of await pack.getDocuments({ type })) {
+        if (!found.has(doc.uuid)) found.set(doc.uuid, doc);
+      }
+    } catch (err) {
+      console.warn(`carl-rpg | could not read the compendium ${id}`, err);
+    }
+  }
+  return [...found.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
  * The items of a purpose's type in the compendiums chosen for it, read directly
  * (compendiums this user can't open are skipped).
  * @param {string} purpose

@@ -753,6 +753,7 @@
       "NoPacks": "No item compendiums yet.",
       "NoGM": "A GM needs to be connected to load items from a compendium you can't open.",
       "Purposes": {
+        "mobs": "Mobs",
         "achievements": "Achievements (to award)",
         "races": "Races",
         "classes": "Classes",

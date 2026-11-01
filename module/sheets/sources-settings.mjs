@@ -8,9 +8,10 @@ const NS = 'carl-rpg';
 /**
  * The compendium sources, opened from a button in the system settings: for each
  * list the system offers (achievements to award, races, classes, backgrounds,
- * character creation skills) which item compendiums it draws from, and whether
- * the world's own items count too. Changes are kept until Save is clicked.
- * See helpers/sources.mjs.
+ * character creation skills, and the mobs for the encounter builder) which
+ * compendiums it draws from, and whether the world's own items count too. Item
+ * lists offer item compendiums; the mobs list offers actor compendiums. Changes
+ * are kept until Save is clicked. See helpers/sources.mjs.
  */
 export class CarlRPGSourcesSettings extends HandlebarsApplicationMixin(
   ApplicationV2
@@ -45,15 +46,17 @@ export class CarlRPGSourcesSettings extends HandlebarsApplicationMixin(
   /** @override */
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    const packs = game.packs
-      .filter((pack) => pack.documentName === 'Item')
-      .sort((a, b) => a.title.localeCompare(b.title));
+    // Each list offers the compendiums of its own document type.
+    const packsOf = (documentName) =>
+      game.packs
+        .filter((pack) => pack.documentName === documentName)
+        .sort((a, b) => a.title.localeCompare(b.title));
     context.purposes = Object.entries(CONFIG.CARL_RPG.compendiumPurposes).map(
       ([id, purpose]) => ({
         id,
         label: purpose.label,
         world: this.#data[id].world,
-        packs: packs.map((pack) => ({
+        packs: packsOf(purpose.documentName ?? 'Item').map((pack) => ({
           id: pack.collection,
           title: pack.title,
           package: pack.metadata.packageName,
