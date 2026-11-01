@@ -95,7 +95,13 @@ export default class CarlRPGCrawler extends CarlRPGActorBase {
       looseEnds: new fields.StringField(),
       regrets: new fields.StringField(),
     });
-    schema.kills = new fields.StringField();
+    // Important Things I've Killed: rows of { name, note }.
+    schema.killLog = new fields.ArrayField(
+      new fields.SchemaField({
+        name: new fields.StringField({ required: true, blank: true, initial: '' }),
+        note: new fields.StringField({ required: true, blank: true, initial: '' }),
+      })
+    );
     schema.clubs = new fields.StringField();
     schema.personalSpace = new fields.StringField();
 
@@ -127,6 +133,12 @@ export default class CarlRPGCrawler extends CarlRPGActorBase {
     if (source.hotlist && legacyKeys.some((k) => k in source.hotlist)) {
       source.background ??= source.hotlist;
       source.hotlist = {};
+    }
+    // The old free-text `kills` note becomes a single row of the kills list.
+    if (typeof source.kills === 'string') {
+      const text = source.kills.trim();
+      source.killLog ??= text ? [{ name: 'Notes', note: text }] : [];
+      delete source.kills;
     }
     return super.migrateData(source);
   }
