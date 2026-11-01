@@ -21,5 +21,8 @@ export async function defeatMob(mob) {
   if (mob.system.mobType === 'crawler') return;
   if (mob.statuses?.has('dead')) return;
   await mob.toggleStatusEffect('dead', { active: true, overlay: true });
+  // Remember which combat the mob was defeated in, for the end-of-combat loot reminder.
+  const combat = game.combats.find((c) => c.combatants.some((cb) => cb.actorId === mob.id));
+  if (combat) await mob.setFlag('carl-rpg', 'defeatedIn', combat.id);
   await removeFromCombat(mob);
 }

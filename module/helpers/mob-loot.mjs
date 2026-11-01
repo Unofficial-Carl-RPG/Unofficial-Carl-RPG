@@ -145,9 +145,11 @@ export function addDefeatedLoot(element) {
 
 /** Wire the end-of-combat reminder (on the active GM's client only). */
 export function registerMobLoot() {
-  Hooks.on('deleteCombat', () => {
+  Hooks.on('deleteCombat', (combat) => {
     if (!game.user.isGM || game.user !== game.users.activeGM) return;
-    const mobs = game.actors.filter(needsLoot);
+    const mobs = game.actors.filter(
+      (actor) => needsLoot(actor) && actor.getFlag('carl-rpg', 'defeatedIn') === combat.id
+    );
     if (!mobs.length) return;
     ChatMessage.create({
       whisper: game.users.filter((u) => u.isGM).map((u) => u.id),
