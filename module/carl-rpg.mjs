@@ -41,6 +41,7 @@ import { registerJournalEnrichers } from './helpers/journal.mjs';
 import { CarlRPGActorDirectory } from './helpers/crawler-summary.mjs';
 import { registerGroupChecks } from './helpers/group-check.mjs';
 import { registerChangeLog } from './helpers/change-log.mjs';
+import { registerQuickBar } from './helpers/quick-bar.mjs';
 // Import DataModel classes
 import * as models from './data/_module.mjs';
 
@@ -120,6 +121,8 @@ Hooks.once('init', function () {
   registerGroupChecks();
   // A collapsed list of the automatic changes under the roll or card that caused them.
   registerChangeLog();
+  // The quick bar for the selected crawler, and keys 1 to 9 to use its first items.
+  registerQuickBar();
 
   // Character creation defaults: stored as a setting, edited in a dialog opened
   // from a button in the system settings.

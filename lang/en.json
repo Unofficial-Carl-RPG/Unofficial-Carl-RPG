@@ -1,5 +1,11 @@
 {
   "CARL_RPG": {
+    "QuickBar": {
+      "Rank": "Rank",
+      "Mana": "Mana",
+      "UsesLeft": "{n} left",
+      "KeyName": "Quick bar item {n}"
+    },
     "ChangeLog": {
       "Title": "Changes",
       "Mana": "Spent {spent} mana, {left} left",

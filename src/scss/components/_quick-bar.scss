@@ -1,0 +1,55 @@
+// The quick bar: a row above the hotbar for the selected crawler's hotlisted items.
+#carl-quick-bar {
+  position: fixed;
+  bottom: 96px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #1f1a12;
+  border: 1px solid #c9a54a;
+  border-radius: 4px;
+
+  &[hidden] {
+    display: none;
+  }
+
+  .carl-quick-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 92px;
+    margin: 0;
+    padding: 4px 6px;
+    font: inherit;
+    color: #ead9b4;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid #6b5423;
+    border-radius: 3px;
+    cursor: pointer;
+
+    &:hover {
+      border-color: #c9a54a;
+      background: rgba(201, 164, 74, 0.15);
+    }
+
+    kbd {
+      align-self: flex-start;
+      font-size: 0.75em;
+      color: #d9b45a;
+    }
+
+    .carl-quick-name {
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    small {
+      font-size: 0.75em;
+      opacity: 0.8;
+    }
+  }
+}
