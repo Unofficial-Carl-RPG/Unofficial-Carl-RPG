@@ -183,6 +183,11 @@
           "quantity": {"label": "Quantity"}
         }
       },
+      "Sponsor": {
+        "FIELDS": {
+          "notes": {"label": "Notes"}
+        }
+      },
       "Achievement": {
         "FIELDS": {
           "lootBox": {"label": "Reward loot box"}
@@ -509,6 +514,17 @@
       "Invalid": "\"{bonus}\" isn't a valid bonus. Use a number or dice formula such as +2, -1 or 1d4.",
       "BonusNote": "{bonus} bonus",
       "StatNote": "using {stat}"
+    },
+    "Sponsors": {
+      "LimitName": "Sponsor limit",
+      "LimitHint": "How many sponsors a crawler can hold. -1 means no limit.",
+      "Full": "A crawler can hold at most {limit} sponsor(s). Remove one first.",
+      "Title": "Sponsors",
+      "Add": "Drop a sponsor here",
+      "Empty": "No sponsors yet.",
+      "Notes": "Notes",
+      "SendGift": "Send gift",
+      "GiftHint": "Pick a loot box to give to this crawler from the sponsor."
     },
     "Pets": {
       "Owner": "Owner",
@@ -1277,7 +1293,8 @@
       "achievement": "Achievement",
       "race": "Race",
       "class": "Class",
-      "background": "Background"
+      "background": "Background",
+      "sponsor": "Sponsor"
     }
   }
 }

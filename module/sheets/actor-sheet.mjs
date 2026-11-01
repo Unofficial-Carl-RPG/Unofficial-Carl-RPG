@@ -1486,6 +1486,17 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
    */
   async _onDropItemCreate(itemData, event) {
     itemData = itemData instanceof Array ? itemData : [itemData];
+    // A crawler can hold up to the sponsor limit (-1 means no limit).
+    const limit = game.settings.get('carl-rpg', 'sponsorLimit');
+    const incoming = itemData.filter((d) => d.type === 'sponsor');
+    if (incoming.length && limit >= 0) {
+      const held = this.actor.itemTypes.sponsor.length;
+      if (held + incoming.length > limit) {
+        ui.notifications.warn(game.i18n.format('CARL_RPG.Sponsors.Full', { limit }));
+        itemData = itemData.filter((d) => d.type !== 'sponsor');
+        if (!itemData.length) return [];
+      }
+    }
     return this.actor.createEmbeddedDocuments('Item', itemData);
   }
 

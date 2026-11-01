@@ -104,6 +104,9 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
     attributesLootBox: {
       template: 'systems/carl-rpg/templates/item/attribute-parts/loot-box.hbs',
     },
+    attributesSponsor: {
+      template: 'systems/carl-rpg/templates/item/attribute-parts/sponsor.hbs',
+    },
     attributesAchievement: {
       template: 'systems/carl-rpg/templates/item/attribute-parts/achievement.hbs',
     },
@@ -169,6 +172,9 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
         break;
       case 'achievement':
         options.parts.push('attributesAchievement');
+        break;
+      case 'sponsor':
+        options.parts.push('attributesSponsor');
         break;
       case 'race':
       case 'class':
@@ -527,6 +533,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       case 'attributesMobAbility':
       case 'attributesLootBox':
       case 'attributesAchievement':
+      case 'attributesSponsor':
       case 'attributesOrigin':
       case 'grantedSkills':
       case 'prerequisites':
@@ -609,6 +616,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
         case 'attributesMobAbility':
         case 'attributesLootBox':
         case 'attributesAchievement':
+      case 'attributesSponsor':
         case 'attributesOrigin':
         case 'attributesBackground':
           tab.id = 'attributes';

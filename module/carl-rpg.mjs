@@ -122,6 +122,15 @@ Hooks.once('init', function () {
     'carl-chat-log',
     game.settings.get('carl-rpg', 'chatLogStyle')
   );
+  // How many sponsors a crawler can hold (-1 for no limit). Only the GM changes it.
+  game.settings.register('carl-rpg', 'sponsorLimit', {
+    name: 'CARL_RPG.Sponsors.LimitName',
+    hint: 'CARL_RPG.Sponsors.LimitHint',
+    scope: 'world',
+    config: true,
+    type: Number,
+    default: 3,
+  });
   // Which compendiums the lists of achievements, races, classes, backgrounds and
   // creation skills draw from.
   registerSourcesSetting();
@@ -185,6 +194,7 @@ Hooks.once('init', function () {
     race: models.CarlRPGRace,
     class: models.CarlRPGClass,
     background: models.CarlRPGBackground,
+    sponsor: models.CarlRPGSponsor,
   };
 
   // Active Effects are never copied to the Actor,
