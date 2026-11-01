@@ -1,5 +1,5 @@
 import { CarlRPGDialog } from '../helpers/dialog.mjs';
-import { openStoreFor } from '../helpers/store.mjs';
+import { openStoreFor, restockListing } from '../helpers/store.mjs';
 import { skillStatLabel } from '../helpers/creation.mjs';
 import { describeBadges } from '../helpers/item-badges.mjs';
 import {
@@ -53,6 +53,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       removeReward: this._removeReward,
     removeListing: this._removeListing,
     openStore: this._openStore,
+    restockListing: this._restockListing,
       clearReward: this._clearReward,
       addPrerequisite: this._addPrerequisite,
       addTag: this._addTag,
@@ -1361,6 +1362,12 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       },
     });
     if (target) await openStoreFor(this.item, target);
+  }
+
+  /** GM: add stock to the listing on this row (see helpers/store.mjs). */
+  static async _restockListing(event, target) {
+    const index = Number(target.closest('.store-row').dataset.index);
+    await restockListing(this.item, index);
   }
 
   /** Remove one listing from the store. */

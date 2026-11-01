@@ -63,6 +63,15 @@
             />
           </div>
           <div class='item-controls'>
+            {{#if @root.isGM}}
+              <a
+                class='item-control'
+                data-action='restockListing'
+                data-tooltip='{{localize "CARL_RPG.Item.Store.Restock"}}'
+              >
+                <i class='fas fa-boxes-stacked'></i>
+              </a>
+            {{/if}}
             {{#if @root.editable}}
               <a
                 class='item-control item-delete'

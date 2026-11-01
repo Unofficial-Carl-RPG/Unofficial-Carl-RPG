@@ -341,7 +341,13 @@
         "NoGM": "No GM is online to make the purchase.",
         "Requesting": "Purchase sent to the GM.",
         "Bought": "{buyer} bought {item} for {price} gold.",
-        "Opened": "{store} is open for {actor}."
+        "Opened": "{store} is open for {actor}.",
+        "Sell": "Sell",
+        "SellHeader": "Sell to this store",
+        "Sold": "{seller} sold {item} for {price} gold.",
+        "Restock": "Restock",
+        "RestockAmount": "Add how many?",
+        "AlreadyUnlimited": "This item's stock is unlimited."
       },
       "Sponsor": {
         "FIELDS": {

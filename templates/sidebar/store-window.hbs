@@ -21,8 +21,30 @@
           <button type='button' data-action='buy' {{#if row.unavailable}}disabled{{/if}}>
             {{#if row.unavailable}}{{localize 'CARL_RPG.Item.Store.SoldOut'}}{{else}}{{localize 'CARL_RPG.Item.Store.Buy'}}{{/if}}
           </button>
+          {{#if @root.isGM}}
+            <button type='button' data-action='restock'>{{localize 'CARL_RPG.Item.Store.Restock'}}</button>
+          {{/if}}
         </div>
       </li>
     {{/each}}
   </ol>
+  {{#if sellRows.length}}
+    <p class='store-gold'>{{localize 'CARL_RPG.Item.Store.SellHeader'}}</p>
+    <ol class='items-list'>
+      {{#each sellRows as |row|}}
+        <li class='item flexrow sell-row' data-id='{{row.id}}'>
+          <div class='item-name'>
+            <div class='item-image'>
+              <img src='{{row.img}}' data-tooltip='{{row.name}}' width='24' height='24' />
+            </div>
+            <div>{{row.name}}</div>
+          </div>
+          <div class='item-prop'>{{row.price}}</div>
+          <div class='item-controls'>
+            <button type='button' data-action='sell'>{{localize 'CARL_RPG.Item.Store.Sell'}}</button>
+          </div>
+        </li>
+      {{/each}}
+    </ol>
+  {{/if}}
 </section>
