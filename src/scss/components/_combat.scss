@@ -1,0 +1,146 @@
+// Combat tracker styling for phase-based combat. These rules apply to Foundry's
+// sidebar tracker and chat, which live outside the sheet windows, so this file
+// is imported at the top level of carl-rpg.scss (not inside `.carl-rpg`).
+
+// No initiative: hide the initiative score and every roll-initiative control.
+#combat {
+  .token-initiative,
+  [data-action='rollInitiative'],
+  [data-action='rollAll'],
+  [data-action='rollNPC'] {
+    display: none !important;
+  }
+
+  // Everyone on the side acting in the current phase is highlighted.
+  .combatant.phase-active {
+    background: rgba(163, 24, 29, 0.25);
+    box-shadow: inset 3px 0 0 var(--dcc-gold);
+  }
+}
+
+// Action pips next to each combatant's name: filled = action left, hollow = spent.
+.action-pips {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 8px;
+  vertical-align: middle;
+
+  .action-pip {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    border: 2px solid var(--dcc-gold);
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+
+    &.filled {
+      background: var(--dcc-gold);
+    }
+
+    &:hover:not(.readonly) {
+      border-color: var(--dcc-blood-bright);
+    }
+
+    &.readonly {
+      cursor: default;
+    }
+  }
+}
+
+// Round and phase banner above the combatant list.
+.carl-combat-phases {
+  margin: 4px 0 8px;
+  padding: 6px 8px;
+  background: var(--dcc-panel);
+  border: 1px solid var(--dcc-border);
+  border-left: 3px solid var(--dcc-blood);
+  color: var(--dcc-text);
+
+  .phase-round {
+    font-family: var(--dcc-font-display);
+    font-size: 1.2em;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--dcc-gold);
+  }
+
+  .phase-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .phase {
+    padding: 2px 6px;
+    color: var(--dcc-text-dim);
+    border-left: 3px solid transparent;
+
+    &.done {
+      text-decoration: line-through;
+      opacity: 0.6;
+    }
+
+    &.current {
+      color: #fff;
+      font-weight: bold;
+      background: rgba(163, 24, 29, 0.5);
+      border-left-color: var(--dcc-gold);
+    }
+  }
+}
+
+// Phase announcements posted to chat.
+.chat-message .carl-phase-message {
+  padding: 2px 0;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+// What the mobs have declared, under each mob in the combat tracker (everyone sees
+// it; the GM also gets a remove button and, in the Mobs Declare phase, a button to
+// declare a movement). See helpers/declarations.mjs.
+.combatant .declared {
+  flex: 0 0 100%;
+  margin: 2px 0 0;
+  padding-left: 6px;
+  font-size: 0.85em;
+
+  .declaration {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    i {
+      width: 1.2em;
+      text-align: center;
+      color: var(--dcc-gold, #d9a441);
+    }
+
+    &.resolved {
+      opacity: 0.55;
+      text-decoration: line-through;
+    }
+
+    .declaration-remove {
+      margin-left: auto;
+      cursor: pointer;
+    }
+  }
+
+  .declare-move {
+    display: inline-block;
+    margin-top: 2px;
+    cursor: pointer;
+  }
+}
+
+.carl-declarations ul {
+  margin: 2px 0 0;
+  padding-left: 18px;
+}
