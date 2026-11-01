@@ -74,6 +74,10 @@ export default class CarlRPGItemBase extends foundry.abstract
       filter: new fields.StringField({ required: true, blank: false, initial: 'any', choices: ['enemies', 'allies', 'any'] }),
       shape: new fields.StringField({ required: true, blank: false, initial: 'circle', choices: ['circle', 'cone', 'ray', 'rect'] }),
       size: new fields.NumberField({ required: true, nullable: false, min: 0, initial: 10 }),
+      // A lasting area stays on the map; it lasts this many rounds (0: until the GM removes it).
+      lasting: new fields.BooleanField({ initial: false }),
+      lasts: new fields.NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }),
+      kind: new fields.StringField({ required: true, blank: true, initial: '', choices: ['', 'fire', 'difficult', 'poison'] }),
     });
     // A short version for chat cards and tooltips (blank means use the full text).
     schema.shortDescription = new fields.HTMLField();

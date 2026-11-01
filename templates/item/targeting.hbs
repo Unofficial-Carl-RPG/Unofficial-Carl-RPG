@@ -45,5 +45,23 @@
     <label class='resource-label' for='system.targeting.size'>{{localize 'CARL_RPG.Targeting.Size'}}</label>
     <input type='number' name='system.targeting.size' value='{{system.targeting.size}}' step='1' min='0' />
   </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.targeting.lasting'>{{localize 'CARL_RPG.Targeting.Lasting'}}</label>
+    <input type='checkbox' name='system.targeting.lasting' {{checked system.targeting.lasting}} />
+    <p class='hint'>{{localize 'CARL_RPG.Targeting.LastingHint'}}</p>
+  </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.targeting.lasts'>{{localize 'CARL_RPG.Targeting.Lasts'}}</label>
+    <input type='number' name='system.targeting.lasts' value='{{system.targeting.lasts}}' step='1' min='0' />
+  </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.targeting.kind'>{{localize 'CARL_RPG.Targeting.Kind'}}</label>
+    <select name='system.targeting.kind'>
+      <option value='' {{#if (eq system.targeting.kind '')}}selected{{/if}}>{{localize 'CARL_RPG.Targeting.KindNone'}}</option>
+      <option value='fire' {{#if (eq system.targeting.kind 'fire')}}selected{{/if}}>{{localize 'CARL_RPG.Targeting.KindFire'}}</option>
+      <option value='difficult' {{#if (eq system.targeting.kind 'difficult')}}selected{{/if}}>{{localize 'CARL_RPG.Targeting.KindDifficult'}}</option>
+      <option value='poison' {{#if (eq system.targeting.kind 'poison')}}selected{{/if}}>{{localize 'CARL_RPG.Targeting.KindPoison'}}</option>
+    </select>
+  </div>
   {{/if}}
 </div>

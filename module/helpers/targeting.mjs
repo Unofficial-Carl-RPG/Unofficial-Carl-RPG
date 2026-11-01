@@ -163,7 +163,15 @@ export function chooseArea(item) {
         (tok) => tok.visible && matchesFilter(tok, cfg.filter) && area?.testPoint(tok.center)
       );
       await game.user.updateTokenTargets(inside.map((tok) => tok.id));
-      await doc.delete();
+      if (cfg.lasting) {
+        const rounds = Math.max(0, Number(cfg.lasts) || 0);
+        await doc.update({
+          fillColor: AREA_COLORS[cfg.kind] ?? doc.fillColor,
+          'flags.carl-rpg.area': { lasts: rounds, roundsLeft: rounds, kind: cfg.kind || '' },
+        });
+      } else {
+        await doc.delete();
+      }
       finish(true);
     };
     Hooks.on('createMeasuredTemplate', onCreate);
@@ -172,3 +180,27 @@ export function chooseArea(item) {
     canvas.templates.activate({ tool: cfg.shape });
   });
 }
+
+/** Tint of a lasting area by its kind. */
+const AREA_COLORS = { fire: '#c2410c', difficult: '#8a6d3b', poison: '#4d7c0f' };
+
+/**
+ * At the end of each round (the GM's client): lasting areas count down, and the
+ * ones that run out are removed with a chat note. A lasting area with 0 rounds
+ * stays until the GM removes it.
+ */
+Hooks.on('carlrpg.cleanupPhase', async () => {
+  if (game.user !== game.users.activeGM || !canvas.scene) return;
+  for (const doc of canvas.scene.templates) {
+    const area = doc.getFlag('carl-rpg', 'area');
+    const rounds = Number(area?.lasts) || 0;
+    if (!area || rounds < 1) continue;
+    const left = (Number(area.roundsLeft) || rounds) - 1;
+    if (left < 1) {
+      await doc.delete();
+      await ChatMessage.create({ content: t('CARL_RPG.Targeting.AreaEnds', { kind: area.kind || 'area' }) });
+    } else {
+      await doc.update({ 'flags.carl-rpg.area.roundsLeft': left });
+    }
+  }
+});

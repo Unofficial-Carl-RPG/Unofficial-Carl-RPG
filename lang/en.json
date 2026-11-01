@@ -30,6 +30,15 @@
       "WrongSide": "That token can't be a target for this item.",
       "Full": "This item targets up to {m}.",
       "PlaceArea": "Place the area. Escape cancels.",
+      "Lasting": "Lasting area",
+      "LastingHint": "Stays on the map and counts down each round.",
+      "Lasts": "Lasts (rounds, 0: until removed)",
+      "Kind": "Kind",
+      "KindNone": "None",
+      "KindFire": "Fire",
+      "KindDifficult": "Difficult terrain",
+      "KindPoison": "Poison cloud",
+      "AreaEnds": "The {kind} area ends.",
       "NoTemplatePermission": "You can't place areas here. Ask the GM to place it."
     },
     "Ability": {
