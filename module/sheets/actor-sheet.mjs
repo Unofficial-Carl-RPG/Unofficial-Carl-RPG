@@ -376,6 +376,13 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
         img: s.img,
       }));
       context.isGM = game.user.isGM;
+      // The clubs this crawler belongs to, with its rank or role in each.
+      context.clubs = this.actor.itemTypes.club.map((c) => ({
+        id: c.id,
+        name: c.name,
+        img: c.img,
+        role: c.system.role,
+      }));
       // The Personal Space (one per crawler), with its amenities shown read-only.
       const space = this.actor.itemTypes.personalSpace[0] ?? null;
       context.personalSpace = space

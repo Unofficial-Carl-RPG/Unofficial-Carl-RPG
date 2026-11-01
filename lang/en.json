@@ -188,6 +188,14 @@
           "notes": {"label": "Notes"}
         }
       },
+      "Club": {
+        "FIELDS": {
+          "role": {"label": "Rank or role"}
+        },
+        "Members": "Members",
+        "NoMembers": "No crawler is in this club yet.",
+        "RolePlaceholder": "Rank or role"
+      },
       "PersonalSpace": {
         "FIELDS": {
           "tier": {"label": "Tier"},
@@ -540,6 +548,8 @@
       "GiftCard": "{sponsor} sends {name} a gift: {box}!",
       "Cancel": "Cancel",
       "NoSpace": "No Personal Space yet. Drop one here.",
+      "NoClubs": "Not in any clubs yet.",
+      "AddClub": "Drop a club here",
       "Remove": "Remove this sponsor",
       "Name": "Sponsor name"
     },
@@ -1312,7 +1322,8 @@
       "class": "Class",
       "background": "Background",
       "sponsor": "Sponsor",
-      "personalSpace": "Personal Space"
+      "personalSpace": "Personal Space",
+      "club": "Club"
     }
   }
 }

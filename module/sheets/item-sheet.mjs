@@ -106,6 +106,9 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
     attributesLootBox: {
       template: 'systems/carl-rpg/templates/item/attribute-parts/loot-box.hbs',
     },
+    attributesClub: {
+      template: 'systems/carl-rpg/templates/item/attribute-parts/club.hbs',
+    },
     attributesPersonalSpace: {
       template: 'systems/carl-rpg/templates/item/attribute-parts/personal-space.hbs',
     },
@@ -183,6 +186,9 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
         break;
       case 'personalSpace':
         options.parts.push('attributesPersonalSpace');
+        break;
+      case 'club':
+        options.parts.push('attributesClub', 'effects');
         break;
       case 'race':
       case 'class':
@@ -558,6 +564,19 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
         context.tab = context.tabs[partId];
         context.sizeOptions = CONFIG.CARL_RPG.sizeOptions();
         break;
+      case 'attributesClub':
+        context.tab = context.tabs[partId];
+        context.isCopy = !!this.item.parent;
+        // The crawlers in this world who hold a club with this name (the world item only).
+        context.clubMembers = this.item.parent
+          ? []
+          : game.actors
+              .filter((a) => a.type === 'crawler' && a.itemTypes.club.some((c) => c.name === this.item.name))
+              .map((a) => ({
+                name: a.name,
+                role: a.itemTypes.club.find((c) => c.name === this.item.name)?.system.role ?? '',
+              }));
+        break;
       case 'description':
         context.tab = context.tabs[partId];
         // Enrich description info for display
@@ -629,6 +648,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
         case 'attributesLootBox':
         case 'attributesAchievement':
       case 'attributesSponsor':
+      case 'attributesClub':
       case 'attributesPersonalSpace':
         case 'attributesOrigin':
         case 'attributesBackground':
