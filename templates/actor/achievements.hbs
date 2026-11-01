@@ -1,0 +1,42 @@
+{{! Achievements Tab: awarded by the GM }}
+<section class='tab achievements scrollable {{tab.cssClass}}' data-group='primary' data-tab='achievements'>
+  <ol class='items-list'>
+    <li class='item flexrow items-header'>
+      <div class='item-name'>{{localize 'CARL_RPG.Actor.Tabs.Achievements'}}</div>
+      <div class='item-controls'></div>
+    </li>
+    {{#each achievements as |ach|}}
+      <li
+        class='item flexrow'
+        data-item-id='{{ach.id}}'
+        data-document-class='Item'
+      >
+        <div class='item-name'>
+          <div class='item-image'>
+            <img src='{{ach.img}}' data-tooltip='{{ach.name}}' width='24' height='24' />
+          </div>
+          <div>
+            {{ach.name}}
+            {{#if ach.summary}}<small class='achievement-summary'>{{ach.summary}}</small>{{/if}}
+          </div>
+        </div>
+        <div class='item-controls'>
+          <a class='item-control item-edit' data-action='viewDoc' data-tooltip='{{localize "DOCUMENT.Update" type="Achievement"}}'>
+            <i class='fas fa-edit'></i>
+          </a>
+          {{#if @root.editable}}
+            <a class='item-control item-delete' data-action='deleteDoc' data-tooltip='{{localize "DOCUMENT.Delete" type="Achievement"}}'>
+              <i class='fas fa-trash'></i>
+            </a>
+          {{/if}}
+        </div>
+      </li>
+    {{/each}}
+  </ol>
+  {{#unless achievements.length}}
+    <p class='skills-hint'>{{localize 'CARL_RPG.Achievement.Empty'}}</p>
+  {{/unless}}
+  {{#if @root.editMode}}{{#if @root.editable}}
+    <div class='drop-box'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Drop.achievement'}}</div>
+  {{/if}}{{/if}}
+</section>

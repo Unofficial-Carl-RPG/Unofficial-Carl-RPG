@@ -1,0 +1,68 @@
+{{! Abilities sidebar: floats to the left of every tab's content on the sheet }}
+<aside class='abilities-sidebar'>
+  <div class='abilities flexcol'>
+    {{#each system.abilities as |ability key|}}
+      <div class='ability'>
+        <div class='flexcol'>
+          <label
+            class='resource-label rollable flexlarge align-left'
+            data-action='roll'
+            data-roll='d20+@abilities.{{key}}.mod'
+            data-label='{{localize (lookup @root.config.abilities key)}}'
+          >{{localize (lookup @root.config.abilities key)}}</label>
+          {{#if (eq @root.actor.type 'mob')}}
+            {{! Mobs: a single flat value }}
+            <div class='flexrow flex-group-center'>
+              <input
+                type='text'
+                name='system.abilities.{{key}}.value'
+                value='{{ability.value}}'
+                class='ability-score'
+                data-dtype='Number'
+              />
+            </div>
+          {{else}}
+            {{! Crawlers: Enhanced / Unenhanced }}
+            <div class='flexrow flex-group-center'>
+              <div class='flexcol'>
+                <input
+                  class='ability-score rollable'
+                  data-action='roll'
+                  data-roll='d20+@abilities.{{key}}.mod'
+                  data-label='{{localize (lookup @root.config.abilities key)}}'
+                  value='{{numberFormat ability.enhanced decimals=0 sign=true}}'
+                  disabled='true'
+                  type='text'
+                  data-dtype='Number'
+                />
+                <label>Enhanced</label>
+              </div>
+              <span><strong>/</strong></span>
+              <div class='flexcol'>
+                <input
+                  type='text'
+                  name='system.abilities.{{key}}.value'
+                  value='{{ability.value}}'
+                  class="ability-score"
+                  data-dtype='Number'
+                />
+                <label>Unenhanced</label>
+              </div>
+            </div>
+          {{/if}}
+        </div>
+        <div class='ability-mod flexrow'>
+          <span>
+            {{localize (lookup @root.config.abilityAbbreviations key)}} {{localize 'CARL_RPG.Ability.Mod.abbr'}}
+          </span>
+          <span
+              class='rollable'
+              data-action='roll'
+              data-roll='d20+@abilities.{{key}}.mod'
+              data-label='{{localize (lookup @root.config.abilities key)}}'
+            >{{numberFormat ability.mod decimals=0 sign=true}}</span>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+</aside>

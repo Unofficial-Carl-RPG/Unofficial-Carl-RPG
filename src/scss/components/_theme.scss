@@ -1,0 +1,1251 @@
+// Dungeon Crawler Carl theme for all Carl RPG sheets.
+//
+// Imported LAST inside the `.carl-rpg { ... }` block in carl-rpg.scss so it
+// overrides the older placeholder colours and borders. The palette lives in
+// utils/_colors.scss and the fonts in utils/_typography.scss.
+
+// ---- Window frame -------------------------------------------------------
+&.application {
+  background: var(--dcc-bg);
+  color: var(--dcc-text);
+  font-family: var(--dcc-font-body);
+  border: 2px solid var(--dcc-border);
+  box-shadow: 0 0 0 1px #000, 0 8px 24px rgba(0, 0, 0, 0.7);
+
+  .window-header {
+    background: var(--dcc-panel-2);
+    border-bottom: 2px solid var(--dcc-blood);
+    color: var(--dcc-gold);
+
+    .window-title {
+      font-family: var(--dcc-font-display);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+  }
+
+  .window-content {
+    background: var(--dcc-bg);
+    color: var(--dcc-text);
+  }
+}
+
+* {
+  scrollbar-color: var(--dcc-gold-dim) transparent;
+}
+
+// ---- Typography ---------------------------------------------------------
+.resource-label,
+.items-header,
+.effects-header,
+nav.tabs a,
+h1, h2, h3, h4 {
+  font-family: var(--dcc-font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+h1, h2, h3, h4,
+.resource-label,
+label {
+  color: var(--dcc-gold);
+}
+
+// ---- Form controls ------------------------------------------------------
+input[type='text'],
+input[type='number'],
+select,
+textarea {
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--dcc-text);
+  border: 1px solid var(--dcc-border);
+  border-bottom: 2px solid var(--dcc-gold-dim);
+  border-radius: 2px;
+
+  &:focus {
+    outline: none;
+    border-color: var(--dcc-gold);
+    box-shadow: 0 0 6px rgba(224, 165, 38, 0.45);
+  }
+
+  &:disabled {
+    color: var(--dcc-text-dim);
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  &::placeholder {
+    color: var(--dcc-text-dim);
+    opacity: 0.7;
+  }
+}
+
+select option {
+  background: var(--dcc-panel);
+  color: var(--dcc-text);
+}
+
+input[type='checkbox'] {
+  accent-color: var(--dcc-blood-bright);
+}
+
+// Numbers read like System output.
+input[type='number'],
+.resource input,
+.defense-cell input,
+.defense-cell strong,
+.ability-score,
+.ability-mod,
+.item-prop {
+  font-family: var(--dcc-font-system);
+}
+
+button {
+  background: var(--dcc-panel-2);
+  color: var(--dcc-gold);
+  border: 1px solid var(--dcc-gold-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  &:hover {
+    background: var(--dcc-blood);
+    color: #fff;
+    border-color: var(--dcc-gold);
+    box-shadow: 0 0 8px rgba(214, 40, 46, 0.6);
+  }
+}
+
+// ---- Header -------------------------------------------------------------
+.document-name input[name='name'] {
+  font-family: var(--dcc-font-display);
+  font-size: 1.6em;
+  letter-spacing: 0.05em;
+  color: var(--dcc-gold);
+  text-transform: uppercase;
+}
+
+.profile-img {
+  border: 2px solid var(--dcc-gold-dim);
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.8), inset 0 0 6px rgba(0, 0, 0, 0.8);
+  background: #000;
+}
+
+// An actor's portrait is a round frame, and the image is masked to it (cropped to
+// fill the circle, never squashed). The skulls overlaid on its upper left corner
+// (see `.portrait .kill-skulls`) start outside the circle, in the corner of the
+// box. Item and effect pictures keep their square frames.
+.portrait .profile-img {
+  border-radius: 50%;
+  object-fit: cover;
+  overflow: hidden;
+}
+
+// ---- Tabs ---------------------------------------------------------------
+nav.tabs {
+  border-bottom: 2px solid var(--dcc-border);
+  gap: 2px;
+
+  a {
+    padding: 3px 10px;
+    color: var(--dcc-text-dim);
+    border-bottom: 3px solid transparent;
+    text-shadow: none;
+
+    &:hover {
+      color: var(--dcc-gold);
+    }
+
+    &.active {
+      color: var(--dcc-gold);
+      border-bottom-color: var(--dcc-blood-bright);
+      background: rgba(163, 24, 29, 0.25);
+    }
+  }
+}
+
+// ---- Cards (resources, defenses, abilities) -----------------------------
+.resource,
+.defense,
+.ability {
+  background: var(--dcc-panel);
+  border: 1px solid var(--dcc-border);
+  border-radius: 3px;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5);
+}
+
+.defense {
+  border-left: 3px solid var(--dcc-blood);
+}
+
+.ability {
+  border-left: 3px solid var(--dcc-gold-dim);
+}
+
+.defense-cell {
+  label {
+    color: var(--dcc-text-dim);
+  }
+
+  strong {
+    color: var(--dcc-gold);
+  }
+}
+
+.defense-values > span {
+  color: var(--dcc-text-dim);
+}
+
+.ability-mod {
+  border: none;
+  border-top: 1px solid var(--dcc-border);
+  background: rgba(163, 24, 29, 0.5);
+  color: #fff;
+  font-weight: bold;
+}
+
+.rollable {
+  cursor: pointer;
+  transition: color 0.15s, text-shadow 0.15s;
+
+  &:hover,
+  &:focus {
+    color: var(--dcc-gold);
+    text-shadow: 0 0 8px rgba(224, 165, 38, 0.8);
+  }
+}
+
+// ---- Health bar ---------------------------------------------------------
+.health-bar .health-box {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--dcc-border);
+  color: var(--dcc-text-dim);
+  font-family: var(--dcc-font-system);
+  transition: background 0.15s, box-shadow 0.15s;
+
+  &:hover {
+    border-color: var(--dcc-gold);
+  }
+
+  &.filled {
+    // One gradient spread across the whole bar: red at the first box through
+    // yellow to green at the last. The sheet sets each box's background-size
+    // and background-position inline so it shows its own slice, whatever the
+    // number of boxes.
+    background-color: var(--dcc-health-mid);
+    background-image: linear-gradient(
+      90deg,
+      var(--dcc-health-low),
+      var(--dcc-health-mid),
+      var(--dcc-health-high)
+    );
+    border-color: rgba(255, 255, 255, 0.35);
+    color: #fff;
+    text-shadow: 0 1px 2px #000;
+    box-shadow: none;
+  }
+}
+
+// Percentage under each health box.
+.health-bar .health-pct {
+  color: var(--dcc-text-dim);
+  font-family: var(--dcc-font-system);
+}
+
+// Max mana: a read-only number (enhanced Intelligence plus effect bonuses).
+.mana-max {
+  min-width: 2ch;
+  color: var(--dcc-gold);
+  font-family: var(--dcc-font-system);
+  font-size: 1.1em;
+}
+
+// Gold.
+.gold-row {
+  input {
+    color: var(--dcc-gold);
+    font-family: var(--dcc-font-system);
+    font-size: 1.1em;
+  }
+
+  .gold-formatted {
+    color: var(--dcc-text-dim);
+    font-family: var(--dcc-font-system);
+  }
+}
+
+// Hotlist boxes.
+.hotlist-slot {
+  background: var(--dcc-panel);
+  border: 1px solid var(--dcc-border);
+  border-radius: 3px;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5);
+
+  &.filled {
+    border-left: 3px solid var(--dcc-gold-dim);
+  }
+
+  .hotlist-number {
+    color: var(--dcc-text-dim);
+    font-family: var(--dcc-font-system);
+  }
+
+  .hotlist-name {
+    color: var(--dcc-text);
+  }
+
+  .hotlist-item img {
+    border: 1px solid var(--dcc-gold-dim);
+    border-radius: 2px;
+  }
+}
+
+// ---- Item and effect lists ----------------------------------------------
+.items-list,
+.effects-list {
+  color: var(--dcc-text);
+  border: 1px solid var(--dcc-border);
+  background: var(--dcc-panel);
+
+  .item-name,
+  .effect-name {
+    color: var(--dcc-text);
+  }
+
+  .item-prop,
+  .effect-prop {
+    color: var(--dcc-text);
+    border-color: var(--dcc-border);
+  }
+
+  .item-image img,
+  .effect-image img {
+    border: 1px solid var(--dcc-gold-dim);
+    border-radius: 2px;
+  }
+}
+
+.items-header,
+.effects-header,
+.items-list .items-header,
+.effects-list .effects-header {
+  background: var(--dcc-panel-2);
+  color: var(--dcc-gold);
+  border: 1px solid var(--dcc-border);
+  border-bottom: 2px solid var(--dcc-gold-dim);
+}
+
+.items-list .item,
+.effects-list .effect {
+  border-bottom: 1px solid rgba(74, 59, 46, 0.6);
+
+  &:nth-child(even) {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  &:hover {
+    background: rgba(163, 24, 29, 0.18);
+  }
+}
+
+.items-list .items-header:hover,
+.effects-list .effects-header:hover {
+  background: var(--dcc-panel-2);
+}
+
+.item-control,
+.effect-control {
+  color: var(--dcc-text-dim);
+  transition: color 0.15s;
+
+  &:hover {
+    color: var(--dcc-gold);
+    text-shadow: 0 0 6px rgba(224, 165, 38, 0.7);
+  }
+
+  &.item-delete:hover,
+  &.effect-delete:hover {
+    color: var(--dcc-blood-bright);
+    text-shadow: 0 0 6px rgba(214, 40, 46, 0.7);
+  }
+}
+
+// ---- Edit mode toggle and locked sheets ---------------------------------
+// The lock button in the header flips the sheet between edit mode and locked.
+// Locked sheets have their form controls disabled in JS (see the actor sheet's
+// #applyEditMode); delete buttons and the portrait are shut off here.
+.edit-toggle {
+  flex: 0 0 auto;
+  align-self: center;
+  padding: 0 6px;
+  font-size: 1.2em;
+  color: var(--dcc-text-dim);
+  cursor: pointer;
+
+  &:hover,
+  &.active {
+    color: var(--dcc-gold);
+  }
+}
+
+&.edit-locked {
+  [data-action='deleteDoc'],
+  .health-box-count {
+    display: none;
+  }
+
+  .profile-img {
+    pointer-events: none;
+  }
+}
+
+// Equipped gear stands out in the actor's Gear list.
+.items-list .item.equipped {
+  box-shadow: inset 3px 0 0 var(--dcc-gold);
+
+  .item-name {
+    color: var(--dcc-gold);
+  }
+}
+
+.items-list .item-equipped,
+.items-list .item-advance {
+  flex: 0 0 64px;
+  text-align: center;
+}
+
+// ---- Effects ------------------------------------------------------------
+.effects-list .effect.inactive {
+  opacity: 0.55;
+}
+
+.effect-stacks {
+  margin-left: 4px;
+  color: var(--dcc-gold);
+  font-family: var(--dcc-font-system);
+}
+
+.effect-source {
+  margin-left: 6px;
+  color: var(--dcc-text-dim);
+  font-size: 0.8em;
+}
+
+.effects-list .effect-prop {
+  flex: 0 0 80px;
+  text-align: center;
+}
+
+.bonus-note {
+  margin-left: 4px;
+  color: var(--dcc-gold);
+  font-size: 0.8em;
+  font-family: var(--dcc-font-system);
+}
+
+.effect-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px;
+
+  .effect-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .effect-name {
+      flex: 1;
+      font-family: var(--dcc-font-display);
+      font-size: 1.4em;
+      text-transform: uppercase;
+    }
+  }
+
+  .effect-options {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--dcc-text);
+    }
+  }
+
+  .modifier-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+
+    .modifier-stat {
+      flex: 1;
+    }
+
+    .modifier-value {
+      flex: 0 0 70px;
+      text-align: center;
+    }
+  }
+
+  .add-modifier {
+    cursor: pointer;
+    color: var(--dcc-gold);
+  }
+}
+
+// ---- Events tab ----------------------------------------------------------
+.event-card {
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  background: var(--dcc-panel);
+  border: 1px solid var(--dcc-border);
+  border-left: 3px solid var(--dcc-blood);
+
+  &.disabled {
+    opacity: 0.6;
+  }
+}
+
+.event-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  select {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.event-controls {
+  display: inline-flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.event-label {
+  color: var(--dcc-gold);
+  font-family: var(--dcc-font-display);
+  font-size: 0.85em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.event-section {
+  margin-top: 6px;
+  padding-left: 10px;
+}
+
+.event-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 3px 0;
+
+  select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .event-value {
+    flex: 0 0 70px;
+    text-align: center;
+  }
+
+  .event-amount {
+    flex: 0 0 90px;
+    text-align: center;
+    font-family: var(--dcc-font-system);
+  }
+}
+
+.event-action {
+  padding: 4px 0;
+  border-top: 1px dashed var(--dcc-border);
+}
+
+.event-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 4px;
+  color: var(--dcc-text-dim);
+  font-size: 0.9em;
+}
+
+.event-add {
+  display: inline-block;
+  margin: 4px 0;
+  color: var(--dcc-gold);
+  font-size: 0.9em;
+  cursor: pointer;
+
+  &.event-add-main {
+    font-size: 1em;
+  }
+}
+
+// Drop boxes on the Events tab (an item, macro, effect or actor), and the
+// plain "drop an item here" boxes on the other tabs (shown only when editable).
+.drop-target,
+.drop-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+  padding: 5px 8px;
+  border: 1px dashed var(--dcc-gold-dim);
+  border-radius: 3px;
+  color: var(--dcc-text-dim);
+
+  .drop-name {
+    flex: 1;
+    color: var(--dcc-text);
+  }
+
+  &.target-actor {
+    font-size: 0.9em;
+  }
+
+  &.missing {
+    border-color: var(--dcc-blood-bright);
+    color: var(--dcc-blood-bright);
+  }
+}
+
+.drop-box {
+  justify-content: center;
+  margin: 8px 0 0;
+}
+
+// ---- Loot boxes ---------------------------------------------------------
+.loot-tier {
+  margin-left: 6px;
+  font-family: var(--dcc-font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.loot-open {
+  color: var(--dcc-gold);
+  font-family: var(--dcc-font-display);
+  text-transform: uppercase;
+}
+
+.loot-warning {
+  margin: 0 0 6px;
+  color: var(--dcc-blood-bright);
+  font-size: 0.9em;
+}
+
+.reward-row {
+  input {
+    width: 64px;
+    text-align: center;
+  }
+
+  .reward-chance {
+    color: var(--dcc-gold);
+    font-family: var(--dcc-font-system);
+  }
+}
+
+// Guaranteed items: the amount is a text box that takes a number or formula.
+.guaranteed-row {
+  input {
+    width: 90px;
+    text-align: center;
+    font-family: var(--dcc-font-system);
+
+    &.bad-formula {
+      border-color: var(--dcc-blood-bright);
+      color: var(--dcc-blood-bright);
+    }
+  }
+}
+
+.items-list .guaranteed-formula-col {
+  flex: 0 0 100px;
+  text-align: center;
+}
+
+// The tier dropdown to the left of a loot box's name in the item sheet header.
+.document-name:has(.tier-select),
+.document-name:has(.race-earth) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .tier-select {
+    flex: 0 0 130px;
+    font-family: var(--dcc-font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  input[name='name'] {
+    flex: 1;
+  }
+}
+
+.loot-approval {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--dcc-text);
+}
+
+// Embedded skills tab on gear and items.
+.skills-hint {
+  margin: 0 0 6px;
+  font-size: 0.85em;
+  color: var(--dcc-text-dim);
+}
+
+.items-list .item.missing .item-name {
+  color: var(--dcc-blood-bright);
+}
+
+// ---- Notes / rich text --------------------------------------------------
+prose-mirror,
+.editor {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--dcc-border);
+  color: var(--dcc-text);
+}
+
+// ---- Chat cards (item descriptions posted by rolls) ----------------------
+// Chat messages live outside the sheet window.
+@at-root {
+  .chat-message .item-description {
+    border-left: 3px solid #a3181d;
+    padding: 4px 8px;
+    margin: 4px 0;
+    background: rgba(0, 0, 0, 0.08);
+  }
+}
+
+// Achievements tab on the crawler sheet.
+.achievement-summary {
+  display: block;
+  color: var(--dcc-text-dim);
+  font-size: 0.85em;
+  font-style: italic;
+}
+
+// Level Up and banked stat points, under the Level box in the crawler header.
+.level-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 2px;
+  font-size: 0.8em;
+
+  a {
+    color: var(--dcc-gold);
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+      color: var(--dcc-blood-bright);
+    }
+
+    // Banked points that can't be spent yet (below the spend floor).
+    &.locked {
+      color: var(--dcc-text-dim);
+    }
+  }
+}
+
+// "Choose race / class" link in the crawler header, and race category ticks.
+// Small rest buttons beside the lock in a crawler's header: dim until hovered, so
+// they stay out of the way.
+.rest-buttons-mini {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-self: center;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
+  font-size: 0.85em;
+
+  a {
+    color: var(--dcc-text-dim);
+    opacity: 0.55;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--dcc-gold);
+      opacity: 1;
+    }
+  }
+}
+.choose-origin {
+  flex: 0 0 auto;
+  align-self: center;
+  color: var(--dcc-gold);
+  font-size: 0.85em;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--dcc-blood-bright);
+  }
+}
+
+.race-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+// The earth icon shown with Earth-Based races.
+.race-earth {
+  color: #3e9bd6;
+  align-self: center;
+}
+
+
+// The class box in the crawler header, with the earth icon before it when Earth-Based.
+.icon-field {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+
+  input {
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+  }
+
+  // The earth icon sits inside the box, at its left edge, and the text moves
+  // over to make room for it.
+  .race-earth {
+    position: absolute;
+    left: 7px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  &.has-icon input {
+    padding-left: 26px;
+  }
+}
+
+
+// "Crawler #" and the number share one box in the crawler header. The number
+// input has no border of its own, so it reads as part of a single box, and it is
+// locked (greyed) like the other fields until the sheet is in edit mode.
+.crawler-number {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--dcc-border);
+  border-bottom: 2px solid var(--dcc-gold-dim);
+  border-radius: 2px;
+  color: var(--dcc-text-dim);
+  white-space: nowrap;
+  // The box never grows past the space it is given: when the number gets long
+  // the label text is cut short ("Crawler ki...") instead of the number
+  // spilling out of the box.
+  min-width: 0;
+  overflow: hidden;
+
+  > span {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // The box takes the focus highlight, not the number input inside it.
+  &:focus-within {
+    border-color: var(--dcc-gold);
+    box-shadow: 0 0 4px var(--dcc-gold-dim);
+  }
+
+  // The input is made borderless in every state (Foundry gives inputs their own
+  // border, background and glow when hovered or focused), so the whole thing
+  // keeps reading as one box.
+  input[type='number'],
+  input[type='number']:hover,
+  input[type='number']:focus,
+  input[type='number']:disabled {
+    // The input is only as wide as the digits in it, so the label gives way
+    // first as the number grows.
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 2ch;
+    field-sizing: content;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0;
+    box-shadow: none !important;
+    outline: none !important;
+    color: var(--dcc-text);
+    text-align: left;
+    -moz-appearance: textfield;
+    appearance: textfield;
+
+    // Browsers without field-sizing keep a fixed width.
+    @supports not (field-sizing: content) {
+      width: 4.5em;
+    }
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  }
+}
+
+// Tags: the tick list, custom tag chips and the field in rules.
+.tag-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 6px;
+}
+
+.tag-custom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+
+  .tag-input {
+    flex: 0 0 160px;
+  }
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border: 1px solid var(--dcc-gold-dim);
+  border-radius: 10px;
+  color: var(--dcc-gold);
+  font-size: 0.9em;
+
+  a {
+    color: var(--dcc-text-dim);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--dcc-blood-bright);
+    }
+  }
+}
+
+.event-row .tag-field {
+  flex: 0 0 140px;
+  text-align: left;
+}
+// The class's selected tags, in italics under its name in the item sheet header.
+.class-tag-line {
+  margin: 2px 0 0 2px;
+  color: var(--dcc-text-dim);
+  font-size: 0.9em;
+}
+
+// Crawler Killer skulls beside a crawler's name on the sheet header.
+.kill-skulls {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+  color: var(--dcc-blood-bright);
+  font-size: 1.05em;
+
+  .skull-count {
+    margin-left: 2px;
+    font-family: var(--dcc-font-system);
+    font-size: 0.9em;
+  }
+}
+
+// On the sheet the skulls sit over the upper left corner of the portrait's box
+// (outside the round frame, overlapping its edge), on a dark backing so they read
+// against any image. (They keep their tooltip, so a click on the skulls themselves
+// doesn't open the portrait picker.)
+.portrait .kill-skulls {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  max-width: calc(100% - 6px);
+  padding: 1px 4px;
+  gap: 1px;
+  font-size: 0.8em;
+  line-height: 1.2;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(0, 0, 0, 0.9);
+  border-radius: 3px;
+  z-index: 1;
+}
+
+// The Crawler kills box (class `kills-number`) uses the Crawler # box style above.
+// A read-only sheet (see editOnly and observerOnly in sheets/actor-sheet.mjs):
+// the things that would change something look inactive, and for someone who
+// can only see the sheet (Limited) so do the rolls. The classes are on the
+// sheet's own window, which is also `.carl-rpg`.
+&.sheet-readonly {
+  [data-action='setHealth'],
+  [data-action='toggleEquipped'],
+  [data-action='toggleEffect'],
+  [data-action='effectStacks'],
+  [data-action='openLootBox'],
+  [data-action='levelUp'],
+  [data-action='spendPoints'] {
+    cursor: default;
+  }
+}
+
+&.sheet-norolls {
+  [data-action='roll'],
+  .rollable {
+    cursor: default;
+  }
+}
+// ---- Dialogs ------------------------------------------------------------
+// Every pop-up uses CarlRPGDialog (module/helpers/dialog.mjs), which has the
+// `carl-rpg` class (so the window frame, fonts, form controls and buttons above
+// apply) plus `carl-dialog` for these touches.
+&.carl-dialog {
+  .window-content {
+    padding: 14px 16px;
+    gap: 12px;
+  }
+
+  p {
+    margin: 0 0 6px;
+    line-height: 1.4;
+  }
+
+  .form-footer {
+    gap: 8px;
+    margin-top: 4px;
+  }
+}
+// The Review step's list of what is still to fill in: each line goes to its step.
+.wizard-problems {
+  ul {
+    margin: 4px 0 0 18px;
+    padding: 0;
+  }
+
+  a {
+    cursor: pointer;
+    text-decoration: underline dotted;
+
+    &:hover {
+      color: var(--dcc-gold);
+    }
+  }
+}
+// ---- Upgrades (skills and spells) -----------------------------------------
+// The Upgrades tab: a card for each upgrade, in rank order. Cards for ranks the
+// skill hasn't reached are dimmed.
+.upgrade-card {
+  margin-bottom: 10px;
+  padding: 6px 8px;
+  background: var(--dcc-panel);
+  border: 1px solid var(--dcc-border);
+  border-left: 3px solid var(--dcc-gold);
+
+  &.locked {
+    border-left-color: var(--dcc-border);
+
+    .upgrade-header,
+    .upgrade-description {
+      opacity: 0.75;
+    }
+  }
+}
+
+.upgrade-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+
+  .upgrade-rank {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--dcc-gold);
+    font-family: var(--dcc-font-display);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+
+    input {
+      width: 4em;
+    }
+  }
+
+  .upgrade-state {
+    color: var(--dcc-text-dim);
+  }
+}
+
+.upgrade-description {
+  width: 100%;
+  margin-bottom: 4px;
+  resize: vertical;
+}
+
+.upgrade-invalid {
+  color: var(--dcc-blood-bright);
+}
+
+// Every upgrade, listed under the description (the ones not reached are dimmed).
+.upgrade-list {
+  margin-top: 10px;
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    margin: 3px 0;
+
+    i {
+      width: 1.2em;
+      color: var(--dcc-gold);
+    }
+
+    &.locked {
+      opacity: 0.5;
+
+      i {
+        color: var(--dcc-text-dim);
+      }
+    }
+  }
+}
+
+// What a skill uses at its current rank, shown under the field an upgrade changes.
+.upgrade-now {
+  margin: 2px 0 0;
+  color: var(--dcc-gold);
+  font-size: 0.85em;
+}
+
+// ---- Pets ----------------------------------------------------------------
+// A pet's owner menu, beside its name.
+.document-name .pet-owner {
+  flex: 0 0 170px;
+}
+
+// A crawler's pets, listed on its Notes tab.
+.pets-panel {
+  margin-top: 8px;
+
+  .pet-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 3px 0;
+
+    a {
+      cursor: pointer;
+    }
+
+    .pet-level {
+      margin-left: auto;
+      color: var(--dcc-text-dim);
+      font-size: 0.85em;
+    }
+  }
+}
+// The dice button that tries to advance a skill or spell, beside its Advance box.
+// A rank 5+ skill that has had its try this floor is dimmed.
+.items-list .item-advance {
+  .advance-roll {
+    margin-left: 6px;
+
+    &.tried {
+      opacity: 0.35;
+    }
+  }
+}
+// ---- Events: names, summaries, templates, usage pips ------------------------
+.event-card {
+  .event-name {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .event-summary {
+    margin: 2px 0 4px;
+    color: var(--dcc-text-dim);
+    font-size: 0.85em;
+    font-style: italic;
+  }
+
+  .event-match {
+    margin-left: 6px;
+  }
+
+  .event-not {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    color: var(--dcc-text-dim);
+    font-size: 0.8em;
+    text-transform: uppercase;
+  }
+
+  .event-text {
+    width: 100%;
+  }
+}
+
+.event-templates {
+  display: block;
+  margin-top: 4px;
+
+  .event-add {
+    margin-left: 8px;
+  }
+}
+
+// An item's uses left, as dots after its name in the lists.
+.uses-pips {
+  margin-left: 6px;
+  white-space: nowrap;
+
+  .uses-pip {
+    margin-right: 2px;
+    color: var(--dcc-gold);
+    font-size: 0.55em;
+    vertical-align: middle;
+
+    &.spent {
+      opacity: 0.3;
+    }
+  }
+}
+
+// An effect that counts rounds shows how many are left.
+.effect-rounds {
+  margin-left: 6px;
+  color: var(--dcc-gold);
+  font-size: 0.85em;
+}

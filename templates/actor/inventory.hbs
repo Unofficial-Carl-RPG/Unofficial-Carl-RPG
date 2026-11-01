@@ -1,0 +1,124 @@
+{{! Inventory Tab }}
+<section class='tab inventory scrollable {{tab.cssClass}}' data-group='primary' data-tab='inventory'>
+  <div class='gold-row'>
+    <label class='resource-label' for='system.gold'>{{localize 'CARL_RPG.Actor.Crawler.Gold'}}</label>
+    <input
+      type='number'
+      name='system.gold'
+      value='{{system.gold}}'
+      min='0'
+      step='1'
+      data-dtype='Number'
+    />
+    {{#if (gt system.gold 999)}}
+      <span class='gold-formatted'>{{numberFormat system.gold decimals=0}}</span>
+    {{/if}}
+  </div>
+  {{#if lootBoxes.length}}
+    <ol class='items-list loot-boxes'>
+      <li class='item flexrow items-header'>
+        <div class='item-name'>{{localize 'CARL_RPG.Loot.LootBoxes'}}</div>
+        <div class='item-prop'>{{localize 'CARL_RPG.Item.LootBox.FIELDS.quantity.label'}}</div>
+        <div class='item-controls'></div>
+      </li>
+      {{#each lootBoxes as |box|}}
+        <li
+          class='item flexrow'
+          data-item-id='{{box.id}}'
+          data-document-class='Item'
+        >
+          <div class='item-name'>
+            <div class='item-image'>
+              <img src='{{box.img}}' data-tooltip='{{box.name}}' width='24' height='24' />
+            </div>
+            <div>
+              {{box.name}}
+              <small class='loot-tier' style='color: {{box.tierColor}}'>{{localize box.tierName}}</small>
+            </div>
+          </div>
+          <div class='item-prop'>{{box.quantity}}</div>
+          <div class='item-controls'>
+            <a
+              class='item-control loot-open'
+              data-action='openLootBox'
+              data-tooltip='{{localize "CARL_RPG.Loot.Open"}}'
+            >
+              <i class='fas fa-box-open'></i> {{localize 'CARL_RPG.Loot.Open'}}
+            </a>
+            <a class='item-control item-edit' data-action='viewDoc'>
+              <i class='fas fa-edit'></i>
+            </a>
+            {{#if @root.editable}}
+              <a class='item-control item-delete' data-action='deleteDoc'>
+                <i class='fas fa-trash'></i>
+              </a>
+            {{/if}}
+          </div>
+        </li>
+      {{/each}}
+    </ol>
+  {{/if}}
+  <ol class='items-list'>
+    <li class='item flexrow items-header'>
+      <div class='item-name'>{{localize 'Name'}}</div>
+      <div class='item-prop'>{{localize 'CARL_RPG.Item.Item.FIELDS.quantity.label'}}</div>
+      <div class='item-controls'>
+        {{#if @root.editable}}
+          <a
+            class='item-control item-create'
+            data-tooltip='{{localize "DOCUMENT.Create" type='Item'}}'
+            data-action='createDoc'
+            data-document-class='Item'
+            data-type='item'
+          >
+            <i class='fas fa-plus'></i>
+            {{localize 'DOCUMENT.New' type='item'}}
+          </a>
+        {{/if}}
+      </div>
+    </li>
+    {{#each inventory as |item id|}}
+      <li
+        class='item flexrow draggable'
+        data-item-id='{{item._id}}'
+        data-document-class='Item'
+      >
+        <div class='item-name'>
+          <div class='item-image'>
+            <a class='rollable' data-roll-type='item' data-action='roll'>
+              <img
+                src='{{item.img}}'
+                data-tooltip='{{item.name}}'
+                width='24'
+                height='24'
+              />
+            </a>
+          </div>
+          <div>{{item.name}}{{#if item.usesPips.length}} <span class='uses-pips' data-tooltip='{{localize "CARL_RPG.Uses.Tooltip"}}'>{{#each item.usesPips}}<i class='fas fa-circle uses-pip {{#unless this}}spent{{/unless}}'></i>{{/each}}</span>{{/if}}</div>
+        </div>
+        <div class='item-prop'>{{item.system.quantity}}</div>
+        <div class='item-controls'>
+          <a
+            class='item-control item-edit'
+            data-tooltip='{{localize "DOCUMENT.Update" type='Item'}}'
+            data-action='viewDoc'
+          >
+            <i class='fas fa-edit'></i>
+          </a>
+          {{#if @root.editable}}
+            <a
+              class='item-control item-delete'
+              data-tooltip='{{localize "DOCUMENT.Delete" type='Item'}}'
+              data-action='deleteDoc'
+            >
+              <i class='fas fa-trash'></i>
+            </a>
+          {{/if}}
+        </div>
+      </li>
+    {{/each}}
+  </ol>
+  {{#if @root.editMode}}{{#if @root.editable}}
+    <div class='drop-box'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Drop.inventory'}}</div>
+  {{/if}}{{/if}}
+</section>

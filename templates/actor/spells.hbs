@@ -1,71 +1,90 @@
 {{! Spells Tab }}
-<section
-  class='tab spells scrollable {{tab.cssClass}}'
-  data-group='primary'
-  data-tab='spells'
->
+<section class='tab spells scrollable {{tab.cssClass}}' data-group='primary' data-tab='spells'>
   <ol class='items-list'>
-    {{#each spells as |spells spellLevel|}}
-      <li class='item flexrow items-header'>
+    <li class='item flexrow items-header'>
+      <div class='item-name'>{{localize 'Name'}}</div>
+      <div class='item-prop'>{{#if @root.isPet}}{{localize 'CARL_RPG.Pets.Floor'}}{{else}}{{localize 'CARL_RPG.Item.Spell.FIELDS.rank.label'}}{{/if}}</div>
+      {{! Whether the crawler can try to raise this spell's rank (not for pets: they use the floor) }}
+      {{#unless @root.isPet}}
+        <div class='item-prop item-advance' data-tooltip='{{localize "CARL_RPG.Item.Spell.FIELDS.advanceable.label"}}'>{{localize 'CARL_RPG.Item.Skill.AdvanceShort'}}</div>
+      {{/unless}}
+      <div class='item-prop'>{{localize 'CARL_RPG.Item.Spell.FIELDS.manaCost.label'}}</div>
+      <div class='item-controls'>
+        {{#if @root.editable}}
+          <a
+            class='item-control item-create'
+            data-tooltip='{{localize "DOCUMENT.Create" type='Spell'}}'
+            data-action='createDoc'
+            data-document-class='Item'
+            data-type='spell'
+          >
+            <i class='fas fa-plus'></i>
+            {{localize 'DOCUMENT.New' type='spell'}}
+          </a>
+        {{/if}}
+      </div>
+    </li>
+    {{#each spells as |item id|}}
+      <li
+        class='item flexrow draggable'
+        data-item-id='{{item._id}}'
+        data-document-class='Item'
+      >
         <div class='item-name'>
-          {{localize 'BOILERPLATE.Item.Spell.SpellLVL' level=spellLevel}}
+          <div class='item-image'>
+            <a class='rollable' data-roll-type='item' data-action='roll'>
+              <img
+                src='{{item.img}}'
+                data-tooltip='{{item.name}}'
+                width='24'
+                height='24'
+              />
+            </a>
+          </div>
+          <div>{{item.name}}{{#if item.usesPips.length}} <span class='uses-pips' data-tooltip='{{localize "CARL_RPG.Uses.Tooltip"}}'>{{#each item.usesPips}}<i class='fas fa-circle uses-pip {{#unless this}}spent{{/unless}}'></i>{{/each}}</span>{{/if}}</div>
         </div>
+        <div class='item-prop'>{{item.system.rank}}</div>
+        {{#unless @root.isPet}}
+          <div class='item-prop item-advance'>
+            <a
+              class='item-control'
+              data-action='toggleAdvanceable'
+              data-tooltip='{{localize "CARL_RPG.Item.Spell.FIELDS.advanceable.label"}}'
+            >
+              <i class='fas {{#if item.system.advanceable}}fa-check-square{{else}}fa-square{{/if}}'></i>
+            </a>
+            {{#if item.system.advanceable}}
+              <a
+                class='item-control advance-roll {{#if (lookup @root.advanceTried item.id)}}tried{{/if}}'
+                data-action='advanceSkill'
+                data-tooltip='{{localize "CARL_RPG.Advance.Try"}}'
+              ><i class='fas fa-dice-d20'></i></a>
+            {{/if}}
+          </div>
+        {{/unless}}
+        <div class='item-prop'>{{item.system.effective.manaCost}}</div>
         <div class='item-controls'>
+          <a
+            class='item-control item-edit'
+            data-tooltip='{{localize "DOCUMENT.Update" type='Spell'}}'
+            data-action='viewDoc'
+          >
+            <i class='fas fa-edit'></i>
+          </a>
           {{#if @root.editable}}
             <a
-              class='item-control item-create'
-              data-tooltip='{{localize "DOCUMENT.Create" type='Spell'}}'
-              data-action='createDoc'
-              data-document-class='Item'
-              data-type='spell'
-              data-system.spell-level='{{spellLevel}}'
+              class='item-control item-delete'
+              data-tooltip='{{localize "DOCUMENT.Delete" type='Spell'}}'
+              data-action='deleteDoc'
             >
-              <i class='fas fa-plus'></i>
-              {{localize 'BOILERPLATE.Item.Spell.AddLVL' level=spellLevel}}
+              <i class='fas fa-trash'></i>
             </a>
           {{/if}}
         </div>
       </li>
-      {{#each spells as |item id|}}
-        <li
-          class='item flexrow draggable'
-          data-item-id='{{item._id}}'
-          data-document-class='Item'
-        >
-          <div class='item-name flexrow'>
-            <div class='item-image'>
-              <a class='rollable' data-roll-type='item' data-action='roll'>
-                <img
-                  src='{{item.img}}'
-                  data-tooltip='{{item.name}}'
-                  width='24'
-                  height='24'
-                />
-              </a>
-            </div>
-            <div>{{item.name}}</div>
-          </div>
-          <div class='item-controls'>
-            <a
-              class='item-control item-edit'
-              data-tooltip='{{localize "DOCUMENT.Update" type='spell'}}'
-              data-action='viewDoc'
-            >
-              <i class='fas fa-edit'></i>
-            </a>
-            {{#if @root.editable}}
-              <a
-                class='item-control item-delete'
-                data-tooltip='{{localize "DOCUMENT.Delete" type='spell'}}'
-                data-action='deleteDoc'
-              >
-                <i class='fas fa-trash'></i>
-              </a>
-            {{/if}}
-          </div>
-        </li>
-      {{/each}}
     {{/each}}
   </ol>
-
+  {{#if @root.editMode}}{{#if @root.editable}}
+    <div class='drop-box'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Drop.spell'}}</div>
+  {{/if}}{{/if}}
 </section>

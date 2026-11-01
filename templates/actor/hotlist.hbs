@@ -1,0 +1,36 @@
+{{! Hotlist Tab: one box per hotlist slot, each holding a skill, spell or inventory item picked from the dropdown under it. Clicking the item rolls it. The number of slots is set in code (system.hotlist.size). }}
+<section
+  class='tab hotlist scrollable {{tab.cssClass}}'
+  data-group='primary'
+  data-tab='hotlist'
+>
+  <div class='hotlist-grid'>
+    {{#each hotlistSlots as |slot|}}
+      <div class='hotlist-slot {{#if slot.item}}filled{{/if}}'>
+        <div class='hotlist-number'>{{slot.number}}</div>
+        {{#if slot.item}}
+          <div
+            class='hotlist-item item rollable'
+            data-item-id='{{slot.item.id}}'
+            data-document-class='Item'
+            data-roll-type='item'
+            data-action='roll'
+            data-tooltip='{{slot.item.name}}'
+          >
+            <img
+              src='{{slot.item.img}}'
+              width='32'
+              height='32'
+            />
+            <span class='hotlist-name'>{{slot.item.name}}</span>
+          </div>
+        {{else}}
+          <div class='hotlist-blank'></div>
+        {{/if}}
+        <select class='hotlist-select' data-slot='{{slot.index}}'>
+          {{{slot.options}}}
+        </select>
+      </div>
+    {{/each}}
+  </div>
+</section>

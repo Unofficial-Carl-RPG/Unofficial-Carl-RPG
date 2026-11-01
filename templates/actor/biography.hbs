@@ -11,4 +11,67 @@
     </prose-mirror>
   {{else}} {{{enrichedBiography}}}
   {{/if}}
+
+  {{! A pet's upgrades, with the ones not reached yet dimmed }}
+  {{#if upgradeList.length}}
+    <div class='upgrade-list'>
+      <h3>{{localize 'CARL_RPG.Upgrades.Title'}}</h3>
+      <ul>
+        {{#each upgradeList as |up|}}
+          <li class='{{#unless up.unlocked}}locked{{/unless}}'>
+            <i class='fas {{#if up.unlocked}}fa-unlock{{else}}fa-lock{{/if}}'></i>
+            <strong>{{localize 'CARL_RPG.Upgrades.Level'}} {{up.rank}}:</strong> {{up.text}}
+          </li>
+        {{/each}}
+      </ul>
+    </div>
+  {{/if}}
+
+  {{#if (eq actor.type 'crawler')}}
+    <div class='grid grid-2col'>
+      <div class='extras-field flexcol'>
+        <label class='resource-label' for='system.background.pastTrauma'>{{localize 'CARL_RPG.Actor.Crawler.Extras.PastTrauma'}}</label>
+        <textarea name='system.background.pastTrauma' rows='3'>{{system.background.pastTrauma}}</textarea>
+      </div>
+      <div class='extras-field flexcol'>
+        <label class='resource-label' for='system.background.popularity'>{{localize 'CARL_RPG.Actor.Crawler.Extras.Popularity'}}</label>
+        <textarea name='system.background.popularity' rows='3'>{{system.background.popularity}}</textarea>
+      </div>
+      <div class='extras-field flexcol'>
+        <label class='resource-label' for='system.background.looseEnds'>{{localize 'CARL_RPG.Actor.Crawler.Extras.LooseEnds'}}</label>
+        <textarea name='system.background.looseEnds' rows='3'>{{system.background.looseEnds}}</textarea>
+      </div>
+      <div class='extras-field flexcol'>
+        <label class='resource-label' for='system.background.regrets'>{{localize 'CARL_RPG.Actor.Crawler.Extras.Regrets'}}</label>
+        <textarea name='system.background.regrets' rows='3'>{{system.background.regrets}}</textarea>
+      </div>
+    </div>
+
+    <div class='extras-field flexcol'>
+      <label class='resource-label' for='system.kills'>{{localize 'CARL_RPG.Actor.Crawler.Extras.Kills'}}</label>
+      <textarea name='system.kills' rows='3'>{{system.kills}}</textarea>
+    </div>
+    <div class='extras-field flexcol'>
+      <label class='resource-label' for='system.clubs'>{{localize 'CARL_RPG.Actor.Crawler.Extras.Clubs'}}</label>
+      <textarea name='system.clubs' rows='3'>{{system.clubs}}</textarea>
+    </div>
+    <div class='extras-field flexcol'>
+      <label class='resource-label' for='system.personalSpace'>{{localize 'CARL_RPG.Actor.Crawler.Extras.PersonalSpace'}}</label>
+      <textarea name='system.personalSpace' rows='3'>{{system.personalSpace}}</textarea>
+    </div>
+
+    {{! The crawler's pets (a pet picks its owner on its own sheet) }}
+    <div class='pets-panel'>
+      <label class='resource-label'>{{localize 'CARL_RPG.Pets.Title'}}</label>
+      {{#each pets as |pet|}}
+        <div class='pet-row'>
+          <img src='{{pet.img}}' width='24' height='24' />
+          <a data-action='openPet' data-actor-id='{{pet.id}}' data-tooltip='{{localize "CARL_RPG.Pets.Open"}}'>{{pet.name}}</a>
+          <span class='pet-level'>{{localize 'CARL_RPG.Pets.LevelLine' level=pet.level}}</span>
+        </div>
+      {{else}}
+        <p class='hint'>{{localize 'CARL_RPG.Pets.None'}}</p>
+      {{/each}}
+    </div>
+  {{/if}}
 </section>
