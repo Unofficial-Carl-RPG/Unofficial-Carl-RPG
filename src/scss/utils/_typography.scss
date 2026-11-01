@@ -1,2 +1,14 @@
-$font-primary: 'Roboto', sans-serif;
-$font-secondary: 'Roboto', sans-serif;
+// Fonts: only fonts that ship with Foundry or the operating system, so the
+// sheets never have to download anything.
+//   body    - Foundry's Signika
+//   display - Foundry's Modesto Condensed (headings, labels, tabs)
+//   system  - monospace, for numbers (the System's readouts)
+$font-primary: 'Signika', 'Segoe UI', Arial, sans-serif;
+$font-secondary: 'Modesto Condensed', 'Signika', 'Arial Narrow', sans-serif;
+$font-system: Consolas, 'Courier New', monospace;
+
+:root {
+  --dcc-font-body: #{$font-primary};
+  --dcc-font-display: #{$font-secondary};
+  --dcc-font-system: #{$font-system};
+}

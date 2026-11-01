@@ -1,11 +1,12 @@
 {
-  "name": "boilerplate",
+  "name": "carl-rpg",
   "version": "3.0.0",
-  "description": "CSS compiler for the Boilerplate system",
+  "description": "CSS compiler for the Carl RPG system",
   "scripts": {
-    "build": "sass src/scss/boilerplate.scss css/boilerplate.css --style=expanded --no-source-map",
-    "watch": "sass src/scss/boilerplate.scss css/boilerplate.css --style=expanded --source-map --watch",
+    "build": "sass src/scss/carl-rpg.scss css/carl-rpg.css --style=expanded --no-source-map",
+    "watch": "sass src/scss/carl-rpg.scss css/carl-rpg.css --style=expanded --source-map --watch",
     "generate": "node src/generate-boilerplate-system.mjs",
+    "pack": "npm run build && node src/pack.mjs",
     "createSymlinks": "node src/create-symlinks.mjs"
   },
   "browserslist": [

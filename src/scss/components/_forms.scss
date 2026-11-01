@@ -11,10 +11,29 @@
   justify-content: flex-start;
   margin-bottom: 10px;
 
+  // The picture in an item or effect sheet's header: small, to the left of the
+  // name and the other header fields.
   .profile-img {
     flex: 0 0 100px;
+    width: 100px;
     height: 100px;
     margin-right: 10px;
+  }
+
+  // An actor's portrait: the image, with room to overlay icons on its corners.
+  .portrait {
+    position: relative;
+    flex: 0 0 100px;
+    width: 100px;
+    height: 100px;
+    margin-right: 10px;
+
+    .profile-img {
+      display: block;
+      width: 100px;
+      height: 100px;
+      margin: 0;
+    }
   }
 
   .header-fields {
@@ -32,12 +51,105 @@
   height: 100%;
 }
 
+// Each tab fills the space left under the header and tab bar, and scrolls
+// when its content is taller than that space (so nothing is clipped at the
+// default 600x600 sheet size).
 .tab {
-  max-height: 400px;
+  // `auto` (not 0) so tabs still size to their content when the window has
+  // no fixed height (item sheets); they shrink and scroll when it does.
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding-right: 4px;
+
+  &:not(.active) {
+    display: none;
+  }
+}
+
+// Keep the tab bar on screen when there are many tabs.
+nav.tabs {
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+}
+
+// Crawler sheets: the abilities sidebar sits in a left column that starts
+// directly under the portrait and runs alongside the tab bar and every tab's
+// content. The header's children are laid out on the grid directly
+// (`display: contents`): portrait top-left, name/identity/health fields to its
+// right, then the tab bar and the active tab. The sidebar and the tab each
+// scroll on their own if they overflow.
+.window-content:has(> .abilities-sidebar) {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  // portrait row, rest of the header fields, tab bar, tab content
+  grid-template-rows: 100px auto auto minmax(0, 1fr);
+  column-gap: 8px;
+  row-gap: 6px;
+
+  > .sheet-header {
+    display: contents;
+
+    > .portrait {
+      grid-column: 1;
+      grid-row: 1;
+      justify-self: center;
+      margin: 0;
+    }
+
+    > .header-fields {
+      grid-column: 2;
+      grid-row: 1 / 3;
+      min-width: 0;
+    }
+  }
+
+  > nav.tabs {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  > .abilities-sidebar {
+    grid-column: 1;
+    grid-row: 2 / -1;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+
+    label {
+      font-size: 0.75em;
+    }
+  }
+
+  > .tab {
+    grid-column: 2;
+    grid-row: 4;
+  }
+}
+
+// Compact the extra header rows so more of the sheet is left for the tabs.
+.sheet-header {
+  // Match the 10px gap used between the boxes on the identity row below.
+  .document-name {
+    gap: 10px;
+  }
+
+  .identity,
+  .resources {
+    margin: 4px 0;
+  }
 }
 
 .tab.biography {
-  flex: 1;
+  flex: 1 1 auto;
+
+  // Keep the bio editor a usable size; the sections below it scroll into view.
+  prose-mirror {
+    display: block;
+    min-height: 220px;
+  }
 
   .editor {
     height: 100%;
@@ -52,4 +164,10 @@
   .tox-edit-area {
     padding: 0 8px;
   }
+}
+// Panels (a label with an input under it) get a little room inside, so an input
+// doesn't fill the whole width of its panel: sheet headers, item and actor tabs.
+// (The creation wizard's panels have more, see _gm-tab.scss.)
+.resource {
+  padding: 4px 6px;
 }

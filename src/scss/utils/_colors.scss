@@ -1,29 +1,40 @@
+// Dungeon Crawler Carl palette: a grimy dungeon (warm near-black panels, worn
+// parchment text) lit by Borant gold and blood red. Retheming = editing these.
 :root {
-  --boilerplate-c-dark: #191813;
-  --boilerplate-c-faint: #c9c7b8;
-  --boilerplate-c-beige: #b5b3a4;
-  --boilerplate-c-tan: #444444;
-  --boilerplate-c-white: #ffffff;
-  --boilerplate-c-black: #000000;
-  --boilerplate-c-groove: #eeede0;
+  --dcc-bg: #14110f;
+  --dcc-panel: #1f1a16;
+  --dcc-panel-2: #2a231d;
+  --dcc-border: #4a3b2e;
+  --dcc-blood: #a3181d;
+  --dcc-blood-bright: #d6282e;
+  --dcc-gold: #e0a526;
+  --dcc-gold-dim: #9a7420;
+  --dcc-text: #e8dcc8;
+  --dcc-text-dim: #a99a84;
+
+  // Health bar gradient: red at 10%, yellow in the middle, green at 100%.
+  --dcc-health-low: #c8282e;
+  --dcc-health-mid: #e2b72a;
+  --dcc-health-high: #3aa84a;
+
+  // Names used by the older component styles ($c-dark, $c-faint, ...), mapped
+  // onto the palette above. The sheets are always dark, so there is no
+  // separate light/dark version.
+  --carl-rpg-c-dark: var(--dcc-text);
+  --carl-rpg-c-faint: var(--dcc-border);
+  --carl-rpg-c-beige: var(--dcc-text-dim);
+  --carl-rpg-c-tan: var(--dcc-text-dim);
+  --carl-rpg-c-white: var(--dcc-panel);
+  --carl-rpg-c-black: var(--dcc-gold);
+  --carl-rpg-c-groove: var(--dcc-border);
 }
 
-.theme-dark {
-  --boilerplate-c-dark: #c9c7b8;
-  --boilerplate-c-faint: #191813;
-  --boilerplate-c-beige: #444444;
-  --boilerplate-c-tan: #b5b3a4;
-  --boilerplate-c-white: #000000;
-  --boilerplate-c-black: #ffffff;
-  --boilerplate-c-groove: #11121f;
-}
+$c-white: var(--carl-rpg-c-white);
+$c-black: var(--carl-rpg-c-black);
 
-$c-white: var(--boilerplate-c-white);
-$c-black: var(--boilerplate-c-black);
+$c-dark: var(--carl-rpg-c-dark);
+$c-faint: var(--carl-rpg-c-faint);
+$c-beige: var(--carl-rpg-c-beige);
+$c-tan: var(--carl-rpg-c-tan);
 
-$c-dark: var(--boilerplate-c-dark);
-$c-faint: var(--boilerplate-c-faint);
-$c-beige: var(--boilerplate-c-beige);
-$c-tan: var(--boilerplate-c-tan);
-
-$c-groove: var(--boilerplate-c-groove);
+$c-groove: var(--carl-rpg-c-groove);
