@@ -17,6 +17,9 @@ export default class CarlRPGGear extends CarlRPGItemBase {
       new fields.StringField({ required: true, blank: false })
     );
 
+    // The skill (one of the skills above) a weapon rolls with. Blank means the first.
+    schema.rollSkill = new fields.StringField({ blank: true, initial: '' });
+
     // Whether the gear is currently equipped (see CarlRPGItem#toggleEquipped).
     schema.equipped = new fields.BooleanField({
       required: true,

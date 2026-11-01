@@ -608,6 +608,11 @@
         "Slot": "Slot"
       }
     },
+    "Weapon": {
+      "RollsWith": "Rolls with",
+      "RollsWithHint": "The skill this weapon rolls with",
+      "SkillAdded": "{skill} was added again at rank 0 for {item}."
+    },
     "OriginAbilities": {
       "Title": "Race and class abilities",
       "Rank": "rank {rank}"
@@ -620,7 +625,9 @@
       "Mana": "Mana",
       "DR": "DR",
       "Quantity": "Quantity",
-      "Uses": "Uses"
+      "Uses": "Uses",
+      "RollsWith": "Rolls with",
+      "AlsoGrants": "Also grants"
     },
     "Pets": {
       "Owner": "Owner",

@@ -530,6 +530,13 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
             img: skill?.img ?? 'icons/svg/mystery-man.svg',
             rank: skill?.system?.rank,
             statLabel: showStat ? skillStatLabel(skill) : '',
+            stat: skillStatLabel(skill),
+            rollsWith:
+              this.item.type === 'gear' &&
+              uuid ===
+                ((this.item.system.skills ?? []).includes(this.item.system.rollSkill)
+                  ? this.item.system.rollSkill
+                  : (this.item.system.skills ?? [])[0]),
             missing: !skill,
           };
         })

@@ -78,6 +78,7 @@ export class CarlRPGItem extends Item {
     );
     if (inSlot.length < limit) {
       await this.update({ 'system.equipped': true });
+      await this.#grantRollingSkill();
       await this.syncEquipEffects();
       await runEvents(this, 'equipped');
       return true;
@@ -113,6 +114,7 @@ export class CarlRPGItem extends Item {
       { _id: choice, 'system.equipped': false },
       { _id: this.id, 'system.equipped': true },
     ]);
+    await this.#grantRollingSkill();
     await this.parent.items.get(choice)?.syncEquipEffects();
     await this.syncEquipEffects();
     await runEvents(this.parent.items.get(choice), 'unequipped');
@@ -515,6 +517,73 @@ export class CarlRPGItem extends Item {
     }
   }
 
+  /**
+   * The crawler's copy of the skill this weapon rolls with: the one marked
+   * "Rolls with", or the first skill when none is marked.
+   * @returns {Promise<Item|null>}
+   */
+  async rollingSkill() {
+    if (this.type !== 'gear' || !(this.parent instanceof Actor)) return null;
+    const uuids = this.system.skills ?? [];
+    if (!uuids.length) return null;
+    const chosen = uuids.includes(this.system.rollSkill) ? this.system.rollSkill : uuids[0];
+    const source = await fromUuid(chosen);
+    if (!source) return null;
+    const keyOf = (skill) => skill.system.identifier?.trim() || skill.name;
+    return this.parent.itemTypes.skill.find((s) => keyOf(s) === keyOf(source)) ?? null;
+  }
+
+  /**
+   * Set up a roll with the weapon's skill: the formula takes that skill's stat,
+   * its rank and roll bonus, and its damage is added to the weapon's damage.
+   * @returns {Promise<{skill: Item, restore: Function}|null>}  null if no skill
+   */
+  async #useRollingSkill() {
+    const skill = await this.rollingSkill();
+    if (!skill) return null;
+    const sys = this.system;
+    const saved = { formula: sys.formula, damage: sys.damage };
+    const { diceNum, diceSize } = sys.roll;
+    const bonus = skill.system.effective?.rollBonus ?? 0;
+    const rank = skill.system.rank ?? 0;
+    sys.formula =
+      `${diceNum}${diceSize} + @${skill.system.stat}.mod + ${rank}` +
+      (bonus ? ` ${bonus > 0 ? '+' : '-'} ${Math.abs(bonus)}` : '');
+    const skillDamage = (skill.system.effective?.damage ?? '').trim();
+    sys.damage = [String(saved.damage ?? '').trim(), skillDamage].filter(Boolean).join(' + ');
+    return {
+      skill,
+      restore: () => {
+        sys.formula = saved.formula;
+        sys.damage = saved.damage;
+      },
+    };
+  }
+
+  /**
+   * A weapon's rolled skill that the crawler has lost is added again at rank 0,
+   * and the GM is whispered about it.
+   */
+  async #grantRollingSkill() {
+    if (this.type !== 'gear' || !(this.parent instanceof Actor)) return;
+    if (await this.rollingSkill()) return;
+    const uuids = this.system.skills ?? [];
+    if (!uuids.length) return;
+    const chosen = uuids.includes(this.system.rollSkill) ? this.system.rollSkill : uuids[0];
+    const source = await fromUuid(chosen);
+    if (source?.type !== 'skill') return;
+    const skillData = game.items.fromCompendium(source);
+    foundry.utils.setProperty(skillData, 'system.rank', 0);
+    await this.parent.createEmbeddedDocuments('Item', [skillData]);
+    await ChatMessage.create({
+      whisper: ChatMessage.getWhisperRecipients('GM'),
+      content: game.i18n.format('CARL_RPG.Weapon.SkillAdded', {
+        skill: Handlebars.escapeExpression(source.name),
+        item: Handlebars.escapeExpression(this.name),
+      }),
+    });
+  }
+
   async #grantEmbeddedSkills() {
     const actor = this.parent;
     const uuids = this.system?.skills ?? [];
@@ -623,17 +692,24 @@ export class CarlRPGItem extends Item {
     // mentioned on the chat card, only the mana is).
     await this.#spendAction(claim);
     await spendUse(this);
+    const rolling = await this.#useRollingSkill();
     const result = await this._rollCore(event, {
       note: mana.note,
       options: rollOptions,
     });
     // A mistyped bonus: nothing was rolled, and nothing further happens.
-    if (result === null) return null;
+    if (result === null) {
+      rolling?.restore();
+      return null;
+    }
     const roll = result instanceof Roll ? result : null;
     // Check the roll against what the item targets (nothing, a target's Evade
     // or a target's stat), roll any damage and post the result (see
     // helpers/attacks.mjs).
     const attack = await resolveCheck(this, roll);
+    rolling?.restore();
+    // The rolled skill's own events run too.
+    if (rolling) await runEvents(rolling.skill, 'used', { roll, depth, degrees: attack?.degrees });
     // (`degrees` are the degrees of success, for the "the roll's result is"
     // condition.)
     await runEvents(this, 'used', { roll, depth, degrees: attack?.degrees });

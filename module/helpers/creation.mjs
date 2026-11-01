@@ -150,7 +150,9 @@ export function skillStatLabel(skill) {
 
 /** The skill a weapon grants: the first skill embedded in it. */
 export async function weaponSkill(weapon) {
-  const uuid = weapon?.system?.skills?.[0];
+  // The skill it rolls with (marked on the weapon), or the first one.
+  const skills = weapon?.system?.skills ?? [];
+  const uuid = skills.includes(weapon?.system?.rollSkill) ? weapon.system.rollSkill : skills[0];
   const skill = uuid ? await fromUuid(uuid) : null;
   return skill?.type === 'skill' ? skill : null;
 }

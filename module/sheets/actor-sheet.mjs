@@ -541,9 +541,13 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       case 'achievements':
       case 'mobAbilities':
       case 'hotlist':
-      case 'gear':
       case 'upgrades':
         context.tab = context.tabs[partId];
+        break;
+      case 'gear':
+        context.tab = context.tabs[partId];
+        // Weapons with more than one skill: the owner picks which one they roll with.
+        context.rollChoices = await this._rollChoices();
         break;
       case 'biography':
         context.tab = context.tabs[partId];
@@ -741,6 +745,27 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
   }
 
   /**
+   * For each weapon the crawler holds with more than one skill: the skills, with
+   * the one it rolls with marked. Keyed by the item's id.
+   * @returns {Promise<Object<string, {uuid: string, name: string, selected: boolean}[]>>}
+   */
+  async _rollChoices() {
+    const out = {};
+    for (const gear of this.actor.itemTypes.gear) {
+      const uuids = gear.system.skills ?? [];
+      if (uuids.length < 2) continue;
+      const chosen = uuids.includes(gear.system.rollSkill) ? gear.system.rollSkill : uuids[0];
+      out[gear.id] = await Promise.all(
+        uuids.map(async (uuid) => {
+          const skill = await fromUuid(uuid);
+          return { uuid, name: skill?.name ?? uuid, selected: uuid === chosen };
+        })
+      );
+    }
+    return out;
+  }
+
+  /**
    * The race and class abilities a crawler has: each origin item and the skills
    * it grants, for the read-only list on the Notes tab.
    * @returns {Promise<{name: string, kind: string, skills: {name: string, rank: number}[]}[]>}
@@ -883,6 +908,12 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       !this.document.testUserPermission(game.user, 'OBSERVER')
     );
     this.#disableOverrides();
+    // A weapon's "rolls with" skill, picked on the crawler's own copy.
+    for (const select of this.element.querySelectorAll('select.roll-skill')) {
+      select.addEventListener('change', () =>
+        this.actor.items.get(select.dataset.itemId)?.update({ 'system.rollSkill': select.value })
+      );
+    }
     // Hotlist slot dropdowns save the picked item (they have no form name).
     for (const select of this.element.querySelectorAll('.hotlist-select')) {
       select.addEventListener('change', (event) => this.#onHotlistChange(event));
