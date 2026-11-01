@@ -1,0 +1,28 @@
+{{! Attributes Tab (Loot Box) }}
+<section
+  class='tab attributes {{tab.cssClass}}'
+  data-group='primary'
+  data-tab='attributes'
+>
+  <div class='resource'>
+    <label class='resource-label' for='system.identifier'>{{localize 'CARL_RPG.Item.base.FIELDS.identifier.label'}}</label>
+    <input type='text' name='system.identifier' value='{{system.identifier}}' />
+  </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.draws'>{{localize 'CARL_RPG.Item.LootBox.FIELDS.draws.label'}}</label>
+    <input type='number' name='system.draws' value='{{system.draws}}' step='1' min='0' />
+  </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.goldOverride'>{{localize 'CARL_RPG.Item.LootBox.FIELDS.goldOverride.label'}}</label>
+    <input
+      type='text'
+      name='system.goldOverride'
+      value='{{system.goldOverride}}'
+      placeholder='{{tierGold}}'
+    />
+    <p class='hint'>{{localize 'CARL_RPG.Item.LootBox.GoldHint' default=tierGold}}</p>
+    {{#each goldWarnings as |warning|}}
+      <p class='loot-warning'><i class='fas fa-triangle-exclamation'></i> {{localize warning}}</p>
+    {{/each}}
+  </div>
+</section>

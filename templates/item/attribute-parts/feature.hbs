@@ -1,8 +1,70 @@
-{{! Attributes Tab }}
+{{! Attributes Tab (Skill) }}
 <section
   class='tab attributes {{tab.cssClass}}'
   data-group='primary'
   data-tab='attributes'
 >
-  {{! As you add new fields, add them in here! }}
+  <div class='resource'>
+    <label class='resource-label' for='system.identifier'>{{localize 'CARL_RPG.Item.base.FIELDS.identifier.label'}}</label>
+    <input type='text' name='system.identifier' value='{{system.identifier}}' />
+  </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.check.target'>{{localize 'CARL_RPG.Check.Label'}}</label>
+    <select name='system.check.target'>
+      {{selectOptions config.checkTargets selected=system.check.target localize=true}}
+    </select>
+    <p class='hint'>{{localize 'CARL_RPG.Check.Hint'}}</p>
+    {{#if effective.targetChanged}}
+      <p class='upgrade-now'><i class='fas fa-arrow-up'></i> {{localize 'CARL_RPG.Upgrades.NowTarget' value=(localize effective.target)}}</p>
+    {{/if}}
+  </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.damage'>{{localize 'CARL_RPG.Item.base.FIELDS.damage.label'}}</label>
+    <input type='text' name='system.damage' value='{{system.damage}}' placeholder='1d6+@str.mod' />
+    <p class='hint'>{{localize 'CARL_RPG.Attack.DamageHint'}}</p>
+    {{#if effective.damageChanged}}
+      <p class='upgrade-now'><i class='fas fa-arrow-up'></i> {{localize 'CARL_RPG.Upgrades.NowDamage' value=effective.damage}}</p>
+    {{/if}}
+  </div>
+  {{#if effective.rollBonus}}
+    <p class='upgrade-now'><i class='fas fa-arrow-up'></i> {{localize 'CARL_RPG.Upgrades.NowRollBonus' value=(numberFormat effective.rollBonus decimals=0 sign=true)}}</p>
+  {{/if}}
+  {{! Rank is per character, so it only shows on skills that are on an actor }}
+  <div class='grid grid-{{#if item.isEmbedded}}3{{else}}2{{/if}}col'>
+    {{#if item.isEmbedded}}
+      <div class='resource'>
+        {{! A pet's skills use the current floor in place of a rank }}
+        {{#if rankIsFloor}}
+          <label class='resource-label'>{{localize 'CARL_RPG.Pets.Floor'}}</label>
+          <input type='number' value='{{system.rank}}' disabled />
+        {{else}}
+          <label class='resource-label' for='system.rank'>{{localize 'CARL_RPG.Item.Skill.FIELDS.rank.label'}}</label>
+          <input
+            type='number'
+            name='system.rank'
+            value='{{system.rank}}'
+            step='1'
+            min='0'
+          />
+        {{/if}}
+      </div>
+    {{/if}}
+    <div class='resource'>
+      <label class='resource-label' for='system.stat'>{{localize 'CARL_RPG.Item.Skill.FIELDS.stat.label'}}</label>
+      <select name='system.stat'>
+        {{selectOptions config.abilities selected=system.stat localize=true}}
+      </select>
+    </div>
+    {{! A passive skill doesn't use an action when it is used }}
+    <div class='resource' data-tooltip='{{localize "CARL_RPG.Item.Skill.PassiveHint"}}'>
+      <label class='resource-label' for='system.passive'>{{localize 'CARL_RPG.Item.Skill.FIELDS.passive.label'}}</label>
+      <input
+        type='checkbox'
+        name='system.passive'
+        {{checked system.passive}}
+      />
+    </div>
+  </div>
+  {{! Usage limits }}
+  {{> "systems/carl-rpg/templates/item/uses-fields.hbs"}}
 </section>

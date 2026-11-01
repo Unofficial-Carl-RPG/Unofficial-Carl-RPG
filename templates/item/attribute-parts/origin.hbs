@@ -1,0 +1,76 @@
+{{! Attributes Tab (Race / Class) }}
+<section
+  class='tab attributes {{tab.cssClass}}'
+  data-group='primary'
+  data-tab='attributes'
+>
+  <div class='resource'>
+    <label class='resource-label' for='system.identifier'>{{localize 'CARL_RPG.Item.base.FIELDS.identifier.label'}}</label>
+    <input type='text' name='system.identifier' value='{{system.identifier}}' />
+  </div>
+
+  <div class='resource'>
+    <label class='event-option earth-based-tick'>
+      <input type='checkbox' name='system.earthBased' {{checked system.earthBased}} />
+      <i class='fas fa-earth-americas race-earth'></i>
+      {{localize 'CARL_RPG.Origin.EarthBased'}}
+    </label>
+    <p class='hint'>{{localize 'CARL_RPG.Origin.EarthBasedHint'}}</p>
+  </div>
+
+  {{#if isClass}}
+    {{! Class categories: tick the suggested ones, or add a custom one }}
+    <div class='resource tag-editor'>
+      <label class='resource-label'>{{localize 'CARL_RPG.Tags.Categories.Title'}}</label>
+      <p class='hint'>{{localize 'CARL_RPG.Tags.Categories.Hint'}}</p>
+      <div class='tag-options'>
+        {{#each tagOptions as |tag|}}
+          <label class='event-option'>
+            <input
+              type='checkbox'
+              class='tag-toggle'
+              data-tag='{{tag.name}}'
+              {{checked tag.checked}}
+              {{#unless @root.editable}}disabled{{/unless}}
+            />
+            {{tag.name}}
+          </label>
+        {{/each}}
+      </div>
+      <div class='tag-custom'>
+        {{#each customCategories as |tag|}}
+          <span class='tag-chip'>
+            {{tag}}
+            {{#if @root.editable}}
+              <a data-action='removeTag' data-field='categories' data-tag='{{tag}}' data-tooltip='{{localize "CARL_RPG.Events.Remove"}}'><i class='fas fa-xmark'></i></a>
+            {{/if}}
+          </span>
+        {{/each}}
+        {{#if editable}}
+          <input type='text' class='tag-input' data-field='categories' placeholder='{{localize "CARL_RPG.Tags.Categories.CustomPlaceholder"}}' />
+          <a class='event-add' data-action='addTag' data-field='categories'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Tags.Add'}}</a>
+        {{/if}}
+      </div>
+    </div>
+
+    {{! Regular tags: a separate list from the categories }}
+    <div class='resource tag-editor'>
+      <label class='resource-label'>{{localize 'CARL_RPG.Tags.Title'}}</label>
+      <p class='hint'>{{localize 'CARL_RPG.Tags.Hint'}}</p>
+      <div class='tag-custom'>
+        {{#each regularTags as |tag|}}
+          <span class='tag-chip'>
+            {{tag}}
+            {{#if @root.editable}}
+              <a data-action='removeTag' data-field='tags' data-tag='{{tag}}' data-tooltip='{{localize "CARL_RPG.Events.Remove"}}'><i class='fas fa-xmark'></i></a>
+            {{/if}}
+          </span>
+        {{/each}}
+        {{#if editable}}
+          <input type='text' class='tag-input' data-field='tags' placeholder='{{localize "CARL_RPG.Tags.CustomPlaceholder"}}' />
+          <a class='event-add' data-action='addTag' data-field='tags'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Tags.Add'}}</a>
+        {{/if}}
+      </div>
+    </div>
+  {{/if}}
+</section>

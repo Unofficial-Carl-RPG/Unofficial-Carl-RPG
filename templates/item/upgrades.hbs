@@ -1,0 +1,103 @@
+{{! Upgrades Tab (skills and spells): what the skill gains as its rank goes up. Every upgrade at or below the current rank applies automatically. }}
+<section
+  class='tab upgrades scrollable {{tab.cssClass}}'
+  data-group='primary'
+  data-tab='upgrades'
+>
+  <p class='skills-hint'>{{localize 'CARL_RPG.Upgrades.Hint'}}</p>
+  {{#if upgradeEventsUntrusted}}
+    <p class='loot-warning'>
+      <i class='fas fa-triangle-exclamation'></i> {{localize 'CARL_RPG.Events.NotTrusted'}}
+      {{#if isGM}}<a class='event-add' data-action='approveEvents'>{{localize 'CARL_RPG.Events.Approve'}}</a>{{/if}}
+    </p>
+  {{/if}}
+
+  {{#each upgradeRows as |up|}}
+    <div class='upgrade-card {{#unless up.unlocked}}locked{{/unless}}'>
+      <header class='upgrade-header'>
+        <label class='upgrade-rank'>
+          {{localize 'CARL_RPG.Upgrades.Rank'}}
+          <input type='number' class='event-value' data-path='{{up.path}}.rank' value='{{up.rank}}' step='1' min='0' />
+        </label>
+        <span class='upgrade-state' data-tooltip='{{#if up.unlocked}}{{localize "CARL_RPG.Upgrades.Unlocked"}}{{else}}{{localize "CARL_RPG.Upgrades.Locked"}}{{/if}}'>
+          <i class='fas {{#if up.unlocked}}fa-unlock{{else}}fa-lock{{/if}}'></i>
+        </span>
+        {{#if @root.editable}}
+          <span class='event-controls'>
+            <a class='item-control item-delete' data-action='removeUpgrade' data-ui='{{up.index}}' data-tooltip='{{localize "CARL_RPG.Upgrades.Remove"}}'><i class='fas fa-trash'></i></a>
+          </span>
+        {{/if}}
+      </header>
+
+      <textarea
+        class='upgrade-description'
+        rows='2'
+        data-path='{{up.path}}.description'
+        placeholder='{{localize "CARL_RPG.Upgrades.DescriptionPlaceholder"}}'
+        {{#unless @root.editable}}disabled{{/unless}}
+      >{{up.description}}</textarea>
+
+      {{! What it changes, picked from menus }}
+      <div class='event-section'>
+        <span class='event-label'>{{localize 'CARL_RPG.Upgrades.Changes.Label'}}</span>
+        {{#each up.changes as |change|}}
+          <div class='event-row'>
+            <select data-path='{{change.path}}.type'>
+              {{selectOptions @root.upgradeChangeOptions selected=change.type localize=true}}
+            </select>
+            {{#if change.isFormula}}
+              <input type='text' class='event-amount' data-path='{{change.path}}.value' value='{{change.value}}' placeholder='{{localize "CARL_RPG.Upgrades.FormulaPlaceholder"}}' />
+            {{/if}}
+            {{#if change.isNumber}}
+              <input type='number' class='event-value' data-path='{{change.path}}.value' value='{{change.value}}' step='1' />
+            {{/if}}
+            {{#if change.isTarget}}
+              <select data-path='{{change.path}}.value'>
+                {{selectOptions @root.upgradeTargetOptions selected=change.value localize=true}}
+              </select>
+            {{/if}}
+            {{#if change.invalid}}
+              <i class='fas fa-triangle-exclamation upgrade-invalid' data-tooltip='{{localize "CARL_RPG.Upgrades.Invalid"}}'></i>
+            {{/if}}
+            {{#if @root.editable}}
+              <a class='item-control' data-action='removeChange' data-ui='{{up.index}}' data-ci='{{change.index}}' data-tooltip='{{localize "CARL_RPG.Events.Remove"}}'><i class='fas fa-trash'></i></a>
+            {{/if}}
+          </div>
+        {{/each}}
+        {{#if @root.editable}}
+          <a class='event-add' data-action='addChange' data-ui='{{up.index}}'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Upgrades.AddChange'}}</a>
+        {{/if}}
+      </div>
+
+      {{! The skill's own effects this upgrade unlocks }}
+      <div class='event-section'>
+        <span class='event-label'>{{localize 'CARL_RPG.Upgrades.Unlocks'}}</span>
+        {{#each up.effects as |effect|}}
+          <label class='event-option'>
+            <input
+              type='checkbox'
+              class='unlock-effect'
+              data-ui='{{up.index}}'
+              data-key='{{effect.key}}'
+              {{checked effect.checked}}
+              {{#unless @root.editable}}disabled{{/unless}}
+            />
+            {{effect.name}}
+          </label>
+        {{else}}
+          <span class='drop-hint'>{{localize 'CARL_RPG.Upgrades.NoEffects'}}</span>
+        {{/each}}
+      </div>
+
+      {{! Events that only run once this upgrade has been reached }}
+      <div class='event-section'>
+        <span class='event-label'>{{localize 'CARL_RPG.Upgrades.Events'}}</span>
+        {{> "systems/carl-rpg/templates/item/event-cards.hbs" rows=up.eventRows list=up.eventsList}}
+      </div>
+    </div>
+  {{/each}}
+
+  {{#if editable}}
+    <a class='event-add event-add-main' data-action='addUpgrade'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Upgrades.Add'}}</a>
+  {{/if}}
+</section>

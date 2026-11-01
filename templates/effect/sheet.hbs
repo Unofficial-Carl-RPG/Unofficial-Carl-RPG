@@ -1,0 +1,165 @@
+{{! Effect sheet }}
+<div class='effect-sheet'>
+  <header class='effect-header'>
+    <img
+      class='profile-img'
+      src='{{effect.img}}'
+      data-edit='img'
+      data-action='editImage'
+      data-tooltip='{{effect.name}}'
+      width='64'
+      height='64'
+    />
+    <input
+      class='effect-name'
+      name='name'
+      type='text'
+      value='{{effect.name}}'
+      placeholder='{{localize "CARL_RPG.Effect.Name"}}'
+    />
+  </header>
+
+  <div class='grid grid-2col'>
+    <div class='resource'>
+      <label class='resource-label' for='flags.carl-rpg.kind'>{{localize 'CARL_RPG.Effect.Type'}}</label>
+      <select name='flags.carl-rpg.kind'>
+        {{selectOptions kinds selected=kind localize=true}}
+      </select>
+    </div>
+    <div class='resource'>
+      <label class='resource-label' for='flags.carl-rpg.identifier'>{{localize 'CARL_RPG.Item.base.FIELDS.identifier.label'}}</label>
+      <input
+        type='text'
+        name='flags.carl-rpg.identifier'
+        value='{{flags.identifier}}'
+      />
+    </div>
+  </div>
+
+  <div class='resource'>
+    <label class='resource-label' for='flags.carl-rpg.lastsUntil'>{{localize 'CARL_RPG.Rest.Lasts'}}</label>
+    <select name='flags.carl-rpg.lastsUntil'>
+      {{selectOptions durations selected=lastsUntil localize=true}}
+    </select>
+  </div>
+
+  {{! A number of rounds: counted down at the end of each round once it is on }}
+  <div class='resource'>
+    <label class='resource-label' for='flags.carl-rpg.rounds'>{{localize 'CARL_RPG.Effect.Rounds'}}</label>
+    <input
+      type='number'
+      name='flags.carl-rpg.rounds'
+      value='{{rounds}}'
+      min='0'
+      step='1'
+      placeholder='{{localize "CARL_RPG.Effect.NoLimit"}}'
+    />
+    {{#if roundsLeft}}
+      <p class='upgrade-now'>{{localize 'CARL_RPG.Effect.RoundsLeft' count=roundsLeft}}</p>
+    {{/if}}
+  </div>
+
+  {{#if isDebuff}}
+    <div class='grid grid-2col'>
+      <div class='resource'>
+        <label class='resource-label' for='flags.carl-rpg.stackable'>{{localize 'CARL_RPG.Effect.Stackable'}}</label>
+        <input
+          type='checkbox'
+          name='flags.carl-rpg.stackable'
+          {{checked flags.stackable}}
+        />
+      </div>
+      {{#if flags.stackable}}
+        <div class='resource'>
+          <label class='resource-label' for='flags.carl-rpg.maxStacks'>{{localize 'CARL_RPG.Effect.MaxStacks'}}</label>
+          <input
+            type='number'
+            name='flags.carl-rpg.maxStacks'
+            value='{{flags.maxStacks}}'
+            min='1'
+            step='1'
+            placeholder='{{localize "CARL_RPG.Effect.NoLimit"}}'
+          />
+        </div>
+      {{/if}}
+    </div>
+  {{/if}}
+
+  <div class='resource effect-options'>
+    <label>
+      <input
+        type='checkbox'
+        name='flags.carl-rpg.permanent'
+        {{checked flags.permanent}}
+      />
+      {{localize 'CARL_RPG.Effect.Permanent'}}
+    </label>
+    {{#if canEquipLink}}
+      <label>
+        <input
+          type='checkbox'
+          name='flags.carl-rpg.equipLinked'
+          {{checked flags.equipLinked}}
+        />
+        {{localize 'CARL_RPG.Effect.EquipLinked'}}
+      </label>
+    {{/if}}
+  </div>
+
+  <div class='effect-modifiers'>
+    <h3>{{localize 'CARL_RPG.Effect.Modifiers'}}</h3>
+    {{#each modifiers as |mod|}}
+      <div class='modifier-row' data-index='{{mod.index}}'>
+        <select class='modifier-stat'>
+          {{selectOptions @root.modifierOptions selected=mod.stat localize=true}}
+        </select>
+        <input
+          class='modifier-value'
+          type='number'
+          value='{{mod.value}}'
+          step='1'
+        />
+        {{#if @root.editable}}
+          <a class='item-control' data-action='removeModifier' data-tooltip='{{localize "CARL_RPG.Effect.RemoveModifier"}}'>
+            <i class='fas fa-trash'></i>
+          </a>
+        {{/if}}
+      </div>
+    {{/each}}
+    {{#if editable}}
+      <a class='item-control add-modifier' data-action='addModifier'>
+        <i class='fas fa-plus'></i> {{localize 'CARL_RPG.Effect.AddModifier'}}
+      </a>
+    {{/if}}
+  </div>
+
+  {{! Events that run while the effect is on }}
+  <div class='effect-events'>
+    <h3>{{localize 'CARL_RPG.Effect.Events'}}</h3>
+    {{#if eventsUnapproved}}
+      <p class='loot-warning'>
+        <i class='fas fa-triangle-exclamation'></i> {{localize 'CARL_RPG.Events.NotTrusted'}}
+        {{#if isGM}}
+          <a class='event-add' data-action='approveEvents'>{{localize 'CARL_RPG.Events.Approve'}}</a>
+        {{/if}}
+      </p>
+    {{/if}}
+    {{> "systems/carl-rpg/templates/item/event-cards.hbs" rows=eventRows list='events'}}
+  </div>
+
+  <div class='effect-description'>
+    <h3>{{localize 'CARL_RPG.Effect.Description'}}</h3>
+    {{#if editable}}
+      <prose-mirror
+        name='description'
+        data-document-uuid='{{effect.uuid}}'
+        value='{{effect.description}}'
+        toggled='true'
+      >
+        {{{enrichedDescription}}}
+      </prose-mirror>
+    {{else}}
+      {{{enrichedDescription}}}
+    {{/if}}
+  </div>
+</div>

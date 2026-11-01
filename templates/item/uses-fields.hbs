@@ -1,0 +1,17 @@
+{{! Usage limits (shared by the Attributes tabs of items that can be used): how many uses before it recharges, and how often it does. }}
+<div class='grid grid-3col uses-fields'>
+  <div class='resource'>
+    <label class='resource-label' for='system.uses.max'>{{localize 'CARL_RPG.Uses.Max'}}</label>
+    <input type='number' name='system.uses.max' value='{{system.uses.max}}' min='0' step='1' data-tooltip='{{localize "CARL_RPG.Uses.MaxHint"}}' />
+  </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.uses.recharge'>{{localize 'CARL_RPG.Uses.Recharges'}}</label>
+    <select name='system.uses.recharge'>
+      {{selectOptions @root.usesRechargeOptions selected=system.uses.recharge localize=true}}
+    </select>
+  </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.uses.spent'>{{localize 'CARL_RPG.Uses.Spent'}}</label>
+    <input type='number' name='system.uses.spent' value='{{system.uses.spent}}' min='0' step='1' />
+  </div>
+</div>

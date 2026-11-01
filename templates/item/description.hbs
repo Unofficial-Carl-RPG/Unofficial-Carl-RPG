@@ -11,4 +11,19 @@
     </prose-mirror>
   {{else}} {{{enrichedDescription}}}
   {{/if}}
+
+  {{! Skills and spells: every upgrade, with the ones not reached yet dimmed }}
+  {{#if upgradeList.length}}
+    <div class='upgrade-list'>
+      <h3>{{localize 'CARL_RPG.Upgrades.Title'}}</h3>
+      <ul>
+        {{#each upgradeList as |up|}}
+          <li class='{{#unless up.unlocked}}locked{{/unless}}'>
+            <i class='fas {{#if up.unlocked}}fa-unlock{{else}}fa-lock{{/if}}'></i>
+            <strong>{{localize 'CARL_RPG.Upgrades.Rank'}} {{up.rank}}:</strong> {{up.text}}
+          </li>
+        {{/each}}
+      </ul>
+    </div>
+  {{/if}}
 </section>

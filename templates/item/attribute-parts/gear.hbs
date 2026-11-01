@@ -6,11 +6,36 @@
 >
   {{! As you add new fields, add them in here! }}
   <div class='resource'>
-    <label class='resource-label'>{{localize 'BOILERPLATE.Item.Gear.FIELDS.rollFormula.label'}}:</label>
-    <span>{{system.formula}}</span>
+    <label class='resource-label' for='system.identifier'>{{localize 'CARL_RPG.Item.base.FIELDS.identifier.label'}}</label>
+    <input type='text' name='system.identifier' value='{{system.identifier}}' />
+  </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.check.target'>{{localize 'CARL_RPG.Check.Label'}}</label>
+    <select name='system.check.target'>
+      {{selectOptions config.checkTargets selected=system.check.target localize=true}}
+    </select>
+    <p class='hint'>{{localize 'CARL_RPG.Check.Hint'}}</p>
+  </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.damage'>{{localize 'CARL_RPG.Item.base.FIELDS.damage.label'}}</label>
+    <input type='text' name='system.damage' value='{{system.damage}}' placeholder='1d6+@str.mod' />
+    <p class='hint'>{{localize 'CARL_RPG.Attack.DamageHint'}}</p>
+  </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.slot'>{{localize 'CARL_RPG.Item.Gear.FIELDS.slot.label'}}</label>
+    <select name='system.slot'>
+      {{selectOptions config.gearSlots selected=system.slot localize=true}}
+    </select>
+  </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.dr'>{{localize 'CARL_RPG.Item.Gear.FIELDS.dr.label'}}</label>
+    <input type='number' name='system.dr' value='{{system.dr}}' min='0' step='1' data-dtype='Number' />
+    <p class='hint'>{{localize 'CARL_RPG.Item.Gear.DRHint'}}</p>
+  </div>
+  <div class='resource'>
     <div class='grid grid-4col'>
       <div class='grid-span-1'>
-        <label class='resource-label'>{{localize 'BOILERPLATE.Item.Gear.FIELDS.numDice.label'}}</label>
+        <label class='resource-label'>{{localize 'CARL_RPG.Item.Gear.FIELDS.numDice.label'}}</label>
         <input
           type='text'
           name='system.roll.diceNum'
@@ -19,7 +44,7 @@
         />
       </div>
       <div class='grid-span-1'>
-        <label class='resource-label'>{{localize 'BOILERPLATE.Item.Gear.FIELDS.dieSize.label'}}</label>
+        <label class='resource-label'>{{localize 'CARL_RPG.Item.Gear.FIELDS.dieSize.label'}}</label>
         <input
           type='text'
           name='system.roll.diceSize'
@@ -28,7 +53,7 @@
         />
       </div>
       <div class='grid-span-2'>
-        <label class='resource-label'>{{localize 'BOILERPLATE.Item.Gear.FIELDS.rollMod.label'}}</label>
+        <label class='resource-label'>{{localize 'CARL_RPG.Item.Gear.FIELDS.rollMod.label'}}</label>
         <input
           type='text'
           name='system.roll.diceBonus'
@@ -39,4 +64,6 @@
     </div>
 
   </div>
+  {{! Usage limits }}
+  {{> "systems/carl-rpg/templates/item/uses-fields.hbs"}}
 </section>

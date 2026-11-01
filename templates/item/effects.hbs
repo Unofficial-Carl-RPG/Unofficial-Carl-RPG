@@ -1,79 +1,69 @@
-{{! Effects Tab }}
-<section class='tab effects {{tab.cssClass}}' data-group='primary' data-tab='effects'>
+{{! Effects Tab: effects on an item are templates, copied to an actor along with the item }}
+<section class='tab effects scrollable {{tab.cssClass}}' data-group='primary' data-tab='effects'>
+  <p class='skills-hint'>{{localize 'CARL_RPG.Effect.ItemHint'}}</p>
   <ol class='effects-list'>
-    {{#each effects as |section sid|}}
-      <li class='effects-header flexrow' data-effect-type='{{section.type}}'>
-        <div class='effect-name effect-name flexrow'>
-          {{localize section.label}}
-        </div>
-        <div class='effect-source'>
-          {{localize 'BOILERPLATE.Effect.Source'}}
-        </div>
-        <div class='effect-source'>{{localize 'EFFECT.TabDuration'}}</div>
-        <div class='effect-controls effect-controls flexrow'>
+    <li class='effect flexrow effects-header'>
+      <div class='effect-name'>{{localize 'CARL_RPG.Effect.Effects'}}</div>
+      <div class='effect-prop'>{{localize 'CARL_RPG.Effect.Type'}}</div>
+      <div class='effect-controls'>
+        {{#if @root.editable}}
           <a
-            class='effect-control'
+            class='effect-control item-create'
             data-action='createDoc'
             data-document-class='ActiveEffect'
-            data-origin="{{@root.item.uuid}}"
-            data-img="icons/svg/aura.svg"
-            {{#if (eq section.type "inactive")}}
-              data-disabled="true"
-            {{else if (eq section.type "temporary")}}
-              data-duration.rounds="1"
-            {{/if}}
-            data-tooltip='{{localize "DOCUMENT.Create" type='Effect'}}'
+            data-origin='{{@root.item.uuid}}'
+            data-img='icons/svg/aura.svg'
+            data-tooltip='{{localize "DOCUMENT.Create" type="Effect"}}'
           >
             <i class='fas fa-plus'></i>
             {{localize 'DOCUMENT.New' type='Effect'}}
           </a>
+        {{/if}}
+      </div>
+    </li>
+    {{#each effectRows as |effect|}}
+      <li
+        class='effect flexrow draggable'
+        data-effect-id='{{effect.id}}'
+        data-parent-id='{{@root.item.id}}'
+      >
+        <div class='effect-name'>
+          <div class='effect-image'>
+            <img src='{{effect.img}}' height='24' width='24' />
+          </div>
+          <div>
+            {{effect.name}}
+            {{#if effect.stackable}}
+              <i class='fas fa-layer-group' data-tooltip='{{localize "CARL_RPG.Effect.Stackable"}}'></i>
+            {{/if}}
+            {{#if effect.equipLinked}}
+              <i class='fas fa-shield-halved' data-tooltip='{{localize "CARL_RPG.Effect.EquipLinked"}}'></i>
+            {{/if}}
+            {{#if effect.permanent}}
+              <i class='fas fa-thumbtack' data-tooltip='{{localize "CARL_RPG.Effect.Permanent"}}'></i>
+            {{/if}}
+          </div>
+        </div>
+        <div class='effect-prop'>{{localize effect.kind}}</div>
+        <div class='effect-controls'>
+          <a
+            class='effect-control'
+            data-action='viewDoc'
+            data-tooltip='{{localize "DOCUMENT.Update" type="Effect"}}'
+          >
+            <i class='fas fa-edit'></i>
+          </a>
+          {{#if @root.editable}}
+            <a
+              class='effect-control effect-delete'
+              data-action='deleteDoc'
+              data-tooltip='{{localize "DOCUMENT.Delete" type="Effect"}}'
+            >
+              <i class='fas fa-trash'></i>
+            </a>
+          {{/if}}
         </div>
       </li>
-      <ol class='effect-list'>
-        {{#each section.effects as |effect|}}
-          <li
-            class='item effect flexrow draggable'
-            data-effect-id='{{effect.id}}'
-            data-parent-id='{{effect.parent.id}}'
-          >
-            <div class='effect-name effect-name flexrow'>
-              <img class='effect-image' src='{{effect.img}}' height="24" width="24"/>
-              <div>{{effect.name}}</div>
-            </div>
-            <div class='effect-source'>{{effect.sourceName}}</div>
-            <div class='effect-duration'>{{effect.duration.label}}</div>
-            <div class='effect-controls effect-controls flexrow'>
-              {{#if @root.editable}}
-              <a
-                class='effect-control'
-                data-action='toggleEffect'
-                data-tooltip='{{localize "BOILERPLATE.Effect.Toggle"}}'
-              >
-                <i class='fas {{#if effect.disabled}}fa-check{{else}}fa-times{{/if}}'></i>
-              </a>
-              {{/if}}
-              <a
-                class='effect-control'
-                data-action='viewDoc'
-                data-document-class='ActiveEffect'
-                data-tooltip='{{localize "DOCUMENT.Update" type='Effect'}}'
-              >
-                <i class='fas fa-edit'></i>
-              </a>
-              {{#if @root.editable}}
-              <a
-                class='effect-control'
-                data-action='deleteDoc'
-                data-document-class='ActiveEffect'
-                data-tooltip='{{localize "DOCUMENT.Delete" type='Effect'}}'
-              >
-                <i class='fas fa-trash'></i>
-              </a>
-              {{/if}}
-            </div>
-          </li>
-        {{/each}}
-      </ol>
     {{/each}}
   </ol>
 </section>

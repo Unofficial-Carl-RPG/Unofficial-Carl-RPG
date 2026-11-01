@@ -1,0 +1,68 @@
+{{! Skills Tab (gear and items): skills that are added to an actor along with this item. Drop a skill here to embed it. }}
+<section
+  class='tab skills scrollable {{tab.cssClass}}'
+  data-group='primary'
+  data-tab='skills'
+>
+  <p class='skills-hint'>{{#if isBackground}}{{localize 'CARL_RPG.Item.Background.SkillsHint'}}{{else}}{{localize 'CARL_RPG.Item.EmbeddedSkill.Hint'}}{{/if}}</p>
+  <ol class='items-list'>
+    <li class='item flexrow items-header'>
+      <div class='item-name'>{{localize 'Name'}}</div>
+      <div class='item-controls'>
+        {{#if @root.editable}}
+          <a
+            class='item-control item-create'
+            data-tooltip='{{localize "DOCUMENT.Create" type="Skill"}}'
+            data-action='newEmbeddedSkill'
+          >
+            <i class='fas fa-plus'></i>
+            {{localize 'DOCUMENT.New' type='skill'}}
+          </a>
+        {{/if}}
+      </div>
+    </li>
+    {{#each embeddedSkills as |skill|}}
+      <li class='item flexrow {{#if skill.missing}}missing{{/if}}' data-skill-uuid='{{skill.uuid}}'>
+        <div class='item-name'>
+          <div class='item-image'>
+            <img
+              src='{{skill.img}}'
+              data-tooltip='{{skill.name}}'
+              width='24'
+              height='24'
+            />
+          </div>
+          <div>
+            {{skill.name}}{{#if skill.statLabel}} ({{skill.statLabel}}){{/if}}
+            {{#if skill.missing}}
+              <em>({{localize 'CARL_RPG.Item.EmbeddedSkill.MissingLabel'}})</em>
+            {{/if}}
+          </div>
+        </div>
+        <div class='item-controls'>
+          {{#unless skill.missing}}
+            <a
+              class='item-control item-edit'
+              data-tooltip='{{localize "DOCUMENT.Update" type="Skill"}}'
+              data-action='viewEmbeddedSkill'
+            >
+              <i class='fas fa-edit'></i>
+            </a>
+          {{/unless}}
+          {{#if @root.editable}}
+            <a
+              class='item-control item-delete'
+              data-tooltip='{{localize "CARL_RPG.Item.EmbeddedSkill.Remove"}}'
+              data-action='removeEmbeddedSkill'
+            >
+              <i class='fas fa-trash'></i>
+            </a>
+          {{/if}}
+        </div>
+      </li>
+    {{/each}}
+  </ol>
+  {{#if editable}}
+    <div class='drop-box'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Drop.embeddedSkill'}}</div>
+  {{/if}}
+</section>

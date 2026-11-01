@@ -1,22 +1,25 @@
-import BoilerplateItemBase from './base-item.mjs';
+import CarlRPGFeature from './item-feature.mjs';
 
-export default class BoilerplateSpell extends BoilerplateItemBase {
+/**
+ * A spell is a skill (description, rank, advanceable, stat, rolled formula)
+ * that also has a mana cost.
+ */
+export default class CarlRPGSpell extends CarlRPGFeature {
   static LOCALIZATION_PREFIXES = [
-    'BOILERPLATE.Item.base',
-    'BOILERPLATE.Item.Spell',
+    'CARL_RPG.Item.base',
+    'CARL_RPG.Item.Spell',
   ];
 
   static defineSchema() {
     const fields = foundry.data.fields;
+    const requiredInteger = { required: true, nullable: false, integer: true };
     const schema = super.defineSchema();
 
-    schema.spellLevel = new fields.NumberField({
-      required: true,
-      nullable: false,
-      integer: true,
-      initial: 1,
+    // Mana spent to cast the spell (whole number, never negative).
+    schema.manaCost = new fields.NumberField({
+      ...requiredInteger,
+      initial: 0,
       min: 0,
-      max: 9,
     });
 
     return schema;

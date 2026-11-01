@@ -1,0 +1,34 @@
+{{! Attributes Tab (Achievement) }}
+<section
+  class='tab attributes {{tab.cssClass}}'
+  data-group='primary'
+  data-tab='attributes'
+>
+  <div class='resource'>
+    <label class='resource-label' for='system.identifier'>{{localize 'CARL_RPG.Item.base.FIELDS.identifier.label'}}</label>
+    <input type='text' name='system.identifier' value='{{system.identifier}}' />
+  </div>
+
+  <div class='resource'>
+    <label class='resource-label'>{{localize 'CARL_RPG.Item.Achievement.FIELDS.lootBox.label'}}</label>
+    <p class='hint'>{{localize 'CARL_RPG.Item.Achievement.RewardHint'}}</p>
+    {{#if editable}}
+      <div
+        class='drop-target {{#if rewardBox.missing}}missing{{/if}}'
+        data-accept='lootBox'
+        data-field='lootBox'
+      >
+        {{#if rewardBox.uuid}}
+          <span class='drop-name'>
+            {{#if rewardBox.name}}{{rewardBox.name}}{{else}}{{localize 'CARL_RPG.Events.Missing'}}{{/if}}
+          </span>
+          <a class='item-control' data-action='clearReward'><i class='fas fa-xmark'></i></a>
+        {{else}}
+          <span class='drop-hint'>{{localize 'CARL_RPG.Achievement.DropReward'}}</span>
+        {{/if}}
+      </div>
+    {{else}}
+      <p>{{#if rewardBox.name}}{{rewardBox.name}}{{else}}{{localize 'CARL_RPG.Achievement.NoReward'}}{{/if}}</p>
+    {{/if}}
+  </div>
+</section>

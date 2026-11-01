@@ -1,0 +1,25 @@
+{{! Tags Tab: free-text tags that rules can ask for }}
+<section
+  class='tab tags scrollable {{tab.cssClass}}'
+  data-group='primary'
+  data-tab='tags'
+>
+  <div class='resource tag-editor'>
+    <label class='resource-label'>{{localize 'CARL_RPG.Tags.Title'}}</label>
+    <p class='hint'>{{localize 'CARL_RPG.Tags.Hint'}}</p>
+    <div class='tag-custom'>
+      {{#each regularTags as |tag|}}
+        <span class='tag-chip'>
+          {{tag}}
+          {{#if @root.editable}}
+            <a data-action='removeTag' data-field='tags' data-tag='{{tag}}' data-tooltip='{{localize "CARL_RPG.Events.Remove"}}'><i class='fas fa-xmark'></i></a>
+          {{/if}}
+        </span>
+      {{/each}}
+      {{#if editable}}
+        <input type='text' class='tag-input' data-field='tags' placeholder='{{localize "CARL_RPG.Tags.CustomPlaceholder"}}' />
+        <a class='event-add' data-action='addTag' data-field='tags'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Tags.Add'}}</a>
+      {{/if}}
+    </div>
+  </div>
+</section>
