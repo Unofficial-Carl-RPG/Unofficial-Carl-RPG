@@ -1,5 +1,28 @@
 {
   "CARL_RPG": {
+    "Enrichers": {
+      "Check": "Check",
+      "CheckButton": "{stat} check, DC {dc}",
+      "CheckResult": "{name}: {stat} check {total} vs {dc}, {degree}",
+      "Gold": "{n} gold",
+      "GiveGold": "Give {n} gold",
+      "Junk": "{n} Misc Junk",
+      "GiveJunk": "Give {n} Misc Junk",
+      "LootBox": "Loot box",
+      "GiveLootBox": "Give loot box",
+      "Effect": "Effect",
+      "ApplyEffect": "Apply effect",
+      "Announce": "Announce",
+      "Degree": {
+        "critHit": "Critical Hit",
+        "amazing": "Amazing Success",
+        "success": "Success",
+        "nearMiss": "Near Miss",
+        "fail": "Fail",
+        "majorFail": "Major Fail",
+        "critFail": "Critical Fail"
+      }
+    },
     "Floor": {
       "State": "Floor state",
       "Exploring": "Exploring",

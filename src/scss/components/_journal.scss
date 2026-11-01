@@ -108,6 +108,26 @@
     }
   }
 
+  // Buttons from @Check, @Gold, @Junk, @LootBox, @Effect and @Announce.
+  .carl-enrich-button {
+    display: inline-block;
+    margin: 0 2px;
+    padding: 1px 8px;
+    font: inherit;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #e9c46a;
+    background: #1f1a12;
+    border: 1px solid #c9a54a;
+    border-radius: 3px;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(201, 164, 74, 0.2);
+    }
+  }
+
   // Live values from @Floor, @Party and @DaysLeft.
   .carl-live {
     font-weight: bold;
