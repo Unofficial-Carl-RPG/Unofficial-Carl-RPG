@@ -318,6 +318,19 @@
           "value": {"label": "Value"}
         }
       },
+      "Store": {
+        "FIELDS": {
+          "sellPercent": {"label": "Sell percentage"},
+          "listings": {"label": "Items for sale"}
+        },
+        "SellHint": "A crawler gets this percentage of an item's value when they sell it here.",
+        "ListingsHint": "A blank price uses the item's value. A blank stock is unlimited.",
+        "Price": "Price",
+        "Quantity": "Stock",
+        "Unlimited": "Unlimited",
+        "Remove": "Remove from the store",
+        "NoStores": "A store can't sell another store."
+      },
       "Sponsor": {
         "FIELDS": {
           "notes": {"label": "Notes"}
@@ -1220,6 +1233,7 @@
       "effect": "Drop an effect here to add it",
       "embeddedSkill": "Drop a skill here to add it to this item",
       "rewards": "Drop an item here to add it to the random rewards",
+    "store": "Drop an item here to add it to the store",
       "guaranteed": "Drop an item here to always grant it",
       "achievement": "Drop an achievement here to award it"
     },
@@ -1523,6 +1537,7 @@
       "item": "Item",
       "mobAbility": "Mob Ability",
       "lootBox": "Loot Box",
+        "store": "Store",
       "achievement": "Achievement",
       "race": "Race",
       "class": "Class",

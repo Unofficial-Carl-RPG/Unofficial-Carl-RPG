@@ -49,6 +49,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       viewEmbeddedSkill: this._viewEmbeddedSkill,
       removeEmbeddedSkill: this._removeEmbeddedSkill,
       removeReward: this._removeReward,
+    removeListing: this._removeListing,
       clearReward: this._clearReward,
       addPrerequisite: this._addPrerequisite,
       addTag: this._addTag,
@@ -116,6 +117,9 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
     },
     attributesSponsor: {
       template: 'systems/carl-rpg/templates/item/attribute-parts/sponsor.hbs',
+    },
+    attributesStore: {
+      template: 'systems/carl-rpg/templates/item/attribute-parts/store.hbs',
     },
     attributesAchievement: {
       template: 'systems/carl-rpg/templates/item/attribute-parts/achievement.hbs',
@@ -186,6 +190,9 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       case 'sponsor':
         options.parts.push('attributesSponsor');
         break;
+      case 'store':
+        options.parts.push('attributesStore');
+        break;
       case 'personalSpace':
         options.parts.push('attributesPersonalSpace');
         break;
@@ -235,6 +242,25 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       fields: this.document.schema.fields,
       systemFields: this.document.system.schema.fields,
     };
+
+    // Stores: each listing's item, its value, and its price and stock as set
+    // (a blank price or stock shows the placeholder).
+    if (this.item.type === 'store') {
+      context.listingRows = await Promise.all(
+        (this.item.system.listings ?? []).map(async (listing, index) => {
+          const doc = listing.uuid ? await fromUuid(listing.uuid) : null;
+          return {
+            index,
+            name: doc?.name ?? listing.uuid,
+            img: doc?.img ?? 'icons/svg/mystery-man.svg',
+            missing: !doc,
+            value: doc?.system?.value ?? 0,
+            price: listing.price,
+            quantity: listing.quantity,
+          };
+        })
+      );
+    }
 
     // Loot boxes: resolve the reward list for the Rewards tab, with each
     // entry's chance (shown to the GM) and any problems with the list.
@@ -566,6 +592,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       case 'attributesLootBox':
       case 'attributesAchievement':
       case 'attributesSponsor':
+      case 'attributesStore':
       case 'attributesOrigin':
       case 'attributesBackground':
       case 'grantedSkills':
@@ -752,6 +779,11 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
         }
       });
     }
+    // Store prices and stock save the whole list when changed (no form names).
+    for (const input of this.element.querySelectorAll('.store-price, .store-quantity')) {
+      input.addEventListener('change', () => this._saveListings());
+    }
+
     // Reward weights and quantities save the whole list when changed.
     for (const input of this.element.querySelectorAll(
       '.reward-weight, .reward-quantity, .guaranteed-formula'
@@ -1291,6 +1323,28 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
     await this.item.update({ [`system.${list}`]: entries });
   }
 
+  /** Save the price and stock of the store listings (they have no form names). */
+  async _saveListings() {
+    const listings = this.item.toObject().system.listings;
+    for (const row of this.element.querySelectorAll('.store-row')) {
+      const listing = listings[Number(row.dataset.index)];
+      if (!listing) continue;
+      const price = row.querySelector('.store-price').value.trim();
+      const quantity = row.querySelector('.store-quantity').value.trim();
+      listing.price = price === '' ? null : Math.max(0, Math.floor(Number(price)) || 0);
+      listing.quantity = quantity === '' ? null : Math.max(0, Math.floor(Number(quantity)) || 0);
+    }
+    await this.item.update({ 'system.listings': listings });
+  }
+
+  /** Remove one listing from the store. */
+  static async _removeListing(event, target) {
+    const row = target.closest('.store-row');
+    const listings = this.item.toObject().system.listings;
+    listings.splice(Number(row.dataset.index), 1);
+    await this.item.update({ 'system.listings': listings });
+  }
+
   /**
    * Save the weight and quantity fields of the reward rows (they have no form
    * names, so the whole list is written back).
@@ -1533,6 +1587,21 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
         if (system.grantedSkills.some((g) => g.uuid === dropped.uuid)) return;
         system.grantedSkills.push({ uuid: dropped.uuid, rank: 1 });
       });
+      return dropped;
+    }
+
+    // Stores: an item dropped on the store joins its listings once.
+    if (this.item.type === 'store') {
+      const dropped = await Item.fromDropData(data);
+      if (!dropped?.uuid) return false;
+      if (dropped.type === 'store') {
+        ui.notifications.warn(game.i18n.localize('CARL_RPG.Item.Store.NoStores'));
+        return false;
+      }
+      const listings = this.item.toObject().system.listings;
+      if (listings.some((l) => l.uuid === dropped.uuid)) return false;
+      listings.push({ uuid: dropped.uuid, price: null, quantity: null });
+      await this.item.update({ 'system.listings': listings });
       return dropped;
     }
 

@@ -41,6 +41,9 @@
         "lootBox": {
             "htmlFields": ["description"]
         },
+        "store": {
+            "htmlFields": ["description"]
+        },
         "achievement": {
             "htmlFields": ["description"]
         },
