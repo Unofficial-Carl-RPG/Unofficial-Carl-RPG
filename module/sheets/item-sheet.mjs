@@ -563,6 +563,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       case 'attributesAchievement':
       case 'attributesSponsor':
       case 'attributesOrigin':
+      case 'attributesBackground':
       case 'grantedSkills':
       case 'prerequisites':
       case 'rewards':
