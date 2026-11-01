@@ -65,6 +65,16 @@ export default class CarlRPGItemBase extends foundry.abstract
     const schema = {};
 
     schema.description = new fields.HTMLField();
+    // Who the item affects when it is used (see the target prompt): none (a plain
+    // use), up to a number of targets, the user only, or an area.
+    schema.targeting = new fields.SchemaField({
+      mode: new fields.StringField({ required: true, blank: false, initial: 'none', choices: ['none', 'count', 'self', 'area'] }),
+      count: new fields.NumberField({ required: true, nullable: false, integer: true, min: 1, initial: 1 }),
+      range: new fields.StringField({ required: true, blank: true, initial: '' }),
+      filter: new fields.StringField({ required: true, blank: false, initial: 'any', choices: ['enemies', 'allies', 'any'] }),
+      shape: new fields.StringField({ required: true, blank: false, initial: 'circle', choices: ['circle', 'cone', 'ray', 'rect'] }),
+      size: new fields.NumberField({ required: true, nullable: false, min: 0, initial: 10 }),
+    });
     // A short version for chat cards and tooltips (blank means use the full text).
     schema.shortDescription = new fields.HTMLField();
 

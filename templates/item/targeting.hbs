@@ -1,0 +1,49 @@
+{{! Targeting: who an item affects when it is used, and how far (see the target prompt) }}
+<div class='targeting-group'>
+  <div class='resource'>
+    <label class='resource-label' for='system.targeting.mode'>{{localize 'CARL_RPG.Targeting.Mode'}}</label>
+    <select name='system.targeting.mode'>
+      <option value='none' {{#if (eq system.targeting.mode 'none')}}selected{{/if}}>{{localize 'CARL_RPG.Targeting.ModeNone'}}</option>
+      <option value='count' {{#if (eq system.targeting.mode 'count')}}selected{{/if}}>{{localize 'CARL_RPG.Targeting.ModeCount'}}</option>
+      <option value='self' {{#if (eq system.targeting.mode 'self')}}selected{{/if}}>{{localize 'CARL_RPG.Targeting.ModeSelf'}}</option>
+      <option value='area' {{#if (eq system.targeting.mode 'area')}}selected{{/if}}>{{localize 'CARL_RPG.Targeting.ModeArea'}}</option>
+    </select>
+    <p class='hint'>{{localize 'CARL_RPG.Targeting.Hint'}}</p>
+  </div>
+  {{#if (eq system.targeting.mode 'count')}}
+  <div class='resource'>
+    <label class='resource-label' for='system.targeting.count'>{{localize 'CARL_RPG.Targeting.Count'}}</label>
+    <input type='number' name='system.targeting.count' value='{{system.targeting.count}}' step='1' min='1' />
+  </div>
+  {{/if}}
+  {{#unless (eq system.targeting.mode 'self')}}{{#unless (eq system.targeting.mode 'none')}}
+  <div class='resource'>
+    <label class='resource-label' for='system.targeting.range'>{{localize 'CARL_RPG.Targeting.Range'}}</label>
+    <input type='text' name='system.targeting.range' value='{{system.targeting.range}}' placeholder='30' />
+    <p class='hint'>{{localize 'CARL_RPG.Targeting.RangeHint'}}</p>
+  </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.targeting.filter'>{{localize 'CARL_RPG.Targeting.Filter'}}</label>
+    <select name='system.targeting.filter'>
+      <option value='any' {{#if (eq system.targeting.filter 'any')}}selected{{/if}}>{{localize 'CARL_RPG.Targeting.FilterAny'}}</option>
+      <option value='enemies' {{#if (eq system.targeting.filter 'enemies')}}selected{{/if}}>{{localize 'CARL_RPG.Targeting.FilterEnemies'}}</option>
+      <option value='allies' {{#if (eq system.targeting.filter 'allies')}}selected{{/if}}>{{localize 'CARL_RPG.Targeting.FilterAllies'}}</option>
+    </select>
+  </div>
+  {{/unless}}{{/unless}}
+  {{#if (eq system.targeting.mode 'area')}}
+  <div class='resource'>
+    <label class='resource-label' for='system.targeting.shape'>{{localize 'CARL_RPG.Targeting.Shape'}}</label>
+    <select name='system.targeting.shape'>
+      <option value='circle' {{#if (eq system.targeting.shape 'circle')}}selected{{/if}}>{{localize 'CARL_RPG.Targeting.ShapeCircle'}}</option>
+      <option value='cone' {{#if (eq system.targeting.shape 'cone')}}selected{{/if}}>{{localize 'CARL_RPG.Targeting.ShapeCone'}}</option>
+      <option value='ray' {{#if (eq system.targeting.shape 'ray')}}selected{{/if}}>{{localize 'CARL_RPG.Targeting.ShapeRay'}}</option>
+      <option value='rect' {{#if (eq system.targeting.shape 'rect')}}selected{{/if}}>{{localize 'CARL_RPG.Targeting.ShapeRect'}}</option>
+    </select>
+  </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.targeting.size'>{{localize 'CARL_RPG.Targeting.Size'}}</label>
+    <input type='number' name='system.targeting.size' value='{{system.targeting.size}}' step='1' min='0' />
+  </div>
+  {{/if}}
+</div>

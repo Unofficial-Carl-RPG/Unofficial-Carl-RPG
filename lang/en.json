@@ -1,5 +1,26 @@
 {
   "CARL_RPG": {
+    "Targeting": {
+      "Mode": "Targets",
+      "ModeNone": "None (plain use)",
+      "ModeCount": "Up to a number",
+      "ModeSelf": "Self only",
+      "ModeArea": "Area",
+      "Hint": "Chosen before the item is used.",
+      "Count": "Number of targets",
+      "Range": "Range (feet)",
+      "RangeHint": "A number of feet, or melee, touch or unlimited.",
+      "Filter": "Affects",
+      "FilterAny": "Anyone",
+      "FilterEnemies": "Enemies",
+      "FilterAllies": "Allies",
+      "Shape": "Area shape",
+      "ShapeCircle": "Circle",
+      "ShapeCone": "Cone",
+      "ShapeRay": "Ray",
+      "ShapeRect": "Rectangle",
+      "Size": "Area size (feet)"
+    },
     "Ability": {
       "Str": { "long": "Strength", "abbr": "str" },
       "Con": { "long": "Constitution", "abbr": "con" },
