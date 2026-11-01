@@ -4,6 +4,7 @@
  */
 import { runActorEvents } from '../helpers/events.mjs';
 import { defeatMob } from '../helpers/defeat.mjs';
+import { canDie, cancelDying, hurtWhileDying, startDying } from '../helpers/dying.mjs';
 
 export class CarlRPGActor extends Actor {
   /**
@@ -48,10 +49,11 @@ export class CarlRPGActor extends Actor {
    */
   _onUpdate(changed, options, userId) {
     super._onUpdate(changed, options, userId);
-    if (this.type === 'mob' && game.user === game.users.activeGM) {
-      if (foundry.utils.hasProperty(changed, 'system.health.value') && this.system.health.value === 0) {
-        defeatMob(this);
-      }
+    if (game.user === game.users.activeGM && foundry.utils.hasProperty(changed, 'system.health.value')) {
+      const health = this.system.health.value;
+      if (health === 0 && canDie(this)) startDying(this);
+      else if (health === 0 && this.type === 'mob') defeatMob(this);
+      else if (health > 0) cancelDying(this);
     }
     if (this.type !== 'pet' || userId !== game.user.id || !game.user.isGM) return;
     if (!foundry.utils.hasProperty(changed, 'system.owner')) return;
@@ -135,6 +137,7 @@ export class CarlRPGActor extends Actor {
           value,
         }),
       });
+      if (net > 0) await hurtWhileDying(this);
       if (net > 0) runActorEvents(this, 'takesDamage', { amount: net });
       return { amount, dr, net, boxes: net, value };
     }
@@ -156,6 +159,7 @@ export class CarlRPGActor extends Actor {
         value,
       }),
     });
+    if (boxes > 0) await hurtWhileDying(this);
     if (boxes > 0) runActorEvents(this, 'takesDamage', { amount: boxes });
     return { amount, dr, net, boxes, value };
   }

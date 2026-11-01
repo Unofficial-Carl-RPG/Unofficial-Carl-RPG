@@ -8,12 +8,14 @@
  * switched on (see CarlRPGActiveEffect).
  */
 const NS = 'carl-rpg';
+import { die } from './dying.mjs';
 
 const t = (key, data) =>
   data ? game.i18n.format(key, data) : game.i18n.localize(key);
 
 /** Switch an effect off because its time is up, and say so in chat. */
 async function expire(effect) {
+  if (effect.getFlag(NS, 'dying')) return die(effect.actor);
   if (effect.stackable) await effect.removeAllStacks();
   else await effect.setActive(false);
   await effect.unsetFlag(NS, 'roundsLeft');

@@ -28,6 +28,9 @@
         "No": "Cancel"
       },
       "NextPhase": "Next Phase",
+      "DyingEffect": "Dying",
+      "DeadEffect": "Dead",
+      "DyingStarted": "{name} is Dying for {rounds} round(s) unless healed.",
       "RefillActions": "Refill Actions",
       "RefillDone": "Every combatant's actions were refilled.",
       "CleanupNote": "Remaining effects resolve and action counts reset.",
