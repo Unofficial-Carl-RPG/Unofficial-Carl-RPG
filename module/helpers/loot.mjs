@@ -13,6 +13,7 @@
  */
 import { CarlRPGDialog } from './dialog.mjs';
 import { runEvents } from './events.mjs';
+import { canActOutsideSafeRoom } from './floor.mjs';
 
 const NS = 'carl-rpg';
 export const LOOT_APPROVAL_SETTING = 'lootApproval';
@@ -239,6 +240,10 @@ export async function openLootBox(box) {
   const actor = box.parent;
   if (!(actor instanceof Actor) || actor.type !== 'crawler') return false;
   if (box.type !== 'lootBox' || !actor.isOwner) return false;
+  if (!canActOutsideSafeRoom('loot')) {
+    ui.notifications.warn(game.i18n.localize('CARL_RPG.Floor.LootBlocked'));
+    return false;
+  }
   if (box.system.quantity < 1) {
     ui.notifications.warn(game.i18n.localize('CARL_RPG.Loot.NoneLeft'));
     return false;

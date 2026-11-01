@@ -14,6 +14,22 @@
     </div>
   </section>
 
+  <section class='gm-section'>
+    <h4>{{localize 'CARL_RPG.Floor.State'}}</h4>
+    <select class='floor-state'>
+      {{selectOptions stateChoices selected=floorState localize=true}}
+    </select>
+  </section>
+
+  <section class='gm-section'>
+    <h4>{{localize 'CARL_RPG.Floor.Days'}}</h4>
+    <div class='floor-control'>
+      <a data-action='daysDown' data-tooltip='{{localize "CARL_RPG.Floor.DaysDown"}}'><i class='fas fa-minus'></i></a>
+      <input class='days-input' type='number' min='0' step='1' value='{{days}}' placeholder='{{localize "CARL_RPG.Floor.DaysNotSet"}}' />
+      <a data-action='daysUp' data-tooltip='{{localize "CARL_RPG.Floor.DaysUp"}}'><i class='fas fa-plus'></i></a>
+    </div>
+  </section>
+
   {{> "systems/carl-rpg/templates/sidebar/party-management.hbs"}}
 
   {{! Shown only while loot box approval is turned on in the system settings }}
@@ -133,6 +149,12 @@
   <section class='gm-section'>
     <h4>{{localize 'CARL_RPG.GMTab.Floor'}}</h4>
     <p class='info-value'>{{floor}}</p>
+  </section>
+  <section class='gm-section'>
+    <h4>{{localize 'CARL_RPG.Floor.State'}}</h4>
+    <p class='info-value'>{{stateLabel}}</p>
+    <h4>{{localize 'CARL_RPG.Floor.Days'}}</h4>
+    <p class='info-value'>{{daysLabel}}</p>
   </section>
 
   {{! Everyone sees the party; only the GM and the party leader can change it }}

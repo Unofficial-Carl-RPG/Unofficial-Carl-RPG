@@ -1,5 +1,20 @@
 {
   "CARL_RPG": {
+    "Floor": {
+      "State": "Floor state",
+      "Exploring": "Exploring",
+      "SafeRoom": "Safe room",
+      "Days": "Days left",
+      "DaysNotSet": "Not set",
+      "DaysUp": "One more day",
+      "DaysDown": "One less day",
+      "RestsName": "Rests outside safe rooms",
+      "RestsHint": "Players can rest when the floor is not a safe room.",
+      "LootName": "Loot boxes outside safe rooms",
+      "LootHint": "Players can open loot boxes when the floor is not a safe room.",
+      "RestsBlocked": "Rests can only be taken in a safe room.",
+      "LootBlocked": "Loot boxes can only be opened in a safe room."
+    },
     "Targeting": {
       "Mode": "Targets",
       "ModeNone": "None (plain use)",

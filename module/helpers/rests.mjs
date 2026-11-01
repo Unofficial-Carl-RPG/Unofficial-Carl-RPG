@@ -15,6 +15,7 @@
 import { CarlRPGDialog } from './dialog.mjs';
 import { runActorEvents } from './events.mjs';
 import { RECHARGE_BY_REST, restoreUses } from './uses.mjs';
+import { canActOutsideSafeRoom } from './floor.mjs';
 
 const NS = 'carl-rpg';
 
@@ -107,6 +108,10 @@ function summary(gained, ended) {
  */
 export async function restActor(actor, rest) {
   if (!actor?.isOwner || !CONFIG.CARL_RPG.rests.includes(rest)) return;
+  if (!canActOutsideSafeRoom('rest')) {
+    ui.notifications.warn(t('CARL_RPG.Floor.RestsBlocked'));
+    return;
+  }
   const gained = await recover(actor, rest);
   const ended = await endEffects(actor, rest);
   await restoreUses(actor, RECHARGE_BY_REST[rest]);
@@ -155,6 +160,10 @@ export async function takeRest(rest) {
  * @param {Actor} [actor]
  */
 export async function confirmRest(rest, actor = null) {
+  if (!canActOutsideSafeRoom('rest')) {
+    ui.notifications.warn(t('CARL_RPG.Floor.RestsBlocked'));
+    return;
+  }
   const name = t(`CARL_RPG.Rest.Name.${rest}`);
   const ok = await CarlRPGDialog.confirm({
     window: { title: name },

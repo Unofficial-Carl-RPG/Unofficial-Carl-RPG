@@ -9,7 +9,15 @@ import {
   approveEvents,
   unapprovedEvents,
 } from '../helpers/event-approval.mjs';
-import { FLOOR_SETTING, getFloor } from '../helpers/floor.mjs';
+import {
+  DAYS_SETTING,
+  FLOOR_SETTING,
+  FLOOR_STATE_SETTING,
+  FLOOR_STATES,
+  getDaysLeft,
+  getFloor,
+  getFloorState,
+} from '../helpers/floor.mjs';
 import {
   PARTY_SETTING,
   canManageParty,
@@ -43,6 +51,8 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
     actions: {
       floorUp: CarlRPGGMTab._onFloorUp,
       floorDown: CarlRPGGMTab._onFloorDown,
+      daysUp: CarlRPGGMTab._onDaysUp,
+      daysDown: CarlRPGGMTab._onDaysDown,
       announceBoss: CarlRPGGMTab._onAnnounceBoss,
       toggleBossJoin: CarlRPGGMTab._onToggleBossJoin,
       rest: CarlRPGGMTab._onRest,
@@ -96,6 +106,22 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
     context.floor = getFloor();
+    // The floor state (exploring or safe room) and the days left, for everyone.
+    const state = getFloorState();
+    context.floorState = state;
+    context.stateChoices = {
+      exploring: 'CARL_RPG.Floor.Exploring',
+      safe: 'CARL_RPG.Floor.SafeRoom',
+    };
+    context.stateLabel = game.i18n.localize(
+      state === 'safe' ? 'CARL_RPG.Floor.SafeRoom' : 'CARL_RPG.Floor.Exploring'
+    );
+    const days = getDaysLeft();
+    context.days = days;
+    context.daysLabel =
+      days === null
+        ? game.i18n.localize('CARL_RPG.Floor.DaysNotSet')
+        : String(days);
     context.partyName = game.settings.get('carl-rpg', PARTY_SETTING) ?? '';
     context.defaultParty = getPartyName();
     // Players only see the floor and the party name (read-only); everything
@@ -158,6 +184,12 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
     el.querySelector('.floor-input')?.addEventListener('change', (event) =>
       this.#setFloor(Number(event.currentTarget.value))
     );
+    el.querySelector('.floor-state')?.addEventListener('change', (event) =>
+      this.#setFloorState(event.currentTarget.value)
+    );
+    el.querySelector('.days-input')?.addEventListener('change', (event) =>
+      this.#setDays(event.currentTarget.value)
+    );
     el.querySelector('.party-input')?.addEventListener('change', (event) =>
       this.#setParty(event.currentTarget.value)
     );
@@ -207,9 +239,40 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
     await game.settings.set('carl-rpg', FLOOR_SETTING, floor);
   }
 
+  /** Save the floor state (exploring or safe room). */
+  async #setFloorState(state) {
+    if (!game.user.isGM) return;
+    if (!FLOOR_STATES.includes(state)) return this.render();
+    await game.settings.set('carl-rpg', FLOOR_STATE_SETTING, state);
+  }
+
+  /** Save the days left: a whole number from 0, or null when blank (not set). */
+  async #setDays(value) {
+    if (!game.user.isGM) return;
+    const text = String(value ?? '').trim();
+    let days = null;
+    if (text !== '') {
+      const n = Math.trunc(Number(text));
+      if (!Number.isFinite(n)) return this.render();
+      days = Math.max(0, n);
+    }
+    if (days === getDaysLeft()) return this.render();
+    await game.settings.set('carl-rpg', DAYS_SETTING, days);
+  }
+
   /** Save the party's name. */
   async #setParty(name) {
     await setPartyName(name);
+  }
+
+  /** @this CarlRPGGMTab */
+  static async _onDaysUp() {
+    await this.#setDays((getDaysLeft() ?? 0) + 1);
+  }
+
+  /** @this CarlRPGGMTab */
+  static async _onDaysDown() {
+    await this.#setDays((getDaysLeft() ?? 0) - 1);
   }
 
   /** @this CarlRPGGMTab */
