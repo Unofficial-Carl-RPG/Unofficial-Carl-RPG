@@ -36,6 +36,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
   static DEFAULT_OPTIONS = {
     classes: ['carl-rpg', 'item'],
     actions: {
+      showInChat: this._showInChat,
       addAmenity: this._addAmenity,
       removeAmenity: this._removeAmenity,
       onEditImage: this._onEditImage,
@@ -809,6 +810,32 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
    * @returns {Promise}
    * @protected
    */
+  /**
+   * Post this item to chat: its Short Description, with the full text one click away.
+   * @this CarlRPGItemSheet
+   */
+  static async _showInChat() {
+    const item = this.item;
+    const short = (item.system.shortDescription ?? '').trim();
+    const full = item.system.description ?? '';
+    const options = {
+      secrets: false,
+      rollData: item.getRollData(),
+      relativeTo: item,
+    };
+    const shortHtml = await TextEditor.enrichHTML(short || full, options);
+    const fullHtml = await TextEditor.enrichHTML(full, options);
+    const more =
+      short && full
+        ? `<details><summary>${game.i18n.localize('CARL_RPG.ItemDesc.FullDescription')}</summary>${fullHtml}</details>`
+        : '';
+    const content = `<div class="carl-rpg item-chat-card"><header class="item-chat-head"><img src="${item.img}" width="36" height="36"><strong>${foundry.utils.escapeHTML(item.name)}</strong></header><div class="item-chat-short">${shortHtml}</div>${more}</div>`;
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker(item.parent ? { actor: item.parent } : {}),
+      content,
+    });
+  }
+
   /** Add an empty amenity row to a Personal Space item. */
   static async _addAmenity() {
     const amenities = [...this.item.system.amenities, { name: '', description: '' }];

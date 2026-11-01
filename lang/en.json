@@ -579,7 +579,9 @@
     "ItemDesc": {
       "Toggle": "Show or hide the description",
       "ExpandAll": "Expand all",
-      "CollapseAll": "Collapse all"
+      "CollapseAll": "Collapse all",
+      "ShowInChat": "Show in chat",
+      "FullDescription": "Full description"
     },
     "Pets": {
       "Owner": "Owner",
