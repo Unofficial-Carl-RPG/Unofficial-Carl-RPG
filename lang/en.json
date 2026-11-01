@@ -80,6 +80,7 @@
       "RewardTitle": "Give the reward",
       "RewardOnlyBox": "Only a loot box can be the reward.",
       "DyingNoAction": "A dying crawler can't act or roll.",
+      "ApprovalReminder": "{count} event(s) are waiting for your approval.",
       "RewardPick": "Choose the crawlers who get the loot box.",
       "DyingEffect": "Dying",
       "DeadEffect": "Dead",

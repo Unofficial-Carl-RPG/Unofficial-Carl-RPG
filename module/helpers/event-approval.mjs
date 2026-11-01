@@ -54,3 +54,20 @@ export async function approveEvents(uuid) {
 export async function approveAllEvents() {
   for (const entry of unapprovedEvents()) await approveEvents(entry.uuid);
 }
+
+/**
+ * A quiet whisper to the GM when events are waiting for approval: at startup, and
+ * at each Cleanup phase. Nothing is sent when nothing is waiting.
+ */
+function remindApprovals() {
+  if (!game.user.isGM) return;
+  const count = unapprovedEvents().length;
+  if (!count) return;
+  ChatMessage.create({
+    whisper: ChatMessage.getWhisperRecipients('GM').map((u) => u.id),
+    content: game.i18n.format('CARL_RPG.Combat.ApprovalReminder', { count }),
+  });
+}
+
+Hooks.once('ready', remindApprovals);
+Hooks.on('carlrpg.cleanupPhase', remindApprovals);
