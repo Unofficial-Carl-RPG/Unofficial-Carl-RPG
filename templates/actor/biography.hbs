@@ -27,6 +27,25 @@
     </div>
   {{/if}}
 
+  {{! What the race and class gave the crawler (read only) }}
+  {{#if originGroups.length}}
+    <div class='origin-abilities'>
+      <h3>{{localize 'CARL_RPG.OriginAbilities.Title'}}</h3>
+      {{#each originGroups as |group|}}
+        <div class='origin-group'>
+          <strong>{{group.name}}</strong> <small>{{group.kind}}</small>
+          {{#if group.skills.length}}
+            <ul>
+              {{#each group.skills as |skill|}}
+                <li>{{skill.name}} <small>{{localize 'CARL_RPG.OriginAbilities.Rank' rank=skill.rank}}</small></li>
+              {{/each}}
+            </ul>
+          {{/if}}
+        </div>
+      {{/each}}
+    </div>
+  {{/if}}
+
   {{#if (eq actor.type 'crawler')}}
     <div class='grid grid-2col'>
       <div class='extras-field flexcol'>

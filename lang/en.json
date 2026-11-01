@@ -608,6 +608,10 @@
         "Slot": "Slot"
       }
     },
+    "OriginAbilities": {
+      "Title": "Race and class abilities",
+      "Rank": "rank {rank}"
+    },
     "Badges": {
       "Attack": "Attack",
       "Passive": "Passive",

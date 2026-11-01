@@ -24,6 +24,7 @@ import { attemptAdvance, triedThisFloor } from '../helpers/advancement.mjs';
 import { offerAiFavor } from '../helpers/ai-favor.mjs';
 import { CarlRPGDialog } from '../helpers/dialog.mjs';
 import { setupItemFilters } from '../helpers/item-filter.mjs';
+import { describeBadges } from '../helpers/item-badges.mjs';
 
 const { api, sheets } = foundry.applications;
 
@@ -548,6 +549,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
         context.tab = context.tabs[partId];
         // Enrich biography info for display
         // Enrichment turns text like `[[/r 1d20]]` into buttons
+        context.originGroups = await this._describeOrigins();
         context.enrichedBiography = await TextEditor.enrichHTML(
           this.actor.system.biography,
           {
@@ -739,13 +741,28 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
   }
 
   /**
-   * Actions performed after any render of the Application.
-   * Post-render steps are not awaited by the render process.
-   * @param {ApplicationRenderContext} context      Prepared context data
-   * @param {RenderOptions} options                 Provided render options
-   * @protected
-   * @override
+   * The race and class abilities a crawler has: each origin item and the skills
+   * it grants, for the read-only list on the Notes tab.
+   * @returns {Promise<{name: string, kind: string, skills: {name: string, rank: number}[]}[]>}
    */
+  async _describeOrigins() {
+    const groups = [];
+    for (const item of this.actor.items) {
+      if (!['race', 'class'].includes(item.type)) continue;
+      const skills = [];
+      for (const entry of item.system.grantedSkills ?? []) {
+        const skill = await fromUuid(entry.uuid);
+        skills.push({ name: skill?.name ?? entry.uuid, rank: entry.rank });
+      }
+      groups.push({
+        name: item.name,
+        kind: game.i18n.localize(`TYPES.Item.${item.type}`),
+        skills,
+      });
+    }
+    return groups;
+  }
+
   /**
    * Each item's description, enriched, for the collapsible rows on the lists.
    * @returns {Promise<Object<string, string>>}  Item id to HTML
@@ -754,11 +771,39 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
     const out = {};
     for (const item of this.actor.items) {
       const desc = item.system.description ?? '';
-      out[item.id] = desc
+      const body = desc
         ? await TextEditor.enrichHTML(desc, { async: true, relativeTo: item })
         : '';
+      out[item.id] = body + this._itemRowExtras(item);
     }
     return out;
+  }
+
+  /**
+   * The key numbers line and the upgrades of an item, under its description in
+   * the expanded row. Upgrades are shown for skills and spells only.
+   * @param {Item} item
+   * @returns {string} HTML
+   */
+  _itemRowExtras(item) {
+    const esc = (value) => foundry.utils.escapeHTML(String(value ?? ''));
+    let html = '';
+    const keys = describeBadges(item);
+    if (keys.length) {
+      html += `<div class="row-keys">${keys.map(esc).join(' · ')}</div>`;
+    }
+    if (['skill', 'spell'].includes(item.type)) {
+      const upgrades = describeUpgrades(item);
+      if (upgrades.length) {
+        const level = game.i18n.localize('CARL_RPG.Upgrades.Level');
+        html += '<ul class="row-upgrades">';
+        for (const up of upgrades) {
+          html += `<li class="${up.unlocked ? '' : 'locked'}">${esc(level)} ${esc(up.rank)}: ${esc(up.text)}</li>`;
+        }
+        html += '</ul>';
+      }
+    }
+    return html;
   }
 
   /**
@@ -818,6 +863,14 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
     }
   }
 
+  /**
+   * Actions performed after any render of the Application.
+   * Post-render steps are not awaited by the render process.
+   * @param {ApplicationRenderContext} context      Prepared context data
+   * @param {RenderOptions} options                 Provided render options
+   * @protected
+   * @override
+   */
   async _onRender(context, options) {
     await super._onRender(context, options);
     this._setupItemDescriptions();
