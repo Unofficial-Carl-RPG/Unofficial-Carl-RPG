@@ -39,6 +39,27 @@ export class CarlRPGActor extends Actor {
     }
   }
 
+  /**
+   * When a GM gives a pet an owner, that crawler's player owners get Owner permission
+   * on the pet, so they can edit its sheet and roll for it. Runs once, on the GM's
+   * client, when the change is made.
+   * @override
+   */
+  _onUpdate(changed, options, userId) {
+    super._onUpdate(changed, options, userId);
+    if (this.type !== 'pet' || userId !== game.user.id || !game.user.isGM) return;
+    if (!foundry.utils.hasProperty(changed, 'system.owner')) return;
+    const crawler = game.actors.get(this.system.owner);
+    if (!crawler) return;
+    const update = {};
+    for (const user of game.users) {
+      if (user.isGM || !crawler.testUserPermission(user, 'OWNER')) continue;
+      if (this.testUserPermission(user, 'OWNER')) continue;
+      update[`ownership.${user.id}`] = CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER;
+    }
+    if (!foundry.utils.isEmpty(update)) this.update(update);
+  }
+
   /** @override */
   prepareData() {
     // Prepare data for the actor. Calling the super version of this executes
