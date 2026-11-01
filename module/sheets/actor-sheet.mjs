@@ -99,6 +99,8 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       // A pet's Upgrades tab: its upgrades, their changes and the events they carry.
       approveEvents: this._approveEvents,
       addKill: editOnly(this._addKill),
+      addMountRow: editOnly(this._addMountRow),
+      removeMountRow: editOnly(this._removeMountRow),
       sendGift: this._sendGift,
       removeKill: editOnly(this._removeKill),
       addUpgrade: editOnly(this._addUpgrade),
@@ -119,6 +121,10 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
 
   /** @override */
   static PARTS = {
+    mount: {
+      template: 'systems/carl-rpg/templates/actor/mount.hbs',
+      scrollable: [""],
+    },
     personal: {
       template: 'systems/carl-rpg/templates/actor/personal.hbs',
       scrollable: [""],
@@ -193,6 +199,9 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
         break;
       case 'mob':
         options.parts.push('abilities', 'mobAbilities', 'effects');
+        break;
+      case 'mount':
+        options.parts.push('mount');
         break;
       case 'pet':
         // No hotlist or inventory: a pet only wears gear.
@@ -368,6 +377,19 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
           : '';
     }
 
+    // A mount's owner (a crawler picked from a menu), and the crawler's health line
+    // it shows on the owner's sheet.
+    context.isMount = this.actor.type === 'mount';
+    if (context.isMount) {
+      const owner = this.actor.system.owner;
+      context.ownerOptions = Object.fromEntries(
+        game.actors
+          .filter((a) => a.type === 'crawler' && (a.id === owner || a.testUserPermission(game.user, 'LIMITED')))
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((a) => [a.id, a.name])
+      );
+    }
+
     // The Personal tab's sponsors (crawlers only), with the loot boxes the GM can send.
     if (this.actor.type === 'crawler') {
       context.sponsors = this.actor.itemTypes.sponsor.map((s) => ({
@@ -387,6 +409,11 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
             }),
           }
         : null;
+      // The mounts this crawler owns (the ones this user can see), with their health.
+      context.mounts = game.actors
+        .filter((a) => a.type === 'mount' && a.system.owner === this.actor.id && a.testUserPermission(game.user, 'LIMITED'))
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((a) => ({ id: a.id, name: a.name, img: a.img, health: `${a.system.health.value} / ${a.system.health.max}` }));
       // The clubs this crawler belongs to, with its rank or role in each.
       context.clubs = this.actor.itemTypes.club.map((c) => ({
         id: c.id,
@@ -577,6 +604,10 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
         case 'personal':
           tab.id = 'personal';
           tab.label += 'Personal';
+          break;
+        case 'mount':
+          tab.id = 'mount';
+          tab.label += 'Mount';
           break;
         case 'spells':
           tab.id = 'spells';
@@ -1154,6 +1185,26 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
   static async _addKill() {
     const kills = [...this.document.system.killLog, { name: '', note: '' }];
     await this.document.update({ 'system.killLog': kills });
+  }
+
+  /**
+   * Add a row to a mount list (occupants, accessories or attacks). The button's
+   * data-path names the list; attacks get a blank attack row.
+   * @this CarlRPGActorSheet
+   */
+  static async _addMountRow(event, target) {
+    const path = target.dataset.path;
+    const list = foundry.utils.getProperty(this.document, path) ?? [];
+    const blank = path === 'system.attacks' ? { name: '', roll: '', damage: '' } : '';
+    await this.document.update({ [path]: [...list, blank] });
+  }
+
+  /** @this CarlRPGActorSheet */
+  static async _removeMountRow(event, target) {
+    const path = target.dataset.path;
+    const index = Number(target.dataset.index);
+    const list = foundry.utils.getProperty(this.document, path) ?? [];
+    await this.document.update({ [path]: list.filter((_, i) => i !== index) });
   }
 
   /**

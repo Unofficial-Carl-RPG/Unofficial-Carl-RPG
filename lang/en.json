@@ -60,6 +60,7 @@
         "Effects": "Buffs/Debuffs",
         "Hotlist": "Hotlist",
         "Personal": "Personal",
+        "Mount": "Mount",
         "Upgrades": "Upgrades"
       },
       "base": {
@@ -115,6 +116,24 @@
           "Clubs": "Clubs, Societies, Guilds, Etc.",
           "PersonalSpace": "Personal Space"
         }
+      },
+      "Mount": {
+        "Owner": "Owner",
+        "Size": "Size",
+        "Health": "Health",
+        "DR": "Damage Resistance",
+        "Move": "Move",
+        "Attacks": "Attacks",
+        "AttackName": "Attack name",
+        "Roll": "Roll",
+        "Damage": "Damage",
+        "AddAttack": "Add an attack",
+        "Trample": "Trample attack",
+        "Special": "Special notes",
+        "Occupants": "Occupants",
+        "AddOccupant": "Add an occupant",
+        "Accessories": "Accessories",
+        "AddAccessory": "Add an accessory"
       },
       "Pet": {
         "FIELDS": {
@@ -550,6 +569,7 @@
       "NoSpace": "No Personal Space yet. Drop one here.",
       "NoClubs": "Not in any clubs yet.",
       "NoDeity": "No deity yet. Drop one here.",
+      "NoMounts": "No mounts or vehicles yet.",
       "AddDeity": "Drop a deity here",
       "AddClub": "Drop a club here",
       "Remove": "Remove this sponsor",
@@ -1310,7 +1330,8 @@
     "Actor": {
       "crawler": "Crawler",
       "mob": "Mob",
-      "pet": "Pet"
+      "pet": "Pet",
+      "mount": "Mount / Vehicle"
     },
     "Item": {
       "gear": "Gear",

@@ -37,6 +37,19 @@
     {{/if}}
   </div>
 
+  <div class='mounts-panel flexcol'>
+    <label class='resource-label'>{{localize 'TYPES.Actor.mount'}}</label>
+    {{#each mounts as |mount|}}
+      <div class='mount-row'>
+        <img src='{{mount.img}}' width='24' height='24' />
+        <span>{{mount.name}}</span>
+        <span class='hint'>{{localize 'CARL_RPG.Actor.Mount.Health'}} {{mount.health}}</span>
+      </div>
+    {{else}}
+      <p class='hint'>{{localize 'CARL_RPG.Sponsors.NoMounts'}}</p>
+    {{/each}}
+  </div>
+
   <div class='clubs-panel flexcol'>
     <label class='resource-label'>{{localize 'TYPES.Item.club'}}</label>
     {{#each clubs as |club|}}

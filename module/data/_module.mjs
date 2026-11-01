@@ -3,6 +3,7 @@ export { default as CarlRPGActorBase } from './base-actor.mjs';
 export { default as CarlRPGCrawler } from './actor-crawler.mjs';
 export { default as CarlRPGMob } from './actor-mob.mjs';
 export { default as CarlRPGPet } from './actor-pet.mjs';
+export { default as CarlRPGMount } from './actor-mount.mjs';
 
 // Export Items
 export { default as CarlRPGItemBase } from './base-item.mjs';

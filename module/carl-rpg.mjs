@@ -181,6 +181,7 @@ Hooks.once('init', function () {
     crawler: models.CarlRPGCrawler,
     mob: models.CarlRPGMob,
     pet: models.CarlRPGPet,
+    mount: models.CarlRPGMount,
   };
   CONFIG.Item.documentClass = CarlRPGItem;
   CONFIG.Item.dataModels = {

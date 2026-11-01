@@ -1,0 +1,89 @@
+{{! Mount / Vehicle tab }}
+<section class='tab mount scrollable {{tab.cssClass}}' data-group='primary' data-tab='mount'>
+  <div class='grid grid-3col'>
+    <div class='resource'>
+      <label class='resource-label' for='system.owner'>{{localize 'CARL_RPG.Actor.Mount.Owner'}}</label>
+      <select name='system.owner' {{#unless editable}}disabled{{/unless}}>
+        <option value=''>{{localize 'CARL_RPG.Pets.NoOwner'}}</option>
+        {{selectOptions ownerOptions selected=system.owner}}
+      </select>
+    </div>
+    <div class='resource'>
+      <label class='resource-label' for='system.size'>{{localize 'CARL_RPG.Actor.Mount.Size'}}</label>
+      <select name='system.size' {{#unless editable}}disabled{{/unless}}>
+        {{selectOptions sizeOptions selected=system.size}}
+      </select>
+    </div>
+    <div class='resource'>
+      <label class='resource-label'>{{localize 'CARL_RPG.Actor.Mount.Health'}}</label>
+      <span>{{system.health.value}} / {{system.health.max}}</span>
+    </div>
+  </div>
+
+  <div class='grid grid-2col'>
+    <div class='resource'>
+      <label class='resource-label' for='system.dr'>{{localize 'CARL_RPG.Actor.Mount.DR'}}</label>
+      <input type='number' name='system.dr' value='{{system.dr}}' min='0' {{#unless editable}}disabled{{/unless}} />
+    </div>
+    <div class='resource'>
+      <label class='resource-label' for='system.move'>{{localize 'CARL_RPG.Actor.Mount.Move'}}</label>
+      <input type='number' name='system.move' value='{{system.move}}' min='0' {{#unless editable}}disabled{{/unless}} />
+    </div>
+  </div>
+
+  <div class='resource'>
+    <label class='resource-label'>{{localize 'CARL_RPG.Actor.Mount.Attacks'}}</label>
+    {{#each system.attacks as |attack index|}}
+      <div class='attack-row'>
+        <input type='text' name='system.attacks.{{index}}.name' value='{{attack.name}}' placeholder='{{localize "CARL_RPG.Actor.Mount.AttackName"}}' />
+        <input type='text' name='system.attacks.{{index}}.roll' value='{{attack.roll}}' placeholder='{{localize "CARL_RPG.Actor.Mount.Roll"}}' />
+        <input type='text' name='system.attacks.{{index}}.damage' value='{{attack.damage}}' placeholder='{{localize "CARL_RPG.Actor.Mount.Damage"}}' />
+        <a class='item-control' data-action='removeMountRow' data-path='system.attacks' data-index='{{index}}'><i class='fas fa-trash'></i></a>
+      </div>
+    {{/each}}
+    {{#if editable}}
+      <button type='button' data-action='addMountRow' data-path='system.attacks'>{{localize 'CARL_RPG.Actor.Mount.AddAttack'}}</button>
+    {{/if}}
+  </div>
+
+  <div class='resource'>
+    <label class='resource-label'>
+      <input type='checkbox' name='system.trample.enabled' {{#if system.trample.enabled}}checked{{/if}} {{#unless editable}}disabled{{/unless}} />
+      {{localize 'CARL_RPG.Actor.Mount.Trample'}}
+    </label>
+    {{#if system.trample.enabled}}
+      <input type='text' name='system.trample.damage' value='{{system.trample.damage}}' placeholder='{{localize "CARL_RPG.Actor.Mount.Damage"}}' />
+    {{/if}}
+  </div>
+
+  <div class='resource'>
+    <label class='resource-label' for='system.specialNotes'>{{localize 'CARL_RPG.Actor.Mount.Special'}}</label>
+    <textarea name='system.specialNotes' rows='3' {{#unless editable}}disabled{{/unless}}>{{system.specialNotes}}</textarea>
+  </div>
+
+  <div class='resource'>
+    <label class='resource-label'>{{localize 'CARL_RPG.Actor.Mount.Occupants'}}</label>
+    {{#each system.occupants as |name index|}}
+      <div class='list-row'>
+        <input type='text' name='system.occupants.{{index}}' value='{{name}}' />
+        <a class='item-control' data-action='removeMountRow' data-path='system.occupants' data-index='{{index}}'><i class='fas fa-trash'></i></a>
+      </div>
+    {{/each}}
+    {{#if editable}}
+      <button type='button' data-action='addMountRow' data-path='system.occupants'>{{localize 'CARL_RPG.Actor.Mount.AddOccupant'}}</button>
+    {{/if}}
+  </div>
+
+  <div class='resource'>
+    <label class='resource-label'>{{localize 'CARL_RPG.Actor.Mount.Accessories'}}</label>
+    {{#each system.accessories as |name index|}}
+      <div class='list-row'>
+        <input type='text' name='system.accessories.{{index}}' value='{{name}}' />
+        <a class='item-control' data-action='removeMountRow' data-path='system.accessories' data-index='{{index}}'><i class='fas fa-trash'></i></a>
+      </div>
+    {{/each}}
+    {{#if editable}}
+      <button type='button' data-action='addMountRow' data-path='system.accessories'>{{localize 'CARL_RPG.Actor.Mount.AddAccessory'}}</button>
+    {{/if}}
+  </div>
+</section>
