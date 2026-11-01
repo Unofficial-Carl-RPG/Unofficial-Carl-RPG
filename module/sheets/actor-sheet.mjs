@@ -541,6 +541,8 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       case 'achievements':
       case 'mobAbilities':
       case 'hotlist':
+      case 'personal':
+      case 'mount':
       case 'upgrades':
         context.tab = context.tabs[partId];
         break;
