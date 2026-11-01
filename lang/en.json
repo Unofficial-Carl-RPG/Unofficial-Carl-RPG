@@ -549,6 +549,8 @@
       "Cancel": "Cancel",
       "NoSpace": "No Personal Space yet. Drop one here.",
       "NoClubs": "Not in any clubs yet.",
+      "NoDeity": "No deity yet. Drop one here.",
+      "AddDeity": "Drop a deity here",
       "AddClub": "Drop a club here",
       "Remove": "Remove this sponsor",
       "Name": "Sponsor name"
@@ -1323,7 +1325,8 @@
       "background": "Background",
       "sponsor": "Sponsor",
       "personalSpace": "Personal Space",
-      "club": "Club"
+      "club": "Club",
+      "deity": "Deity"
     }
   }
 }

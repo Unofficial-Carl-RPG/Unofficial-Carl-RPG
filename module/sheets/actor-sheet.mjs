@@ -376,6 +376,17 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
         img: s.img,
       }));
       context.isGM = game.user.isGM;
+      // The deity this crawler worships (one per crawler), with its description.
+      const deity = this.actor.itemTypes.deity[0] ?? null;
+      context.deity = deity
+        ? {
+            name: deity.name,
+            description: await TextEditor.enrichHTML(deity.system.description ?? '', {
+              async: true,
+              relativeTo: deity,
+            }),
+          }
+        : null;
       // The clubs this crawler belongs to, with its rank or role in each.
       context.clubs = this.actor.itemTypes.club.map((c) => ({
         id: c.id,
@@ -423,10 +434,14 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       const { race, className } = this.actor.system;
       context.showRace = this.editMode || !!race?.trim();
       context.showClass = this.editMode || !!className?.trim();
+      // The Deity box shows the deity item's name (blank and hidden until one is dropped).
+      context.deityName = this.actor.itemTypes.deity[0]?.name ?? '';
+      context.showDeity = this.editMode || !!context.deityName;
       const columns =
         (context.showRace ? 1 : 0) +
         (context.showClass ? 1 : 0) +
-        (this.editMode ? 1 : 0); // Crawler kills
+        (this.editMode ? 1 : 0) + // Crawler kills
+        (context.showDeity ? 1 : 0);
       // With no boxes at all the row is left out (the floor isn't shown here).
       context.identityCount = columns;
       context.identityGrid = columns > 1 ? `grid-${columns}col` : '';
@@ -1561,6 +1576,11 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
    */
   async _onDropItemCreate(itemData, event) {
     itemData = itemData instanceof Array ? itemData : [itemData];
+    // A crawler has one deity: a new one replaces the old.
+    if (itemData.some((d) => d.type === 'deity')) {
+      const old = this.actor.itemTypes.deity.map((i) => i.id);
+      if (old.length) await this.actor.deleteEmbeddedDocuments('Item', old);
+    }
     // A crawler has one Personal Space: a new one replaces the old.
     if (itemData.some((d) => d.type === 'personalSpace')) {
       const old = this.actor.itemTypes.personalSpace.map((i) => i.id);

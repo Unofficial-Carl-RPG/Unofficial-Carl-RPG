@@ -145,7 +145,12 @@
             />
           </label>
         {{/if}}
-        {{! Deity is hidden for now (the data field is kept) until deities are designed. }}
+        {{#if showDeity}}
+          <div class='crawler-deity' data-tooltip='{{localize "CARL_RPG.Actor.Crawler.Header.Deity"}}'>
+            <span class='resource-label'>{{localize 'CARL_RPG.Actor.Crawler.Header.Deity'}}</span>
+            <span>{{deityName}}</span>
+          </div>
+        {{/if}}
       </div>
       {{/if}}
     {{/if}}

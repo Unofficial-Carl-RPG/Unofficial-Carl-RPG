@@ -18,3 +18,4 @@ export { default as CarlRPGBackground } from './item-background.mjs';
 export { default as CarlRPGSponsor } from './item-sponsor.mjs';
 export { default as CarlRPGPersonalSpace } from './item-personal-space.mjs';
 export { default as CarlRPGClub } from './item-club.mjs';
+export { default as CarlRPGDeity } from './item-deity.mjs';

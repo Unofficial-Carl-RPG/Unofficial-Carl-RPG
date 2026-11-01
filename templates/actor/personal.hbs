@@ -24,6 +24,19 @@
     {{/if}}
   </div>
 
+  <div class='deity-panel flexcol'>
+    <label class='resource-label'>{{localize 'TYPES.Item.deity'}}</label>
+    {{#if deity}}
+      <p><strong>{{deity.name}}</strong></p>
+      <div class='deity-description'>{{{deity.description}}}</div>
+    {{else}}
+      <p class='hint'>{{localize 'CARL_RPG.Sponsors.NoDeity'}}</p>
+    {{/if}}
+    {{#if editable}}
+      <div class='drop-box'>{{localize 'CARL_RPG.Sponsors.AddDeity'}}</div>
+    {{/if}}
+  </div>
+
   <div class='clubs-panel flexcol'>
     <label class='resource-label'>{{localize 'TYPES.Item.club'}}</label>
     {{#each clubs as |club|}}

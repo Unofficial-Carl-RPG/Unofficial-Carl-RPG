@@ -190,6 +190,9 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       case 'club':
         options.parts.push('attributesClub', 'effects');
         break;
+      case 'deity':
+        options.parts.push('skills', 'effects');
+        break;
       case 'race':
       case 'class':
         options.parts.push(
