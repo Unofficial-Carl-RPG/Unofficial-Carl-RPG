@@ -4,6 +4,7 @@
  *
  *   /rest Crawler short|long|full     a rest for a crawler (its owner, or the GM
  *                                     for any crawler)
+ *   /rest self short|long|full        a rest for your own character (its owner)
  *   /rest all short|long|full         a rest for the whole party (GM only)
  *   /floor N                          set the floor (GM only)
  *   /days N                           set the days left (GM only)
@@ -42,13 +43,24 @@ function crawlerNamed(name) {
   );
 }
 
-/** /rest Crawler short|long|full, or /rest all short|long|full (GM only) */
+/** The player's own crawler: their assigned character, if they own it. */
+function ownCrawler() {
+  const character = game.user.character;
+  return character?.type === 'crawler' && character.isOwner ? character : null;
+}
+
+/** /rest Crawler short|long|full, /rest self short|long|full, or /rest all short|long|full (GM only) */
 async function rest(args) {
   const words = args.split(/\s+/).filter(Boolean);
   const kind = (words.at(-1) ?? '').toLowerCase();
   const target = words.slice(0, -1).join(' ');
   if (!target || !REST_KINDS.includes(kind)) return warn('CARL_RPG.Commands.RestUsage');
 
+  if (target.toLowerCase() === 'self') {
+    const actor = ownCrawler();
+    if (!actor) return warn('CARL_RPG.Commands.NoCharacter');
+    return restActor(actor, kind);
+  }
   if (target.toLowerCase() === 'all') {
     if (!game.user.isGM) return warn('CARL_RPG.Commands.NotGM', { command: '/rest all' });
     return takeRest(kind);

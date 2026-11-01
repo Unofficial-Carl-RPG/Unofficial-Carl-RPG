@@ -43,7 +43,8 @@
       "AutoCombatHint": "When on, placing mobs with no combat running starts one on the scene."
     },
     "Commands": {
-      "RestUsage": "Usage: /rest Crawler short, long or full, or /rest all short, long or full (GM).",
+      "RestUsage": "Usage: /rest Crawler, /rest self or /rest all, then short, long or full. all is GM only.",
+      "NoCharacter": "You have no crawler set as your character to rest.",
       "NoCrawler": "There is no crawler of yours to rest. Name one: /rest short Name.",
       "NoSuchCrawler": "There is no crawler called {name}.",
       "NotYours": "You can only rest {name} if you own it.",
