@@ -102,8 +102,6 @@ export default class CarlRPGCrawler extends CarlRPGActorBase {
         note: new fields.StringField({ required: true, blank: true, initial: '' }),
       })
     );
-    schema.clubs = new fields.StringField();
-    schema.personalSpace = new fields.StringField();
 
     // Iterate over ability names and create a new SchemaField for each.
     schema.abilities = new fields.SchemaField(
