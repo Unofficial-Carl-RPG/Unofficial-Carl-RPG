@@ -1,28 +1,69 @@
 {
-  "BOILERPLATE": {
+  "CARL_RPG": {
     "Ability": {
       "Str": { "long": "Strength", "abbr": "str" },
       "Con": { "long": "Constitution", "abbr": "con" },
       "Dex": { "long": "Dexterity", "abbr": "dex" },
       "Int": { "long": "Intelligence", "abbr": "int" },
-      "Wis": { "long": "Wisdom", "abbr": "wis" },
-      "Cha": { "long": "Charisma", "abbr": "cha" }
+      "Cha": { "long": "Charisma", "abbr": "cha" },
+      "Mod": { "long": "Modifier", "abbr": "mod" }
+    },
+    "Size": {
+      "tiny": "Tiny",
+      "small": "Small",
+      "petite": "Petite",
+      "medium": "Medium",
+      "large": "Large",
+      "huge": "Huge",
+      "colossal": "Colossal",
+      "gargantuan": "Gargantuan"
+    },
+    "Combat": {
+      "Round": "Round {round}",
+      "Actions": "Actions: {left} of {max} left",
+      "NoActions": {
+        "Title": "No actions left",
+        "Content": "{name} has no actions left this round. Use {item} anyway?",
+        "Yes": "Use anyway",
+        "No": "Cancel"
+      },
+      "NextPhase": "Next Phase",
+      "RefillActions": "Refill Actions",
+      "RefillDone": "Every combatant's actions were refilled.",
+      "CleanupNote": "Remaining effects resolve and action counts reset.",
+      "Phases": {
+        "declare": "Mobs Declare",
+        "react": "Crawler Interrupts",
+        "resolve": "Mob Attacks Resolve",
+        "action": "Crawler Action Phase",
+        "cleanup": "Cleanup"
+      }
+    },
+    "Sheet": {
+      "EditOn": "Edit mode is on (click to lock the sheet)",
+      "EditOff": "Sheet is locked (click to edit)"
     },
     "SheetLabels": {
-      "Actor": "Boilerplate Actor Sheet",
-      "Item": "Boilerplate Item Sheet"
+      "Actor": "Carl RPG Actor Sheet",
+      "Item": "Carl RPG Item Sheet",
+      "Effect": "Carl RPG Effect Sheet"
     },
     "Actor": {
       "Tabs": {
-        "Biography": "Biography",
-        "Features": "Features",
-        "Gear": "Gear",
+        "Biography": "Notes",
+        "Features": "Skills",
         "Spells": "Spells",
-        "Effects": "Effects"
+        "Gear": "Gear",
+        "Inventory": "Inventory",
+        "Achievements": "Achievements",
+        "MobAbilities": "Mob Abilities",
+        "Effects": "Buffs/Debuffs",
+        "Hotlist": "Hotlist",
+        "Upgrades": "Upgrades"
       },
       "base": {
         "FIELDS": {
-          "biography": {"label": "Biography"},
+          "biography": {"label": "Notes"},
           "health": {
             "value": {"label": "Health"},
             "max": {"label": "Maximum Health"}
@@ -33,23 +74,146 @@
           }
         }
       },
-      "Character": {
+      "Crawler": {
         "FIELDS": {
-          "attributes.level.value": {"label": "Level"}
+          "attributes.level.value": {"label": "Level"},
+          "mana": {"label": "Mana"}
+        },
+        "Header": {
+          "Race": "Race",
+          "Class": "Class",
+          "CrawlerNumber": "Crawler #",
+          "Floor": "Floor",
+          "Deity": "Deity",
+          "DamageTaken": "{name} takes {amount} damage ({dr} DR): {boxes} health box(es) lost, {value} remaining."
+        },
+        "Combat": {
+          "DR": "Damage Resistance",
+          "Evade": "Evade",
+          "Move": "Move",
+          "Armor": "Armor",
+          "DexMod": "DEX Mod",
+          "Buffs": "Buffs",
+          "Base": "Base",
+          "Step": "Step",
+          "Total": "Total",
+          "AIFavor": "AI Favor",
+          "Size": "Size"
+        },
+        "Gold": "Gold",
+        "ManaMaxHint": "Maximum mana: your enhanced Intelligence, plus any bonus from effects",
+        "Hotlist": {
+          "Choose": "— choose —"
+        },
+        "Extras": {
+          "PastTrauma": "Past Trauma",
+          "Popularity": "Popularity",
+          "LooseEnds": "Loose Ends",
+          "Regrets": "Regrets",
+          "Kills": "Important Things I've Killed",
+          "Clubs": "Clubs, Societies, Guilds, Etc.",
+          "PersonalSpace": "Personal Space"
         }
       },
-      "NPC": {
+      "Pet": {
         "FIELDS": {
-          "cr": {"label": "CR"}
-        },
-        "xp": {"label": "XP"}
+          "owner": {"label": "Owner"}
+        }
+      },
+      "Mob": {
+        "Header": {
+          "Boxes": "Boxes",
+          "Actions": "Actions",
+          "Surprise": "Surprise",
+          "OtherBonuses": "Other"
+        }
       }
     },
     "Item": {
       "Tabs": {
         "Attributes": "Attributes",
         "Description": "Description",
+        "Skills": "Skills",
+        "Rewards": "Random Rewards",
+        "Guaranteed": "Guaranteed",
+        "Tags": "Tags",
+        "GrantedSkills": "Skills",
+        "Prerequisites": "Prerequisites",
+        "Events": "Events",
+        "Upgrades": "Upgrades",
         "Effects": "Effects"
+      },
+      "base": {
+        "FIELDS": {
+          "description": {"label": "Description"},
+          "identifier": {"label": "Identifier"},
+          "damage": {"label": "Damage"}
+        }
+      },
+      "EmbeddedSkill": {
+        "Hint": "Added to an actor with this item if they don't have them. Drop a skill here.",
+        "Remove": "Remove from this item",
+        "MissingLabel": "missing",
+        "Missing": "A skill embedded in {item} could not be found, so it was not added.",
+        "OnlySkills": "Only skills can be dropped here."
+      },
+      "Skill": {
+        "FIELDS": {
+          "rank": {"label": "Rank"},
+          "advanceable": {"label": "Can Advance"},
+          "passive": {"label": "Passive"},
+          "stat": {"label": "Stat"}
+        },
+        "AdvanceShort": "Advance",
+        "PassiveHint": "A passive skill doesn't use an action."
+      },
+      "Spell": {
+        "FIELDS": {
+          "rank": {"label": "Rank"},
+          "advanceable": {"label": "Can Advance"},
+          "passive": {"label": "Passive"},
+          "stat": {"label": "Stat"},
+          "manaCost": {"label": "Mana Cost"}
+        },
+        "PassiveHint": "A passive spell doesn't use an action, but still costs mana."
+      },
+      "Item": {
+        "FIELDS": {
+          "quantity": {"label": "Quantity"}
+        }
+      },
+      "Achievement": {
+        "FIELDS": {
+          "lootBox": {"label": "Reward loot box"}
+        },
+        "RewardHint": "Given to a crawler the first time they receive this achievement."
+      },
+      "Background": {
+        "FIELDS": {
+          "categories": {"label": "Offered in"},
+          "skills": {"label": "Skills"}
+        },
+        "SkillsHint": "The skills this background offers. The player picks two.",
+        "NotOnActors": "Backgrounds are only used in character creation.",
+        "Warn": {
+          "NoCategory": "Not offered anywhere yet: tick at least one category.",
+          "TooFew": "Not offered in character creation until it has at least two skills."
+        }
+      },
+      "LootBox": {
+        "FIELDS": {
+          "tier": {"label": "Tier"},
+          "quantity": {"label": "Quantity"},
+          "draws": {"label": "Items per box"},
+          "goldOverride": {"label": "Gold override"}
+        },
+        "GoldHint": "Gold paid per box: a number or dice formula. Leave blank to use the tier's default ({default})."
+      },
+      "MobAbility": {
+        "FIELDS": {
+          "rank": {"label": "Rank"},
+          "stat": {"label": "Stat"}
+        }
       },
       "Gear": {
         "FIELDS": {
@@ -58,15 +222,28 @@
           "dieSize": {"label": "Die Size"},
           "rollMod": {"label": "Roll Modifier"},
           "quantity": {"label": "Quantity"},
-          "weight": {"label": "Weight"}
-        }
-      },
-      "Spell": {
-        "FIELDS": {
-          "level": {"label": "Spell Level"}
+          "slot": {"label": "Slot"},
+          "dr": {"label": "Damage Resistance"},
+          "equipped": {"label": "Equipped"}
         },
-        "SpellLVL": "Level {level} Spells",
-        "AddLVL": "Add LVL {level}"
+        "DRShort": "DR",
+        "DRHint": "Added to the crawler's Armor while equipped.",
+        "Equip": {
+          "Equip": "Equip",
+          "Unequip": "Unequip",
+          "Title": "{slot} slot is full",
+          "Full": "The {slot} slot can only hold {limit} equipped item(s). Which one should be swapped out for {item}?",
+          "Swap": "Swap with {name}"
+        },
+        "Slots": {
+          "head": "Head",
+          "torso": "Torso",
+          "arms": "Arms",
+          "hands": "Hands/Holding",
+          "legs": "Legs",
+          "feet": "Feet",
+          "accessory": "Accessory"
+        }
       }
     },
     "Effect": {
@@ -74,18 +251,1027 @@
       "Toggle": "Toggle Effect",
       "Temporary": "Temporary Effects",
       "Passive": "Passive Effects",
-      "Inactive": "Inactive Effects"
+      "Inactive": "Inactive Effects",
+      "Name": "Effect name",
+      "Effects": "Effects",
+      "Type": "Type",
+      "Kinds": {
+        "buff": "Buff",
+        "debuff": "Debuff",
+        "passive": "Passive"
+      },
+      "Groups": {
+        "buff": "Buffs",
+        "debuff": "Debuffs",
+        "passive": "Passive"
+      },
+      "Stackable": "Stackable",
+      "MaxStacks": "Max stacks",
+      "NoLimit": "no limit",
+      "Rounds": "Lasts (rounds)",
+      "RoundsLeft": "{count} round(s) left",
+      "Events": "Events",
+      "Expired": "<strong>{effect}</strong> on {name} has ended.",
+      "Permanent": "Keep when item is removed",
+      "EquipLinked": "Only while its item is equipped",
+      "Modifiers": "What it changes",
+      "AddModifier": "Add a modifier",
+      "RemoveModifier": "Remove this modifier",
+      "Description": "Description",
+      "NewName": "New {type} effect",
+      "NewButton": "New",
+      "TurnOn": "Turn on",
+      "TurnOff": "Turn off",
+      "AddStack": "Add a stack",
+      "RemoveStack": "Remove one stack",
+      "RemoveAllStacks": "Remove all stacks",
+      "EquipControlledTip": "Controlled by whether its gear is equipped",
+      "EquipControlled": "{name} is controlled by whether its gear is equipped, so it can't be switched by hand.",
+      "ItemHint": "Copied to an actor when this item is added, and removed with it unless marked to keep.",
+      "Swap": {
+        "Title": "All buff slots are in use",
+        "Full": "{limit} buffs are already active. Which one should be swapped out for {name}?",
+        "Button": "Swap with {name}"
+      },
+      "Mods": {
+        "str": "Strength bonus",
+        "int": "Intelligence bonus",
+        "con": "Constitution bonus",
+        "dex": "Dexterity bonus",
+        "cha": "Charisma bonus",
+        "dr": "Damage Resistance",
+        "evade": "Evade",
+        "move": "Move",
+        "surprise": "Surprise (mobs)",
+        "mana": "Max Mana (crawlers)",
+        "hotlist": "Hotlist slots (crawlers)",
+        "actions": "Actions per round"
+      }
+    },
+    "GMTab": {
+      "Title": "Dungeon Info",
+      "Floor": "Floor",
+      "FloorUp": "Next floor",
+      "FloorDown": "Previous floor",
+      "Party": "Party name",
+      "PartyHint": "Shown in boss battle announcements.",
+      "DefaultParty": "The Crawlers",
+      "Rests": "Rests",
+      "BossBattle": "Boss battle",
+      "AnnounceBoss": "Announce Boss Battle",
+      "NoBosses": "No bosses found. Add a boss to the combat or the scene (set a mob's kind to Boss).",
+      "Vs": "vs",
+      "And": "and",
+      "JoinTooltip": "Switch between \"vs\" (new line) and \"and\" (same line)",
+      "LootBoxes": "Loot boxes",
+      "Awards": "Awards",
+      "AchievementLabel": "Achievement",
+      "FavorLabel": "AI favor (negative to remove)",
+      "AwardFavor": "Award AI favor",
+      "BossBanner": "Boss Battle",
+      "EventsToApprove": "Events to approve",
+      "ApproveAll": "Approve all",
+      "NeedCrawler": "Pick a crawler first.",
+      "NeedAmount": "Enter a whole number other than 0.",
+      "FavorAwarded": "{name} gained {amount} AI favor! (now {total})",
+      "FavorLost": "{name} lost {amount} AI favor. (now {total})",
+      "Achievements": "Award achievement",
+      "Award": "Award",
+      "NeedBoth": "Pick a crawler and an achievement first.",
+      "LootApproval": "Loot box approval",
+      "WaitingCount": "{count} waiting for your decision.",
+      "NoneWaiting": "Nothing is waiting for approval."
+    },
+    "Loot": {
+      "Tiers": {
+        "bronze": "Bronze",
+        "silver": "Silver",
+        "gold": "Gold",
+        "platinum": "Platinum",
+        "legendary": "Legendary",
+        "celestial": "Celestial"
+      },
+      "LootBoxes": "Loot Boxes",
+      "Open": "Open",
+      "Banner": "{tier} Loot Box",
+      "Opened": "{name} opened a {tier} {box}",
+      "GoldGained": "{gold} gold",
+      "NoItems": "No items this time",
+      "EventsNotRun": "{name}'s On Opened events didn't run: they were last saved by a player. Save them as a GM to approve.",
+      "NoneLeft": "There are no loot boxes left to open.",
+      "AlreadyWaiting": "This loot box is already waiting for the GM.",
+      "NoGM": "A GM needs to be connected to approve loot boxes, so this one can't be opened right now.",
+      "Requesting": "{name} is opening a loot box and is waiting for the GM...",
+      "Waiting": "Waiting for the GM to approve your loot box.",
+      "GMLeft": "The GM disconnected, so your loot box was not opened. It has not been used.",
+      "Response": {
+        "discarded": "The GM discarded this opening. The loot box was not used.",
+        "invalid": "This loot box could not be opened. It was not used."
+      },
+      "Approve": {
+        "Title": "Approve loot box",
+        "Content": "{name} opened a {tier} loot box and got:",
+        "Approve": "Approve",
+        "Reroll": "Re-roll",
+        "Discard": "Discard"
+      },
+      "ApprovalSetting": "Require GM approval for loot boxes",
+      "ApprovalSettingHint": "A GM approves, re-rolls or discards each opening. Boxes can't be opened with no GM connected.",
+      "NoLootBoxes": "Loot boxes can't be rewards of other loot boxes.",
+      "RewardsHint": "Drawn at random by weight (higher weights come up more often). Gold is paid separately by every box.",
+      "RandomRewards": "Random rewards",
+      "Guaranteed": "Guaranteed items",
+      "GuaranteedHint": "Always granted when the box is opened, on top of the random draws. The amount is a number or dice formula such as 1d3.",
+      "Amount": "Amount",
+      "AmountHint": "A number or dice formula (for example 2 or 1d3)",
+      "RemoveGuaranteed": "Remove from the guaranteed items",
+      "Weight": "Weight",
+      "Quantity": "Qty",
+      "Chance": "Chance",
+      "Missing": "missing",
+      "NotAllowed": "not allowed",
+      "RemoveReward": "Remove from the reward list",
+      "Warn": {
+        "Empty": "The reward list is empty, so this box only pays gold.",
+        "NoneEligible": "No reward can be drawn: every entry is missing, not allowed or has a weight of 0.",
+        "BadFormula": "A guaranteed item has an amount that isn't a valid number or dice formula, so it will be skipped.",
+        "BadGold": "The gold amount isn't a valid number or dice formula, so this box will pay no gold."
+      }
+    },
+    "Creation": {
+      "Setting": "Character creation defaults",
+      "Create": "Create Character",
+      "CreateCrawler": "Create Crawler",
+      "NewCrawler": "New Crawler",
+      "Done": "{name} has entered the dungeon!",
+      "Methods": {
+        "standardArray": "Standard Array",
+        "roll": "Roll For Stats"
+      },
+      "Menu": {
+        "StatMethod": "Stat method",
+        "Name": "Character creation",
+        "Label": "Set up character creation",
+        "Hint": "What the character creation wizard offers.",
+        "Title": "Character creation defaults",
+        "SkillTag": "Skills to pick from",
+        "SkillTagHint": "Skills with this tag are offered in the wizard's skill pairs.",
+        "AllowAnySkill": "Allow picking any of these skills instead of a background",
+        "FreeSkills": "Free skills",
+        "FreeSkillsHint": "Every new crawler gets these skills at the rank shown.",
+        "Weapons": "Starting weapons",
+        "WeaponsHint": "Gear a new crawler can choose as their weapon (its first skill is granted at rank 3).",
+        "Gear": "Starting gear",
+        "GearHint": "Items a new crawler can choose from.",
+        "GearPicks": "Items a crawler may pick",
+        "Save": "Save",
+        "Saved": "Character creation defaults saved.",
+        "Drop": {
+          "freeSkills": "Drop a skill here to add it",
+          "weapons": "Drop a gear item here to add it",
+          "gear": "Drop a gear or item here to add it"
+        },
+        "Wrong": {
+          "freeSkills": "Drop a skill here.",
+          "weapons": "Drop a gear item here.",
+          "gear": "Drop a gear or item here."
+        }
+      },
+      "Steps": {
+        "basics": "Basics",
+        "stats": "Stats",
+        "skills": "Skills",
+        "weapon": "Weapon",
+        "gear": "Gear",
+        "bio": "Bio",
+        "review": "Review"
+      },
+      "Groups": {
+        "childhood": "Childhood",
+        "adolescence": "Adolescence",
+        "hobby": "Hobby",
+        "career": "Career"
+      },
+      "Wizard": {
+        "Title": "Create your crawler",
+        "BasicsHint": "Race and class come later, on the third floor.",
+        "Name": "Name",
+        "Gender": "Gender / pronouns",
+        "Size": "Size",
+        "StatsHint": "Assign each number to a stat. Every number is used once.",
+        "StatsHintRoll": "Rolls 1d6 for each stat in order, re-rolling 1s.",
+        "RollStats": "Roll for stats",
+        "Rolling": "Rolling...",
+        "ResetRolls": "Reset rolls",
+        "ResetConfirm": "Reset {name}'s rolled stats so they can roll again?",
+        "StatHeader": "Stat",
+        "ValueHeader": "Value",
+        "ModHeader": "Mod",
+        "SkillsHint": "Pick two skills for each part of your life. Later parts start at a higher rank.",
+        "SkillsHintBackgrounds": "For each part of your life, choose a background and two of its skills. Later parts start at a higher rank.",
+        "AnySkill": "Any skill",
+        "NoBackgrounds": "No backgrounds are set up for this category. A GM needs to add some.",
+        "PoolSmall": "Not enough skills to choose from: a GM needs to give at least eight skills the creation tag.",
+        "NoWeapons": "No starting weapons set up. You can carry on without one.",
+        "WeaponGrants": "This weapon grants the skill",
+        "FreeSkills": "Every crawler also starts with",
+        "GearHint": "Choose your starting gear, up to the number shown.",
+        "NoGear": "No starting gear has been set up.",
+        "TooMuchGear": "You can only pick {picks} items.",
+        "BioHint": "Optional. You can change this later on the Notes tab.",
+        "Problems": "Still to fill in before you can create your crawler:",
+        "Missing": {
+          "name": "Give your crawler a name.",
+          "stats": "Assign a number to: {stats}.",
+          "rollStats": "Roll for your stats.",
+          "chooseSkills": "Choose your {group} skills.",
+          "groupSkills": "Pick {count} more {group} skill(s).",
+          "noBackgrounds": "No backgrounds are set up for {group}. A GM needs to add some.",
+          "weapon": "Choose a weapon."
+        },
+        "Back": "Back",
+        "Next": "Next",
+        "Finish": "Create Crawler",
+        "Failed": "Character creation failed. See the console for details."
+      }
+    },
+    "RollDialog": {
+      "Bonus": "Extra bonus",
+      "BonusPlaceholder": "+2, -1 or 1d4",
+      "Stat": "Stat",
+      "StatDefault": "Default ({stat})",
+      "Mode": "Roll",
+      "Normal": "Normal",
+      "Advantage": "Advantage",
+      "Disadvantage": "Disadvantage",
+      "Roll": "Roll",
+      "Invalid": "\"{bonus}\" isn't a valid bonus. Use a number or dice formula such as +2, -1 or 1d4.",
+      "BonusNote": "{bonus} bonus",
+      "StatNote": "using {stat}"
+    },
+    "Pets": {
+      "Owner": "Owner",
+      "NoOwner": "No owner",
+      "Title": "Pets",
+      "None": "No pets yet.",
+      "Open": "Open pet sheet",
+      "LevelLine": "Level {level}",
+      "Floor": "Floor",
+      "OnlyGearSkills": "Pets can only have gear, skills and spells."
+    },
+    "Sources": {
+      "Setting": "Compendium sources",
+      "Menu": {
+        "Name": "Compendium sources",
+        "Label": "Choose compendiums",
+        "Hint": "Which compendiums the lists of achievements, races, classes, backgrounds and creation skills draw from.",
+        "Title": "Compendium sources",
+        "Intro": "Choose which items each list draws from.",
+        "Save": "Save",
+        "Saved": "Compendium sources saved."
+      },
+      "World": "World items",
+      "NoPacks": "No item compendiums yet.",
+      "NoGM": "A GM needs to be connected to load items from a compendium you can't open.",
+      "Purposes": {
+        "achievements": "Achievements (to award)",
+        "races": "Races",
+        "classes": "Classes",
+        "backgrounds": "Backgrounds",
+        "skills": "Skills offered in character creation"
+      }
+    },
+    "ChatLog": {
+      "Name": "Game-style chat",
+      "Hint": "Show everyday chat messages as compact dark rows, like a game's chat window. Turn off for Foundry's default look."
+    },
+    "System": {
+      "Title": "System Announcements",
+      "Ribbon": "System Announcement",
+      "Kinds": {
+        "died": "A crawler has died",
+        "boss": "A floor boss was defeated",
+        "stairs": "The stairwell has opened",
+        "floor": "A new floor begins",
+        "general": "A System announcement"
+      },
+      "Headlines": {
+        "died": "A Crawler Has Fallen",
+        "boss": "Floor Boss Defeated",
+        "stairs": "The Stairwell Is Open",
+        "floor": "A New Floor",
+        "general": "System Announcement"
+      },
+      "Crawler": "Crawler",
+      "Text": "What the System says",
+      "TextPlaceholder": "Type the announcement",
+      "Banner": "Full-screen banner",
+      "Send": "Announce",
+      "Kills": "Kills: {count}",
+      "FloorLine": "Floor {floor}",
+      "NeedCrawler": "Pick the crawler who died.",
+      "NeedText": "Write what the System says."
+    },
+    "Card": {
+      "Kind": {
+        "skill": "Skill",
+        "spell": "Spell",
+        "gear": "Gear",
+        "item": "Item",
+        "mobAbility": "Mob ability",
+        "attack": "Attack",
+        "check": "Check"
+      }
+    },
+    "Party": {
+      "Management": "Party Management",
+      "Name": "Party name",
+      "Leader": "Party leader",
+      "NoLeader": "No leader",
+      "Titles": "Titles",
+      "TitlePlaceholder": "Title",
+      "NoMembers": "No crawlers yet.",
+      "NoGM": "A GM needs to be connected to change the party."
+    },
+    "Declare": {
+      "Announce": "The mobs declare:",
+      "Uses": "{ability} (at {targets})",
+      "Moves": "moves: {note}",
+      "MovesNoNote": "moves",
+      "MoveButton": "Declare movement",
+      "MoveTitle": "Declare a movement",
+      "MovePlaceholder": "Where is it going?",
+      "MoveOk": "Declare",
+      "Remove": "Remove this declaration",
+      "TooMany": "{name} has no actions left to declare.",
+      "CantResolve": "A declared ability ({name}) couldn't be found, so it wasn't used."
+    },
+    "Uses": {
+      "Max": "Uses",
+      "MaxHint": "How many times it can be used before it recharges (0 = no limit)",
+      "Recharges": "Recharges",
+      "Spent": "Used so far",
+      "Tooltip": "Uses left",
+      "NoneLeft": "{name} has no uses left (it recharges: {recharge}).",
+      "Recharge": {
+        "never": "Never",
+        "round": "Each round",
+        "combat": "Each combat",
+        "floor": "Each floor",
+        "short": "After a short rest",
+        "long": "After a long rest",
+        "full": "After a full rest"
+      }
+    },
+    "AIFavor": {
+      "Title": "Spend AI Favor?",
+      "Prompt": "{name} rolled {total}. Spend 1 AI Favor to reroll? (AI Favor: {favor})",
+      "Yes": "Spend 1 AI Favor",
+      "No": "Keep the roll",
+      "Note": "Spent 1 AI Favor to reroll (first roll: {previous})."
+    },
+    "Advance": {
+      "Try": "Try to advance",
+      "NotAllowed": "{name} isn't marked as able to advance.",
+      "AlreadyTried": "{name} has already had its advancement try this floor.",
+      "Reminder": {
+        "Title": "Advance at the end of a floor?",
+        "Content": "Skills at rank 5 and above are meant to advance only at the end of a floor, with one try each. Try to advance {name} (rank {rank}) now?",
+        "Yes": "Roll"
+      },
+      "Card": "{name} tries to advance {item} (rank {rank}).",
+      "Success": "Success! {item} is now rank {rank}.",
+      "Fail": "No advance: the roll didn't beat rank {rank}."
+    },
+    "Upgrades": {
+      "Title": "Upgrades",
+      "Hint": "Applied automatically from the rank shown.",
+      "Rank": "Rank",
+      "RankLine": "Rank {rank}: {text}",
+      "Unlocked": "Unlocked",
+      "Locked": "Not reached yet",
+      "Add": "Add upgrade",
+      "Remove": "Remove upgrade",
+      "AddChange": "Add change",
+      "DescriptionPlaceholder": "Description (leave blank to show a summary of the changes)",
+      "FormulaPlaceholder": "1d6 or 2",
+      "Invalid": "This change can't be used until its value is valid.",
+      "Unlocks": "Unlocks effects",
+      "NoEffects": "Add effects on the Effects tab to unlock them here.",
+      "Events": "Events",
+      "Level": "Level",
+      "PetHint": "Applied automatically from the level shown.",
+      "Grants": "Gives skills and spells",
+      "DropGrant": "Drop a skill or spell here",
+      "NoPetEffects": "Add effects on the Buffs/Debuffs tab to unlock them here.",
+      "SizeNow": "Now: {size}",
+      "OnlySkillsSpells": "Only skills and spells can be given.",
+      "EffectLocked": "{name} is locked until rank {rank}.",
+      "NowDamage": "Now: {value}",
+      "NowTarget": "Now rolls against: {value}",
+      "NowRollBonus": "Roll bonus from upgrades: {value}",
+      "NowMana": "Now: {value}",
+      "Changes": {
+        "Label": "Changes",
+        "damageAdd": "Damage: add",
+        "damageReplace": "Damage: replace the formula",
+        "dieStep": "Dice: step the size",
+        "manaCost": "Mana cost: change",
+        "rollBonus": "Roll: add a bonus",
+        "rollTarget": "Roll against"
+      },
+      "PetChanges": {
+        "statBonus": "Stat: add a bonus",
+        "sizeStep": "Size: step the category",
+        "dr": "Damage Resistance: add",
+        "evade": "Evade: add",
+        "move": "Move: add",
+        "mana": "Max mana: add",
+        "actions": "Actions: add"
+      },
+      "PetNames": {
+        "dr": "Damage Resistance",
+        "evade": "Evade",
+        "move": "Move",
+        "mana": "max mana",
+        "actions": "actions"
+      },
+      "Summary": {
+        "damageAdd": "{value} damage",
+        "damageReplace": "Damage becomes {value}",
+        "dieUp": "Dice go up {count} size(s)",
+        "dieDown": "Dice go down {count} size(s)",
+        "manaCost": "Mana cost {value}",
+        "rollBonus": "{value} to the roll",
+        "rollTarget": "Rolls against {target}",
+        "unlocks": "Unlocks {name}",
+        "statBonus": "{value} {stat}",
+        "sizeUp": "Grows {count} size(s)",
+        "sizeDown": "Shrinks {count} size(s)",
+        "petBonus": "{value} {what}",
+        "grants": "Gains {name}"
+      }
+    },
+    "Injury": {
+      "Minor": {
+        "Name": "Minor Injury",
+        "Description": "-2 to all stats. Lasts until a short rest, or a long rest if hurt again."
+      },
+      "Major": {
+        "Name": "Major Injury",
+        "Description": "-5 to all stats. Lasts until a long rest, or a full rest if hurt again."
+      }
+    },
+    "Rest": {
+      "Lasts": "Lasts",
+      "UntilRemoved": "Until removed",
+      "Until": {
+        "short": "Until a short rest",
+        "long": "Until a long rest",
+        "full": "Until a full rest",
+        "combat": "Until the end of the combat"
+      },
+      "Name": {
+        "short": "Short rest",
+        "long": "Long rest",
+        "full": "Full rest"
+      },
+      "Taken": {
+        "short": "The party takes a short rest.",
+        "long": "The party takes a long rest.",
+        "full": "The party takes a full rest."
+      },
+      "TakenBy": {
+        "short": "{name} takes a short rest.",
+        "long": "{name} takes a long rest.",
+        "full": "{name} takes a full rest."
+      },
+      "Confirm": "Take a {rest}? It affects every crawler.",
+      "ConfirmOne": "{name} takes a {rest}?",
+      "Recovers": {
+        "short": "Heals 5 health boxes and recovers half of total mana.",
+        "long": "Restores all health and mana.",
+        "full": "Restores all health and mana."
+      },
+      "Healed": "Healed {health} health box(es).",
+      "ManaBack": "Recovered {mana} mana.",
+      "Ended": "Ended:"
+    },
+    "Check": {
+      "NumberLabel": "Attack number",
+      "NumberHint": "Mobs don't roll a d20: a crawler rolls against this number plus the Floor.",
+      "StatResult": "Needed {needed}: {result}",
+      "Label": "Roll against",
+      "Hint": "Unopposed: 10 + 2 x Floor. Evade: the target's Evade. A stat or Size Class: 10 + that + Floor. Target a token first, except for unopposed.",
+      "Targets": {
+        "unopposed": "Nothing (unopposed)",
+        "evade": "Evade (attack)",
+        "size": "Size Class"
+      },
+      "Header": {
+        "unopposed": "Unopposed check",
+        "attack": "Attack",
+        "opposed": "Opposed check: {stat}"
+      },
+      "DC": "DC {dc}"
+    },
+    "Relay": {
+      "NoGM": "A GM needs to be connected for this to change the character.",
+      "Working": "Making a change for a player..."
+    },
+    "Attack": {
+      "DamageHint": "A number or dice formula, e.g. 1d6+@str.mod. Leave blank for no damage.",
+      "BadDamage": "{name}'s damage isn't a valid number or dice formula.",
+      "Damage": "Damage: {damage}",
+      "Evade": "Evade {evade}",
+      "MobNumber": "Attack number: {number} (a crawler rolls against it)",
+      "Waiting": "waiting for a {label} roll",
+      "RollDefense": "Roll {label}",
+      "DontRoll": "Don't roll",
+      "DefenseRoll": "{label} check",
+      "DoubleDamage": "(double damage)",
+      "InjuryNote": {
+        "minor": "(Minor Injury after combat)",
+        "major": "(Major Injury after combat)"
+      },
+      "InjuryGained": "{name} has a {injury}. {until}.",
+      "InjuryLonger": "{name} was hurt again: the {injury} now lasts {until}.",
+      "Rolled": "(rolled {total})",
+      "Skipped": "(didn't roll)",
+      "Degrees": {
+        "critHit": "Critical Hit!",
+        "amazing": "Amazing Success",
+        "success": "Success",
+        "nearMiss": "Near Miss",
+        "fail": "Fail",
+        "majorFail": "Major Fail",
+        "critFail": "Critical Fail!"
+      },
+      "CritNote": "Natural 20! A Critical Hit: it always hits, and the damage dice are doubled.",
+      "CritFailNote": "Natural 1! A Critical Fail.",
+      "FloorBonus": "(+{floor} Floor)",
+      "TargetDamage": "{damage} damage",
+      "ApplyEffect": "Apply {name}",
+      "EffectApplied": "{name} applied",
+      "EffectPending": "{name} (pending)",
+      "ApplyTip": "Apply {damage} damage",
+      "ApplyAll": "All hits:",
+      "ApplyTargeted": "Targeted tokens:",
+      "AppliedAmount": "Applied ({damage} damage)",
+      "NoTargets": "No targets were chosen. Target tokens, then apply the damage:",
+      "NotFound": "Couldn't find {name} to apply the damage."
+    },
+    "MobTypes": {
+      "Label": "Kind of mob",
+      "basic": "Basic",
+      "elite": "Elite",
+      "boss": "Boss",
+      "crawler": "Crawler",
+      "PerCrawler": "1 per crawler",
+      "PerCrawlerHint": "Elites and bosses get one action for every crawler in the encounter"
+    },
+    "Kills": {
+      "Label": "Crawler kills",
+      "Tooltip": "Crawler Killer: {count} other crawler(s) killed"
+    },
+    "Tags": {
+      "Title": "Tags",
+      "Hint": "Labels that rules (prerequisites, requirements, conditions) can match.",
+      "CustomPlaceholder": "Custom tag",
+      "Add": "Add",
+      "Placeholder": "tag",
+      "Categories": {
+        "Title": "Class categories",
+        "Hint": "What kind of class this is. A rule that asks for a tag also matches these.",
+        "CustomPlaceholder": "Custom category"
+      }
+    },
+    "Origin": {
+      "Categories": {
+        "earthBased": "Earth-Based",
+        "alien": "Alien (not Earth-Based)"
+      },
+      "EarthBased": "Earth-Based",
+      "EarthBasedHint": "Tick this if it is from Earth. Anything that isn't ticked counts as Alien.",
+      "Prereq": {
+        "stat": "A stat is at least",
+        "skillRank": "A skill is at rank",
+        "level": "Level is at least",
+        "race": "Is this race",
+        "raceCategory": "Race is",
+        "achievement": "Has the achievement",
+        "classTag": "Class has the tag"
+      },
+      "Needs": {
+        "stat": "{stat} {value} or more (you have {have})",
+        "level": "Level {value} or more (you have {have})",
+        "skillRank": "{skill} at rank {value} or more (you have {have})",
+        "race": "The race {race}",
+        "raceCategory": "A race that is {category}",
+        "achievement": "The achievement {achievement}",
+        "classTag": "A class with the tag {tag}"
+      },
+      "ChooseRace": "Choose Race",
+      "ChooseClass": "Choose Class",
+      "Choose": "Choose",
+      "Override": "(override)",
+      "TooEarly": "A race and class can be chosen from floor {floor}.",
+      "AllChosen": "This crawler already has a race and a class.",
+      "RaceFirst": "Choose a race before a class.",
+      "Unmet": "You can't take {name} yet: {reasons}",
+      "None": {
+        "race": "No races exist yet. A GM can create them as Items.",
+        "class": "No classes exist yet. A GM can create them as Items."
+      },
+      "Title": {
+        "race": "Choose a race",
+        "class": "Choose a class"
+      },
+      "Intro": {
+        "race": "{name}, choose your race.",
+        "class": "{name}, choose your class."
+      },
+      "Replace": {
+        "Title": "Replace?",
+        "Content": "{name} already has {old}. Replace it with {new}?"
+      },
+      "SkillMissing": "A skill granted by {name} couldn't be found.",
+      "Chosen": {
+        "race": "{name} chose the race {origin}!",
+        "class": "{name} chose the class {origin}!"
+      },
+      "OverrideNote": "Assigned by the GM without meeting: {unmet}",
+      "GrantedSkills": "Granted skills",
+      "SkillsHint": "Granted at the rank shown (raised if the crawler has it lower).",
+      "PrereqHint": "The crawler must meet all of these to take this.",
+      "AddPrereq": "Add prerequisite",
+      "Drop": {
+        "skill": "Drop a skill here",
+        "race": "Drop a race here",
+        "achievement": "Drop an achievement here",
+        "skillGrant": "Drop a skill here to grant it",
+        "Wrong": {
+          "skill": "Drop a skill here.",
+          "race": "Drop a race here.",
+          "achievement": "Drop an achievement here."
+        }
+      }
+    },
+    "Level": {
+      "Up": "Level up",
+      "UpTooltip": "Raise this crawler's level by 1",
+      "PointsShort": "pts",
+      "SpendTooltip": "Spend your stat points",
+      "BankedTooltip": "Banked: stat points can be spent once the floor reaches 3",
+      "Confirm": {
+        "Title": "Level up",
+        "Content": "{name} goes from level {from} to level {to} and gains {points} stat points."
+      },
+      "Reached": "{name} reached level {level}! (+{points} stat points)",
+      "NoPoints": "There are no stat points to spend.",
+      "Locked": "Stat points can be spent from floor {floor}. {points} points are banked until then.",
+      "Spend": {
+        "Title": "Spend stat points",
+        "Content": "You have {points} stat points to spend. Each adds 1 to a stat; unspent points stay banked.",
+        "Stat": "Stat",
+        "Now": "Now",
+        "Add": "Add",
+        "Left": "{left} points left",
+        "Apply": "Spend"
+      },
+      "Spent": "{name} spent {total} stat points: {stats}.",
+      "PlayersSetting": "Players can level up their own crawlers",
+      "PlayersSettingHint": "Off: only the GM sees the Level Up button."
+    },
+    "Achievement": {
+      "AlreadyHas": "{name} already has the achievement {achievement}.",
+      "RewardMissing": "The loot box reward of {achievement} could not be found, so none was given.",
+      "Earned": "{name} earned the achievement {achievement}!",
+      "Unlocked": "New Achievement",
+      "EarnedBy": "{name}",
+      "RewardLine": "Reward: {box}",
+      "EarnedWithBox": "{name} earned the achievement {achievement} and received a loot box: {box}!",
+      "Empty": "No achievements yet.",
+      "WrongDrop": "Drop a loot box here.",
+      "DropReward": "Drop a loot box here to set the reward",
+      "NoReward": "No reward"
+    },
+    "Spell": {
+      "NotEnoughMana": {
+        "Title": "Not enough mana",
+        "Content": "{spell} costs {cost} mana, but {name} only has {have}. Cast anyway? All remaining mana is spent.",
+        "Yes": "Cast anyway",
+        "No": "Cancel"
+      },
+      "ManaSpent": "Spent {cost} mana.",
+      "ManaSpentPartial": "Spent {spent} mana (all that was left of the {cost} it costs)."
+    },
+    "Drop": {
+      "skill": "Drop a skill here to add it",
+      "spell": "Drop a spell here to add it",
+      "gear": "Drop gear here to add it",
+      "inventory": "Drop an item here to add it",
+      "mobAbility": "Drop a mob ability here to add it",
+      "effect": "Drop an effect here to add it",
+      "embeddedSkill": "Drop a skill here to add it to this item",
+      "rewards": "Drop an item here to add it to the random rewards",
+      "guaranteed": "Drop an item here to always grant it",
+      "achievement": "Drop an achievement here to award it"
+    },
+    "Events": {
+      "Title": "Events",
+      "When": "When",
+      "OnlyIf": "Only if",
+      "Then": "Then",
+      "Enabled": "Enabled",
+      "AddEvent": "Add event",
+      "AddCondition": "Add condition",
+      "AddAction": "Add action",
+      "Remove": "Remove",
+      "RemoveEvent": "Remove this event",
+      "AnyPhase": "Any phase",
+      "NotTrusted": "Last saved by a player, so limited to what they could do. A GM must save these events to allow GM-client macros and changes to other actors.",
+      "AmountPlaceholder": "1",
+      "AmountHint": "A number or dice formula (for example 2 or 1d4)",
+      "SkipIfHas": "Skip if they already have it",
+      "ThisItem": "This item (instead of another)",
+      "IgnoreDR": "Ignore damage reduction",
+      "Missing": "missing",
+      "Affects": "Affects:",
+      "HitTarget": "Affects the target that was hit",
+      "Relaying": "Relaying an event action to the GM...",
+      "CantUse": "{name} can't be used: {reasons}",
+      "NamePlaceholder": "Event name",
+      "Unnamed": "Event {n}",
+      "RunNow": "Run now (GM)",
+      "Duplicate": "Duplicate",
+      "Copy": "(copy)",
+      "Not": "not",
+      "NotHint": "Turn this condition around: it has to be false",
+      "Choose": "Choose...",
+      "MessagePlaceholder": "What to say",
+      "MessageHint": "{name} and {item} are filled in",
+      "AskFirst": "Ask first",
+      "Ask": "{name}: {what}?",
+      "AskYes": "Do it",
+      "AskNo": "Skip it",
+      "FromTemplate": "Start from:",
+      "Approve": "Approve",
+      "Triggers": {
+        "used": "the item is used",
+        "added": "the item is added to an actor",
+        "removed": "the item is removed from an actor",
+        "equipped": "the gear is equipped",
+        "unequipped": "the gear is unequipped",
+        "phaseStart": "a combat phase starts",
+        "phaseEnd": "a combat phase ends",
+        "roundEnd": "the round ends (the Cleanup phase starts)",
+        "opened": "the loot box is opened",
+        "actionSpent": "an action is spent",
+        "hit": "a roll succeeds against a target",
+        "miss": "an attack misses a target",
+        "takesDamage": "the actor takes damage",
+        "restTaken": "a rest is taken",
+        "combatStart": "a combat starts",
+        "combatEnd": "a combat ends",
+        "floorChange": "the floor changes",
+        "levelUp": "the actor levels up",
+        "advanced": "the skill's rank goes up",
+        "effectGained": "the effect is turned on",
+        "effectEnded": "the effect ends"
+      },
+      "Conditions": {
+        "stat": "a stat is at least",
+        "mana": "mana is at least",
+        "phase": "the combat phase is",
+        "rollMin": "the roll total is at least",
+        "rollMax": "the roll total is at most",
+        "nat20": "the roll is a natural 20",
+        "nat1": "the roll is a natural 1",
+        "degree": "the roll's result is",
+        "lootItem": "the opening included",
+        "lootGold": "the opening paid at least (gold)",
+        "classTag": "the class has the tag",
+        "effect": "the actor has the effect on",
+        "inCombat": "the actor is in a combat",
+        "floor": "the Floor is at least",
+        "health": "health boxes left is at most",
+        "chance": "a chance (percent) comes up",
+        "targetSize": "the target's size class is at least",
+        "targetKind": "the target is a",
+        "restKind": "the rest taken is at least"
+      },
+      "Requirements": {
+        "Title": "Requirements",
+        "Hint": "The item can't be used unless all of these are true.",
+        "Add": "Add requirement",
+        "mana": "Mana is at least",
+        "stat": "A stat is at least",
+        "gold": "Gold is at least",
+        "actions": "Actions left is at least",
+        "classTag": "Class has the tag"
+      },
+      "Needs": {
+        "mana": "Needs {value} mana (has {have}).",
+        "stat": "Needs {stat} {value} (has {have}).",
+        "gold": "Needs {value} gold (has {have}).",
+        "actions": "Needs {value} action(s) left (has {have}).",
+        "classTag": "Needs a class with the tag {tag}."
+      },
+      "Actions": {
+        "useItem": "Use an item",
+        "macro": "Execute a macro",
+        "toggleEffect": "Buff / debuff",
+        "applyEffect": "Apply effect to the target that was hit",
+        "addItem": "Add an item",
+        "removeItem": "Remove an item",
+        "mana": "Mana",
+        "health": "Health",
+        "message": "Say something in chat",
+        "actions": "Actions",
+        "gold": "Gold",
+        "aiFavor": "AI Favor",
+        "rollTable": "Roll on a table",
+        "runEvent": "Run another event"
+      },
+      "EffectModes": {
+        "toggle": "Toggle",
+        "on": "Turn on",
+        "off": "Turn off",
+        "removeStack": "Remove one stack",
+        "removeAll": "Remove all stacks"
+      },
+      "ManaModes": {
+        "spend": "Spend",
+        "restore": "Restore"
+      },
+      "HealthModes": {
+        "damage": "Damage",
+        "heal": "Heal (boxes)"
+      },
+      "ActionsModes": {
+        "spend": "Spend",
+        "restore": "Give back"
+      },
+      "GoldModes": {
+        "add": "Add",
+        "remove": "Take"
+      },
+      "AiFavorModes": {
+        "award": "Award",
+        "spend": "Spend"
+      },
+      "TargetGroups": {
+        "owner": "The owner (or one actor)",
+        "allies": "All allies",
+        "enemies": "All enemies",
+        "targeted": "The targeted tokens",
+        "pets": "The owner's pets",
+        "master": "The pet's owner"
+      },
+      "TargetKinds": {
+        "crawler": "crawler",
+        "pet": "pet",
+        "mob": "mob",
+        "basic": "basic mob",
+        "elite": "elite mob",
+        "boss": "boss"
+      },
+      "RestKinds": {
+        "short": "a short rest",
+        "long": "a long rest",
+        "full": "a full rest"
+      },
+      "Match": {
+        "all": "All of these",
+        "any": "Any of these"
+      },
+      "Templates": {
+        "damageOverTime": "Damage each round",
+        "healEachRound": "Heal each round",
+        "manaEachRound": "Mana each round",
+        "reactionPrompt": "Ask before reacting"
+      },
+      "Summary": {
+        "when": "When {when}",
+        "if": "if {conditions}",
+        "and": " and ",
+        "or": " or ",
+        "not": "not ({text})",
+        "nothing": "does nothing",
+        "Cond": {
+          "stat": "{stat} is at least {value}",
+          "mana": "mana is at least {value}",
+          "phase": "the phase is {phase}",
+          "rollMin": "the roll is at least {value}",
+          "rollMax": "the roll is at most {value}",
+          "nat20": "the roll is a natural 20",
+          "nat1": "the roll is a natural 1",
+          "degree": "the result is {degree}",
+          "lootItem": "the opening included {name}",
+          "lootGold": "the opening paid at least {value} gold",
+          "classTag": "the class has the tag {tag}",
+          "effect": "{name} is on",
+          "inCombat": "in combat",
+          "floor": "the Floor is at least {value}",
+          "health": "at most {value} health box(es) are left",
+          "chance": "a {value}% chance comes up",
+          "targetSize": "the target's size class is at least {value}",
+          "targetKind": "the target is a {kind}",
+          "restKind": "the rest is at least {kind}"
+        },
+        "Act": {
+          "useItem": "use {name}",
+          "macro": "run the macro {name}",
+          "effect": {
+            "toggle": "toggle {name}",
+            "on": "turn {name} on",
+            "off": "turn {name} off",
+            "removeStack": "remove a stack of {name}",
+            "removeAll": "remove all stacks of {name}"
+          },
+          "applyEffect": "apply {name} to the target",
+          "addItem": "add {amount} of {name}",
+          "removeItem": "remove {name}",
+          "removeSelf": "remove this item",
+          "mana": {
+            "spend": "spend {amount} mana",
+            "restore": "restore {amount} mana"
+          },
+          "health": {
+            "damage": "take {amount} damage",
+            "heal": "heal {amount} health box(es)"
+          },
+          "message": "say \"{text}\"",
+          "actions": {
+            "spend": "spend {amount} action(s)",
+            "restore": "give back {amount} action(s)"
+          },
+          "gold": {
+            "add": "add {amount} gold",
+            "remove": "take {amount} gold"
+          },
+          "aiFavor": {
+            "award": "award {amount} AI Favor",
+            "spend": "spend {amount} AI Favor"
+          },
+          "rollTable": "roll on {name}",
+          "runEvent": "run {name}"
+        }
+      },
+      "RunOn": {
+        "user": "Run as the user",
+        "gm": "Run on the GM's client"
+      },
+      "Drop": {
+        "item": "Drop an item here",
+        "macro": "Drop a macro here",
+        "effect": "Drop an effect here",
+        "actor": "Affects the item's owner (drop an actor here to affect them instead)",
+        "table": "Drop a roll table here",
+        "Wrong": {
+          "item": "Drop an item here.",
+          "macro": "Drop a macro here.",
+          "effect": "Drop an effect here.",
+          "actor": "Drop an actor here.",
+          "table": "Drop a roll table here."
+        }
+      },
+      "Warn": {
+        "ItemMissing": "An event couldn't find the item it uses.",
+        "MacroMissing": "An event couldn't find its macro.",
+        "MacroPermission": "You don't have permission to run the macro {name}.",
+        "EffectMissing": "An event couldn't find its effect.",
+        "TargetMissing": "An event couldn't find the actor it affects.",
+        "NotEnoughMana": "{name} doesn't have {value} mana.",
+        "NotTrusted": "{name}'s events can't do that: it needs the GM's client, and the events were last saved by a player.",
+        "NoGM": "A GM needs to be connected to carry out this event.",
+        "TooDeep": "{name}: events triggered too many other events, so this one was stopped.",
+        "ActionFailed": "An event action on {name} failed. See the console for details.",
+        "TableMissing": "An event couldn't find its roll table.",
+        "EventMissing": "An event couldn't find the other event it runs.",
+        "NeedsActor": "These events need an actor to run on (put the item or effect on an actor).",
+        "NoCard": "{name}: applying an effect to the target that was hit needs an attack card."
+      }
     }
   },
   "TYPES": {
     "Actor": {
-      "character": "Character",
-      "npc": "NPC"
+      "crawler": "Crawler",
+      "mob": "Mob",
+      "pet": "Pet"
     },
     "Item": {
       "gear": "Gear",
-      "feature": "Feature",
-      "spell": "Spell"
+      "skill": "Skill",
+      "spell": "Spell",
+      "item": "Item",
+      "mobAbility": "Mob Ability",
+      "lootBox": "Loot Box",
+      "achievement": "Achievement",
+      "race": "Race",
+      "class": "Class",
+      "background": "Background"
     }
   }
 }
