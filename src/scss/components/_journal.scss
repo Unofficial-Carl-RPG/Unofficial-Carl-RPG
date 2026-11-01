@@ -108,6 +108,39 @@
     }
   }
 
+  // @Embed cards for items, effects and mobs.
+  .carl-embed {
+    margin: 0.5em 0;
+    padding: 6px 8px;
+    border: 1px solid #6b5423;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+
+    img {
+      width: 32px;
+      height: 32px;
+      border: 1px solid #6b5423;
+      border-radius: 3px;
+      object-fit: cover;
+    }
+  }
+
+  .carl-embed-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .carl-embed-numbers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    margin: 0.25em 0;
+    font-size: 0.9em;
+    color: #d9b45a;
+  }
+
   // Buttons from @Check, @Gold, @Junk, @LootBox, @Effect and @Announce.
   .carl-enrich-button {
     display: inline-block;
