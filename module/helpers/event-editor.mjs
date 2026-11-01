@@ -95,6 +95,32 @@ export const EVENT_TEMPLATES = {
       name: t('CARL_RPG.Events.Templates.manaEachRound'),
       actions: [newAction({ type: 'mana', mode: 'restore', amount: '1' })],
     }),
+  bossLine: () =>
+    newEvent('takesDamage', {
+      name: t('CARL_RPG.Events.Templates.bossLine'),
+      conditions: [
+        newCondition({ type: 'health', value: 5 }),
+        newCondition({ type: 'effect', uuid: '', negate: true }),
+      ],
+      actions: [
+        newAction({ type: 'toggleEffect', mode: 'on', uuid: '' }),
+        newAction({ type: 'message', text: '{name} enters a new phase!' }),
+      ],
+    }),
+  bossSwap: () =>
+    newEvent('takesDamage', {
+      name: t('CARL_RPG.Events.Templates.bossSwap'),
+      conditions: [
+        newCondition({ type: 'health', value: 5 }),
+        newCondition({ type: 'effect', uuid: '', negate: true }),
+      ],
+      actions: [
+        newAction({ type: 'toggleEffect', mode: 'on', uuid: '' }),
+        newAction({ type: 'removeItem', uuid: '' }),
+        newAction({ type: 'addItem', uuid: '' }),
+        newAction({ type: 'message', text: '{name} changes its tactics!' }),
+      ],
+    }),
   reactionPrompt: () =>
     newEvent('takesDamage', {
       name: t('CARL_RPG.Events.Templates.reactionPrompt'),

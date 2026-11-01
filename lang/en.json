@@ -1335,7 +1335,9 @@
         "damageOverTime": "Damage each round",
         "healEachRound": "Heal each round",
         "manaEachRound": "Mana each round",
-        "reactionPrompt": "Ask before reacting"
+        "bossLine": "Boss phase: a line and an effect",
+      "bossSwap": "Boss phase: swap abilities",
+      "reactionPrompt": "Ask before reacting"
       },
       "Summary": {
         "when": "When {when}",
