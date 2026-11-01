@@ -1,4 +1,5 @@
 import { skillStatLabel } from '../helpers/creation.mjs';
+import { describeBadges } from '../helpers/item-badges.mjs';
 import {
   buildEventRows,
   eventOptions as buildEventOptions,
@@ -308,6 +309,8 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       context.tierGold = CONFIG.CARL_RPG.lootTiers[this.item.system.tier]?.gold;
     }
 
+    // The automatic badges at the top of the Description tab.
+    context.itemBadges = describeBadges(this.item);
     // Quantity always goes in the header, for every kind of item that has one
     // (gear, plain items and loot boxes).
     context.headerQuantity = 'quantity' in this.item.system;

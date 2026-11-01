@@ -1,0 +1,17 @@
+// Automatic badges at the top of an item's Description tab.
+.item-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.item-badge {
+  padding: 1px 6px;
+  border: 1px solid color-mix(in srgb, var(--dcc-gold-dim) 70%, #000);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--dcc-gold-dim) 16%, transparent);
+  color: var(--dcc-gold-dim);
+  font-size: 0.85em;
+  white-space: nowrap;
+}

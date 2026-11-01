@@ -4,6 +4,11 @@
   data-group='primary'
   data-tab='description'
 >
+  {{#if itemBadges.length}}
+    <div class='item-badges'>
+      {{#each itemBadges as |badge|}}<span class='item-badge'>{{badge}}</span>{{/each}}
+    </div>
+  {{/if}}
   {{! Both descriptions are collapsible; each person's choice is remembered on their own computer. }}
   <details class='desc-block' data-desc-key='description' open>
     <summary>{{localize 'CARL_RPG.Item.base.FIELDS.description.label'}}</summary>

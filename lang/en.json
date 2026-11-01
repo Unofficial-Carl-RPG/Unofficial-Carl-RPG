@@ -583,6 +583,16 @@
       "ShowInChat": "Show in chat",
       "FullDescription": "Full description"
     },
+    "Badges": {
+      "Attack": "Attack",
+      "Passive": "Passive",
+      "Utility": "Utility",
+      "Damage": "Damage",
+      "Mana": "Mana",
+      "DR": "DR",
+      "Quantity": "Quantity",
+      "Uses": "Uses"
+    },
     "Pets": {
       "Owner": "Owner",
       "NoOwner": "No owner",

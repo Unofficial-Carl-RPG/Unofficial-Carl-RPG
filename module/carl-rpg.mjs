@@ -19,6 +19,7 @@ import { registerLootBoxes } from './helpers/loot.mjs';
 import { registerEvents } from './helpers/events.mjs';
 import { registerDeclarations } from './helpers/declarations.mjs';
 import { registerChatCards } from './helpers/chat-cards.mjs';
+import { describeBadges } from './helpers/item-badges.mjs';
 import { registerSystemAnnouncements } from './helpers/system-announcements.mjs';
 import { registerLevelUp } from './helpers/level-up.mjs';
 import { registerTags, migrateClassTags } from './helpers/tags.mjs';
@@ -235,6 +236,19 @@ Hooks.once('init', function () {
 // If you need to add Handlebars helpers, here is a useful example:
 Handlebars.registerHelper('toLowerCase', function (str) {
   return str.toLowerCase();
+});
+
+// An item's hover text: its Short Description as plain text (the full description
+// if there is no short one), or its name when neither has any words.
+Handlebars.registerHelper('itemTip', function (item) {
+  const short = (item?.system?.shortDescription ?? '').trim();
+  const html = short || item?.system?.description || '';
+  // DOMParser keeps any markup inert while its text is read.
+  const text = new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
+  const plain = text.replace(/\s+/g, ' ').trim();
+  const body = plain.length > 240 ? `${plain.slice(0, 237)}...` : plain;
+  // The badges (stat, type, damage, ...) come first, then the text.
+  return [describeBadges(item).join(' · '), body || item?.name || ''].filter(Boolean).join('. ');
 });
 
 /* -------------------------------------------- */
