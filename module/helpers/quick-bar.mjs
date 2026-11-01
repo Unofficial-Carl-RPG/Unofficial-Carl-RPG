@@ -82,6 +82,8 @@ function render() {
   if (!bar) return;
   const actor = selectedCrawler();
   bar.hidden = !actor;
+  // While the quick bar shows, Foundry's hotbar (the macros bar) is hidden.
+  document.body.classList.toggle('carl-quick-bar-active', !!actor);
   if (!actor) return;
   bar.replaceChildren(...quickBarItems(actor).map((item, index) => slotButton(item, index)));
 }

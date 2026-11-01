@@ -1,3 +1,8 @@
+// While the quick bar shows, Foundry's hotbar (the macros bar) is hidden.
+body.carl-quick-bar-active #hotbar {
+  display: none !important;
+}
+
 // The quick bar: a row above the hotbar for the selected crawler's hotlisted items.
 #carl-quick-bar {
   position: fixed;
