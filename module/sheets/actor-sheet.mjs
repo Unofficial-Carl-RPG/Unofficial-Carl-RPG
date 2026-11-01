@@ -209,7 +209,13 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
         options.parts.push('abilities', 'features', 'spells', 'gear', 'effects', 'upgrades');
         break;
     }
-    options.parts.push('biography');
+    // Players who don't own the sheet don't see the hotlist or the notes (gold is
+    // hidden in the Inventory template). Limited viewers keep their Notes.
+    if (!this.document.isOwner) {
+      options.parts = options.parts.filter((part) => part !== 'hotlist');
+    } else {
+      options.parts.push('biography');
+    }
   }
 
   /* -------------------------------------------- */

@@ -1,5 +1,6 @@
 {{! Inventory Tab }}
 <section class='tab inventory scrollable {{tab.cssClass}}' data-group='primary' data-tab='inventory'>
+  {{#if owner}}
   <div class='gold-row'>
     <label class='resource-label' for='system.gold'>{{localize 'CARL_RPG.Actor.Crawler.Gold'}}</label>
     <input
@@ -14,6 +15,7 @@
       <span class='gold-formatted'>{{numberFormat system.gold decimals=0}}</span>
     {{/if}}
   </div>
+  {{/if}}
   {{#if lootBoxes.length}}
     <ol class='items-list loot-boxes'>
       <li class='item flexrow items-header'>
