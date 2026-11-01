@@ -10,6 +10,7 @@ export const FLOOR_STATE_SETTING = 'floorState';
 export const DAYS_SETTING = 'daysLeft';
 export const REST_OUTSIDE_SETTING = 'restsOutsideSafeRoom';
 export const LOOT_OUTSIDE_SETTING = 'lootOutsideSafeRoom';
+export const FLOOR_NOTES_SETTING = 'floorNotes';
 
 /** The two floor states. */
 export const FLOOR_STATES = ['exploring', 'safe'];
@@ -49,6 +50,14 @@ export function registerFloorSetting() {
     }),
     onChange: () => ui.carlGM?.render(),
   });
+  // The notes for floors: each has a floor number, or null for every floor.
+  game.settings.register('carl-rpg', FLOOR_NOTES_SETTING, {
+    scope: 'world',
+    config: false,
+    type: Array,
+    default: [],
+    onChange: () => ui.carlGM?.render(),
+  });
   // Off by default: outside a safe room, players can't rest or open loot boxes
   // unless the GM turns these on.
   game.settings.register('carl-rpg', REST_OUTSIDE_SETTING, {
@@ -84,6 +93,23 @@ export function getFloorState() {
   } catch (err) {
     return 'exploring';
   }
+}
+
+/** The floor notes: {floor: number|null, text}, where null means every floor. */
+export function getFloorNotes() {
+  try {
+    return game.settings.get('carl-rpg', FLOOR_NOTES_SETTING) ?? [];
+  } catch (err) {
+    return [];
+  }
+}
+
+/** The notes shown on a floor: the every-floor notes first, then this floor's. */
+export function notesForFloor(floor) {
+  const notes = getFloorNotes();
+  const every = notes.filter((n) => n.floor === null && n.text?.trim());
+  const here = notes.filter((n) => n.floor === floor && n.text?.trim());
+  return [...every, ...here].map((n) => n.text);
 }
 
 /** Whether the floor is a safe room right now. */

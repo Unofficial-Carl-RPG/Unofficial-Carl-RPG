@@ -13,7 +13,11 @@
       "LootName": "Loot boxes outside safe rooms",
       "LootHint": "Players can open loot boxes when the floor is not a safe room.",
       "RestsBlocked": "Rests can only be taken in a safe room.",
-      "LootBlocked": "Loot boxes can only be opened in a safe room."
+      "LootBlocked": "Loot boxes can only be opened in a safe room.",
+      "Notes": "Floor notes",
+      "EveryFloor": "Every floor",
+      "NoteAdd": "Add a note",
+      "NoteRemove": "Remove this note"
     },
     "Targeting": {
       "Mode": "Targets",
@@ -1253,6 +1257,7 @@
         "effect": "the actor has the effect on",
         "inCombat": "the actor is in a combat",
         "floor": "the Floor is at least",
+        "floorExact": "the Floor is exactly",
         "health": "health boxes left is at most",
         "chance": "a chance (percent) comes up",
         "targetSize": "the target's size class is at least",
@@ -1377,6 +1382,7 @@
           "effect": "{name} is on",
           "inCombat": "in combat",
           "floor": "the Floor is at least {value}",
+          "floorExact": "the Floor is exactly {value}",
           "health": "at most {value} health box(es) are left",
           "chance": "a {value}% chance comes up",
           "targetSize": "the target's size class is at least {value}",

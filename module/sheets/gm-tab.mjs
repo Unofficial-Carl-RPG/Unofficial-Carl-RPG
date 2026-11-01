@@ -14,9 +14,12 @@ import {
   FLOOR_SETTING,
   FLOOR_STATE_SETTING,
   FLOOR_STATES,
+  FLOOR_NOTES_SETTING,
   getDaysLeft,
   getFloor,
+  getFloorNotes,
   getFloorState,
+  notesForFloor,
 } from '../helpers/floor.mjs';
 import {
   PARTY_SETTING,
@@ -52,6 +55,8 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
       floorUp: CarlRPGGMTab._onFloorUp,
       floorDown: CarlRPGGMTab._onFloorDown,
       daysUp: CarlRPGGMTab._onDaysUp,
+      noteAdd: CarlRPGGMTab._onNoteAdd,
+      noteRemove: CarlRPGGMTab._onNoteRemove,
       daysDown: CarlRPGGMTab._onDaysDown,
       announceBoss: CarlRPGGMTab._onAnnounceBoss,
       toggleBossJoin: CarlRPGGMTab._onToggleBossJoin,
@@ -116,6 +121,13 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
     context.stateLabel = game.i18n.localize(
       state === 'safe' ? 'CARL_RPG.Floor.SafeRoom' : 'CARL_RPG.Floor.Exploring'
     );
+    // The floor notes: the GM edits all of them; players see the ones for this floor.
+    context.notes = getFloorNotes().map((n, index) => ({
+      index,
+      floor: n.floor ?? '',
+      text: n.text,
+    }));
+    context.playerNotes = notesForFloor(getFloor());
     const days = getDaysLeft();
     context.days = days;
     context.daysLabel =
@@ -187,6 +199,15 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
     el.querySelector('.floor-state')?.addEventListener('change', (event) =>
       this.#setFloorState(event.currentTarget.value)
     );
+    for (const row of el.querySelectorAll('.note-row')) {
+      const index = Number(row.dataset.index);
+      row.querySelector('.note-floor')?.addEventListener('change', (event) =>
+        this.#setNote(index, { floor: event.currentTarget.value })
+      );
+      row.querySelector('.note-text')?.addEventListener('change', (event) =>
+        this.#setNote(index, { text: event.currentTarget.value })
+      );
+    }
     el.querySelector('.days-input')?.addEventListener('change', (event) =>
       this.#setDays(event.currentTarget.value)
     );
@@ -260,9 +281,42 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
     await game.settings.set('carl-rpg', DAYS_SETTING, days);
   }
 
+  /** Save the floor notes list (GM only). */
+  async #saveNotes(notes) {
+    if (!game.user.isGM) return;
+    await game.settings.set('carl-rpg', FLOOR_NOTES_SETTING, notes);
+  }
+
+  /** Change a note's floor (blank means every floor) or its text. */
+  async #setNote(index, changes) {
+    const notes = foundry.utils.deepClone(getFloorNotes());
+    const note = notes[index];
+    if (!note) return;
+    if ('floor' in changes) {
+      const text = String(changes.floor ?? '').trim();
+      const n = text === '' ? null : Math.trunc(Number(text));
+      note.floor = Number.isFinite(n) ? Math.max(0, n) : null;
+    }
+    if ('text' in changes) note.text = String(changes.text ?? '');
+    await this.#saveNotes(notes);
+  }
+
   /** Save the party's name. */
   async #setParty(name) {
     await setPartyName(name);
+  }
+
+  /** @this CarlRPGGMTab */
+  static async _onNoteAdd() {
+    if (!game.user.isGM) return;
+    await this.#saveNotes([...getFloorNotes(), { floor: null, text: '' }]);
+  }
+
+  /** @this CarlRPGGMTab */
+  static async _onNoteRemove(event, target) {
+    if (!game.user.isGM) return;
+    const index = Number(target.dataset.index);
+    await this.#saveNotes(getFloorNotes().filter((_, i) => i !== index));
   }
 
   /** @this CarlRPGGMTab */

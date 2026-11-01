@@ -61,6 +61,9 @@ export async function summarizeCondition(c) {
     case 'floor':
       text = t(`${S}floor`, { value: c.value });
       break;
+    case 'floorExact':
+      text = t(`${S}floorExact`, { value: c.value });
+      break;
     case 'health':
       text = t(`${S}health`, { value: c.value });
       break;

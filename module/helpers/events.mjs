@@ -309,6 +309,8 @@ async function checkCondition(condition, ctx) {
       return !!combatantOf(actor);
     case 'floor':
       return CONFIG.CARL_RPG.getFloor() >= condition.value;
+    case 'floorExact':
+      return CONFIG.CARL_RPG.getFloor() === condition.value;
     case 'health':
       return (actor?.system?.health?.value ?? Infinity) <= condition.value;
     case 'chance':

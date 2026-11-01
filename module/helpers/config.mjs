@@ -205,6 +205,7 @@ CARL_RPG.eventConditions = {
   effect: 'CARL_RPG.Events.Conditions.effect',
   inCombat: 'CARL_RPG.Events.Conditions.inCombat',
   floor: 'CARL_RPG.Events.Conditions.floor',
+  floorExact: 'CARL_RPG.Events.Conditions.floorExact',
   health: 'CARL_RPG.Events.Conditions.health',
   chance: 'CARL_RPG.Events.Conditions.chance',
   targetSize: 'CARL_RPG.Events.Conditions.targetSize',

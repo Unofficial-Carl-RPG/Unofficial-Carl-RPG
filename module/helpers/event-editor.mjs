@@ -193,6 +193,7 @@ export async function buildEventRows(events, base) {
               'rollMax',
               'lootGold',
               'floor',
+              'floorExact',
               'health',
               'chance',
               'targetSize',
