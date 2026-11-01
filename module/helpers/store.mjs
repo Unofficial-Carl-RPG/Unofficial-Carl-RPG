@@ -17,6 +17,11 @@ const windows = new Map();
 /** Items a crawler can buy and sell in stacks (they have a quantity). */
 const STACKABLE = ['gear', 'item'];
 
+/** A Short Description as plain text, for a tooltip (no markup, no line breaks). */
+export function plainText(html) {
+  return (html ?? '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 /** The price of a listing: its own price, or the item's value when blank. */
 function listingPrice(listing, value) {
   return listing.price ?? value;
@@ -40,6 +45,7 @@ export async function resolveListing(listing) {
       img: snap.img,
       type: snap.type,
       value: snap.system?.value ?? 0,
+      short: snap.system?.shortDescription ?? '',
       missing: false,
       key: `snap:${snap.name}|${snap.type}|${listing.price}`,
     };
@@ -52,6 +58,7 @@ export async function resolveListing(listing) {
       img: 'icons/svg/mystery-man.svg',
       type: '',
       value: 0,
+      short: '',
       key: listing.uuid,
     };
   }
@@ -61,6 +68,7 @@ export async function resolveListing(listing) {
     img: item.img,
     type: item.type,
     value: item.system.value ?? 0,
+    short: item.system.shortDescription ?? '',
     missing: false,
     key: item.uuid,
   };
@@ -74,6 +82,7 @@ async function buyRowsFor(store) {
       return {
         index,
         name: resolved.name,
+        tooltip: plainText(resolved.short),
         img: resolved.img,
         price: resolved.missing ? 0 : listingPrice(listing, resolved.value),
         stockLabel:

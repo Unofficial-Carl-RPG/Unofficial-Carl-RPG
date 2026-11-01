@@ -121,6 +121,19 @@ export const EVENT_TEMPLATES = {
         newAction({ type: 'message', text: '{name} changes its tactics!' }),
       ],
     }),
+  teachSkill: () =>
+    newEvent('used', {
+      name: t('CARL_RPG.Events.Templates.teachSkill'),
+      actions: [
+        newAction({ type: 'addItem', uuid: '' }),
+        newAction({ type: 'removeItem', uuid: '' }),
+      ],
+    }),
+  healOnUse: () =>
+    newEvent('used', {
+      name: t('CARL_RPG.Events.Templates.healOnUse'),
+      actions: [newAction({ type: 'health', mode: 'heal', amount: '1' })],
+    }),
   reactionPrompt: () =>
     newEvent('takesDamage', {
       name: t('CARL_RPG.Events.Templates.reactionPrompt'),

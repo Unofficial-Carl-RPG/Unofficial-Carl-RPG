@@ -1,3 +1,4 @@
+import { plainText } from '../helpers/store.mjs';
 import { hasLoot, pickCrawlerAndLoot } from '../helpers/mob-loot.mjs';
 import { openLootBox } from '../helpers/loot.mjs';
 import { levelUp, spendPoints, canLevelUp } from '../helpers/level-up.mjs';
@@ -1366,6 +1367,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
           giver: s.giver,
           completed: s.completed,
           canComplete: game.user.isGM && !s.completed,
+          tooltip: plainText(s.shortDescription),
           deadlineLabel,
           objectives: s.objectives.map((o, index) => ({ index, text: o.text, done: o.done })),
           gold: s.rewardGold,

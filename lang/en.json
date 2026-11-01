@@ -1475,7 +1475,9 @@
         "manaEachRound": "Mana each round",
         "bossLine": "Boss phase: a line and an effect",
       "bossSwap": "Boss phase: swap abilities",
-      "reactionPrompt": "Ask before reacting"
+      "reactionPrompt": "Ask before reacting",
+        "teachSkill": "Teach a skill, then remove this item",
+        "healOnUse": "Heal 1 health box on use"
       },
       "Summary": {
         "when": "When {when}",
