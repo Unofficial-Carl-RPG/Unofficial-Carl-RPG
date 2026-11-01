@@ -198,7 +198,7 @@ export async function buildEventRows(events, base) {
                   ? 'table'
                   : 'item';
           const needsDrop =
-            ['useItem', 'macro', 'toggleEffect', 'applyEffect', 'addItem', 'awardAchievement', 'rollTable'].includes(
+            ['useItem', 'macro', 'toggleEffect', 'applyEffect', 'addItem', 'awardAchievement', 'grantSkill', 'rollTable'].includes(
               a.type
             ) ||
             (a.type === 'removeItem' && !a.selfItem);
@@ -230,6 +230,7 @@ export async function buildEventRows(events, base) {
               'actions',
               'gold',
               'aiFavor',
+              'grantSkill',
             ].includes(a.type),
             // Who it affects: not for a macro (it runs once), the hit target, or
             // another event (which has its own actions).

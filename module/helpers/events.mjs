@@ -449,6 +449,47 @@ const HANDLERS = {
     await actor.createEmbeddedDocuments('Item', [game.items.fromCompendium(doc)]);
   },
 
+  /**
+ * Give the target a skill at a rank, or raise one it has by a number of ranks.
+ * Permanent: nothing takes it back. It stops at rank 15 (the cap, until the
+ * skill cap effect is built). The owner and the GM get a whisper.
+ */
+  async grantSkill({ action, actor }) {
+    const doc = await fromUuid(action.uuid);
+    if (!doc || doc.documentName !== 'Item' || doc.type !== 'skill') {
+      return warn('CARL_RPG.Events.Warn.ItemMissing');
+    }
+    const ranks = await rollAmount(action.amount || '1');
+    if (ranks < 1) return;
+    const cap = 15;
+    const identifier = doc.system?.identifier?.trim();
+    const existing = actor.items.find(
+      (i) => i.type === 'skill' && (identifier ? i.system.identifier?.trim() === identifier : i.name === doc.name)
+    );
+    let rank;
+    if (existing) {
+      rank = Math.min(cap, existing.system.rank + ranks);
+      if (rank === existing.system.rank) return;
+      await existing.update({ 'system.rank': rank });
+    } else {
+      rank = Math.min(cap, ranks);
+      const data = game.items.fromCompendium(doc);
+      data.system.rank = rank;
+      await actor.createEmbeddedDocuments('Item', [data]);
+    }
+    const whisper = new Set(
+      game.users.filter((u) => u.isGM || actor.testUserPermission(u, 'OWNER')).map((u) => u.id)
+    );
+    await ChatMessage.create({
+      whisper: [...whisper],
+      content: game.i18n.format('CARL_RPG.Events.Actions.grantSkillNotice', {
+        name: actor.name,
+        skill: doc.name,
+        rank,
+      }),
+    });
+  },
+
   /** Remove an item from the target (this item, or another by identifier). */
   async removeItem({ item, action, actor }) {
     const target = action.selfItem
