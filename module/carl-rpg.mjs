@@ -40,6 +40,7 @@ import { registerMobLoot } from './helpers/mob-loot.mjs';
 import { registerJournalEnrichers } from './helpers/journal.mjs';
 import { CarlRPGActorDirectory } from './helpers/crawler-summary.mjs';
 import { registerGroupChecks } from './helpers/group-check.mjs';
+import { registerChangeLog } from './helpers/change-log.mjs';
 // Import DataModel classes
 import * as models from './data/_module.mjs';
 
@@ -117,6 +118,8 @@ Hooks.once('init', function () {
   registerJournalEnrichers();
   // Group checks: the GM's card, each crawler's Roll, and the overall result.
   registerGroupChecks();
+  // A collapsed list of the automatic changes under the roll or card that caused them.
+  registerChangeLog();
 
   // Character creation defaults: stored as a setting, edited in a dialog opened
   // from a button in the system settings.

@@ -1,4 +1,5 @@
 import { updateWithRelay } from '../helpers/relay.mjs';
+import { logActions } from '../helpers/change-log.mjs';
 
 const NS = 'carl-rpg';
 
@@ -60,6 +61,7 @@ export class CarlRPGCombatant extends Combatant {
     // An Observer using an item can't change this themselves: the GM's client
     // does it for them (see helpers/relay.mjs).
     await updateWithRelay(this, { [`flags.${NS}.actionsSpent`]: spent });
+    logActions(this.actor, spent, left);
   }
 
   /** Spend one action. */

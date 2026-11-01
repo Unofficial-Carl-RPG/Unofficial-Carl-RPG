@@ -1,3 +1,5 @@
+import { logUse } from './change-log.mjs';
+
 /**
  * Usage limits.
  *
@@ -34,7 +36,9 @@ export function usesLeft(item) {
 export async function spendUse(item) {
   if (!isLimited(item) || usesLeft(item) < 1) return;
   const { updateWithRelay } = await import('./relay.mjs');
+  const left = usesLeft(item) - 1;
   await updateWithRelay(item, { 'system.uses.spent': item.system.uses.spent + 1 });
+  logUse(item.actor, left);
 }
 
 /**

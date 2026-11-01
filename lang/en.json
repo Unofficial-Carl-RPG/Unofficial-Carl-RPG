@@ -1,5 +1,12 @@
 {
   "CARL_RPG": {
+    "ChangeLog": {
+      "Title": "Changes",
+      "Mana": "Spent {spent} mana, {left} left",
+      "Use": "Used one use, {left} left",
+      "Actions": "Spent {spent} actions, {left} left",
+      "Event": "Event: {name}"
+    },
     "Group": {
       "Title": "Group check",
       "Start": "Start group check",

@@ -40,6 +40,7 @@ import { summarizeAction } from './event-summary.mjs';
 import { endCombatEffects, tickDurations } from './effect-duration.mjs';
 import { restoreUses } from './uses.mjs';
 import { getFloorRules } from './floor.mjs';
+import { logEvent } from './change-log.mjs';
 
 const NS = 'carl-rpg';
 
@@ -651,6 +652,7 @@ export async function runEvents(item, trigger, ctx = {}) {
       warn('CARL_RPG.Events.Warn.TooDeep', { name: item.name });
       return;
     }
+    logEvent(actor, item.name);
     await runActions(item, event, full);
   }
 }

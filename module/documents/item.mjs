@@ -17,6 +17,7 @@ import {
 } from '../helpers/roll-dialog.mjs';
 import { chooseTargets } from '../helpers/targeting.mjs';
 import { dyingEffectOf } from '../helpers/dying.mjs';
+import { logMana } from '../helpers/change-log.mjs';
 import {
   classOf,
   evaluatePrerequisites,
@@ -894,6 +895,7 @@ export class CarlRPGItem extends Item {
 
     if (spent > 0) {
       await updateWithRelay(actor, { 'system.mana.value': have - spent });
+      logMana(actor, spent, have - spent);
     }
     const key = spent < cost ? 'ManaSpentPartial' : 'ManaSpent';
     return { note: game.i18n.format(`CARL_RPG.Spell.${key}`, { spent, cost }) };
