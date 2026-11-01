@@ -3,6 +3,7 @@
  * @extends {Actor}
  */
 import { runActorEvents } from '../helpers/events.mjs';
+import { defeatMob } from '../helpers/defeat.mjs';
 
 export class CarlRPGActor extends Actor {
   /**
@@ -47,6 +48,11 @@ export class CarlRPGActor extends Actor {
    */
   _onUpdate(changed, options, userId) {
     super._onUpdate(changed, options, userId);
+    if (this.type === 'mob' && game.user === game.users.activeGM) {
+      if (foundry.utils.hasProperty(changed, 'system.health.value') && this.system.health.value === 0) {
+        defeatMob(this);
+      }
+    }
     if (this.type !== 'pet' || userId !== game.user.id || !game.user.isGM) return;
     if (!foundry.utils.hasProperty(changed, 'system.owner')) return;
     const crawler = game.actors.get(this.system.owner);
