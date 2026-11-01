@@ -17,6 +17,9 @@
         },
         "pet": {
             "htmlFields": ["biography"]
+        },
+        "mount": {
+            "htmlFields": []
         }
     },
     "Item": {
@@ -48,6 +51,18 @@
             "htmlFields": ["description"]
         },
         "class": {
+            "htmlFields": ["description"]
+        },
+        "sponsor": {
+            "htmlFields": ["description"]
+        },
+        "personalSpace": {
+            "htmlFields": ["description"]
+        },
+        "club": {
+            "htmlFields": ["description"]
+        },
+        "deity": {
             "htmlFields": ["description"]
         }
     }
