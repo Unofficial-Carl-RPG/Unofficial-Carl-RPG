@@ -16,6 +16,7 @@ import {
   statOfFormula,
 } from '../helpers/roll-dialog.mjs';
 import { chooseTargets } from '../helpers/targeting.mjs';
+import { dyingEffectOf } from '../helpers/dying.mjs';
 import { evaluatePrerequisites, raceOf } from '../helpers/origins.mjs';
 
 /** What identifies an achievement: its identifier, or its name if it has none. */
@@ -647,6 +648,11 @@ export class CarlRPGItem extends Item {
     // changes automatically, like mana or an action, is made for them by the
     // GM's client; see helpers/relay.mjs. They still can't edit the sheet.)
 
+    // A Dying crawler can't act or roll (see helpers/dying.mjs).
+    if (dyingEffectOf(this.actor)) {
+      ui.notifications.warn(game.i18n.localize('CARL_RPG.Combat.DyingNoAction'));
+      return null;
+    }
     // The item can be blocked from being used (not enough mana, ...).
     if (!checkRequirements(this)) return null;
     // An item with a limit on its uses needs one left (see helpers/uses.mjs).

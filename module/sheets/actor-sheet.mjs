@@ -1,6 +1,7 @@
 import { openLootBox } from '../helpers/loot.mjs';
 import { levelUp, spendPoints, canLevelUp } from '../helpers/level-up.mjs';
 import { chooseOrigin, raceOf, classOf } from '../helpers/origins.mjs';
+import { dyingEffectOf } from '../helpers/dying.mjs';
 import { creationPending } from '../helpers/creation.mjs';
 import { killSkulls } from '../helpers/crawler-number.mjs';
 import { confirmRest } from '../helpers/rests.mjs';
@@ -1156,6 +1157,11 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
   static async _onRoll(event, target) {
     event.preventDefault();
     const dataset = target.dataset;
+    // A Dying crawler can't act or roll (see helpers/dying.mjs).
+    if (dyingEffectOf(this.actor)) {
+      ui.notifications.warn(game.i18n.localize('CARL_RPG.Combat.DyingNoAction'));
+      return;
+    }
 
     // Handle item rolls.
     switch (dataset.rollType) {

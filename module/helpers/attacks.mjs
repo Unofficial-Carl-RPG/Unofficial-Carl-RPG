@@ -477,6 +477,13 @@ async function applyMobResult(
  * @param {boolean} skip  Don't roll: the attack just hits
  */
 async function resolveMobTarget(message, index, skip, shift = false) {
+  // A Dying crawler can't roll: it counts as not rolling (the mob's attack is a
+  // standard success).
+  if (!skip) {
+    const row = message.getFlag(NS, 'attack')?.targets?.[index];
+    const actor = row?.actorUuid ? await fromUuid(row.actorUuid) : null;
+    if (dyingEffectOf(actor)) skip = true;
+  }
   const attack = message.getFlag(NS, 'attack');
   const row = attack?.targets?.[index];
   if (!row || row.state !== 'pending') return;
