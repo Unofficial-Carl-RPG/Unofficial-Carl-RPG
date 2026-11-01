@@ -197,7 +197,7 @@ function originRow(item, results, met, isGM) {
  * @param {Item[]} items     The options (already filtered to the right type)
  * @returns {Promise<string|null>}
  */
-async function askOrigin(actor, type, items) {
+async function askOrigin(actor, type, items, qualifiedOnly = false) {
   const isGM = game.user.isGM;
   const revealed = revealedOf(actor);
   const rows = [];
@@ -205,6 +205,8 @@ async function askOrigin(actor, type, items) {
     const results = await evaluatePrerequisites(item, actor);
     const met = results.every((r) => r.met);
     if (!optionVisible(item, met, isGM, revealed)) continue;
+    // Subclasses are listed only once the crawler qualifies (the GM can still see all).
+    if (qualifiedOnly && !isGM && !met) continue;
     rows.push(originRow(item, results, met, isGM));
   }
   if (!rows.length) {
@@ -333,6 +335,6 @@ export async function chooseSubclass(actor) {
     return false;
   }
 
-  const picked = await askOrigin(actor, 'subclass', items);
+  const picked = await askOrigin(actor, 'subclass', items, true);
   return !!picked && (await addOrigin(actor, picked));
 }
