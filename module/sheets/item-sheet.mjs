@@ -1,5 +1,5 @@
 import { CarlRPGDialog } from '../helpers/dialog.mjs';
-import { openStoreFor, restockListing } from '../helpers/store.mjs';
+import { openStoreFor, resolveListing, restockListing } from '../helpers/store.mjs';
 import { skillStatLabel } from '../helpers/creation.mjs';
 import { describeBadges } from '../helpers/item-badges.mjs';
 import {
@@ -252,15 +252,19 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
     if (this.item.type === 'store') {
       context.listingRows = await Promise.all(
         (this.item.system.listings ?? []).map(async (listing, index) => {
-          const doc = listing.uuid ? await fromUuid(listing.uuid) : null;
+          const resolved = await resolveListing(listing);
           return {
             index,
-            name: doc?.name ?? listing.uuid,
-            img: doc?.img ?? 'icons/svg/mystery-man.svg',
-            missing: !doc,
-            value: doc?.system?.value ?? 0,
+            name: resolved.name,
+            img: resolved.img,
+            missing: resolved.missing,
+            value: resolved.value,
             price: listing.price,
-            quantity: listing.quantity,
+            startStock: listing.startStock,
+            current:
+              listing.quantity === null
+                ? game.i18n.localize('CARL_RPG.Item.Store.Unlimited')
+                : listing.quantity,
           };
         })
       );
@@ -1336,7 +1340,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       const price = row.querySelector('.store-price').value.trim();
       const quantity = row.querySelector('.store-quantity').value.trim();
       listing.price = price === '' ? null : Math.max(0, Math.floor(Number(price)) || 0);
-      listing.quantity = quantity === '' ? null : Math.max(0, Math.floor(Number(quantity)) || 0);
+      listing.startStock = quantity === '' ? null : Math.max(0, Math.floor(Number(quantity)) || 0);
     }
     await this.item.update({ 'system.listings': listings });
   }

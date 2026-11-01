@@ -1,11 +1,11 @@
 import CarlRPGItemBase from './base-item.mjs';
 
 /**
- * A store: the items it sells. Each listing points at a world item and has its
- * own price (blank: the item's value) and stock (blank: unlimited, a number
- * counts down as it sells). The sell percentage is what a crawler gets back
- * when they sell an item to the store. The GM opens a store for a crawler (see
- * the store window).
+ * A store: the items it sells. A listing points at a world item, or holds a
+ * copy (a snapshot) of an item a crawler sold to the store. Each listing has a
+ * price (blank: the item's value), a stock now (blank: unlimited) and a starting
+ * stock that Restock sets the stock back to (blank: unlimited). The sell
+ * percentage is what a crawler gets back when they sell an item to the store.
  */
 export default class CarlRPGStore extends CarlRPGItemBase {
   static LOCALIZATION_PREFIXES = [
@@ -29,9 +29,13 @@ export default class CarlRPGStore extends CarlRPGItemBase {
     schema.listings = new fields.ArrayField(
       new fields.SchemaField({
         uuid: new fields.StringField({ required: true, blank: true, initial: '' }),
-        // null: use the item's value (price) or unlimited stock (quantity).
+        // null: the item's value (price) or unlimited (stock and starting stock).
         price: new fields.NumberField({ nullable: true, integer: true, min: 0, initial: null }),
         quantity: new fields.NumberField({ nullable: true, integer: true, min: 0, initial: null }),
+        startStock: new fields.NumberField({ nullable: true, integer: true, min: 0, initial: null }),
+        // For an item sold to the store: a copy of it (name, picture, type, system,
+        // effects, flags). Null for listings that point at a world item.
+        snapshot: new fields.ObjectField({ nullable: true, initial: null }),
       })
     );
 

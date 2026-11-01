@@ -26,7 +26,8 @@
       <li class='item flexrow items-header'>
         <div class='item-name'>{{localize 'Name'}}</div>
         <div class='item-prop'>{{localize 'CARL_RPG.Item.Store.Price'}}</div>
-        <div class='item-prop'>{{localize 'CARL_RPG.Item.Store.Quantity'}}</div>
+        <div class='item-prop'>{{localize 'CARL_RPG.Item.Store.StartStock'}}</div>
+        <div class='item-prop'>{{localize 'CARL_RPG.Item.Store.Stock'}}</div>
         <div class='item-controls'></div>
       </li>
       {{#each listingRows as |row|}}
@@ -55,13 +56,14 @@
             <input
               class='store-quantity'
               type='number'
-              value='{{row.quantity}}'
+              value='{{row.startStock}}'
               placeholder='{{localize "CARL_RPG.Item.Store.Unlimited"}}'
               min='0'
               step='1'
               {{#unless @root.editable}}disabled{{/unless}}
             />
           </div>
+          <div class='item-prop'>{{row.current}}</div>
           <div class='item-controls'>
             {{#if @root.isGM}}
               <a
