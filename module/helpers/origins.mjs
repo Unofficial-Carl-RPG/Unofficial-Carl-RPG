@@ -1,10 +1,17 @@
 /**
- * Races and classes ("origins").
+ * Races, classes and subclasses ("origins").
  *
  * From the third floor a crawler chooses a race and then a class. Each one has
  * prerequisites (minimum stat, skill rank, level, a particular race, a race
- * category, an achievement) that must all be met. The choosing dialog shows
- * every option with what is and isn't met; the GM can pick any (override).
+ * category, a class tag, an achievement) that must all be met. The choosing dialog
+ * shows every option with what is and isn't met; the GM can pick any (override).
+ *
+ * A subclass comes from a class the crawler has, from the Subclass floor. A
+ * crawler can hold several; the newest one is the one the sheet's Class box shows.
+ *
+ * A hidden option isn't listed to a crawler until they meet its requirements or
+ * the GM reveals it to them (the reveal is a flag on the crawler).
+ *
  * Taking one adds it to the crawler like any item (see CarlRPGItem), so its
  * granted skills and effects come along.
  */
@@ -20,9 +27,20 @@ const esc = (text) => Handlebars.escapeExpression(text);
 export const raceOf = (actor) => actor.itemTypes.race?.[0] ?? null;
 /** The crawler's class item, if they have one. */
 export const classOf = (actor) => actor.itemTypes.class?.[0] ?? null;
+/** The crawler's subclasses, oldest first. */
+export const subclassesOf = (actor) =>
+  [...(actor.itemTypes.subclass ?? [])].sort(
+    (a, b) => (a._stats?.createdTime ?? 0) - (b._stats?.createdTime ?? 0)
+  );
+/** The subclass the sheet's Class box shows: the most recently added. */
+export const latestSubclassOf = (actor) => subclassesOf(actor).at(-1) ?? null;
+/** The floor from which a crawler can choose a subclass (a world setting). */
+export const subclassFloor = () => game.settings.get('carl-rpg', 'subclassFloor');
+/** The UUIDs of the hidden options the GM has revealed to this crawler. */
+export const revealedOf = (actor) => actor?.getFlag?.('carl-rpg', 'revealed') ?? [];
 
 /** Whether two items are "the same" (by identifier, else name). */
-function sameItem(a, b) {
+export function sameItem(a, b) {
   const x = a.system?.identifier?.trim();
   const y = b.system?.identifier?.trim();
   return x && y ? x === y : a.name === b.name;
@@ -32,7 +50,7 @@ function sameItem(a, b) {
 const statValue = (actor, key) => actor.system.abilities?.[key]?.enhanced ?? 0;
 
 /**
- * Check every prerequisite of a race or class against a crawler.
+ * Check every prerequisite of a race, class or subclass against a crawler.
  * @param {Item} item
  * @param {Actor} actor
  * @returns {Promise<Array<{met: boolean, text: string}>>}
@@ -99,6 +117,7 @@ export async function evaluatePrerequisites(item, actor) {
         break;
       }
       case 'classTag': {
+        // A class or any of the crawler's subclasses can carry the tag.
         results.push({
           met: classHasTag(actor, p.tag),
           text: t('CARL_RPG.Origin.Needs.classTag', { tag: esc(p.tag) }),
@@ -122,58 +141,39 @@ export async function evaluatePrerequisites(item, actor) {
 }
 
 /**
- * Open the choosing dialog for whatever the crawler is missing: their race
- * first, then their class (the class step opens straight after the race, and
- * its prerequisites see what the race granted).
- * @param {Actor} actor
- * @returns {Promise<boolean>}  Whether something was chosen
+ * Whether a choice is listed to the person looking at it. A hidden option shows
+ * once the crawler meets it, or the GM has revealed it (the GM always sees it).
  */
-export async function chooseOrigin(actor) {
-  if (actor?.type !== 'crawler' || !actor.isOwner) return false;
-  const isGM = game.user.isGM;
-  if (actor.system.floor < CONFIG.CARL_RPG.originFloor && !isGM) {
-    ui.notifications.warn(
-      t('CARL_RPG.Origin.TooEarly', { floor: CONFIG.CARL_RPG.originFloor })
-    );
-    return false;
-  }
+function optionVisible(item, met, isGM, revealed) {
+  return isGM || met || !item.system.hidden || revealed.includes(item.uuid);
+}
 
-  const type = !raceOf(actor) ? 'race' : !classOf(actor) ? 'class' : null;
-  if (!type) {
-    ui.notifications.info(t('CARL_RPG.Origin.AllChosen'));
-    return false;
-  }
-
-  // (The races or classes come from the sources chosen for them: see helpers/sources.mjs.)
-  const options = await sourceItems(type === 'race' ? 'races' : 'classes');
-  if (!options.length) {
-    ui.notifications.warn(t(`CARL_RPG.Origin.None.${type}`));
-    return false;
-  }
-
-  const rows = [];
-  for (const item of options) {
-    const results = await evaluatePrerequisites(item, actor);
-    const met = results.every((r) => r.met);
-    const summary = new DOMParser()
-      .parseFromString(item.system.description ?? '', 'text/html')
-      .body.textContent.trim()
-      .slice(0, 220);
-    // Earth-Based races get an earth icon beside their name.
-    const earthIcon = item.system.earthBased
-      ? `<i class="fas fa-earth-americas" title="${esc(t('CARL_RPG.Origin.EarthBased'))}"></i>`
+/** One option in the choosing dialog: its name, what it needs and whether it's met. */
+function originRow(item, results, met, isGM) {
+  const summary = new DOMParser()
+    .parseFromString(item.system.description ?? '', 'text/html')
+    .body.textContent.trim()
+    .slice(0, 220);
+  // Earth-Based races get an earth icon beside their name.
+  const earthIcon = item.system.earthBased
+    ? `<i class="fas fa-earth-americas" title="${esc(t('CARL_RPG.Origin.EarthBased'))}"></i>`
+    : '';
+  // The categories a class has, shown as small chips after its name.
+  const tagChips = (item.system.categories ?? [])
+    .map((tag) => `<span class="origin-tag">${esc(tag)}</span>`)
+    .join('');
+  // The GM can see which options are hidden from crawlers.
+  const hiddenChip =
+    item.system.hidden && isGM
+      ? `<span class="origin-tag">${esc(t('CARL_RPG.Origin.HiddenTag'))}</span>`
       : '';
-    // The categories a class has, shown as small chips after its name.
-    const tagChips = (item.system.categories ?? [])
-      .map((tag) => `<span class="origin-tag">${esc(tag)}</span>`)
-      .join('');
-    const reqs = results
-      .map(
-        (r) =>
-          `<li class="${r.met ? 'met' : 'unmet'}">${r.met ? '&#10003;' : '&#10007;'} ${r.text}</li>`
-      )
-      .join('');
-    rows.push(`<li class="origin ${met ? '' : 'unmet'}">
+  const reqs = results
+    .map(
+      (r) =>
+        `<li class="${r.met ? 'met' : 'unmet'}">${r.met ? '&#10003;' : '&#10007;'} ${r.text}</li>`
+    )
+    .join('');
+  return `<li class="origin ${met ? '' : 'unmet'}">
       <label>
         <input type="radio" name="origin" value="${item.uuid}" ${
           met || isGM ? '' : 'disabled'
@@ -181,11 +181,35 @@ export async function chooseOrigin(actor) {
         ${earthIcon}
         <strong>${esc(item.name)}</strong>
         ${tagChips}
+        ${hiddenChip}
         ${!met && isGM ? `<span class="override">${t('CARL_RPG.Origin.Override')}</span>` : ''}
       </label>
       ${summary ? `<div class="origin-desc">${esc(summary)}</div>` : ''}
       ${reqs ? `<ul class="origin-reqs">${reqs}</ul>` : ''}
-    </li>`);
+    </li>`;
+}
+
+/**
+ * Open the choosing dialog for a list of options. Resolves with the UUID of the
+ * one picked, or null.
+ * @param {Actor} actor
+ * @param {string} type      'race', 'class' or 'subclass' (for the wording)
+ * @param {Item[]} items     The options (already filtered to the right type)
+ * @returns {Promise<string|null>}
+ */
+async function askOrigin(actor, type, items) {
+  const isGM = game.user.isGM;
+  const revealed = revealedOf(actor);
+  const rows = [];
+  for (const item of items) {
+    const results = await evaluatePrerequisites(item, actor);
+    const met = results.every((r) => r.met);
+    if (!optionVisible(item, met, isGM, revealed)) continue;
+    rows.push(originRow(item, results, met, isGM));
+  }
+  if (!rows.length) {
+    ui.notifications.warn(t('CARL_RPG.Origin.NoneVisible'));
+    return null;
   }
 
   const choice = await CarlRPGDialog.wait({
@@ -216,17 +240,99 @@ export async function chooseOrigin(actor) {
     },
     rejectClose: false,
   });
-  if (!choice || choice === 'cancel') return false;
+  return !choice || choice === 'cancel' ? null : choice;
+}
 
-  const picked = await fromUuid(choice);
+/**
+ * Take a race, class or subclass: add it to the crawler (like any item) and wait
+ * until its skills and effects have been granted.
+ */
+async function addOrigin(actor, uuid) {
+  const picked = await fromUuid(uuid);
   if (!picked) return false;
   const [created] = await actor.createEmbeddedDocuments('Item', [
     game.items.fromCompendium(picked),
   ]);
   if (!created) return false;
-  // Wait until its skills and effects have been granted before the class step.
   await created._grantsDone;
+  return true;
+}
+
+/**
+ * Open the choosing dialog for whatever the crawler is missing: their race
+ * first, then their class (the class step opens straight after the race, and
+ * its prerequisites see what the race granted).
+ * @param {Actor} actor
+ * @returns {Promise<boolean>}  Whether something was chosen
+ */
+export async function chooseOrigin(actor) {
+  if (actor?.type !== 'crawler' || !actor.isOwner) return false;
+  const isGM = game.user.isGM;
+  if (actor.system.floor < CONFIG.CARL_RPG.originFloor && !isGM) {
+    ui.notifications.warn(
+      t('CARL_RPG.Origin.TooEarly', { floor: CONFIG.CARL_RPG.originFloor })
+    );
+    return false;
+  }
+
+  const type = !raceOf(actor) ? 'race' : !classOf(actor) ? 'class' : null;
+  if (!type) {
+    ui.notifications.info(t('CARL_RPG.Origin.AllChosen'));
+    return false;
+  }
+
+  // The races or classes come from the sources chosen for them (see helpers/sources.mjs).
+  // A class source can also hold subclasses, which have their own step.
+  const options = (
+    await sourceItems(type === 'race' ? 'races' : 'classes')
+  ).filter((item) => item.type === type);
+  if (!options.length) {
+    ui.notifications.warn(t(`CARL_RPG.Origin.None.${type}`));
+    return false;
+  }
+
+  const picked = await askOrigin(actor, type, options);
+  if (!picked || !(await addOrigin(actor, picked))) return false;
 
   if (type === 'race' && !classOf(actor)) await chooseOrigin(actor);
   return true;
+}
+
+/**
+ * Choose a subclass of the crawler's class, from the Subclass floor. A crawler can
+ * hold several (the newest one shows on the sheet), but not the same one twice.
+ * @param {Actor} actor
+ * @returns {Promise<boolean>}  Whether something was chosen
+ */
+export async function chooseSubclass(actor) {
+  if (actor?.type !== 'crawler' || !actor.isOwner) return false;
+  const isGM = game.user.isGM;
+  const need = subclassFloor();
+  if (actor.system.floor < need && !isGM) {
+    ui.notifications.warn(t('CARL_RPG.Origin.SubclassTooEarly', { floor: need }));
+    return false;
+  }
+  const parent = classOf(actor);
+  if (!parent) {
+    ui.notifications.warn(t('CARL_RPG.Origin.NeedClass'));
+    return false;
+  }
+
+  // Subclasses that belong to the crawler's class and that they don't hold yet.
+  const held = actor.itemTypes.subclass ?? [];
+  const items = [];
+  for (const item of await sourceItems('classes')) {
+    if (item.type !== 'subclass') continue;
+    const linked = item.system.classUuid ? await fromUuid(item.system.classUuid) : null;
+    if (!linked || !sameItem(linked, parent)) continue;
+    if (held.some((h) => sameItem(h, item))) continue;
+    items.push(item);
+  }
+  if (!items.length) {
+    ui.notifications.warn(t('CARL_RPG.Origin.None.subclass'));
+    return false;
+  }
+
+  const picked = await askOrigin(actor, 'subclass', items);
+  return !!picked && (await addOrigin(actor, picked));
 }

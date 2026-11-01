@@ -102,7 +102,7 @@
         {{/if}}
         {{! A crawler's race and class come from the race and class items they choose (not typed in) }}
         {{#if originPrompt}}
-          <button type='button' data-action='chooseOrigin'>
+          <button type='button' data-action='{{originAction}}'>
             <i class='fas fa-dna'></i> {{localize originPrompt}}
           </button>
         {{/if}}
@@ -136,9 +136,9 @@
           <input
             name='system.className'
             type='text'
-            value='{{system.className}}'
+            value='{{classDisplay}}'
             placeholder='{{localize "CARL_RPG.Actor.Crawler.Header.Class"}}'
-            data-tooltip='{{localize "CARL_RPG.Actor.Crawler.Header.Class"}}'
+            {{#unless subclassName}}data-tooltip='{{localize "CARL_RPG.Actor.Crawler.Header.Class"}}'{{/unless}}
             disabled='true'
           />
         </div>

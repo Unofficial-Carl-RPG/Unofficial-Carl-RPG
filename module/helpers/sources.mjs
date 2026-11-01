@@ -30,6 +30,12 @@ function defaults() {
   );
 }
 
+/** The item types a purpose's list is made of: its main type, then any extra ones. */
+export function purposeTypes(purpose) {
+  const { type, extraTypes = [] } = CONFIG.CARL_RPG.compendiumPurposes[purpose];
+  return [type, ...extraTypes];
+}
+
 /**
  * The sources chosen for each purpose: whether the world's items count, and the
  * ids of the compendiums that do.
@@ -59,13 +65,13 @@ export function getSources() {
  * @returns {Promise<Item[]>}
  */
 export async function sourceItems(purpose) {
-  const { type } = CONFIG.CARL_RPG.compendiumPurposes[purpose];
+  const types = purposeTypes(purpose);
   const { world, packs } = getSources()[purpose];
 
   const found = new Map();
   if (world) {
     for (const item of game.items) {
-      if (item.type === type) found.set(item.uuid, item);
+      if (types.includes(item.type)) found.set(item.uuid, item);
     }
   }
 
@@ -122,14 +128,14 @@ export async function sourceActors(purpose) {
  * @returns {Promise<Item[]>}
  */
 export async function readPacks(purpose) {
-  const { type } = CONFIG.CARL_RPG.compendiumPurposes[purpose];
+  const types = purposeTypes(purpose);
   const { packs } = getSources()[purpose];
   const docs = [];
   for (const id of packs) {
     const pack = game.packs.get(id);
     if (!pack || pack.documentName !== 'Item' || !pack.visible) continue;
     try {
-      docs.push(...(await pack.getDocuments({ type })));
+      for (const type of types) docs.push(...(await pack.getDocuments({ type })));
     } catch (err) {
       console.warn(`carl-rpg | could not read the compendium ${id}`, err);
     }

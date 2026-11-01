@@ -17,7 +17,13 @@ import {
 } from '../helpers/roll-dialog.mjs';
 import { chooseTargets } from '../helpers/targeting.mjs';
 import { dyingEffectOf } from '../helpers/dying.mjs';
-import { evaluatePrerequisites, raceOf } from '../helpers/origins.mjs';
+import {
+  classOf,
+  evaluatePrerequisites,
+  raceOf,
+  sameItem,
+  subclassFloor,
+} from '../helpers/origins.mjs';
 
 /** What identifies an achievement: its identifier, or its name if it has none. */
 const achievementKey = (item) => item.system.identifier?.trim() || item.name;
@@ -277,6 +283,56 @@ export class CarlRPGItem extends Item {
       }
     }
 
+    // Subclasses: a crawler can hold several, each from a class it has, from the
+    // Subclass floor. Each can be taken once. The GM can add any (noted in chat).
+    if (
+      this.type === 'subclass' &&
+      this.parent instanceof Actor &&
+      this.parent.type === 'crawler'
+    ) {
+      const actor = this.parent;
+      if (actor.itemTypes.subclass.some((s) => sameItem(s, this))) {
+        ui.notifications.warn(
+          game.i18n.format('CARL_RPG.Origin.Subclass.AlreadyHas', {
+            name: actor.name,
+            subclass: this.name,
+          })
+        );
+        return false;
+      }
+      const parent = classOf(actor);
+      const linked = this.system.classUuid
+        ? await fromUuid(this.system.classUuid)
+        : null;
+      const unmet = (await evaluatePrerequisites(this, actor))
+        .filter((r) => !r.met)
+        .map((r) => r.text);
+      if (!parent || !linked || !sameItem(parent, linked)) {
+        unmet.unshift(game.i18n.localize('CARL_RPG.Origin.Subclass.WrongClass'));
+      }
+      if (!user.isGM) {
+        if (actor.system.floor < subclassFloor()) {
+          ui.notifications.warn(
+            game.i18n.format('CARL_RPG.Origin.SubclassTooEarly', {
+              floor: subclassFloor(),
+            })
+          );
+          return false;
+        }
+        if (unmet.length) {
+          ui.notifications.warn(
+            game.i18n.format('CARL_RPG.Origin.Unmet', {
+              name: this.name,
+              reasons: unmet.join(' '),
+            })
+          );
+          return false;
+        }
+      } else if (unmet.length) {
+        options.carlPrereqOverride = unmet.join(' ');
+      }
+    }
+
     if (this.type === 'achievement' && this.parent instanceof Actor) {
       const key = achievementKey(this);
       const has = this.parent.items.some(
@@ -380,7 +436,7 @@ export class CarlRPGItem extends Item {
    */
   async #grantRankedSkills() {
     const actor = this.parent;
-    if (!['race', 'class'].includes(this.type)) return;
+    if (!['race', 'class', 'subclass'].includes(this.type)) return;
     if (!(actor instanceof Actor)) return;
 
     const toCreate = [];
@@ -419,11 +475,14 @@ export class CarlRPGItem extends Item {
    */
   async #applyOrigin(options = {}) {
     const actor = this.parent;
-    if (!['race', 'class'].includes(this.type)) return;
+    if (!['race', 'class', 'subclass'].includes(this.type)) return;
     if (!(actor instanceof Actor) || actor.type !== 'crawler') return;
 
-    const field = this.type === 'race' ? 'system.race' : 'system.className';
-    await actor.update({ [field]: this.name });
+    // A subclass isn't stored on the crawler: the sheet shows the newest one.
+    if (this.type !== 'subclass') {
+      const field = this.type === 'race' ? 'system.race' : 'system.className';
+      await actor.update({ [field]: this.name });
+    }
 
     const esc = Handlebars.escapeExpression;
     const note = options.carlPrereqOverride

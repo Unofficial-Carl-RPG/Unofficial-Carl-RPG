@@ -43,6 +43,9 @@ export class CarlRPGOrigin extends CarlRPGItemBase {
     // an Alien race.
     schema.earthBased = new fields.BooleanField({ initial: false });
 
+    // Hidden from crawlers until they meet its requirements or the GM reveals it.
+    schema.hidden = new fields.BooleanField({ initial: false });
+
     return schema;
   }
 
@@ -74,6 +77,22 @@ export class CarlRPGClass extends CarlRPGOrigin {
       new fields.StringField({ required: true, blank: false })
     );
 
+    return schema;
+  }
+}
+
+/**
+ * A subclass belongs to one class (`classUuid`, the UUID of a Class item). It is
+ * built like a class: granted skills, effects and prerequisites. A crawler can hold
+ * several; the newest one is what the sheet's Class box shows (see helpers/origins.mjs).
+ */
+export class CarlRPGSubclass extends CarlRPGClass {
+  static LOCALIZATION_PREFIXES = ['CARL_RPG.Item.base', 'CARL_RPG.Item.Class'];
+
+  static defineSchema() {
+    const fields = foundry.data.fields;
+    const schema = super.defineSchema();
+    schema.classUuid = new fields.StringField({ required: true, blank: true, initial: '' });
     return schema;
   }
 }

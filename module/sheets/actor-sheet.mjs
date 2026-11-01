@@ -2,7 +2,13 @@ import { plainText } from '../helpers/store.mjs';
 import { hasLoot, pickCrawlerAndLoot } from '../helpers/mob-loot.mjs';
 import { openLootBox } from '../helpers/loot.mjs';
 import { levelUp, spendPoints, canLevelUp } from '../helpers/level-up.mjs';
-import { chooseOrigin, raceOf, classOf } from '../helpers/origins.mjs';
+import {
+  chooseOrigin,
+  chooseSubclass,
+  classOf,
+  latestSubclassOf,
+  raceOf,
+} from '../helpers/origins.mjs';
 import { dyingEffectOf } from '../helpers/dying.mjs';
 import { creationPending } from '../helpers/creation.mjs';
 import { killSkulls } from '../helpers/crawler-number.mjs';
@@ -97,6 +103,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       levelUp: editOnly(this._levelUp),
       spendPoints: editOnly(this._spendPoints),
       chooseOrigin: editOnly(this._chooseOrigin),
+      chooseSubclass: editOnly(this._chooseSubclass),
       createCharacter: editOnly(this._createCharacter),
       toggleEditMode: editOnly(this._toggleEditMode),
       toggleEquipped: editOnly(this._toggleEquipped),
@@ -492,7 +499,10 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       // the identity row has as many columns as it has boxes.
       const { race, className } = this.actor.system;
       context.showRace = this.editMode || !!race?.trim();
-      context.showClass = this.editMode || !!className?.trim();
+      // The Class box shows the newest subclass (if any), else the class.
+      context.subclassName = latestSubclassOf(this.actor)?.name ?? '';
+      context.classDisplay = context.subclassName || className || '';
+      context.showClass = this.editMode || !!context.classDisplay.trim();
       // The Deity box shows the deity item's name (blank and hidden until one is dropped).
       context.deityName = this.actor.itemTypes.deity[0]?.name ?? '';
       context.showDeity = this.editMode || !!context.deityName;
@@ -531,9 +541,14 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       this.isEditable &&
       this.actor.system.floor >= CONFIG.CARL_RPG.originFloor
     ) {
+      context.originAction = 'chooseOrigin';
       if (!raceOf(this.actor)) context.originPrompt = 'CARL_RPG.Origin.ChooseRace';
       else if (!classOf(this.actor)) {
         context.originPrompt = 'CARL_RPG.Origin.ChooseClass';
+      } else if (game.settings.get('carl-rpg', 'subclassFloor') <= this.actor.system.floor) {
+        // Subclasses can be added from the Subclass floor on, several allowed.
+        context.originPrompt = 'CARL_RPG.Origin.ChooseSubclass';
+        context.originAction = 'chooseSubclass';
       }
     }
     // The Create Character and Choose Race / Class buttons share a line of their
@@ -831,7 +846,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
   async _describeOrigins() {
     const groups = [];
     for (const item of this.actor.items) {
-      if (!['race', 'class'].includes(item.type)) continue;
+      if (!['race', 'class', 'subclass'].includes(item.type)) continue;
       const skills = [];
       for (const entry of item.system.grantedSkills ?? []) {
         const skill = await fromUuid(entry.uuid);
@@ -1766,6 +1781,16 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
   static async _createCharacter(event, target) {
     event.preventDefault();
     CarlRPGCreationWizard.open(this.actor);
+  }
+
+  /**
+   * Choose a subclass (see helpers/origins.mjs).
+   * @this CarlRPGActorSheet
+   * @param {PointerEvent} event   The originating click event
+   * @param {HTMLElement} target   The element that was clicked
+   */
+  static async _chooseSubclass(event, target) {
+    await chooseSubclass(this.actor);
   }
 
   /**

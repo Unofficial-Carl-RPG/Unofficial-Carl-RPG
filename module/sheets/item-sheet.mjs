@@ -217,6 +217,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
         break;
       case 'race':
       case 'class':
+      case 'subclass':
         options.parts.push(
           'attributesOrigin',
           'grantedSkills',
@@ -372,12 +373,16 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
 
     // Races and classes: categories, granted skills and prerequisites, with
     // every drop target's name resolved.
-    if (['race', 'class'].includes(this.item.type)) {
+    if (['race', 'class', 'subclass'].includes(this.item.type)) {
       const cfg = CONFIG.CARL_RPG;
       const system = this.item.system;
       const isRace = this.item.type === 'race';
       context.isRace = isRace;
       context.isOrigin = true;
+      context.isSubclass = this.item.type === 'subclass';
+      context.classLinkName = system.classUuid
+        ? ((await fromUuid(system.classUuid))?.name ?? '?')
+        : '';
       // Classes: categories (the suggested ones to tick, plus custom ones) and
       // the regular tags, which are a separate list.
       if (!isRace) {
@@ -1138,6 +1143,17 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       return true;
     }
 
+    // A subclass's class: a class item dropped on the box.
+    if (zone.dataset.accept === 'classLink') {
+      const dropped = data.type === 'Item' && data.uuid ? await fromUuid(data.uuid) : null;
+      if (dropped?.type !== 'class') {
+        ui.notifications.warn(game.i18n.localize('CARL_RPG.Origin.Drop.Wrong.class'));
+        return false;
+      }
+      await this.item.update({ 'system.classUuid': dropped.uuid });
+      return true;
+    }
+
     // The reward loot box of an achievement or a quest.
     if (zone.dataset.accept === 'lootBox') {
       const dropped =
@@ -1702,7 +1718,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
     if (!this.item.isOwner) return false;
 
     // Races and classes: skills dropped on the Skills tab are granted at rank 1.
-    if (['race', 'class'].includes(this.item.type)) {
+    if (['race', 'class', 'subclass'].includes(this.item.type)) {
       if (!event.target.closest('.tab.grantedSkills')) return false;
       const dropped = await Item.fromDropData(data);
       if (dropped?.type !== 'skill' || !dropped.uuid) {

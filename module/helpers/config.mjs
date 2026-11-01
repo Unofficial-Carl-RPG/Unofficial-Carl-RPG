@@ -295,7 +295,7 @@ CARL_RPG.upgrades = {
 CARL_RPG.compendiumPurposes = {
   achievements: { type: 'achievement', label: 'CARL_RPG.Sources.Purposes.achievements' },
   races: { type: 'race', label: 'CARL_RPG.Sources.Purposes.races' },
-  classes: { type: 'class', label: 'CARL_RPG.Sources.Purposes.classes' },
+  classes: { type: 'class', extraTypes: ['subclass'], label: 'CARL_RPG.Sources.Purposes.classes' },
   backgrounds: { type: 'background', label: 'CARL_RPG.Sources.Purposes.backgrounds' },
   skills: { type: 'skill', label: 'CARL_RPG.Sources.Purposes.skills' },
   // Mobs are actors, so this list draws on actor compendiums.

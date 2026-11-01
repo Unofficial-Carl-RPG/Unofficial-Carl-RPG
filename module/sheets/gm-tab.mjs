@@ -76,6 +76,7 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
       approveEvents: CarlRPGGMTab._onApproveEvents,
       approveAllEvents: CarlRPGGMTab._onApproveAllEvents,
       sendSystem: CarlRPGGMTab._onSendSystem,
+      revealOrigin: CarlRPGGMTab._onRevealOrigin,
     },
   };
 
@@ -171,6 +172,8 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
         .sort((a, b) => a[1].localeCompare(b[1]))
     );
     context.bosses = this.#bossRows();
+    // The hidden races, classes and subclasses the GM can reveal to a crawler.
+    context.revealOptions = await hiddenOptions();
     // Loot box approval is a system setting; the tab only shows its section
     // while it is on, with how many requests are waiting for this GM.
     context.lootApproval = lootApprovalRequired();
@@ -469,6 +472,32 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
   }
 
   /**
+   * The GM reveals a hidden race, class or subclass to a crawler: it is listed in
+   * their chooser from then on (kept as a flag on the crawler).
+   * @this CarlRPGGMTab
+   */
+  static async _onRevealOrigin() {
+    if (!game.user.isGM) return;
+    const actor = game.actors.get(this.element.querySelector('.reveal-crawler')?.value);
+    const uuid = this.element.querySelector('.reveal-origin')?.value;
+    if (!actor || !uuid) {
+      ui.notifications.warn(game.i18n.localize('CARL_RPG.GMTab.NeedBoth'));
+      return;
+    }
+    const revealed = actor.getFlag('carl-rpg', 'revealed') ?? [];
+    if (!revealed.includes(uuid)) {
+      await actor.setFlag('carl-rpg', 'revealed', [...revealed, uuid]);
+    }
+    const option = await fromUuid(uuid);
+    ui.notifications.info(
+      game.i18n.format('CARL_RPG.GMTab.Revealed', {
+        name: actor.name,
+        option: option?.name ?? '?',
+      })
+    );
+  }
+
+  /**
    * Give the chosen crawler AI favor (a negative amount takes some away; it
    * never goes below 0) and say so in chat.
    * @this CarlRPGGMTab
@@ -543,6 +572,22 @@ const redrawAwardLists = foundry.utils.debounce(() => {
 }, 100);
 
 const isCrawler = (actor) => actor.type === 'crawler';
+/** The hidden races, classes and subclasses the GM can reveal (from the sources). */
+async function hiddenOptions() {
+  const found = [];
+  for (const purpose of ['races', 'classes']) {
+    for (const item of await sourceItems(purpose)) {
+      if (!item.system.hidden) continue;
+      found.push({
+        uuid: item.uuid,
+        name: item.name,
+        kind: game.i18n.localize(`TYPES.Item.${item.type}`),
+      });
+    }
+  }
+  return found.sort((a, b) => a.name.localeCompare(b.name));
+}
+
 const isWorldAchievement = (item) => item.type === 'achievement' && !item.parent;
 
 Hooks.on('createActor', (actor) => isCrawler(actor) && redrawAwardLists());

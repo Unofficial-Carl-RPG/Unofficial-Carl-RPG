@@ -550,6 +550,10 @@
       "Awards": "Awards",
       "AchievementLabel": "Achievement",
       "FavorLabel": "AI favor (negative to remove)",
+      "RevealLabel": "Reveal to a crawler",
+      "Reveal": "Reveal",
+      "RevealNone": "No hidden options to reveal.",
+      "Revealed": "{name} can now see {option}.",
       "AwardFavor": "Award AI favor",
       "BossBanner": "Boss Battle",
       "EventsToApprove": "Events to approve",
@@ -1190,6 +1194,17 @@
         "classTag": "A class with the tag {tag}"
       },
       "ChooseRace": "Choose Race",
+      "ChooseSubclass": "Choose Subclass",
+      "ClassLink": "Belongs to class",
+      "ClassLinkHint": "Drop the class this subclass belongs to.",
+      "HiddenLabel": "Hidden",
+      "HiddenHint": "Crawlers don't see it until they meet its requirements or the GM reveals it.",
+      "HiddenTag": "Hidden",
+      "NoneVisible": "Nothing here is open to you yet.",
+      "SubclassFloorName": "Subclass floor",
+      "SubclassFloorHint": "The floor from which a crawler can choose a subclass.",
+      "SubclassTooEarly": "A subclass can be chosen from floor {floor}.",
+      "NeedClass": "A crawler needs a class before a subclass.",
       "ChooseClass": "Choose Class",
       "Choose": "Choose",
       "Override": "(override)",
@@ -1199,14 +1214,17 @@
       "Unmet": "You can't take {name} yet: {reasons}",
       "None": {
         "race": "No races exist yet. A GM can create them as Items.",
+        "subclass": "No subclasses exist for this class yet. A GM can create them as Items.",
         "class": "No classes exist yet. A GM can create them as Items."
       },
       "Title": {
         "race": "Choose a race",
+        "subclass": "Choose a subclass",
         "class": "Choose a class"
       },
       "Intro": {
         "race": "{name}, choose your race.",
+        "subclass": "{name}, choose your subclass.",
         "class": "{name}, choose your class."
       },
       "Replace": {
@@ -1216,7 +1234,12 @@
       "SkillMissing": "A skill granted by {name} couldn't be found.",
       "Chosen": {
         "race": "{name} chose the race {origin}!",
+        "subclass": "{name} took the subclass {origin}!",
         "class": "{name} chose the class {origin}!"
+      },
+      "Subclass": {
+        "AlreadyHas": "{name} already has the subclass {subclass}.",
+        "WrongClass": "The subclass must belong to the crawler's class."
       },
       "OverrideNote": "Assigned by the GM without meeting: {unmet}",
       "GrantedSkills": "Granted skills",
@@ -1226,11 +1249,13 @@
       "Drop": {
         "skill": "Drop a skill here",
         "race": "Drop a race here",
+        "class": "Drop a class here",
         "achievement": "Drop an achievement here",
         "skillGrant": "Drop a skill here to grant it",
         "Wrong": {
           "skill": "Drop a skill here.",
           "race": "Drop a race here.",
+          "class": "Drop a class here.",
           "achievement": "Drop an achievement here."
         }
       }
@@ -1592,6 +1617,7 @@
       "pet": "Pet",
       "mount": "Mount / Vehicle"
     },
+    "subclass": "Subclass",
     "Item": {
       "gear": "Gear",
       "skill": "Skill",

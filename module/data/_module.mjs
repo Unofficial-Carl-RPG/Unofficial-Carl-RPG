@@ -14,7 +14,7 @@ export { default as CarlRPGGenericItem } from './item-generic.mjs';
 export { default as CarlRPGMobAbility } from './item-mob-ability.mjs';
 export { default as CarlRPGLootBox } from './item-loot-box.mjs';
 export { default as CarlRPGAchievement } from './item-achievement.mjs';
-export { CarlRPGOrigin, CarlRPGRace, CarlRPGClass } from './item-origin.mjs';
+export { CarlRPGOrigin, CarlRPGRace, CarlRPGClass, CarlRPGSubclass } from './item-origin.mjs';
 export { default as CarlRPGBackground } from './item-background.mjs';
 export { default as CarlRPGSponsor } from './item-sponsor.mjs';
 export { default as CarlRPGPersonalSpace } from './item-personal-space.mjs';

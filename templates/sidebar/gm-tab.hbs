@@ -130,6 +130,25 @@
     <button type='button' class='announce-button' data-action='awardFavor'>
       <i class='fas fa-star'></i> {{localize 'CARL_RPG.GMTab.AwardFavor'}}
     </button>
+
+    <label class='resource-label'>{{localize 'CARL_RPG.GMTab.RevealLabel'}}</label>
+    {{#if revealOptions.length}}
+      <select class='reveal-crawler'>
+        {{#each crawlers as |crawler|}}
+          <option value='{{crawler.id}}'>{{crawler.name}}</option>
+        {{/each}}
+      </select>
+      <select class='reveal-origin'>
+        {{#each revealOptions as |option|}}
+          <option value='{{option.uuid}}'>{{option.name}} ({{option.kind}})</option>
+        {{/each}}
+      </select>
+      <button type='button' class='announce-button' data-action='revealOrigin'>
+        <i class='fas fa-eye'></i> {{localize 'CARL_RPG.GMTab.Reveal'}}
+      </button>
+    {{else}}
+      <p class='hint'>{{localize 'CARL_RPG.GMTab.RevealNone'}}</p>
+    {{/if}}
   </section>
 
   {{! The System speaks to everyone: a death, a boss defeated, the stairwell, a new floor }}

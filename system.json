@@ -59,6 +59,9 @@
         "class": {
             "htmlFields": ["description"]
         },
+        "subclass": {
+            "htmlFields": ["description"]
+        },
         "sponsor": {
             "htmlFields": ["description"]
         },

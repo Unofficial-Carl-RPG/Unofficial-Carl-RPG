@@ -18,6 +18,33 @@
     <p class='hint'>{{localize 'CARL_RPG.Origin.EarthBasedHint'}}</p>
   </div>
 
+  <div class='resource'>
+    <label class='event-option'>
+      <input type='checkbox' name='system.hidden' {{checked system.hidden}} />
+      {{localize 'CARL_RPG.Origin.HiddenLabel'}}
+    </label>
+    <p class='hint'>{{localize 'CARL_RPG.Origin.HiddenHint'}}</p>
+  </div>
+
+  {{#if isSubclass}}
+    {{! The class this subclass belongs to: a class item dropped on the box }}
+    <div class='resource'>
+      <label class='resource-label'>{{localize 'CARL_RPG.Origin.ClassLink'}}</label>
+      <p class='hint'>{{localize 'CARL_RPG.Origin.ClassLinkHint'}}</p>
+      {{#if editable}}
+        <div class='drop-target' data-accept='classLink' data-field='classUuid' data-tooltip='{{localize "CARL_RPG.Origin.Drop.class"}}'>
+          {{#if classLinkName}}
+            <span class='drop-name'>{{classLinkName}}</span>
+          {{else}}
+            <span class='drop-hint'>{{localize 'CARL_RPG.Origin.Drop.class'}}</span>
+          {{/if}}
+        </div>
+      {{else}}
+        <span>{{classLinkName}}</span>
+      {{/if}}
+    </div>
+  {{/if}}
+
   {{#if isClass}}
     {{! Class categories: tick the suggested ones, or add a custom one }}
     <div class='resource tag-editor'>

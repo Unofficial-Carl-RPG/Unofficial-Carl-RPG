@@ -138,6 +138,15 @@ Hooks.once('init', function () {
     type: Number,
     default: 3,
   });
+  // The floor from which a crawler can choose a subclass (see helpers/origins.mjs).
+  game.settings.register('carl-rpg', 'subclassFloor', {
+    name: 'CARL_RPG.Origin.SubclassFloorName',
+    hint: 'CARL_RPG.Origin.SubclassFloorHint',
+    scope: 'world',
+    config: true,
+    type: Number,
+    default: 6,
+  });
   // Which compendiums the lists of achievements, races, classes, backgrounds and
   // creation skills draw from.
   registerSourcesSetting();
@@ -201,6 +210,7 @@ Hooks.once('init', function () {
     achievement: models.CarlRPGAchievement,
     race: models.CarlRPGRace,
     class: models.CarlRPGClass,
+    subclass: models.CarlRPGSubclass,
     background: models.CarlRPGBackground,
     sponsor: models.CarlRPGSponsor,
     personalSpace: models.CarlRPGPersonalSpace,
