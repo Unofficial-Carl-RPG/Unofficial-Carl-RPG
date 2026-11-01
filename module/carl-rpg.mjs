@@ -37,6 +37,7 @@ import { registerPetUpgrades } from './helpers/pet-upgrades.mjs';
 import { registerRelay } from './helpers/relay.mjs';
 import { registerStores } from './helpers/store.mjs';
 import { registerMobLoot } from './helpers/mob-loot.mjs';
+import { registerJournalEnrichers } from './helpers/journal.mjs';
 // Import DataModel classes
 import * as models from './data/_module.mjs';
 
@@ -110,6 +111,8 @@ Hooks.once('init', function () {
   registerRelay();
   registerStores();
   registerMobLoot();
+  // Journal live values (@Floor, @Party, @DaysLeft).
+  registerJournalEnrichers();
 
   // Character creation defaults: stored as a setting, edited in a dialog opened
   // from a button in the system settings.

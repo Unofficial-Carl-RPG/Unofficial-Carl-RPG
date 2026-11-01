@@ -1,0 +1,116 @@
+// Journal pages: the game's look, for pages that opt in with a carl-rpg class.
+// Scoped to journal pages so the sheets (which also use the carl-rpg class) are not restyled.
+.journal-entry-page .carl-rpg {
+  padding: 6px 10px;
+  color: #ead9b4;
+  background: #2b241b;
+  border: 1px solid #6b5423;
+  border-radius: 4px;
+  line-height: 1.5;
+
+  h1,
+  h2,
+  h3 {
+    color: #d9b45a;
+    border-bottom: 1px solid #6b5423;
+    margin: 0.6em 0 0.3em;
+  }
+
+  a {
+    color: #e9c46a;
+    text-decoration: underline dotted;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.5em 0;
+
+    th {
+      background: rgba(201, 164, 74, 0.15);
+      color: #d9b45a;
+    }
+
+    th,
+    td {
+      border: 1px solid #6b5423;
+      padding: 3px 6px;
+    }
+  }
+
+  blockquote {
+    margin: 0.5em 0;
+    padding-left: 10px;
+    border-left: 3px solid #c9a54a;
+    font-style: italic;
+  }
+
+  // Callout boxes the GM adds with a class: <div class="carl-quest">...</div>
+  .carl-system,
+  .carl-quest,
+  .carl-boss,
+  .carl-hint {
+    display: block;
+    margin: 0.75em 0;
+    padding: 0.5em 0.75em;
+    border-left: 4px solid;
+    border-radius: 3px;
+
+    &::before {
+      display: block;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.85em;
+      margin-bottom: 0.25em;
+    }
+  }
+
+  .carl-system {
+    font-family: monospace;
+    color: #7cff9b;
+    background: #0d1a10;
+    border-left-color: #3ddc84;
+
+    &::before {
+      content: 'System';
+      color: #3ddc84;
+    }
+  }
+
+  .carl-quest {
+    background: rgba(201, 164, 74, 0.12);
+    border-left-color: #c9a54a;
+
+    &::before {
+      content: 'Quest';
+      color: #d9b45a;
+    }
+  }
+
+  .carl-boss {
+    background: rgba(179, 58, 58, 0.14);
+    border-left-color: #b33a3a;
+
+    &::before {
+      content: 'Boss / Danger';
+      color: #e06a6a;
+    }
+  }
+
+  .carl-hint {
+    background: rgba(91, 143, 199, 0.12);
+    border-left-color: #5b8fc7;
+
+    &::before {
+      content: 'Hint / Note';
+      color: #8ab4e0;
+    }
+  }
+
+  // Live values from @Floor, @Party and @DaysLeft.
+  .carl-live {
+    font-weight: bold;
+    color: #e9c46a;
+  }
+}

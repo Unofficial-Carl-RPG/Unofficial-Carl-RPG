@@ -28,6 +28,9 @@
 /* GM controls tab in the sidebar and the boss battle banner */
 @import 'components/gm-tab';
 
+/* Journal pages that opt in with the carl-rpg class */
+@import 'components/journal';
+
 /* The chat log as a game's chat window (before the cards, which sit on top of it) */
 @import 'components/chat-log';
 
