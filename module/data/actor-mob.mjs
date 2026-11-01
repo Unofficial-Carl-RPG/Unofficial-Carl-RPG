@@ -16,6 +16,8 @@ export default class CarlRPGMob extends CarlRPGActorBase {
 
     schema.race = new fields.StringField();
 
+    // The loot box the GM gives the crawlers picked when this mob is defeated (a UUID).
+    schema.rewardBox = new fields.StringField({ required: true, blank: true, initial: '' });
     // What kind of mob this is (see CONFIG.CARL_RPG.mobTypes).
     schema.mobType = new fields.StringField({
       required: true,

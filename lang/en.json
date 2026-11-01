@@ -28,6 +28,12 @@
         "No": "Cancel"
       },
       "NextPhase": "Next Phase",
+      "RewardDrop": "Drop a loot box here: given when this mob is defeated",
+      "RewardSet": "Loot box set",
+      "GiveReward": "Give reward",
+      "RewardTitle": "Give the reward",
+      "RewardOnlyBox": "Only a loot box can be the reward.",
+      "RewardPick": "Choose the crawlers who get the loot box.",
       "DyingEffect": "Dying",
       "DeadEffect": "Dead",
       "DyingStarted": "{name} is Dying for {rounds} round(s) unless healed.",

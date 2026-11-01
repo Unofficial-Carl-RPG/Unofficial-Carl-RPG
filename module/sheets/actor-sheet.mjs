@@ -78,6 +78,8 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
     // Everything else below does nothing unless the user can edit the sheet.
     actions: {
       onEditImage: editOnly(this._onEditImage),
+      clearReward: editOnly(this._clearReward),
+      giveReward: this._giveReward,
       viewDoc: this._viewDoc,
       createDoc: editOnly(this._createDoc),
       deleteDoc: editOnly(this._deleteDoc),
@@ -487,6 +489,9 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       context.classEarthBased = !!classOf(this.actor)?.system.earthBased;
     }
     if (this.actor.type === 'mob') {
+      // The reward box shows as set or empty; its name is looked up when it is given.
+      context.hasReward = !!this.actor.system.rewardBox;
+      context.canGiveReward = game.user.isGM && context.hasReward && this.actor.statuses.has('dead');
       // Level, Actions and Size, plus Crawler kills for crawler mobs in edit mode.
       const killsBox = this.actor.system.mobType === 'crawler' && this.editMode;
       context.resourceGrid = killsBox ? 'grid-4col' : 'grid-3col';
@@ -1279,6 +1284,40 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
    * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
    * @protected
    */
+  /** GM: take the mob's reward box off it. */
+  static async _clearReward() {
+    await this.actor.update({ 'system.rewardBox': '' });
+  }
+
+  /** GM: after a mob is defeated, give its reward loot box to the crawlers picked. */
+  static async _giveReward() {
+    if (!game.user.isGM) return;
+    const box = await fromUuid(this.actor.system.rewardBox);
+    if (!box || box.type !== 'lootBox') return;
+    const crawlers = game.actors.filter((a) => a.type === 'crawler');
+    if (!crawlers.length) return;
+    const rows = crawlers
+      .map(
+        (c) =>
+          `<label class="reward-pick"><input type="checkbox" name="crawler" value="${c.id}" checked> ${foundry.utils.escapeHTML(c.name)}</label>`
+      )
+      .join('');
+    const ids = await CarlRPGDialog.prompt({
+      window: { title: game.i18n.localize('CARL_RPG.Combat.RewardTitle') },
+      content: `<p>${game.i18n.localize('CARL_RPG.Combat.RewardPick')}</p>${rows}`,
+      ok: {
+        label: game.i18n.localize('CARL_RPG.Combat.GiveReward'),
+        callback: (event, button) =>
+          [...button.form.querySelectorAll('input[name="crawler"]:checked')].map((i) => i.value),
+      },
+    });
+    if (!ids?.length) return;
+    for (const id of ids) {
+      const crawler = game.actors.get(id);
+      if (crawler) await crawler.createEmbeddedDocuments('Item', [game.items.fromCompendium(box)]);
+    }
+  }
+
   static async _rest(event, target) {
     event.preventDefault();
     await confirmRest(target.dataset.rest, this.actor);
@@ -1490,7 +1529,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
    * @override
    */
   async _onDrop(event) {
-    const zone = this.actor.type === 'pet' ? event.target.closest('.drop-target') : null;
+    const zone = ['pet', 'mob'].includes(this.actor.type) ? event.target.closest('.drop-target') : null;
     if (!zone) return super._onDrop(event);
     event.preventDefault();
     if (!this.actor.isOwner) return;
@@ -1507,6 +1546,15 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
         const list = system.upgrades[ui_].grants;
         if (!list.includes(dropped.uuid)) list.push(dropped.uuid);
       });
+      return;
+    }
+    if (zone.dataset.accept === 'lootBox') {
+      const dropped = data.type === 'Item' && data.uuid ? await fromUuid(data.uuid) : null;
+      if (!dropped || dropped.type !== 'lootBox') {
+        ui.notifications.warn(game.i18n.localize('CARL_RPG.Combat.RewardOnlyBox'));
+        return;
+      }
+      await this.actor.update({ 'system.rewardBox': dropped.uuid });
       return;
     }
     return dropTarget.call(this, zone, data);

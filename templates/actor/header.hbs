@@ -62,7 +62,18 @@
           {{selectOptions config.mobTypes selected=system.mobType localize=true}}
         </select>
       {{/if}}
-      {{! Small rest buttons: a crawler (or pet) takes their own rests (short, long, full) }}
+      {{#if (eq actor.type 'mob')}}{{#if editable}}
+  <div class='drop-target reward-drop' data-accept='lootBox' data-field='rewardBox' data-tooltip='{{localize "CARL_RPG.Combat.RewardDrop"}}'>
+    {{#if hasReward}}
+    <span class='drop-name'>{{localize 'CARL_RPG.Combat.RewardSet'}}</span>
+    <a class='item-control' data-action='clearReward'><i class='fas fa-xmark'></i></a>
+    {{else}}
+    <span class='drop-hint'>{{localize 'CARL_RPG.Combat.RewardDrop'}}</span>
+    {{/if}}
+  </div>
+{{/if}}{{/if}}
+{{#if canGiveReward}}<button type='button' data-action='giveReward'>{{localize 'CARL_RPG.Combat.GiveReward'}}</button>{{/if}}
+{{! Small rest buttons: a crawler (or pet) takes their own rests (short, long, full) }}
       {{#if (ne actor.type 'mob')}}{{#if editable}}
         <span class='rest-buttons-mini'>
           <a data-action='rest' data-rest='short' data-tooltip='{{localize "CARL_RPG.Rest.Name.short"}}'><i class='fas fa-mug-hot'></i></a>
