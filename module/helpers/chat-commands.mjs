@@ -1,12 +1,13 @@
 /**
- * The system's chat commands:
+ * The system's chat commands. A command that acts on a crawler takes the crawler's
+ * name first; commands with no target take none:
  *
- *   /rest short|long|full [crawler]   a rest for a crawler (its owner, or the
- *                                     GM for any), or for the whole party (GM only,
- *                                     when no crawler is named)
+ *   /rest Crawler short|long|full     a rest for a crawler (its owner, or the GM
+ *                                     for any crawler)
+ *   /rest all short|long|full         a rest for the whole party (GM only)
  *   /floor N                          set the floor (GM only)
  *   /days N                           set the days left (GM only)
- *   /aifavor crawler amount           give (or take away, with a minus) AI Favor (GM only)
+ *   /aifavor Crawler amount           give (or take away, with a minus) AI Favor (GM only)
  *   /announce kind text               a System announcement (GM only); the kinds are
  *                                     those in helpers/system-announcements.mjs, except
  *                                     "died", which needs a crawler
@@ -41,31 +42,21 @@ function crawlerNamed(name) {
   );
 }
 
-/** The crawler a player rests when they name none: their character, else one they own. */
-function ownCrawler() {
-  const character = game.user.character;
-  if (character?.type === 'crawler' && character.isOwner) return character;
-  return game.actors.find((actor) => actor.type === 'crawler' && actor.isOwner) ?? null;
-}
-
-/** /rest short|long|full [crawler] */
+/** /rest Crawler short|long|full, or /rest all short|long|full (GM only) */
 async function rest(args) {
-  const [kind = '', ...nameWords] = args.split(/\s+/).filter(Boolean);
-  const rest = kind.toLowerCase();
-  if (!REST_KINDS.includes(rest)) return warn('CARL_RPG.Commands.RestUsage');
-  const name = nameWords.join(' ');
+  const words = args.split(/\s+/).filter(Boolean);
+  const kind = (words.at(-1) ?? '').toLowerCase();
+  const target = words.slice(0, -1).join(' ');
+  if (!target || !REST_KINDS.includes(kind)) return warn('CARL_RPG.Commands.RestUsage');
 
-  // No crawler named: the GM rests the whole party.
-  if (!name && game.user.isGM) return takeRest(rest);
-
-  const actor = name ? crawlerNamed(name) : ownCrawler();
-  if (!actor) {
-    return warn(name ? 'CARL_RPG.Commands.NoSuchCrawler' : 'CARL_RPG.Commands.NoCrawler', {
-      name,
-    });
+  if (target.toLowerCase() === 'all') {
+    if (!game.user.isGM) return warn('CARL_RPG.Commands.NotGM', { command: '/rest all' });
+    return takeRest(kind);
   }
+  const actor = crawlerNamed(target);
+  if (!actor) return warn('CARL_RPG.Commands.NoSuchCrawler', { name: target });
   if (!actor.isOwner) return warn('CARL_RPG.Commands.NotYours', { name: actor.name });
-  await restActor(actor, rest);
+  await restActor(actor, kind);
 }
 
 /** /floor N (GM only) */
@@ -85,7 +76,7 @@ async function days(args) {
 }
 
 /**
- * /aifavor crawler amount (GM only). The amount is the favor given; a minus takes
+ * /aifavor Crawler amount (GM only). The amount is the favor given; a minus takes
  * favor away. The crawler never goes below 0, and chat says so, as the Dungeon Info
  * button does.
  */
