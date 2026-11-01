@@ -13,3 +13,5 @@ foundry
 
 # Boilerplate
 build/
+# Generated styles (npm run build recreates css/)
+css/
