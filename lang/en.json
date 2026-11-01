@@ -40,6 +40,9 @@
       "KindPoison": "Poison cloud",
       "AreaEnds": "The {kind} area ends.",
       "AreaCard": "Inside the {name} area",
+      "Areas": "Areas per use",
+      "Limit": "Most tokens inside (0: all)",
+      "PlaceAreaN": "Place area {n} of {m}. Escape cancels.",
       "NoTemplatePermission": "You can't place areas here. Ask the GM to place it."
     },
     "Ability": {

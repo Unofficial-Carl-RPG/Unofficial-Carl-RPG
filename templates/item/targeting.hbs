@@ -63,5 +63,13 @@
       <option value='poison' {{#if (eq system.targeting.kind 'poison')}}selected{{/if}}>{{localize 'CARL_RPG.Targeting.KindPoison'}}</option>
     </select>
   </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.targeting.areas'>{{localize 'CARL_RPG.Targeting.Areas'}}</label>
+    <input type='number' name='system.targeting.areas' value='{{system.targeting.areas}}' step='1' min='1' />
+  </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.targeting.limit'>{{localize 'CARL_RPG.Targeting.Limit'}}</label>
+    <input type='number' name='system.targeting.limit' value='{{system.targeting.limit}}' step='1' min='0' />
+  </div>
   {{/if}}
 </div>

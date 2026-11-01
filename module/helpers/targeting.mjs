@@ -138,7 +138,22 @@ export async function chooseTargets(item) {
  * @param {CarlRPGItem} item
  * @returns {Promise<boolean>} false if cancelled or not allowed
  */
-export function chooseArea(item) {
+/**
+ * Place the item's areas one after another (its "areas per use"). The tokens picked
+ * in each are added to the targets. Escape cancels the rest.
+ * @param {CarlRPGItem} item
+ * @returns {Promise<boolean>} false if cancelled or not allowed
+ */
+export async function chooseArea(item) {
+  const total = Math.max(1, Number(item.system.targeting.areas) || 1);
+  for (let n = 1; n <= total; n++) {
+    if (!(await placeOneArea(item, n, total))) return false;
+  }
+  return true;
+}
+
+/** Place one area with the template tool (see chooseArea). */
+function placeOneArea(item, n, total) {
   const cfg = item.system.targeting;
   if (!game.user.can('TEMPLATE_CREATE')) {
     ui.notifications.warn(t('CARL_RPG.Targeting.NoTemplatePermission'));
@@ -163,8 +178,11 @@ export function chooseArea(item) {
       const inside = canvas.tokens.placeables.filter(
         (tok) => tok.visible && matchesFilter(tok, cfg.filter) && area?.testPoint(tok.center)
       );
-      await game.user.updateTokenTargets(inside.map((tok) => tok.id));
-      await areaCard(item, inside, t('CARL_RPG.Targeting.AreaCard', { name: item.name }));
+      const limit = Number(cfg.limit) || 0;
+      const picked = limit > 0 ? inside.slice(0, limit) : inside;
+      const ids = new Set([...game.user.targets.map((tk) => tk.id), ...picked.map((tok) => tok.id)]);
+      await game.user.updateTokenTargets([...ids]);
+      await areaCard(item, picked, t('CARL_RPG.Targeting.AreaCard', { name: item.name }));
       if (cfg.lasting) {
         const rounds = Math.max(0, Number(cfg.lasts) || 0);
         await doc.update({
@@ -175,6 +193,7 @@ export function chooseArea(item) {
             kind: cfg.kind || '',
             itemUuid: item.uuid,
             filter: cfg.filter,
+            limit: cfg.limit,
           },
         });
       } else {
@@ -184,7 +203,7 @@ export function chooseArea(item) {
     };
     Hooks.on('createMeasuredTemplate', onCreate);
     document.addEventListener('keydown', onKey, true);
-    ui.notifications.info(t('CARL_RPG.Targeting.PlaceArea'));
+    ui.notifications.info(t('CARL_RPG.Targeting.PlaceAreaN', { n, m: total }));
     canvas.templates.activate({ tool: cfg.shape });
   });
 }
@@ -214,7 +233,7 @@ Hooks.on('carlrpg.cleanupPhase', async () => {
     }
     // Lasting areas (rounds or not) show who is inside again, for the GM to apply to.
     const item = area.itemUuid ? await fromUuid(area.itemUuid) : null;
-    if (item) await areaCard(item, insideTokens(doc.object, area.filter), t('CARL_RPG.Targeting.AreaCard', { name: item.name }));
+    if (item) await areaCard(item, insideTokens(doc.object, area.filter).slice(0, Number(area.limit) || undefined), t('CARL_RPG.Targeting.AreaCard', { name: item.name }));
   }
 });
 

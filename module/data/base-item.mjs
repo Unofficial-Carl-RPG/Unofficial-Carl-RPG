@@ -77,6 +77,10 @@ export default class CarlRPGItemBase extends foundry.abstract
       // A lasting area stays on the map; it lasts this many rounds (0: until the GM removes it).
       lasting: new fields.BooleanField({ initial: false }),
       lasts: new fields.NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }),
+      // How many areas one use places (each is placed in turn).
+      areas: new fields.NumberField({ required: true, nullable: false, integer: true, min: 1, initial: 1 }),
+      // The most tokens an area targets (0: all of them).
+      limit: new fields.NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }),
       kind: new fields.StringField({ required: true, blank: true, initial: '', choices: ['', 'fire', 'difficult', 'poison'] }),
     });
     // A short version for chat cards and tooltips (blank means use the full text).
