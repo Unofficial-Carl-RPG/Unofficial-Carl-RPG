@@ -1,0 +1,77 @@
+{{! Loot Tab (Mob): what the GM gives the crawler who loots this mob (see helpers/mob-loot.mjs) }}
+<section class='tab loot scrollable {{tab.cssClass}}' data-group='primary' data-tab='loot'>
+  <p class='skills-hint'>{{localize 'CARL_RPG.Loot.MobHint'}}</p>
+
+  <div class='resource'>
+    <label class='resource-label' for='system.loot.junk'>{{localize 'CARL_RPG.Loot.MobJunk'}}</label>
+    <input
+      type='text'
+      name='system.loot.junk'
+      value='{{system.loot.junk}}'
+      placeholder='0'
+      {{#unless @root.editable}}disabled{{/unless}}
+    />
+  </div>
+
+  <div class='resource'>
+    <label class='resource-label' for='system.loot.gold'>{{localize 'CARL_RPG.Loot.MobGold'}}</label>
+    <input
+      type='text'
+      name='system.loot.gold'
+      value='{{system.loot.gold}}'
+      placeholder='0'
+      {{#unless @root.editable}}disabled{{/unless}}
+    />
+  </div>
+
+  <ol class='items-list loot-list'>
+    <li class='item flexrow items-header'>
+      <div class='item-name'>{{localize 'CARL_RPG.Loot.MobItems'}}</div>
+      <div class='item-prop'>{{localize 'CARL_RPG.Loot.Chance'}}</div>
+      <div class='item-controls'></div>
+    </li>
+    {{#each lootRows as |row|}}
+      <li class='item flexrow loot-row {{#if row.missing}}missing{{/if}}' data-index='{{row.index}}'>
+        <div class='item-name'>
+          <div class='item-image'>
+            <img src='{{row.img}}' data-tooltip='{{row.name}}' width='24' height='24' />
+          </div>
+          <div>
+            {{row.name}}
+            {{#if row.missing}}<em>({{localize 'CARL_RPG.Loot.Missing'}})</em>{{/if}}
+          </div>
+        </div>
+        <div class='item-prop'>
+          <input
+            class='loot-chance'
+            type='number'
+            value='{{row.chance}}'
+            min='0'
+            max='100'
+            step='1'
+            {{#unless @root.editable}}disabled{{/unless}}
+          />
+        </div>
+        <div class='item-controls'>
+          {{#if @root.editable}}
+            <a
+              class='item-control item-delete'
+              data-action='removeLoot'
+              data-tooltip='{{localize "CARL_RPG.Loot.RemoveReward"}}'
+            >
+              <i class='fas fa-trash'></i>
+            </a>
+          {{/if}}
+        </div>
+      </li>
+    {{/each}}
+  </ol>
+  {{#if @root.editable}}
+    <div class='drop-target drop-box' data-accept='mobLoot'>
+      <i class='fas fa-plus'></i> {{localize 'CARL_RPG.Loot.DropLoot'}}
+    </div>
+  {{/if}}
+  {{#if system.loot.looted}}
+    <p class='hint'>{{localize 'CARL_RPG.Loot.Looted'}}</p>
+  {{/if}}
+</section>

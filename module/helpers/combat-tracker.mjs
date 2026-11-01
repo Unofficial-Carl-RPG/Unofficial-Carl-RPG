@@ -1,4 +1,5 @@
 import { CarlRPGCombat, refillCombatActions } from '../documents/combat.mjs';
+import { addDefeatedLoot } from './mob-loot.mjs';
 import {
   declarationsOf,
   declareMove,
@@ -66,6 +67,7 @@ export function registerCombatTracker() {
       banner.append(refill);
     }
 
+    addDefeatedLoot(element);
     renameNextButton(element);
   });
 

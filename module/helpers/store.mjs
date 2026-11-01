@@ -245,7 +245,7 @@ export async function performPurchase(store, index, buyer) {
  * Put one of the item on a crawler's sheet. A stackable item bought again adds
  * to the one already there (matched by where it was listed).
  */
-async function grantStoreItem(buyer, resolved) {
+export async function grantStoreItem(buyer, resolved) {
   if (STACKABLE.includes(resolved.type)) {
     const existing = buyer.items.find(
       (i) => i.type === resolved.type && i.getFlag(NS, 'storeSource') === resolved.key

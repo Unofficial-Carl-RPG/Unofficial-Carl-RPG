@@ -1,3 +1,4 @@
+import { hasLoot, pickCrawlerAndLoot } from '../helpers/mob-loot.mjs';
 import { openLootBox } from '../helpers/loot.mjs';
 import { levelUp, spendPoints, canLevelUp } from '../helpers/level-up.mjs';
 import { chooseOrigin, raceOf, classOf } from '../helpers/origins.mjs';
@@ -81,6 +82,8 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       onEditImage: editOnly(this._onEditImage),
       clearReward: editOnly(this._clearReward),
       giveReward: this._giveReward,
+    lootMob: this._lootMob,
+    removeLoot: this._removeLoot,
       viewDoc: this._viewDoc,
       createDoc: editOnly(this._createDoc),
       deleteDoc: editOnly(this._deleteDoc),
@@ -169,6 +172,10 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       template: 'systems/carl-rpg/templates/actor/mob-abilities.hbs',
       scrollable: [""],
     },
+    loot: {
+      template: 'systems/carl-rpg/templates/actor/mob-loot.hbs',
+      scrollable: [""],
+    },
     hotlist: {
       template: 'systems/carl-rpg/templates/actor/hotlist.hbs',
       scrollable: [""],
@@ -203,7 +210,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
         options.parts.push('abilities', 'hotlist', 'features', 'spells', 'gear', 'inventory', 'achievements', 'effects', 'personal');
         break;
       case 'mob':
-        options.parts.push('abilities', 'mobAbilities', 'effects');
+        options.parts.push('abilities', 'mobAbilities', 'loot', 'effects');
         break;
       case 'mount':
         options.parts.push('mount');
@@ -249,6 +256,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
     this._itemDescriptions = await this._describeItems();
 
     // Offloading context prep to a helper function
+    await this._prepareLootRows(context);
     this._prepareItems(context);
 
     // The crawler's hotlist: one box per slot (`hotlist.size`), each showing the
@@ -493,6 +501,12 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       // The reward box shows as set or empty; its name is looked up when it is given.
       context.hasReward = !!this.actor.system.rewardBox;
       context.canGiveReward = game.user.isGM && context.hasReward && this.actor.statuses.has('dead');
+    context.canLoot =
+      game.user.isGM &&
+      this.actor.type === 'mob' &&
+      this.actor.statuses.has('dead') &&
+      hasLoot(this.actor) &&
+      !this.actor.system.loot.looted;
       // Level, Actions and Size, plus Crawler kills for crawler mobs in edit mode.
       const killsBox = this.actor.system.mobType === 'crawler' && this.editMode;
       context.resourceGrid = killsBox ? 'grid-4col' : 'grid-3col';
@@ -546,6 +560,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       case 'inventory':
       case 'achievements':
       case 'mobAbilities':
+      case 'loot':
       case 'hotlist':
       case 'personal':
       case 'mount':
@@ -645,6 +660,10 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
           tab.id = 'achievements';
           tab.label += 'Achievements';
           break;
+        case 'loot':
+          tab.id = 'loot';
+          tab.label += 'Loot';
+          break;
         case 'mobAbilities':
           tab.id = 'mobAbilities';
           tab.label += 'MobAbilities';
@@ -677,6 +696,22 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
    *
    * @param {object} context The context object to mutate
    */
+  /** A mob's loot list: each item with its name and its chance. */
+  async _prepareLootRows(context) {
+    context.lootRows = await Promise.all(
+      (this.actor.system.loot?.items ?? []).map(async (entry, index) => {
+        const doc = entry.uuid ? await fromUuid(entry.uuid) : null;
+        return {
+          index,
+          chance: entry.chance,
+          name: doc?.name ?? entry.uuid,
+          img: doc?.img ?? 'icons/svg/mystery-man.svg',
+          missing: !doc,
+        };
+      })
+    );
+  }
+
   _prepareItems(context) {
     // Initialize containers.
     // You can just use `this.document.itemTypes` instead
@@ -923,6 +958,9 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       );
     }
     // Hotlist slot dropdowns save the picked item (they have no form name).
+    for (const input of this.element.querySelectorAll('.loot-chance')) {
+      input.addEventListener('change', () => this._saveLootChances());
+    }
     for (const select of this.element.querySelectorAll('.hotlist-select')) {
       select.addEventListener('change', (event) => this.#onHotlistChange(event));
     }
@@ -1290,6 +1328,31 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
    * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
    * @protected
    */
+  /** GM: loot this defeated mob, giving its loot to the crawler picked. */
+  static async _lootMob() {
+    await pickCrawlerAndLoot(this.actor);
+  }
+
+  /** GM: take one item off the mob's loot list. */
+  static async _removeLoot(event, target) {
+    const index = Number(target.closest('.loot-row').dataset.index);
+    const items = this.actor.toObject().system.loot.items;
+    items.splice(index, 1);
+    await this.actor.update({ 'system.loot.items': items });
+  }
+
+  /** Save the chances of the loot rows (they have no form names). */
+  async _saveLootChances() {
+    const items = this.actor.toObject().system.loot.items;
+    for (const row of this.element.querySelectorAll('.loot-row')) {
+      const entry = items[Number(row.dataset.index)];
+      if (!entry) continue;
+      const value = Math.floor(Number(row.querySelector('.loot-chance').value)) || 0;
+      entry.chance = Math.min(100, Math.max(0, value));
+    }
+    await this.actor.update({ 'system.loot.items': items });
+  }
+
   /** GM: take the mob's reward box off it. */
   static async _clearReward() {
     await this.actor.update({ 'system.rewardBox': '' });
@@ -1552,6 +1615,15 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
         const list = system.upgrades[ui_].grants;
         if (!list.includes(dropped.uuid)) list.push(dropped.uuid);
       });
+      return;
+    }
+    if (zone.dataset.accept === 'mobLoot') {
+      const dropped = data.type === 'Item' && data.uuid ? await fromUuid(data.uuid) : null;
+      if (!dropped || dropped.documentName !== 'Item') return;
+      const items = this.actor.toObject().system.loot.items;
+      if (items.some((entry) => entry.uuid === dropped.uuid)) return;
+      items.push({ uuid: dropped.uuid, chance: 100 });
+      await this.actor.update({ 'system.loot.items': items });
       return;
     }
     if (zone.dataset.accept === 'lootBox') {

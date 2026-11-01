@@ -36,6 +36,7 @@ import { registerAttacks } from './helpers/attacks.mjs';
 import { registerPetUpgrades } from './helpers/pet-upgrades.mjs';
 import { registerRelay } from './helpers/relay.mjs';
 import { registerStores } from './helpers/store.mjs';
+import { registerMobLoot } from './helpers/mob-loot.mjs';
 // Import DataModel classes
 import * as models from './data/_module.mjs';
 
@@ -108,6 +109,7 @@ Hooks.once('init', function () {
   // Automatic changes an Observer's roll makes, done by the GM's client.
   registerRelay();
   registerStores();
+  registerMobLoot();
 
   // Character creation defaults: stored as a setting, edited in a dialog opened
   // from a button in the system settings.

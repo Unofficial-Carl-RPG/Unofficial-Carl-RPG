@@ -26,6 +26,28 @@ export default class CarlRPGMob extends CarlRPGActorBase {
       initial: 'basic',
     });
 
+    // Loot the GM gives the crawler who loots this mob (see helpers/mob-loot.mjs):
+    // a junk and a gold amount (numbers or dice; blank for none), items with a
+    // chance each, and whether the mob has been looted.
+    schema.loot = new fields.SchemaField({
+      junk: new fields.StringField({ required: true, blank: true, initial: '' }),
+      gold: new fields.StringField({ required: true, blank: true, initial: '' }),
+      items: new fields.ArrayField(
+        new fields.SchemaField({
+          uuid: new fields.StringField({ required: true, blank: true, initial: '' }),
+          chance: new fields.NumberField({
+            required: true,
+            nullable: false,
+            integer: true,
+            min: 0,
+            max: 100,
+            initial: 100,
+          }),
+        })
+      ),
+      looted: new fields.BooleanField({ initial: false }),
+    });
+
     // Crawler Killer skulls, for crawler mobs: how many other crawlers this mob
     // has killed (shown as skulls beside its name).
     schema.crawlerKills = new fields.NumberField({
