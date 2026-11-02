@@ -83,29 +83,45 @@ export async function giveMobLoot(mob, crawler) {
   return result;
 }
 
-/** GM: ask which crawler gets the mob's loot, then give it. */
-export async function pickCrawlerAndLoot(mob) {
-  if (!game.user.isGM) return;
-  const crawlers = game.actors.filter((a) => a.type === 'crawler');
-  if (!crawlers.length) {
-    ui.notifications.warn(game.i18n.localize('CARL_RPG.Item.Store.NoCrawlers'));
-    return;
-  }
-  const choices = crawlers
-    .map((a) => `<option value="${a.id}">${foundry.utils.escapeHTML(a.name)}</option>`)
-    .join('');
-  const id = await CarlRPGDialog.prompt({
-    window: { title: 'CARL_RPG.Loot.LootMob' },
-    content: `<div class="form-group"><label>${game.i18n.localize(
-      'CARL_RPG.Loot.PickCrawler'
-    )}</label><select name="crawler">${choices}</select></div>`,
-    ok: {
-      label: 'CARL_RPG.Loot.LootMob',
-      callback: (event, button) => button.form.elements.crawler.value,
+/**
+ * GM: roll a mob's loot into a new loot pile and link the mob's tokens to it. Gold
+ * and junk go in, and so does each item: items at 100% chance always, the others
+ * when their chance comes up. The mob keeps its image on the token.
+ */
+export async function makeMobPile(mob) {
+  if (!game.user.isGM) return null;
+  const result = await rollMobLoot(mob);
+  const counts = new Map();
+  for (const doc of result.items) counts.set(doc.uuid, (counts.get(doc.uuid) ?? 0) + 1);
+  const pile = await Actor.create({
+    name: game.i18n.format('CARL_RPG.Combat.PileName', { mob: mob.name }),
+    type: 'lootPile',
+    img: mob.img,
+    system: {
+      source: mob.uuid,
+      gold: result.gold,
+      junk: result.junk,
+      items: [...counts].map(([uuid, quantity]) => ({ uuid, quantity })),
     },
   });
-  const crawler = id ? game.actors.get(id) : null;
-  if (crawler) await giveMobLoot(mob, crawler);
+  // Every token of this mob now links to the pile.
+  for (const scene of game.scenes) {
+    for (const token of scene.tokens.filter((t) => t.actorId === mob.id)) {
+      await token.update({ actorId: pile.id, actorLink: true });
+    }
+  }
+  await mob.update({ 'system.loot.looted': true });
+  await ChatMessage.create({
+    content: `<div class="carl-loot-card">${game.i18n.format('CARL_RPG.Combat.PileCreated', {
+      mob: Handlebars.escapeExpression(mob.name),
+    })}</div>`,
+  });
+  return pile;
+}
+
+/** GM: the Loot button (kept under its old name for the existing callers). */
+export async function pickCrawlerAndLoot(mob) {
+  return makeMobPile(mob);
 }
 
 /**

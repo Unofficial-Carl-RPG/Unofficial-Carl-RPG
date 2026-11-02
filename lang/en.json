@@ -295,6 +295,8 @@
       "PileShare": "Share",
       "PileTakeAll": "Take all",
       "PileClaim": "Claim",
+      "PileName": "{mob} loot",
+      "PileCreated": "The loot from {mob} is in a pile on its token.",
       "HoldCardsHint": "With Dice So Nice, a roll's card appears after its dice finish.",
       "RefillDone": "Every combatant's actions were refilled.",
       "CleanupNote": "Remaining effects resolve and action counts reset.",
