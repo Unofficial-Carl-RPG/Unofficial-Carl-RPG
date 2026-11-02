@@ -236,6 +236,17 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
 
   /* -------------------------------------------- */
 
+  /**
+   * An item on a crawler or mob follows its actor: only the actor's Owner can change
+   * it. An Observer can roll it from the actor's sheet, but not edit it.
+   * @override
+   */
+  get isEditable() {
+    if (!super.isEditable) return false;
+    const actor = this.item.parent;
+    return !actor || actor.isOwner;
+  }
+
   /** @override */
   async _prepareContext(options) {
     const context = {
