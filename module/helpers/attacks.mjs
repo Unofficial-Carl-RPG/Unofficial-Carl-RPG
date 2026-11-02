@@ -320,7 +320,8 @@ async function resolveMobCheck(item) {
   const type = checkKind(targetKey);
   const damaging = hasDamage(item);
   const owner = item.actor;
-  const floor = getFloor();
+  // A mob pinned to its own Floor uses that for its numbers (see the mob data model).
+  const floor = owner?.type === 'mob' ? owner.system.floor : getFloor();
   const number = (item.system.check?.number ?? 0) + floor;
 
   let damageRoll = null;

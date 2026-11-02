@@ -337,6 +337,19 @@
         </div>
       {{/if}}{{/if}}{{/if}}
 
+      {{! GM only: pin this mob's own Floor (for its Evade, DR, check and attack numbers) }}
+      {{#if (eq actor.type 'mob')}}{{#if isGM}}
+        <div class='resource flex-group-center'>
+          <label class='resource-label' data-tooltip='{{localize "CARL_RPG.Actor.Mob.Header.PinFloorHint"}}'>
+            <input type='checkbox' name='system.floorPinned' {{#if system.floorPinned}}checked{{/if}} />
+            {{localize 'CARL_RPG.Actor.Mob.Header.PinFloor'}}
+          </label>
+          <div class='resource-content flexrow flex-center flex-between'>
+            <input type='text' name='system.floorPin' value='{{floorPinValue}}' data-dtype='Number' />
+          </div>
+        </div>
+      {{/if}}{{/if}}
+
       {{! Size is shared by crawlers and mobs }}
       <div class='resource flex-group-center'>
         <label for='system.size' class='resource-label'>

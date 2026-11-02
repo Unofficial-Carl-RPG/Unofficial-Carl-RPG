@@ -529,7 +529,10 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       !this.actor.system.loot.looted;
       // Level, Actions and Size, plus Crawler kills for crawler mobs in edit mode.
       const killsBox = this.actor.system.mobType === 'crawler' && this.editMode;
-      context.resourceGrid = killsBox ? 'grid-4col' : 'grid-3col';
+      const columns = 3 + (killsBox ? 1 : 0) + (game.user.isGM ? 1 : 0);
+      context.resourceGrid = `grid-${columns}col`;
+      // The pin box starts at the current floor until the GM sets a number.
+      context.floorPinValue = this.actor.system.floorPin ?? CONFIG.CARL_RPG.getFloor();
     }
     // Crawler Killer skulls shown beside the name (crawlers and crawler mobs).
     context.skulls = killSkulls(this.actor);

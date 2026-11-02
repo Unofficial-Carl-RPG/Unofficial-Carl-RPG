@@ -26,6 +26,17 @@ export default class CarlRPGMob extends CarlRPGActorBase {
       initial: 'basic',
     });
 
+    // The GM can pin a mob's own Floor (for its Evade, DR, check and attack numbers)
+    // instead of the current floor. The box starts at the current floor.
+    schema.floorPinned = new fields.BooleanField({ initial: false });
+    schema.floorPin = new fields.NumberField({
+      required: false,
+      nullable: true,
+      integer: true,
+      min: 0,
+      initial: null,
+    });
+
     // Loot the GM gives the crawler who loots this mob (see helpers/mob-loot.mjs):
     // a junk and a gold amount (numbers or dice; blank for none), items with a
     // chance each, and whether the mob has been looted.
@@ -88,8 +99,11 @@ export default class CarlRPGMob extends CarlRPGActorBase {
 
   prepareDerivedData() {
 
-    // The floor is global (set by the GM in the sidebar), not stored per actor.
-    this.floor = CONFIG.CARL_RPG.getFloor();
+    // The floor is global (set by the GM in the sidebar) unless the GM pinned this mob's own.
+    this.floor =
+      this.floorPinned && this.floorPin !== null
+        ? this.floorPin
+        : CONFIG.CARL_RPG.getFloor();
 
     for (const key in this.abilities) {
       // Active effects add to the flat value through `bonuses`.
