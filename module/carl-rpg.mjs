@@ -121,7 +121,6 @@ Hooks.once('init', function () {
   registerSounds();
   registerLootPileDrop();
   registerMacros();
-  registerValidateMenu();
   // Attack cards: hit or miss against each target's Evade, and Apply Damage.
   registerAttacks();
   // The skills and spells a pet's upgrades give it.
@@ -217,6 +216,8 @@ Hooks.once('init', function () {
   CONFIG.Combat.documentClass = CarlRPGCombat;
   CONFIG.Combatant.documentClass = CarlRPGCombatant;
   registerCombatTracker();
+  // Last, so the Validate menu comes at the end of the system settings.
+  registerValidateMenu();
 
   // Define custom Document and DataModel classes
   CONFIG.Actor.documentClass = CarlRPGActor;
