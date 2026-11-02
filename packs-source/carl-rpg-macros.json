@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Rest (Short)",
+    "type": "script",
+    "img": "icons/svg/aura.svg",
+    "command": "game.carlRpg.macros.rest('short');",
+    "flags": {}
+  },
+  {
+    "name": "Rest (Long)",
+    "type": "script",
+    "img": "icons/svg/aura.svg",
+    "command": "game.carlRpg.macros.rest('long');",
+    "flags": {}
+  },
+  {
+    "name": "Rest (Full)",
+    "type": "script",
+    "img": "icons/svg/aura.svg",
+    "command": "game.carlRpg.macros.rest('full');",
+    "flags": {}
+  },
+  {
+    "name": "Level Up",
+    "type": "script",
+    "img": "icons/svg/aura.svg",
+    "command": "game.carlRpg.macros.levelUp();",
+    "flags": {}
+  },
+  {
+    "name": "Advance a Skill",
+    "type": "script",
+    "img": "icons/svg/aura.svg",
+    "command": "game.carlRpg.macros.advance();",
+    "flags": {}
+  }
+]
