@@ -74,3 +74,26 @@ export async function onValidateClick() {
     rejectClose: false,
   });
 }
+
+/**
+ * A system settings menu that runs the check. It has no window of its own: opening it
+ * runs the check and shows the result.
+ */
+class CarlRPGValidateMenu extends foundry.applications.api.ApplicationV2 {
+  async render() {
+    await onValidateClick();
+    return this;
+  }
+}
+
+/** Register the Validate World Items button in the system settings (GM only). */
+export function registerValidateMenu() {
+  game.settings.registerMenu('carl-rpg', 'validateWorld', {
+    name: 'CARL_RPG.Combat.ValidateWorldItems',
+    label: 'CARL_RPG.Combat.ValidateWorldItems',
+    hint: 'CARL_RPG.Combat.ValidateSetting',
+    icon: 'fas fa-check',
+    type: CarlRPGValidateMenu,
+    restricted: true,
+  });
+}

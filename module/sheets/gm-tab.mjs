@@ -49,8 +49,6 @@ const { AbstractSidebarTab } = foundry.applications.sidebar;
  * floor, the party's name and the boss battle announcement. Right-click its
  * tab icon to pop it out into its own window.
  */
-import { onValidateClick } from '../helpers/validate.mjs';
-
 export class CarlRPGGMTab extends HandlebarsApplicationMixin(
   AbstractSidebarTab
 ) {
@@ -75,7 +73,6 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
       toggleBossJoin: CarlRPGGMTab._onToggleBossJoin,
       rest: CarlRPGGMTab._onRest,
       awardAchievement: CarlRPGGMTab._onAwardAchievement,
-      validateWorld: onValidateClick,
       awardFavor: CarlRPGGMTab._onAwardFavor,
       approveEvents: CarlRPGGMTab._onApproveEvents,
       approveAllEvents: CarlRPGGMTab._onApproveAllEvents,
