@@ -19,6 +19,12 @@ export class CarlRPGActor extends Actor {
     if (this.type === 'crawler' && foundry.utils.isEmpty(data.system ?? {})) {
       this.updateSource({ 'flags.carl-rpg.creationPending': true });
     }
+    // A new mob's token shows its health bar to everyone (fill only; no numbers are drawn).
+    if (this.type === 'mob' && foundry.utils.isEmpty(data.prototypeToken ?? {})) {
+      this.updateSource({
+        'prototypeToken.displayBars': CONST.TOKEN_DISPLAY_MODES.ALWAYS,
+      });
+    }
     // A new pet's token is linked to it and friendly, like a player's.
     if (this.type === 'pet' && foundry.utils.isEmpty(data.prototypeToken ?? {})) {
       this.updateSource({
