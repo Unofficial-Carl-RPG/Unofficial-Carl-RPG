@@ -79,7 +79,10 @@ export async function attemptAdvance(item) {
   const roll = await new Roll('1d20').evaluate();
   const success = roll.total > rank;
   const update = {};
-  if (success) update['system.rank'] = rank + 1;
+  if (success) {
+    update['system.rank'] = rank + 1;
+    update[`flags.${NS}.raised`] = true;
+  }
   // A rank 5+ skill has used up its try for this floor, win or lose.
   if (atFloorEnd) update[`flags.${NS}.advanceFloor`] = floor;
   if (Object.keys(update).length) await item.update(update);

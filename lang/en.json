@@ -415,6 +415,7 @@
         "Remove": "Remove from this item",
         "MissingLabel": "missing",
         "Missing": "A skill embedded in {item} could not be found, so it was not added.",
+        "SharedKept": "{skill} stays: another item still gives it, so {item} doesn't remove it.",
         "OnlySkills": "Only skills can be dropped here."
       },
       "Skill": {

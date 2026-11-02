@@ -88,7 +88,6 @@ export class CarlRPGItem extends Item {
     );
     if (inSlot.length < limit) {
       await this.update({ 'system.equipped': true });
-      await this.#grantRollingSkill();
       await this.syncEquipEffects();
       await runEvents(this, 'equipped');
       return true;
@@ -124,7 +123,6 @@ export class CarlRPGItem extends Item {
       { _id: choice, 'system.equipped': false },
       { _id: this.id, 'system.equipped': true },
     ]);
-    await this.#grantRollingSkill();
     await this.parent.items.get(choice)?.syncEquipEffects();
     await this.syncEquipEffects();
     await runEvents(this.parent.items.get(choice), 'unequipped');
@@ -151,6 +149,29 @@ export class CarlRPGItem extends Item {
     if (updates.length) {
       await actor.updateEmbeddedDocuments('ActiveEffect', updates);
     }
+  }
+
+  /**
+   * Gear gives its skills while it is equipped: they are granted when it goes on and
+   * taken away when it comes off. Only the user who made the change does the work.
+   * @override
+   */
+  _onUpdate(changed, options, userId) {
+    super._onUpdate(changed, options, userId);
+    if (userId !== game.user.id || this.type !== 'gear') return;
+    if (!foundry.utils.hasProperty(changed, 'system.equipped')) return;
+    (async () => {
+      try {
+        if (this.system.equipped) {
+          await this.#grantEmbeddedSkills();
+          await this.#grantRollingSkill();
+        } else {
+          await this.#revokeEmbeddedSkills();
+        }
+      } catch (err) {
+        console.error('carl-rpg | changing the skills of equipped gear failed', err);
+      }
+    })();
   }
 
   /**
@@ -555,6 +576,7 @@ export class CarlRPGItem extends Item {
     super._onDelete(options, userId);
     if (userId === game.user.id) {
       this.#releaseEffects();
+      this.#revokeEmbeddedSkills();
       runEvents(this, 'removed');
       // A removed race or class no longer shows on the crawler sheet.
       if (
@@ -647,11 +669,61 @@ export class CarlRPGItem extends Item {
     });
   }
 
+  /**
+   * Record that this item gives a skill the crawler already has. A skill with ranks
+   * is the crawler's own, so it isn't linked: it stays when this item comes off.
+   */
+  async #linkSkill(skill) {
+    if (skill.system.rank > 0) return;
+    const granted = skill.getFlag('carl-rpg', 'grantedBy') ?? [];
+    if (granted.includes(this.id)) return;
+    await skill.setFlag('carl-rpg', 'grantedBy', [...granted, this.id]);
+  }
+
+  /**
+   * Take away the skills this item gave the crawler when it comes off or is deleted.
+   * A skill stays if the crawler raised it, or if another item still gives it (the
+   * owner and the GM are whispered when that happens).
+   */
+  async #revokeEmbeddedSkills() {
+    const actor = this.parent;
+    if (!(actor instanceof Actor)) return;
+    const givesNow = (id) => {
+      const other = actor.items.get(id);
+      return !!other && (other.type !== 'gear' || other.system.equipped);
+    };
+    const remove = [];
+    for (const skill of actor.itemTypes.skill) {
+      const granted = skill.getFlag('carl-rpg', 'grantedBy') ?? [];
+      if (!granted.includes(this.id)) continue;
+      const givers = granted.filter((id) => id !== this.id && givesNow(id));
+      if (givers.length) {
+        await skill.setFlag('carl-rpg', 'grantedBy', givers);
+        await ChatMessage.create({
+          whisper: game.users
+            .filter((u) => u.isGM || actor.testUserPermission(u, 'OWNER'))
+            .map((u) => u.id),
+          content: game.i18n.format('CARL_RPG.Item.EmbeddedSkill.SharedKept', {
+            skill: Handlebars.escapeExpression(skill.name),
+            item: Handlebars.escapeExpression(this.name),
+          }),
+        });
+      } else if (skill.getFlag('carl-rpg', 'raised')) {
+        await skill.setFlag('carl-rpg', 'grantedBy', []);
+      } else {
+        remove.push(skill.id);
+      }
+    }
+    if (remove.length) await actor.deleteEmbeddedDocuments('Item', remove);
+  }
+
   async #grantEmbeddedSkills() {
     const actor = this.parent;
     const uuids = this.system?.skills ?? [];
     if (!(actor instanceof Actor) || !uuids.length) return;
     if (!['gear', 'item'].includes(this.type)) return;
+    // Gear gives its skills only while it is equipped (see _onUpdate).
+    if (this.type === 'gear' && !this.system.equipped) return;
 
     const toCreate = [];
     for (const uuid of uuids) {
@@ -672,7 +744,11 @@ export class CarlRPGItem extends Item {
         identifier
           ? s.system.identifier?.trim() === identifier
           : s.name === skill.name;
-      if (actor.itemTypes.skill.some(matches)) continue;
+      const existing = actor.itemTypes.skill.find(matches);
+      if (existing) {
+        await this.#linkSkill(existing);
+        continue;
+      }
       if (toCreate.some((data) => matches({ name: data.name, system: data.system }))) {
         continue;
       }
@@ -681,6 +757,7 @@ export class CarlRPGItem extends Item {
       // not part of the skill template.
       const skillData = game.items.fromCompendium(skill);
       foundry.utils.setProperty(skillData, 'system.rank', 0);
+      foundry.utils.setProperty(skillData, 'flags.carl-rpg.grantedBy', [this.id]);
       toCreate.push(skillData);
     }
 

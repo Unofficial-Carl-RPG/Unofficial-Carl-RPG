@@ -482,7 +482,7 @@ const HANDLERS = {
     if (existing) {
       rank = Math.min(cap, existing.system.rank + ranks);
       if (rank === existing.system.rank) return;
-      await existing.update({ 'system.rank': rank });
+      await existing.update({ 'system.rank': rank, 'flags.carl-rpg.raised': true });
     } else {
       rank = Math.min(cap, ranks);
       const data = game.items.fromCompendium(doc);
