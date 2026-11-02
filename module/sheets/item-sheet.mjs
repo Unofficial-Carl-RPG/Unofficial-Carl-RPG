@@ -489,7 +489,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       context.usesRechargeOptions = cfg.usesRecharge;
       const system = this.item.system;
       // Tags known to the world, to suggest when typing a "class has tag" rule.
-      context.classTagNames = knownTags('class', cfg.classCategories);
+      context.classTagNames = await knownTags('class', cfg.classCategories);
       // Regular tags (the Tags tab, used by skills).
       context.regularTags = system.tags ?? [];
       context.requirementRows = (system.requirements ?? []).map((req, index) => ({

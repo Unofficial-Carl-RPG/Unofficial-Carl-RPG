@@ -11,6 +11,8 @@
  * tags too: anything that asks whether an item has a tag matches its categories
  * as well.
  */
+import { purposeTypes, sourceItems } from './sources.mjs';
+
 const NS = 'carl-rpg';
 
 /** The form of a tag used for comparing. */
@@ -57,10 +59,16 @@ export const withoutTag = (tags, tag) =>
  * @param {string} type        An item type ("class")
  * @param {string[]} suggested The suggested tags for that type
  */
-export function knownTags(type, suggested = []) {
+export async function knownTags(type, suggested = []) {
   const found = new Map();
   for (const tag of suggested) found.set(tagKey(tag), tag);
-  for (const item of game.items) {
+  // The items of the list this type belongs to: the world's and the chosen
+  // compendiums' (a player gets them through the GM's client, see sources.mjs).
+  const purpose = Object.keys(CONFIG.CARL_RPG.compendiumPurposes).find((key) =>
+    purposeTypes(key).includes(type)
+  );
+  const items = purpose ? await sourceItems(purpose) : game.items.contents;
+  for (const item of items) {
     if (item.type !== type) continue;
     for (const tag of itemTags(item)) {
       if (!found.has(tagKey(tag))) found.set(tagKey(tag), tag);
