@@ -6,6 +6,7 @@ import {
   buildEventRows,
   eventOptions as buildEventOptions,
   EVENT_EDITOR_ACTIONS,
+  addLibraryPageToEvents,
 } from '../helpers/event-editor.mjs';
 import {
   changeProblem,
@@ -28,6 +29,8 @@ const DragDrop = foundry.applications.ux.DragDrop;
  * Extend the basic ItemSheet with some very simple modifications
  * @extends {ItemSheetV2}
  */
+import { listTemplates } from '../helpers/event-library.mjs';
+
 export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
   sheets.ItemSheetV2
 ) {
@@ -269,6 +272,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       // Necessary for formInput and formFields helpers
       fields: this.document.schema.fields,
       systemFields: this.document.system.schema.fields,
+      libraryTemplates: listTemplates(),
     };
 
     // Quests: the names of the reward loot box and achievement (drop boxes show them).
@@ -1630,6 +1634,12 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
     const item = this.item;
     const allowed = Hooks.call('dropItemSheetData', item, this, data);
     if (allowed === false) return;
+
+    // A library template dropped on the Events tab is added as a copy of its event.
+    if (data.type === 'JournalEntryPage' && event.target.closest('section.events')) {
+      event.preventDefault();
+      return addLibraryPageToEvents(this, data.uuid);
+    }
 
     // A drop box on the Events tab (item, macro, effect or actor).
     const zone = event.target.closest('.drop-target');

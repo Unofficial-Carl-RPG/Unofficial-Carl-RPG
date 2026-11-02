@@ -364,7 +364,7 @@ async function duplicateEvent(event, target) {
   });
 }
 
-import { saveLibraryEvent } from './event-library.mjs';
+import { listTemplates, saveLibraryEvent } from './event-library.mjs';
 
 /** Save this event to the event library (anyone who can edit the item; a player through the GM). */
 async function saveToLibrary(event, target) {
@@ -372,6 +372,23 @@ async function saveToLibrary(event, target) {
   const copy = foundry.utils.deepClone(eventList(this.item.system, target)[ei]);
   if (!copy) return;
   await saveLibraryEvent(this.item, copy.name, copy);
+}
+
+/** Add a copy of a library template to this item's events (a menu pick or a drop). */
+export async function addLibraryPageToEvents(sheet, uuid) {
+  const page = await fromUuid(uuid);
+  if (!page || !listTemplates().some((t) => t.id === page.id)) return false;
+  const template = page.getFlag('carl-rpg', 'libraryEvent');
+  await sheet._updateEvents((system) => {
+    const copy = foundry.utils.deepClone(template);
+    copy.id = foundry.utils.randomID();
+    eventList(system, { dataset: { list: 'events' } }).push(copy);
+  });
+  return true;
+}
+
+async function addFromLibrary(event, target) {
+  await addLibraryPageToEvents(this, target.dataset.page);
 }
 
 /** Try an event out (GM only): carry out its actions now, whatever its trigger and conditions. */
@@ -453,6 +470,7 @@ export const EVENT_EDITOR_ACTIONS = {
   addEventTemplate,
   duplicateEvent,
   saveToLibrary,
+  addFromLibrary,
   runNow,
   removeEvent,
   moveEvent,

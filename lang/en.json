@@ -313,6 +313,7 @@
       "LibrarySaved": "Saved to the event library.",
       "LibrarySent": "Sent to the GM to save in the event library.",
       "LibraryNone": "Pick an event library journal in the system settings first.",
+      "LibraryTitle": "From the event library",
       "ValidateTitle": "Validation",
       "ValidateNone": "No broken links found.",
       "ValidateClose": "Close",

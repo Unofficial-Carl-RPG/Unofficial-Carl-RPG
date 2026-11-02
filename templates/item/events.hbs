@@ -49,4 +49,13 @@
   {{/if}}
 
   {{> "systems/carl-rpg/templates/item/event-cards.hbs" rows=eventRows list='events'}}
+
+  {{#if libraryTemplates.length}}
+    <h3>{{localize 'CARL_RPG.Combat.LibraryTitle'}}</h3>
+    <div class='library-list'>
+      {{#each libraryTemplates as |tpl|}}
+        <a class='event-add' data-action='addFromLibrary' data-page='{{tpl.id}}'><i class='fas fa-book'></i> {{tpl.name}}</a>
+      {{/each}}
+    </div>
+  {{/if}}
 </section>
