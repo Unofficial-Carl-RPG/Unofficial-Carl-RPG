@@ -5,6 +5,12 @@
   </header>
 
   {{#if isGM}}
+  <div class='gm-validate'>
+    <button type='button' data-action='validateWorld'><i class='fas fa-check'></i> {{localize 'CARL_RPG.Combat.ValidateButton'}}</button>
+  </div>
+  {{/if}}
+
+  {{#if isGM}}
   <section class='gm-section'>
     <h4>{{localize 'CARL_RPG.GMTab.Floor'}}</h4>
     <div class='floor-control'>
