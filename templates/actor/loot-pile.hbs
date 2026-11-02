@@ -1,0 +1,31 @@
+{{! Loot pile: the gold, junk and items a mob gave up. Crawlers take them from here. }}
+<section class='loot-pile'>
+  {{#if openers.length}}
+    <label class='resource-label'>{{localize 'CARL_RPG.Combat.PileOpener'}}
+      <select class='pile-opener'>
+        {{#each openers as |o|}}<option value='{{o.id}}'>{{o.name}}</option>{{/each}}
+      </select>
+    </label>
+  {{else}}
+    <p class='hint'>{{localize 'CARL_RPG.Combat.PileNoCrawler'}}</p>
+  {{/if}}
+
+  {{#if empty}}
+    <p class='hint'>{{localize 'CARL_RPG.Combat.PileEmpty'}}</p>
+  {{else}}
+    <div class='pile-gold'>
+      <span>{{localize 'CARL_RPG.Combat.PileGold'}}: {{gold}}, {{localize 'CARL_RPG.Combat.PileJunk'}}: {{junk}}</span>
+      <button type='button' data-action='takeGold' data-mode='share'>{{localize 'CARL_RPG.Combat.PileShare'}}</button>
+      <button type='button' data-action='takeGold' data-mode='all'>{{localize 'CARL_RPG.Combat.PileTakeAll'}}</button>
+    </div>
+    <ol class='pile-items'>
+      {{#each items as |item|}}
+        <li>
+          <img src='{{item.img}}' height='24' width='24' />
+          {{item.name}}{{#if item.quantity}} x{{item.quantity}}{{/if}}
+          <button type='button' data-action='claimItem' data-index='{{item.index}}'>{{localize 'CARL_RPG.Combat.PileClaim'}}</button>
+        </li>
+      {{/each}}
+    </ol>
+  {{/if}}
+</section>

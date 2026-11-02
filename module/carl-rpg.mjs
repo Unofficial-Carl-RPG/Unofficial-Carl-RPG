@@ -6,6 +6,7 @@ import { CarlRPGCombatant } from './documents/combatant.mjs';
 import { CarlRPGActiveEffect } from './documents/active-effect.mjs';
 // Import sheet classes.
 import { CarlRPGActorSheet } from './sheets/actor-sheet.mjs';
+import { CarlRPGLootPileSheet } from './sheets/loot-pile-sheet.mjs';
 import { CarlRPGItemSheet } from './sheets/item-sheet.mjs';
 import CarlRPGEffectSheet from './sheets/effect-sheet.mjs';
 // Import helper/utility classes and constants.
@@ -272,6 +273,11 @@ Hooks.once('init', function () {
   collections.Actors.registerSheet('carl-rpg', CarlRPGActorSheet, {
     makeDefault: true,
     label: 'CARL_RPG.SheetLabels.Actor',
+  });
+  collections.Actors.registerSheet('carl-rpg', CarlRPGLootPileSheet, {
+    types: ['lootPile'],
+    makeDefault: true,
+    label: 'CARL_RPG.Combat.PileTitle',
   });
   collections.Items.unregisterSheet('core', sheets.ItemSheet);
   collections.Items.registerSheet('carl-rpg', CarlRPGItemSheet, {
