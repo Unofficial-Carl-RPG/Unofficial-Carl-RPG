@@ -32,6 +32,7 @@ import { installFromUuid, registerGMDocs } from './helpers/gm-docs.mjs';
 import { CarlRPGCreationWizard } from './sheets/creation-wizard.mjs';
 import { CarlRPGToken } from './canvas/token.mjs';
 import { registerCrawlerNumber } from './helpers/crawler-number.mjs';
+import { registerRecap } from './helpers/recap.mjs';
 import { registerAttacks } from './helpers/attacks.mjs';
 import { registerPetUpgrades } from './helpers/pet-upgrades.mjs';
 import { registerRelay } from './helpers/relay.mjs';
@@ -109,6 +110,7 @@ Hooks.once('init', function () {
   // A crawler's number shows under its name on its token and on chat cards.
   CONFIG.Token.objectClass = CarlRPGToken;
   registerCrawlerNumber();
+  registerRecap();
   // Attack cards: hit or miss against each target's Evade, and Apply Damage.
   registerAttacks();
   // The skills and spells a pet's upgrades give it.

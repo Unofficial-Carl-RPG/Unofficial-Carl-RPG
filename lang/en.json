@@ -270,6 +270,11 @@
       "BossStars": "Boss kill stars",
       "NoCrawlersStar": "No crawlers are in this combat to give a star to.",
       "StarGiven": "{boss} is defeated: every crawler in the battle gains a boss kill star.",
+      "RecapSetting": "Recap Log journal ID",
+      "RecapSettingHint": "The journal natural 1s and 20s are written to. Leave blank to make a Recap Log.",
+      "RecapFloor": "Floor {floor}",
+      "RecapNatural20": "natural 20",
+      "RecapNatural1": "natural 1",
       "RefillDone": "Every combatant's actions were refilled.",
       "CleanupNote": "Remaining effects resolve and action counts reset.",
       "Phases": {

@@ -99,6 +99,7 @@ export async function attemptAdvance(item) {
     speaker: ChatMessage.getSpeaker({ actor }),
     flavor: `${intro}<br><strong>${outcome}</strong>`,
     rollMode: game.settings.get('core', 'rollMode'),
+    flags: { [NS]: { advance: true } },
   });
   // A rank gained runs the skill's "its rank goes up" events.
   if (success) await runEvents(item, 'advanced', { rank: rank + 1 });
