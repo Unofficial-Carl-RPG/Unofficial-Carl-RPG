@@ -303,6 +303,8 @@
       "MacroNoAdvanceable": "This crawler has no skills that can advance.",
       "MacroAdvanceTitle": "Advance a skill",
       "MacroPickSkill": "Skill",
+      "MacroRestName": "Rest: {kind}",
+      "MacroLevelUpName": "Level up",
       "HoldCardsHint": "With Dice So Nice, a roll's card appears after its dice finish.",
       "RefillDone": "Every combatant's actions were refilled.",
       "CleanupNote": "Remaining effects resolve and action counts reset.",

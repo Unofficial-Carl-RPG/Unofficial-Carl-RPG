@@ -80,9 +80,9 @@
 {{! Small rest buttons: a crawler (or pet) takes their own rests (short, long, full) }}
       {{#if (ne actor.type 'mob')}}{{#if editable}}
         <span class='rest-buttons-mini'>
-          <a data-action='rest' data-rest='short' data-tooltip='{{localize "CARL_RPG.Rest.Name.short"}}'><i class='fas fa-mug-hot'></i></a>
-          <a data-action='rest' data-rest='long' data-tooltip='{{localize "CARL_RPG.Rest.Name.long"}}'><i class='fas fa-bed'></i></a>
-          <a data-action='rest' data-rest='full' data-tooltip='{{localize "CARL_RPG.Rest.Name.full"}}'><i class='fas fa-moon'></i></a>
+          <a draggable='true' data-carl-macro='rest:short' data-action='rest' data-rest='short' data-tooltip='{{localize "CARL_RPG.Rest.Name.short"}}'><i class='fas fa-mug-hot'></i></a>
+          <a draggable='true' data-carl-macro='rest:long' data-action='rest' data-rest='long' data-tooltip='{{localize "CARL_RPG.Rest.Name.long"}}'><i class='fas fa-bed'></i></a>
+          <a draggable='true' data-carl-macro='rest:full' data-action='rest' data-rest='full' data-tooltip='{{localize "CARL_RPG.Rest.Name.full"}}'><i class='fas fa-moon'></i></a>
         </span>
       {{/if}}{{/if}}
       {{#if editable}}
@@ -257,7 +257,7 @@
           <div class='level-actions'>
             {{#if canLevelUp}}
               <a
-                class='level-up'
+                class='level-up' draggable='true' data-carl-macro='levelUp'
                 data-action='levelUp'
                 data-tooltip='{{localize "CARL_RPG.Level.UpTooltip"}}'
               ><i class='fas fa-arrow-up'></i> {{localize 'CARL_RPG.Level.Up'}}</a>

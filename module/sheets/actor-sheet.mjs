@@ -996,6 +996,14 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
     this.#disableOverrides();
     // A weapon's "rolls with" skill, picked on the crawler's own copy.
     // The GM's deity tier (0 is none), kept on the crawler's copy of the deity.
+    // Rest and Level Up buttons can be dragged to the hotbar, where they become macros.
+    for (const el of this.element.querySelectorAll('[data-carl-macro]')) {
+      el.addEventListener('dragstart', (event) => {
+        event.dataTransfer.setData('text/plain', JSON.stringify({
+          carlMacro: el.dataset.carlMacro,
+        }));
+      });
+    }
     for (const select of this.element.querySelectorAll('select.deity-tier')) {
       select.addEventListener('change', () =>
         this.actor.items.get(select.dataset.itemId)?.update({ 'system.tier': Number(select.value) })

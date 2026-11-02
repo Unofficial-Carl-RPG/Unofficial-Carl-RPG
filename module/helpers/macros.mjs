@@ -24,7 +24,35 @@ function crawlerOrWarn() {
   return actor;
 }
 
+/**
+ * Dropping a crawler's Rest or Level Up button on a hotbar slot makes a macro for it
+ * in that slot (see the drag data set on the sheet).
+ */
+function registerHotbarDrop() {
+  Hooks.on('hotbarDrop', (bar, data, slot) => {
+    if (!data?.carlMacro) return true;
+    createHotbarMacro(data.carlMacro, slot).catch((err) => {
+      console.error('carl-rpg | making a hotbar macro failed', err);
+    });
+    return false;
+  });
+}
+
+async function createHotbarMacro(key, slot) {
+  const [kind, kindOf] = key.split(':');
+  const isRest = kind === 'rest';
+  const command = isRest
+    ? `game.carlRpg.macros.rest('${kindOf}');`
+    : 'game.carlRpg.macros.levelUp();';
+  const name = isRest
+    ? game.i18n.format('CARL_RPG.Combat.MacroRestName', { kind: game.i18n.localize(`CARL_RPG.Rest.Name.${kindOf}`) })
+    : game.i18n.localize('CARL_RPG.Combat.MacroLevelUpName');
+  const macro = await Macro.create({ name, type: 'script', command, img: 'icons/svg/aura.svg' });
+  await game.user.assignHotbarMacro(macro, slot);
+}
+
 export function registerMacros() {
+  registerHotbarDrop();
   game.carlRpg ??= {};
   game.carlRpg.macros = {
     /** Take a rest ('short', 'long' or 'full'), after the usual confirmation. */
