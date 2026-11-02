@@ -38,6 +38,7 @@ import { registerDiceHold } from './helpers/dice-hold.mjs';
 import { registerSounds } from './helpers/sounds.mjs';
 import { registerLootPileDrop } from './helpers/loot-pile-drop.mjs';
 import { registerMacros } from './helpers/macros.mjs';
+import { registerEventLibrary } from './helpers/event-library.mjs';
 import { registerValidateMenu } from './helpers/validate.mjs';
 import { registerAttacks } from './helpers/attacks.mjs';
 import { registerPetUpgrades } from './helpers/pet-upgrades.mjs';
@@ -121,6 +122,7 @@ Hooks.once('init', function () {
   registerSounds();
   registerLootPileDrop();
   registerMacros();
+  registerEventLibrary();
   // Attack cards: hit or miss against each target's Evade, and Apply Damage.
   registerAttacks();
   // The skills and spells a pet's upgrades give it.
