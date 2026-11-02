@@ -7,6 +7,7 @@
     "watch": "sass src/scss/carl-rpg.scss css/carl-rpg.css --style=expanded --source-map --watch",
     "generate": "node src/generate-boilerplate-system.mjs",
     "pack": "npm run build && node src/pack.mjs",
+    "test": "node tests/run.mjs",
     "createSymlinks": "node src/create-symlinks.mjs"
   },
   "browserslist": [
