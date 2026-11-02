@@ -278,6 +278,8 @@
       "InterruptLabel": "Interrupt",
       "InterruptHint": "Counts as an interrupt when used in the React phase.",
       "InterruptUsed": "Used an interrupt this round",
+      "HoldCardsName": "Hold result cards until the dice stop",
+      "HoldCardsHint": "With Dice So Nice, a roll's card appears after its dice finish.",
       "RefillDone": "Every combatant's actions were refilled.",
       "CleanupNote": "Remaining effects resolve and action counts reset.",
       "Phases": {
