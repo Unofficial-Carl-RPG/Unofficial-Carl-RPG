@@ -83,7 +83,8 @@ nav.tabs {
 // scroll on their own if they overflow.
 .window-content:has(> .abilities-sidebar) {
   display: grid;
-  grid-template-columns: 160px minmax(0, 1fr);
+  // The sidebar narrows with the window, down to 112px.
+  grid-template-columns: clamp(112px, 24%, 160px) minmax(0, 1fr);
   // portrait row, rest of the header fields, tab bar, tab content
   grid-template-rows: 100px auto auto minmax(0, 1fr);
   column-gap: 8px;
@@ -134,6 +135,13 @@ nav.tabs {
   // Match the 10px gap used between the boxes on the identity row below.
   .document-name {
     gap: 10px;
+    min-width: 0;
+
+    // Let the boxes shrink instead of pushing the row wider than the sheet.
+    > input,
+    > select {
+      min-width: 0;
+    }
   }
 
   .identity,
