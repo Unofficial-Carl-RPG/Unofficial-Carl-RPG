@@ -26,6 +26,12 @@ export function registerRecap() {
     type: new foundry.data.fields.StringField({ required: true, blank: true, initial: '' }),
   });
 
+  // The floor is stamped on each message as it is made, so a catch-up entry still
+  // goes on the page for the floor it was rolled on.
+  Hooks.on('preCreateChatMessage', (message) => {
+    message.updateSource({ [`flags.${NS}.floor`]: getFloor() });
+  });
+
   Hooks.on('createChatMessage', (message) => {
     if (game.users.activeGM?.id === game.user.id) queueRecap(message);
   });
@@ -66,7 +72,7 @@ async function logRecap(message) {
 
   const actor = message.constructor.getSpeakerActor(message.speaker);
   const journal = await recapJournal();
-  const page = await floorPage(journal, getFloor());
+  const page = await floorPage(journal, message.getFlag(NS, 'floor') ?? getFloor());
   const what = (message.flavor ?? '').replace(/<[^>]*>/g, '').trim();
   const label = game.i18n.localize(natural === 20 ? 'CARL_RPG.Combat.RecapNatural20' : 'CARL_RPG.Combat.RecapNatural1');
   const line = `<p><strong>${esc(actor.name)}</strong>${what ? `: ${esc(what)}` : ''} (${label})</p>`;
