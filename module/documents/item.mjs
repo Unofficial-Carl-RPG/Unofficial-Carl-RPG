@@ -601,19 +601,25 @@ export class CarlRPGItem extends Item {
 
   /**
    * A crawler's deity gives the effects of every tier up to the crawler's tier (the
-   * tiers stack). The effects it gave before are taken away and the current ones
-   * are made again, so a change of tier takes effect at once.
+   * tiers stack). Effects it already gave that are still wanted stay as they are
+   * (so a switched-off effect or a timer isn't reset); the rest are taken away.
    */
   async syncDeityTiers() {
     const actor = this.parent;
     if (this.type !== 'deity' || !(actor instanceof Actor)) return;
-    const gone = actor.effects.filter((e) => e.sourceItems.includes(this.id)).map((e) => e.id);
-    if (gone.length) await actor.deleteEmbeddedDocuments('ActiveEffect', gone);
     const tier = this.system.tier ?? 0;
+    const wanted = this.effects.filter((t) => {
+      const level = t.getFlag('carl-rpg', 'tier') ?? 0;
+      return level >= 1 && level <= tier;
+    });
+    const mine = actor.effects.filter((e) => e.sourceItems.includes(this.id));
+    const gone = mine
+      .filter((e) => !wanted.some((t) => CarlRPGActiveEffect.matches(e, t)))
+      .map((e) => e.id);
+    if (gone.length) await actor.deleteEmbeddedDocuments('ActiveEffect', gone);
     const toCreate = [];
-    for (const template of this.effects) {
-      const level = template.getFlag('carl-rpg', 'tier') ?? 0;
-      if (level < 1 || level > tier) continue;
+    for (const template of wanted) {
+      if (mine.some((e) => CarlRPGActiveEffect.matches(e, template))) continue;
       const data = template.toObject();
       delete data._id;
       data.transfer = false;
