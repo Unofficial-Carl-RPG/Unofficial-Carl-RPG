@@ -926,6 +926,10 @@ function renderAttackCard(message, html) {
       }
     }
   }
+  // Events that fired for this attack: the GM sees them, one line each.
+  if (isGM && attack.fired?.length) {
+    body += attack.fired.map((line) => `<p class="attack-note attack-fired">${esc(line)}</p>`).join('');
+  }
   list.innerHTML = body;
   host.append(list);
 

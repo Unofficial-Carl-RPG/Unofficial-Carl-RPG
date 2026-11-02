@@ -950,11 +950,13 @@ export class CarlRPGItem extends Item {
     // helpers/attacks.mjs).
     const attack = await resolveCheck(this, roll);
     rolling?.restore();
+    // Summaries of the events that fire for this roll (shown on the attack card).
+    const fired = [];
     // The rolled skill's own events run too.
     if (rolling) await runEvents(rolling.skill, 'used', { roll, depth, degrees: attack?.degrees });
     // (`degrees` are the degrees of success, for the "the roll's result is"
     // condition.)
-    await runEvents(this, 'used', { roll, depth, degrees: attack?.degrees });
+    await runEvents(this, 'used', { roll, depth, degrees: attack?.degrees, collect: fired });
     // Each target that was hit runs the "an attack hits a target" events.
     for (const hit of attack?.hits ?? []) {
       await runEvents(this, 'hit', {
@@ -963,6 +965,7 @@ export class CarlRPGItem extends Item {
         target: hit.actor,
         degree: hit.degree,
         attackMessage: attack?.message,
+        collect: fired,
       });
     }
     // Each target that was missed runs the "an attack misses a target" events.
@@ -971,8 +974,12 @@ export class CarlRPGItem extends Item {
         roll,
         depth,
         target: miss.actor,
+        collect: fired,
         degree: miss.degree,
       });
+    }
+    if (fired.length && attack?.message) {
+      await attack.message.update({ 'flags.carl-rpg.attack.fired': fired });
     }
     return result;
   }

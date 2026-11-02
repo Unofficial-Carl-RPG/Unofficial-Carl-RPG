@@ -654,6 +654,11 @@ export async function runEvents(item, trigger, ctx = {}) {
       return;
     }
     logEvent(actor, item.name);
+    // A caller that wants the summaries (an attack card) collects one line per event.
+    if (ctx.collect) {
+      const lines = await Promise.all(event.actions.map((a) => summarizeAction(a)));
+      ctx.collect.push(`${item.name}: ${lines.join('; ')}`);
+    }
     await runActions(item, event, full);
   }
 }
