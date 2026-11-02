@@ -36,6 +36,7 @@ import { registerCrawlerNumber } from './helpers/crawler-number.mjs';
 import { registerRecap } from './helpers/recap.mjs';
 import { registerDiceHold } from './helpers/dice-hold.mjs';
 import { registerSounds } from './helpers/sounds.mjs';
+import { registerLootPileDrop } from './helpers/loot-pile-drop.mjs';
 import { registerAttacks } from './helpers/attacks.mjs';
 import { registerPetUpgrades } from './helpers/pet-upgrades.mjs';
 import { registerRelay } from './helpers/relay.mjs';
@@ -116,6 +117,7 @@ Hooks.once('init', function () {
   registerRecap();
   registerDiceHold();
   registerSounds();
+  registerLootPileDrop();
   // Attack cards: hit or miss against each target's Evade, and Apply Damage.
   registerAttacks();
   // The skills and spells a pet's upgrades give it.

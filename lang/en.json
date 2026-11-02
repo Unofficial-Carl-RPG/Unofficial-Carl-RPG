@@ -297,6 +297,8 @@
       "PileClaim": "Claim",
       "PileName": "{mob} loot",
       "PileCreated": "The loot from {mob} is in a pile on its token.",
+      "PileDropName": "{item} pile",
+      "PileDropDenied": "You can't make a loot pile from that item.",
       "HoldCardsHint": "With Dice So Nice, a roll's card appears after its dice finish.",
       "RefillDone": "Every combatant's actions were refilled.",
       "CleanupNote": "Remaining effects resolve and action counts reset.",
