@@ -212,6 +212,20 @@ function addActionPips(li, combatant) {
     pips.append(pip);
   }
 
+  // A crawler can buy one extra action for the round (1 AI Favor).
+  if (combatant.actor?.type === 'crawler' && canEdit && !combatant.getFlag('carl-rpg', 'extraAction')) {
+    const buy = document.createElement('a');
+    buy.className = 'buy-action';
+    buy.dataset.tooltip = game.i18n.localize('CARL_RPG.Combat.BuyAction');
+    buy.innerHTML = '<i class="fas fa-plus"></i>';
+    buy.addEventListener('click', async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      await combatant.buyAction();
+    });
+    pips.append(buy);
+  }
+
   const name = li.querySelector('.token-name') ?? li;
   name.append(pips);
 }

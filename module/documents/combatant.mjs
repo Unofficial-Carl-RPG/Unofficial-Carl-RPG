@@ -36,7 +36,32 @@ export class CarlRPGCombatant extends Combatant {
           .length ?? 0;
       return Math.max(0, crawlers + (this.actor.system.bonuses?.actions ?? 0));
     }
-    return actions.max ?? 0;
+    // A bought extra action (see buyAction) adds one for the round.
+    return (actions.max ?? 0) + (this.getFlag(NS, 'extraAction') ? 1 : 0);
+  }
+
+  /**
+   * A crawler buys one extra action for the round with 1 AI Favor. Once a round, and
+   * only crawlers can buy one (see the flag cleared in CarlRPGCombat#resetActions).
+   * @returns {Promise<boolean>}  Whether an action was bought
+   */
+  async buyAction() {
+    const actor = this.actor;
+    if (actor?.type !== 'crawler' || this.getFlag(NS, 'extraAction')) return false;
+    const favor = Number(actor.system.aiFavor) || 0;
+    if (favor < 1) {
+      ui.notifications.warn(game.i18n.localize('CARL_RPG.Combat.BuyActionNoFavor'));
+      return false;
+    }
+    await updateWithRelay(actor, { 'system.aiFavor': favor - 1 });
+    await updateWithRelay(this, { [`flags.${NS}.extraAction`]: true });
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: game.i18n.format('CARL_RPG.Combat.BoughtAction', {
+        name: Handlebars.escapeExpression(actor.name),
+      }),
+    });
+    return true;
   }
 
   /** Actions spent this round (never more than the maximum). */

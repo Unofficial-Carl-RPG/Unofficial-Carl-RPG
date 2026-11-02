@@ -263,6 +263,9 @@
       "DeadEffect": "Dead",
       "DyingStarted": "{name} is Dying for {rounds} round(s) unless healed.",
       "RefillActions": "Refill Actions",
+      "BuyAction": "Buy an extra action (1 AI Favor)",
+      "BuyActionNoFavor": "This crawler has no AI Favor to buy an action with.",
+      "BoughtAction": "{name} buys an extra action for this round (1 AI Favor).",
       "RefillDone": "Every combatant's actions were refilled.",
       "CleanupNote": "Remaining effects resolve and action counts reset.",
       "Phases": {
