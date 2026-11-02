@@ -577,6 +577,7 @@ export class CarlRPGItem extends Item {
     if (userId === game.user.id) {
       this.#releaseEffects();
       this.#revokeEmbeddedSkills();
+      if (this.type === 'skill') this.#warnRollingSkillGone();
       runEvents(this, 'removed');
       // A removed race or class no longer shows on the crawler sheet.
       if (
@@ -611,11 +612,47 @@ export class CarlRPGItem extends Item {
     if (this.type !== 'gear' || !(this.parent instanceof Actor)) return null;
     const uuids = this.system.skills ?? [];
     if (!uuids.length) return null;
-    const chosen = uuids.includes(this.system.rollSkill) ? this.system.rollSkill : uuids[0];
-    const source = await fromUuid(chosen);
-    if (!source) return null;
     const keyOf = (skill) => skill.system.identifier?.trim() || skill.name;
+    // The owner's pick is any skill the crawler has (its own copy's uuid). A pick
+    // from the weapon's own list (set at creation) is matched by identifier or name.
+    const marked = this.system.rollSkill;
+    if (marked) {
+      const own = this.parent.itemTypes.skill.find((s) => s.uuid === marked);
+      if (own) return own;
+    }
+    const source = await fromUuid(marked || uuids[0]);
+    if (!source) return null;
     return this.parent.itemTypes.skill.find((s) => keyOf(s) === keyOf(source)) ?? null;
+  }
+
+  /** Whether this weapon has a skill it rolls with that the crawler no longer has. */
+  async #rollingSkillMissing() {
+    if (!this.system.rollSkill || !(this.system.skills ?? []).length) return false;
+    return !(await this.rollingSkill());
+  }
+
+  /** A skill a weapon rolls with has gone from the crawler: the GM is whispered. */
+  async #warnRollingSkillGone() {
+    const actor = this.parent;
+    if (!(actor instanceof Actor)) return;
+    const key = this.system.identifier?.trim() || this.name;
+    for (const gear of actor.itemTypes.gear) {
+      const marked = gear.system.rollSkill;
+      if (!marked) continue;
+      let hit = marked === this.uuid;
+      if (!hit) {
+        const source = await fromUuid(marked);
+        hit = !!source && (source.system.identifier?.trim() || source.name) === key;
+      }
+      if (!hit) continue;
+      await ChatMessage.create({
+        whisper: ChatMessage.getWhisperRecipients('GM'),
+        content: game.i18n.format('CARL_RPG.Weapon.RollSkillGone', {
+          skill: Handlebars.escapeExpression(this.name),
+          item: Handlebars.escapeExpression(gear.name),
+        }),
+      });
+    }
   }
 
   /**
@@ -834,6 +871,15 @@ export class CarlRPGItem extends Item {
     const claim = await this.#claimAction(depth, declared);
     if (claim === false) return null;
     // Spells spend their mana cost (asking first if there isn't enough).
+    // A weapon whose skill it rolls with is gone from the crawler can't roll.
+    if (await this.#rollingSkillMissing()) {
+      const message = game.i18n.format('CARL_RPG.Weapon.RollBlocked', {
+        item: Handlebars.escapeExpression(this.name),
+      });
+      ui.notifications.warn(message);
+      await ChatMessage.create({ whisper: ChatMessage.getWhisperRecipients('GM'), content: message });
+      return null;
+    }
     const mana = await this.#payManaCost();
     if (mana === false) return null;
     // Both checks passed: now the action is actually spent (quietly: it isn't

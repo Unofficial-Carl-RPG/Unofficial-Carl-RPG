@@ -821,22 +821,17 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
   }
 
   /**
-   * For each weapon the crawler holds with more than one skill: the skills, with
-   * the one it rolls with marked. Keyed by the item's id.
+   * For each weapon with a skill: every skill the crawler has, with the one it
+   * rolls with marked. Keyed by the item's id.
    * @returns {Promise<Object<string, {uuid: string, name: string, selected: boolean}[]>>}
    */
   async _rollChoices() {
     const out = {};
+    const skills = [...this.actor.itemTypes.skill].sort((a, b) => a.name.localeCompare(b.name));
     for (const gear of this.actor.itemTypes.gear) {
-      const uuids = gear.system.skills ?? [];
-      if (uuids.length < 2) continue;
-      const chosen = uuids.includes(gear.system.rollSkill) ? gear.system.rollSkill : uuids[0];
-      out[gear.id] = await Promise.all(
-        uuids.map(async (uuid) => {
-          const skill = await fromUuid(uuid);
-          return { uuid, name: skill?.name ?? uuid, selected: uuid === chosen };
-        })
-      );
+      if (!(gear.system.skills ?? []).length) continue;
+      const rolling = await gear.rollingSkill();
+      out[gear.id] = skills.map((s) => ({ uuid: s.uuid, name: s.name, selected: s.id === rolling?.id }));
     }
     return out;
   }

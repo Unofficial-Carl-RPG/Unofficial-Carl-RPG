@@ -931,7 +931,9 @@
     "Weapon": {
       "RollsWith": "Rolls with",
       "RollsWithHint": "The skill this weapon rolls with",
-      "SkillAdded": "{skill} was added again at rank 0 for {item}."
+      "SkillAdded": "{skill} was added again at rank 0 for {item}.",
+      "RollBlocked": "{item} can't roll: the skill it rolls with is missing from the crawler.",
+      "RollSkillGone": "{skill} is gone from the crawler, so {item} can't roll with it."
     },
     "OriginAbilities": {
       "Title": "Race and class abilities",
