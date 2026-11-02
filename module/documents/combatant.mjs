@@ -57,6 +57,7 @@ export class CarlRPGCombatant extends Combatant {
     await updateWithRelay(this, { [`flags.${NS}.extraAction`]: true });
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor }),
+      whisper: ChatMessage.getWhisperRecipients('GM'),
       content: game.i18n.format('CARL_RPG.Combat.BoughtAction', {
         name: Handlebars.escapeExpression(actor.name),
       }),

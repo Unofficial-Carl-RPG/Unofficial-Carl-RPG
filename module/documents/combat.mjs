@@ -69,10 +69,14 @@ export class CarlRPGCombat extends Combat {
    * Refill every combatant's actions. Done when combat starts and in the
    * Cleanup phase of each round.
    */
-  async resetActions() {
+  async resetActions({ keepExtra = false } = {}) {
     const updates = this.combatants
       .filter((c) => c.getFlag('carl-rpg', 'actionsSpent') || c.getFlag('carl-rpg', 'extraAction'))
-      .map((c) => ({ _id: c.id, 'flags.carl-rpg.actionsSpent': 0, 'flags.carl-rpg.extraAction': false }));
+      .map((c) => ({
+        _id: c.id,
+        'flags.carl-rpg.actionsSpent': 0,
+        ...(keepExtra ? {} : { 'flags.carl-rpg.extraAction': false }),
+      }));
     if (updates.length) await this.updateEmbeddedDocuments('Combatant', updates);
   }
 
@@ -120,7 +124,7 @@ export async function refillCombatActions(combat = game.combat) {
     return;
   }
   if (!combat) return;
-  await combat.resetActions();
+  await combat.resetActions({ keepExtra: true });
   ChatMessage.create({
     content: `<div class="carl-phase-message">${game.i18n.localize('CARL_RPG.Combat.RefillDone')}</div>`,
   });
