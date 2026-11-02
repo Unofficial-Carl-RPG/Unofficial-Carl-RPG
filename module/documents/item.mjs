@@ -2,6 +2,7 @@ import { CarlRPGDialog } from '../helpers/dialog.mjs';
 import { CarlRPGActiveEffect } from './active-effect.mjs';
 import { checkRequirements, runEvents } from '../helpers/events.mjs';
 import { grantLoot } from '../helpers/loot.mjs';
+import { playCue } from '../helpers/sounds.mjs';
 import { resolveCheck } from '../helpers/attacks.mjs';
 import { describeUpgrades, effectiveOf } from '../helpers/upgrades.mjs';
 import { shortTextOf } from '../helpers/item-badges.mjs';
@@ -184,6 +185,8 @@ export class CarlRPGItem extends Item {
    */
   _onCreate(data, options, userId) {
     super._onCreate(data, options, userId);
+    // Every client plays the achievement cue (a new one on a crawler).
+    if (this.type === 'achievement' && this.parent?.type === 'crawler') playCue('achievement');
     // Only the user who added the item does the work, once.
     if (userId === game.user.id) {
       // Everything an item grants when it is added. Awaiting `_grantsDone` waits

@@ -53,6 +53,7 @@ export async function startDying(actor) {
   ]);
   await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
+    flags: { 'carl-rpg': { cue: 'dying' } },
     content: t('CARL_RPG.Combat.DyingStarted', { name: actor.name, rounds }),
   });
 }
