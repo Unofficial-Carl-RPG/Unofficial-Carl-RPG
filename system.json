@@ -18,6 +18,9 @@
         "pet": {
             "htmlFields": ["biography"]
         },
+        "lootPile": {
+            "htmlFields": []
+        },
         "mount": {
             "htmlFields": []
         }

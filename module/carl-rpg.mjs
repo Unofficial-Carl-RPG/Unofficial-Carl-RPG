@@ -222,6 +222,7 @@ Hooks.once('init', function () {
     mob: models.CarlRPGMob,
     pet: models.CarlRPGPet,
     mount: models.CarlRPGMount,
+    lootPile: models.CarlRPGLootPile,
   };
   CONFIG.Item.documentClass = CarlRPGItem;
   CONFIG.Item.dataModels = {
