@@ -720,6 +720,8 @@
       "NoneLeft": "There are no loot boxes left to open.",
         "OpenAll": "Open all",
         "OpenAllConfirm": "Open {count} loot box(es)? The lowest tier opens first.",
+        "PerBoxName": "Per-box Open button",
+        "PerBoxHint": "Shows an Open button on each loot box in the inventory.",
       "AlreadyWaiting": "This loot box is already waiting for the GM.",
       "NoGM": "A GM needs to be connected to approve loot boxes, so this one can't be opened right now.",
       "Requesting": "{name} is opening a loot box and is waiting for the GM...",

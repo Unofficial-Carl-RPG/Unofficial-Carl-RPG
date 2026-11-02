@@ -829,6 +829,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
     context.inventory = inventory.sort(bySort);
     context.mobAbilities = mobAbilities.sort(bySort);
     context.lootBoxes = lootBoxes.sort((a, b) => a.name.localeCompare(b.name));
+    context.perBoxOpen = game.settings.get('carl-rpg', 'lootPerBoxOpen') === true;
     context.achievements = achievements.sort((a, b) =>
       a.name.localeCompare(b.name)
     );

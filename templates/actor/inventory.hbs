@@ -49,6 +49,7 @@
           <div class='item-controls'>
             <a
               class='item-control loot-open'
+              {{#unless @root.perBoxOpen}}style='display: none;'{{/unless}}
               data-action='openLootBox'
               data-tooltip='{{localize "CARL_RPG.Loot.Open"}}'
             >

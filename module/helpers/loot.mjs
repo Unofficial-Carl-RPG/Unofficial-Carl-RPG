@@ -27,6 +27,14 @@ const pending = new Map();
 
 export function registerLootSettings() {
   // A regular system setting (Game Settings -> Configure Settings).
+  // Off by default: a per-box Open button in the inventory (Open all is the main way).
+  game.settings.register(NS, 'lootPerBoxOpen', {
+    name: 'CARL_RPG.Loot.PerBoxName',
+    hint: 'CARL_RPG.Loot.PerBoxHint',
+    scope: 'world',
+    config: true,
+    type: new foundry.data.fields.BooleanField({ initial: false }),
+  });
   game.settings.register(NS, LOOT_APPROVAL_SETTING, {
     name: 'CARL_RPG.Loot.ApprovalSetting',
     hint: 'CARL_RPG.Loot.ApprovalSettingHint',
