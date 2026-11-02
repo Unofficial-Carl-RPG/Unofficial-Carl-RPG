@@ -275,6 +275,48 @@ export async function openLootBox(box) {
   return true;
 }
 
+/**
+ * Open every loot box a crawler has, the lowest tier first. With GM approval off,
+ * one confirmation comes first. With approval on, each box goes to the GM's approval
+ * as it would alone (the GM can re-roll or discard each one). Safe-room rules apply
+ * to the whole run.
+ * @param {Actor} actor  The crawler
+ */
+export async function openAllLootBoxes(actor) {
+  if (actor?.type !== 'crawler' || !actor.isOwner) return false;
+  if (!canActOutsideSafeRoom('loot')) {
+    ui.notifications.warn(game.i18n.localize('CARL_RPG.Floor.LootBlocked'));
+    return false;
+  }
+  const tiers = Object.keys(CONFIG.CARL_RPG.lootTiers);
+  const boxes = actor.items
+    .filter((i) => i.type === 'lootBox' && i.system.quantity > 0)
+    .sort((a, b) => tiers.indexOf(a.system.tier) - tiers.indexOf(b.system.tier));
+  if (!boxes.length) {
+    ui.notifications.warn(game.i18n.localize('CARL_RPG.Loot.NoneLeft'));
+    return false;
+  }
+  if (!lootApprovalRequired()) {
+    const count = boxes.reduce((sum, box) => sum + box.system.quantity, 0);
+    const go = await CarlRPGDialog.confirm({
+      window: { title: 'CARL_RPG.Loot.OpenAll' },
+      content: `<p>${game.i18n.format('CARL_RPG.Loot.OpenAllConfirm', { count })}</p>`,
+      yes: { label: 'CARL_RPG.Loot.OpenAll' },
+      no: { label: 'Cancel' },
+      rejectClose: false,
+    });
+    if (!go) return false;
+  }
+  for (const box of boxes) {
+    // Each box is opened one at a time; a box waiting for approval stops its run.
+    while (box.system.quantity > 0) {
+      const opened = await openLootBox(box);
+      if (!opened) break;
+    }
+  }
+  return true;
+}
+
 /** Ask the GM to roll and approve an opening. */
 async function requestApproval(actor, box) {
   const requestId = foundry.utils.randomID();

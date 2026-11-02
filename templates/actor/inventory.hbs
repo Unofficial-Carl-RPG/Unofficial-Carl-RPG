@@ -25,7 +25,8 @@
   {{#if lootBoxes.length}}
     <ol class='items-list loot-boxes'>
       <li class='item flexrow items-header'>
-        <div class='item-name'>{{localize 'CARL_RPG.Loot.LootBoxes'}}</div>
+        <div class='item-name'>{{localize 'CARL_RPG.Loot.LootBoxes'}}
+          {{#if @root.editable}}<a class='item-control' data-action='openAllBoxes' data-tooltip='{{localize "CARL_RPG.Loot.OpenAll"}}'><i class='fas fa-box-open'></i> {{localize 'CARL_RPG.Loot.OpenAll'}}</a>{{/if}}</div>
         <div class='item-prop'>{{localize 'CARL_RPG.Item.LootBox.FIELDS.quantity.label'}}</div>
         <div class='item-controls'></div>
       </li>

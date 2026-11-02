@@ -1,6 +1,6 @@
 import { plainText } from '../helpers/store.mjs';
 import { hasLoot, pickCrawlerAndLoot } from '../helpers/mob-loot.mjs';
-import { openLootBox } from '../helpers/loot.mjs';
+import { openAllLootBoxes, openLootBox } from '../helpers/loot.mjs';
 import { levelUp, spendPoints, canLevelUp } from '../helpers/level-up.mjs';
 import {
   chooseOrigin,
@@ -101,6 +101,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       createEffect: editOnly(this._createEffect),
       effectStacks: editOnly(this._effectStacks),
       openLootBox: editOnly(this._openLootBox),
+      openAllBoxes: editOnly(this._openAllBoxes),
       levelUp: editOnly(this._levelUp),
       spendPoints: editOnly(this._spendPoints),
       chooseOrigin: editOnly(this._chooseOrigin),
@@ -2150,6 +2151,11 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
         boss: Handlebars.escapeExpression(this.actor.name),
       })}</div>`,
     });
+  }
+
+  /** Open all of this crawler's loot boxes, lowest tier first. */
+  static async _openAllBoxes(event, target) {
+    await openAllLootBoxes(this.actor);
   }
 }
 
