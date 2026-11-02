@@ -158,6 +158,7 @@ export class CarlRPGItem extends Item {
    */
   _onUpdate(changed, options, userId) {
     super._onUpdate(changed, options, userId);
+    if (options?.carlMigration) return;
     if (userId === game.user.id && this.type === 'deity' && foundry.utils.hasProperty(changed, 'system.tier')) {
       this.syncDeityTiers();
     }
@@ -450,6 +451,7 @@ export class CarlRPGItem extends Item {
     const system = changes.system;
     if (
       system &&
+      !options?.carlMigration &&
       ('events' in system || 'requirements' in system || 'upgrades' in system)
     ) {
       foundry.utils.setProperty(changes, 'system.eventsTrusted', user.isGM);

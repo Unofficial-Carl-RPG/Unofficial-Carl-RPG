@@ -111,8 +111,15 @@ export const world = {
 /*  Globals                                     */
 /* -------------------------------------------- */
 
-class Actor {}
-class Item {}
+// (The document hooks the system's classes call on their parent do nothing here.)
+class Actor {
+  async _preUpdate() {}
+  _onUpdate() {}
+}
+class Item {
+  async _preUpdate() {}
+  _onUpdate() {}
+}
 class ActiveEffect {}
 class ChatMessage {
   static async create(data) {

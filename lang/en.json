@@ -1,5 +1,10 @@
 {
   "CARL_RPG": {
+    "Migration": {
+      "Started": "Updating world data to version {version}.",
+      "Done": "World data updated to version {version}.",
+      "Failed": "Updating world data failed. See the console (F12)."
+    },
     "SystemMessage": {
       "TypeLabel": "System message",
       "Sheet": "System message",

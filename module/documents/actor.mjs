@@ -42,7 +42,7 @@ export class CarlRPGActor extends Actor {
   async _preUpdate(changes, options, user) {
     const allowed = await super._preUpdate(changes, options, user);
     if (allowed === false) return false;
-    if (this.type === 'pet' && changes.system && 'upgrades' in changes.system) {
+    if (this.type === 'pet' && changes.system && 'upgrades' in changes.system && !options?.carlMigration) {
       foundry.utils.setProperty(changes, 'system.eventsTrusted', user.isGM);
     }
   }
@@ -55,6 +55,7 @@ export class CarlRPGActor extends Actor {
    */
   _onUpdate(changed, options, userId) {
     super._onUpdate(changed, options, userId);
+    if (options?.carlMigration) return;
     if (game.user === game.users.activeGM && foundry.utils.hasProperty(changed, 'system.health.value')) {
       const health = this.system.health.value;
       if (health === 0 && canDie(this)) startDying(this);

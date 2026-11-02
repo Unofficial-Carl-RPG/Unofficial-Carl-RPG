@@ -24,7 +24,7 @@ import { registerChatCards } from './helpers/chat-cards.mjs';
 import { describeBadges } from './helpers/item-badges.mjs';
 import { registerSystemAnnouncements } from './helpers/system-announcements.mjs';
 import { registerLevelUp } from './helpers/level-up.mjs';
-import { registerTags, migrateClassTags } from './helpers/tags.mjs';
+import { registerMigration, runMigration } from './helpers/migration.mjs';
 import { registerCreationSetting } from './helpers/creation.mjs';
 import { CarlRPGCreationSettings } from './sheets/creation-settings.mjs';
 import { CarlRPGSourcesSettings } from './sheets/sources-settings.mjs';
@@ -112,7 +112,7 @@ Hooks.once('init', function () {
   // The look of each kind of chat card.
   registerChatCards();
   registerLevelUp();
-  registerTags();
+  registerMigration();
 
   // A crawler's number shows under its name on its token and on chat cards.
   CONFIG.Token.objectClass = CarlRPGToken;
@@ -354,8 +354,8 @@ Hooks.on('renderActorDirectory', (app, html) => {
 /* -------------------------------------------- */
 
 Hooks.once('ready', function () {
-  // Class tags were first stored as regular tags: move them to categories once.
-  migrateClassTags();
+  // A world last used with an older version is brought up to date (the active GM's client).
+  runMigration();
   // The GM's client answers a player's requests for compendium items they can't
   // open (see helpers/gm-docs.mjs).
   registerGMDocs();

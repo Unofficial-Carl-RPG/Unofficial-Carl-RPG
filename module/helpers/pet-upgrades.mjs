@@ -41,7 +41,7 @@ export async function syncPetGrants(actor) {
 /** Hand out skills and spells when a pet levels up or its upgrades are changed. */
 export function registerPetUpgrades() {
   Hooks.on('updateActor', (actor, changes, options, userId) => {
-    if (actor.type !== 'pet' || userId !== game.user.id) return;
+    if (actor.type !== 'pet' || userId !== game.user.id || options?.carlMigration) return;
     const system = changes.system;
     if (!system) return;
     if (

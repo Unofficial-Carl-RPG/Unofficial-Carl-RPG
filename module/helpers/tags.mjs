@@ -13,8 +13,6 @@
  */
 import { purposeTypes, sourceItems } from './sources.mjs';
 
-const NS = 'carl-rpg';
-
 /** The form of a tag used for comparing. */
 export const tagKey = (tag) => String(tag ?? '').trim().toLowerCase();
 
@@ -81,21 +79,14 @@ export async function knownTags(type, suggested = []) {
 /*  One-time move of class tags to categories   */
 /* -------------------------------------------- */
 
-export function registerTags() {
-  game.settings.register(NS, 'classCategoriesMigrated', {
-    scope: 'world',
-    config: false,
-    type: new foundry.data.fields.BooleanField({ initial: false }),
-  });
-}
-
 /**
- * Class tags were first stored as regular tags. Move them to categories, once,
- * for the world's classes and the classes crawlers hold (GM only).
+ * Class tags were first stored as regular tags. Move them to categories, for the
+ * world's classes and the classes crawlers hold (GM only). Running it again is
+ * harmless: only a class with tags and no categories is changed. It runs as a
+ * migration step (see helpers/migration.mjs).
  */
 export async function migrateClassTags() {
   if (!game.user.isGM) return;
-  if (game.settings.get(NS, 'classCategoriesMigrated')) return;
 
   const move = async (item) => {
     const tags = item.system.tags ?? [];
@@ -107,5 +98,4 @@ export async function migrateClassTags() {
   for (const actor of game.actors) {
     for (const item of actor.items) await move(item);
   }
-  await game.settings.set(NS, 'classCategoriesMigrated', true);
 }
