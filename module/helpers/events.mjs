@@ -640,7 +640,11 @@ export async function runEvents(item, trigger, ctx = {}) {
   // The events themselves, including those of the upgrades it has reached.
   const events = allEvents(item);
   if (!actor || !events.length) return;
+  await runEventList(item, actor, events, trigger, ctx);
+}
 
+/** Run the events in a list (see allEvents) that answer a trigger. */
+async function runEventList(item, actor, events, trigger, ctx) {
   const depth = ctx.depth ?? 0;
   const full = { ...ctx, actor, trigger, depth };
   const withPhase = CONFIG.CARL_RPG.eventTriggersWithPhase.includes(trigger);
@@ -920,10 +924,11 @@ async function handleRelay(message, relay) {
  * actor: the first connected non-GM owner's client, or the GM's if none is
  * connected.
  */
-export function isPhaseExecutor(actor) {
-  const owners = game.users.filter(
-    (u) => u.active && !u.isGM && actor.testUserPermission(u, 'OWNER')
-  );
+export function isPhaseExecutor(
+  actor,
+  players = game.users.filter((u) => u.active && !u.isGM)
+) {
+  const owners = players.filter((u) => actor.testUserPermission(u, 'OWNER'));
   if (owners.length) return game.user === owners[0];
   return game.user === game.users.activeGM;
 }
@@ -944,30 +949,33 @@ function hasPlayerOwner(actor) {
  * @param {object} [ctx]  See runEvents
  */
 export async function runActorEvents(actor, trigger, ctx = {}) {
-  const gmCovering = game.user.isGM && hasPlayerOwner(actor);
   const owners = [
     ...actor.items,
     // (An effect's own events run while it is on, not while it is switched off or locked.)
     ...actor.effects.filter((effect) => effect.active),
   ];
-  for (const owner of owners) {
-    if (!allEvents(owner).length) continue;
-    if (gmCovering && !isTrusted(owner)) continue;
-    await runEvents(owner, trigger, ctx);
-  }
+  // Looked at one after the other, since an event can change what the next has.
+  // Whether the GM is covering is only worked out once something has an event
+  // for this trigger, so an actor with none costs almost nothing.
+  let gmCovering = null;
+  const run = async (owner) => {
+    const events = allEvents(owner);
+    if (!events.some((e) => e.enabled && e.trigger === trigger)) return;
+    gmCovering ??= game.user.isGM && hasPlayerOwner(actor);
+    if (gmCovering && !isTrusted(owner)) return;
+    await runEventList(owner, actor, events, trigger, ctx);
+  };
+  for (const owner of owners) await run(owner);
   // A pet's own upgrades carry events too.
-  if (actor.type === 'pet' && allEvents(actor).length) {
-    if (!(gmCovering && !isTrusted(actor))) {
-      await runEvents(actor, trigger, ctx);
-    }
-  }
+  if (actor.type === 'pet') await run(actor);
 }
 
 /** Run a trigger on every actor in a combat that this client is responsible for. */
 async function fireForCombat(combat, trigger, ctx, after) {
+  const players = game.users.filter((u) => u.active && !u.isGM);
   for (const combatant of combat.combatants) {
     const actor = combatant.actor;
-    if (!actor || !isPhaseExecutor(actor)) continue;
+    if (!actor || !isPhaseExecutor(actor, players)) continue;
     await runActorEvents(actor, trigger, ctx);
     if (after) await after(actor);
   }
@@ -975,8 +983,9 @@ async function fireForCombat(combat, trigger, ctx, after) {
 
 /** Run a trigger on every actor in the world this client is responsible for. */
 async function fireForWorld(trigger, ctx, after) {
+  const players = game.users.filter((u) => u.active && !u.isGM);
   for (const actor of game.actors) {
-    if (!isPhaseExecutor(actor)) continue;
+    if (!isPhaseExecutor(actor, players)) continue;
     await runActorEvents(actor, trigger, ctx);
     if (after) await after(actor);
   }
