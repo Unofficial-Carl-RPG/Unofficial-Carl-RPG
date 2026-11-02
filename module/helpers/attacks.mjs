@@ -68,10 +68,11 @@ export function evadeOf(actor) {
 export function checkDC(item, target) {
   const key = effectiveOf(item).target;
   const rules = CONFIG.CARL_RPG.checks;
-  const floor = getFloor();
-  if (key === 'unopposed') return rules.base + floor * rules.unopposedFloorFactor;
+  if (key === 'unopposed') return rules.base + getFloor() * rules.unopposedFloorFactor;
   if (!target) return null;
   if (key === 'evade') return evadeOf(target);
+  // A mob target counts with its own pinned Floor, as its numbers do.
+  const floor = target.type === 'mob' ? target.system.floor : getFloor();
   if (key === 'size') return rules.base + sizeClassOf(target) + floor;
   // One of the five stats: its modifier.
   return rules.base + (target.system.abilities?.[key]?.mod ?? 0) + floor;
