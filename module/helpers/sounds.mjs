@@ -54,7 +54,9 @@ export function playCue(cue) {
 /** The cue a system announcement card is for (boss announcements only). */
 function cueFromCard(message) {
   const card = message.getFlag(NS, 'card');
-  return card?.kind === 'system' && card.system === 'boss' ? 'boss' : null;
+  if (card?.kind === 'system' && card.system === 'boss') return 'boss';
+  if (card?.kind === 'achievement') return 'achievement';
+  return null;
 }
 
 /** Whether a message is a crawler's roll that came up a natural 1 or 20. */
