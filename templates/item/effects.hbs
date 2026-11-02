@@ -1,69 +1,75 @@
-{{! Effects Tab: effects on an item are templates, copied to an actor along with the item }}
+{{! Effects Tab: effects on an item are templates, copied to an actor along with the item. A deity's effects are in one list per tier. }}
 <section class='tab effects scrollable {{tab.cssClass}}' data-group='primary' data-tab='effects'>
   <p class='skills-hint'>{{localize 'CARL_RPG.Effect.ItemHint'}}</p>
-  <ol class='effects-list'>
-    <li class='effect flexrow effects-header'>
-      <div class='effect-name'>{{localize 'CARL_RPG.Effect.Effects'}}</div>
-      <div class='effect-prop'>{{localize 'CARL_RPG.Effect.Type'}}</div>
-      <div class='effect-controls'>
-        {{#if @root.editable}}
-          <a
-            class='effect-control item-create'
-            data-action='createDoc'
-            data-document-class='ActiveEffect'
-            data-origin='{{@root.item.uuid}}'
-            data-img='icons/svg/aura.svg'
-            data-tooltip='{{localize "DOCUMENT.Create" type="Effect"}}'
-          >
-            <i class='fas fa-plus'></i>
-            {{localize 'DOCUMENT.New' type='Effect'}}
-          </a>
-        {{/if}}
-      </div>
-    </li>
-    {{#each effectRows as |effect|}}
-      <li
-        class='effect flexrow draggable'
-        data-effect-id='{{effect.id}}'
-        data-parent-id='{{@root.item.id}}'
-      >
-        <div class='effect-name'>
-          <div class='effect-image'>
-            <img src='{{effect.img}}' height='24' width='24' />
-          </div>
-          <div>
-            {{effect.name}}
-            {{#if effect.stackable}}
-              <i class='fas fa-layer-group' data-tooltip='{{localize "CARL_RPG.Effect.Stackable"}}'></i>
-            {{/if}}
-            {{#if effect.equipLinked}}
-              <i class='fas fa-shield-halved' data-tooltip='{{localize "CARL_RPG.Effect.EquipLinked"}}'></i>
-            {{/if}}
-            {{#if effect.permanent}}
-              <i class='fas fa-thumbtack' data-tooltip='{{localize "CARL_RPG.Effect.Permanent"}}'></i>
-            {{/if}}
-          </div>
-        </div>
-        <div class='effect-prop'>{{localize effect.kind}}</div>
+  {{#each effectLists as |list|}}
+    {{#if list.tier}}
+      <h3 class='effects-tier'>{{localize 'CARL_RPG.Sponsors.DeityTierLabel'}} {{list.tier}}</h3>
+    {{/if}}
+    <ol class='effects-list'>
+      <li class='effect flexrow effects-header'>
+        <div class='effect-name'>{{localize 'CARL_RPG.Effect.Effects'}}</div>
+        <div class='effect-prop'>{{localize 'CARL_RPG.Effect.Type'}}</div>
         <div class='effect-controls'>
-          <a
-            class='effect-control'
-            data-action='viewDoc'
-            data-tooltip='{{localize "DOCUMENT.Update" type="Effect"}}'
-          >
-            <i class='fas fa-edit'></i>
-          </a>
           {{#if @root.editable}}
             <a
-              class='effect-control effect-delete'
-              data-action='deleteDoc'
-              data-tooltip='{{localize "DOCUMENT.Delete" type="Effect"}}'
+              class='effect-control item-create'
+              data-action='createDoc'
+              data-document-class='ActiveEffect'
+              data-origin='{{@root.item.uuid}}'
+              data-img='icons/svg/aura.svg'
+              {{#if list.tier}}data-tier='{{list.tier}}'{{/if}}
+              data-tooltip='{{localize "DOCUMENT.Create" type="Effect"}}'
             >
-              <i class='fas fa-trash'></i>
+              <i class='fas fa-plus'></i>
+              {{localize 'DOCUMENT.New' type='Effect'}}
             </a>
           {{/if}}
         </div>
       </li>
-    {{/each}}
-  </ol>
+      {{#each list.rows as |effect|}}
+        <li
+          class='effect flexrow draggable'
+          data-effect-id='{{effect.id}}'
+          data-parent-id='{{@root.item.id}}'
+        >
+          <div class='effect-name'>
+            <div class='effect-image'>
+              <img src='{{effect.img}}' height='24' width='24' />
+            </div>
+            <div>
+              {{effect.name}}
+              {{#if effect.stackable}}
+                <i class='fas fa-layer-group' data-tooltip='{{localize "CARL_RPG.Effect.Stackable"}}'></i>
+              {{/if}}
+              {{#if effect.equipLinked}}
+                <i class='fas fa-shield-halved' data-tooltip='{{localize "CARL_RPG.Effect.EquipLinked"}}'></i>
+              {{/if}}
+              {{#if effect.permanent}}
+                <i class='fas fa-thumbtack' data-tooltip='{{localize "CARL_RPG.Effect.Permanent"}}'></i>
+              {{/if}}
+            </div>
+          </div>
+          <div class='effect-prop'>{{localize effect.kind}}</div>
+          <div class='effect-controls'>
+            <a
+              class='effect-control'
+              data-action='viewDoc'
+              data-tooltip='{{localize "DOCUMENT.Update" type="Effect"}}'
+            >
+              <i class='fas fa-edit'></i>
+            </a>
+            {{#if @root.editable}}
+              <a
+                class='effect-control effect-delete'
+                data-action='deleteDoc'
+                data-tooltip='{{localize "DOCUMENT.Delete" type="Effect"}}'
+              >
+                <i class='fas fa-trash'></i>
+              </a>
+            {{/if}}
+          </div>
+        </li>
+      {{/each}}
+    </ol>
+  {{/each}}
 </section>

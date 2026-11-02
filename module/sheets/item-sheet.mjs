@@ -704,7 +704,12 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
           stackable: effect.stackable,
           permanent: effect.permanent,
           equipLinked: effect.equipLinked,
+          tier: effect.getFlag('carl-rpg', 'tier') ?? 0,
         }));
+        // A deity's effects are listed in one list per tier (1 to 3).
+        context.effectLists = this.item.type === 'deity'
+          ? [1, 2, 3].map((tier) => ({ tier, rows: context.effectRows.filter((r) => r.tier === tier) }))
+          : [{ tier: 0, rows: context.effectRows }];
         break;
     }
     return context;
@@ -1014,12 +1019,16 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
     // Loop through the dataset and add it to our effectData
     for (const [dataKey, value] of Object.entries(target.dataset)) {
       // These data attributes are reserved for the action handling
-      if (['action', 'documentClass'].includes(dataKey)) continue;
+      if (['action', 'documentClass', 'tier'].includes(dataKey)) continue;
       // Nested properties require dot notation in the HTML, e.g. anything with `system`
       // e.g. `data-system.some-field` turns into the dataKey 'system.someField'
       foundry.utils.setProperty(effectData, dataKey, value);
     }
 
+    // A deity's tier list files the new effect under its tier.
+    if (target.dataset.tier) {
+      foundry.utils.setProperty(effectData, 'flags.carl-rpg.tier', Number(target.dataset.tier));
+    }
     // Finally, create the embedded document and open it for editing.
     const effect = await aeCls.create(effectData, { parent: this.item });
     effect?.sheet.render(true);

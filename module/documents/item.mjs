@@ -158,6 +158,9 @@ export class CarlRPGItem extends Item {
    */
   _onUpdate(changed, options, userId) {
     super._onUpdate(changed, options, userId);
+    if (userId === game.user.id && this.type === 'deity' && foundry.utils.hasProperty(changed, 'system.tier')) {
+      this.syncDeityTiers();
+    }
     if (userId !== game.user.id || this.type !== 'gear') return;
     if (!foundry.utils.hasProperty(changed, 'system.equipped')) return;
     (async () => {
@@ -191,6 +194,7 @@ export class CarlRPGItem extends Item {
             this.#grantEmbeddedSkills(),
             this.#grantRankedSkills(),
             this.#grantEffects(),
+            this.syncDeityTiers(),
             this.#grantAchievementReward(),
             this.#applyOrigin(options),
             this.#equipOnPet(),
@@ -531,6 +535,8 @@ export class CarlRPGItem extends Item {
   async #grantEffects() {
     const actor = this.parent;
     if (!(actor instanceof Actor) || !this.effects.size) return;
+    // A deity's effects come in by tier (see syncDeityTiers), not all at once.
+    if (this.type === 'deity') return;
 
     const toCreate = [];
     for (const template of this.effects) {
@@ -590,6 +596,35 @@ export class CarlRPGItem extends Item {
           this.parent.update({ [`system.${field}`]: '' });
         }
       }
+    }
+  }
+
+  /**
+   * A crawler's deity gives the effects of every tier up to the crawler's tier (the
+   * tiers stack). The effects it gave before are taken away and the current ones
+   * are made again, so a change of tier takes effect at once.
+   */
+  async syncDeityTiers() {
+    const actor = this.parent;
+    if (this.type !== 'deity' || !(actor instanceof Actor)) return;
+    const gone = actor.effects.filter((e) => e.sourceItems.includes(this.id)).map((e) => e.id);
+    if (gone.length) await actor.deleteEmbeddedDocuments('ActiveEffect', gone);
+    const tier = this.system.tier ?? 0;
+    const toCreate = [];
+    for (const template of this.effects) {
+      const level = template.getFlag('carl-rpg', 'tier') ?? 0;
+      if (level < 1 || level > tier) continue;
+      const data = template.toObject();
+      delete data._id;
+      data.transfer = false;
+      data.origin = this.uuid;
+      data.disabled = template.kind === 'buff';
+      foundry.utils.setProperty(data, 'flags.carl-rpg.sourceItems', [this.id]);
+      foundry.utils.setProperty(data, 'flags.carl-rpg.stacks', 1);
+      toCreate.push(data);
+    }
+    if (toCreate.length) {
+      await actor.createEmbeddedDocuments('ActiveEffect', toCreate, { carlGrant: true });
     }
   }
 
