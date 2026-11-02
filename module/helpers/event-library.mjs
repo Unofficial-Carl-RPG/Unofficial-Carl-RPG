@@ -8,6 +8,11 @@ export const LIBRARY_SETTING = 'eventLibraryJournal';
 export const LIBRARY_FLAG = 'libraryEvent';
 
 export function registerEventLibrary() {
+  // A player's save, sent to the GM's client (see saveLibraryEvent).
+  Hooks.on('createChatMessage', (message) => {
+    const relay = message.getFlag(NS, 'libraryRelay');
+    if (relay && game.user === game.users.activeGM) handleLibraryRelay(message, relay);
+  });
   game.settings.register(NS, LIBRARY_SETTING, {
     name: 'CARL_RPG.Combat.LibrarySetting',
     hint: 'CARL_RPG.Combat.LibrarySettingHint',
@@ -63,4 +68,44 @@ export async function deleteTemplate(pageId) {
   if (!page) return false;
   await page.delete();
   return true;
+}
+
+/**
+ * Save an event from an item to the library. The GM writes it; a player whose item it
+ * is asks the GM's client to (players can't write to the GM's journal).
+ * @returns {Promise<boolean>}  Whether it was saved, or sent to the GM
+ */
+export async function saveLibraryEvent(item, name, event) {
+  if (!libraryJournal()) {
+    ui.notifications.warn(game.i18n.localize('CARL_RPG.Combat.LibraryNone'));
+    return false;
+  }
+  if (game.user.isGM) {
+    await saveTemplate(name, event);
+    ui.notifications.info(game.i18n.localize('CARL_RPG.Combat.LibrarySaved'));
+    return true;
+  }
+  if (!game.users.activeGM) {
+    ui.notifications.warn(game.i18n.localize('CARL_RPG.Relay.NoGM'));
+    return false;
+  }
+  const gmIds = game.users.filter((u) => u.isGM).map((u) => u.id);
+  await ChatMessage.create({
+    whisper: gmIds,
+    content: `<em>${game.i18n.localize('CARL_RPG.Relay.Working')}</em>`,
+    flags: {
+      [NS]: { libraryRelay: { itemUuid: item.uuid, name, event, userId: game.user.id } },
+    },
+  });
+  ui.notifications.info(game.i18n.localize('CARL_RPG.Combat.LibrarySent'));
+  return true;
+}
+
+/** On the GM's client: check the requester owns the item, then save the event. */
+async function handleLibraryRelay(message, relay) {
+  await message.delete();
+  const user = game.users.get(relay.userId);
+  const item = await fromUuid(relay.itemUuid);
+  if (!user || !item || !item.testUserPermission(user, 'OWNER')) return;
+  await saveTemplate(relay.name, relay.event);
 }

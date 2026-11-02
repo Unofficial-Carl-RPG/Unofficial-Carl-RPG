@@ -364,6 +364,16 @@ async function duplicateEvent(event, target) {
   });
 }
 
+import { saveLibraryEvent } from './event-library.mjs';
+
+/** Save this event to the event library (anyone who can edit the item; a player through the GM). */
+async function saveToLibrary(event, target) {
+  const ei = Number(target.dataset.ei);
+  const copy = foundry.utils.deepClone(eventList(this.item.system, target)[ei]);
+  if (!copy) return;
+  await saveLibraryEvent(this.item, copy.name, copy);
+}
+
 /** Try an event out (GM only): carry out its actions now, whatever its trigger and conditions. */
 async function runNow(event, target) {
   if (!game.user.isGM) return;
@@ -442,6 +452,7 @@ export const EVENT_EDITOR_ACTIONS = {
   addEvent,
   addEventTemplate,
   duplicateEvent,
+  saveToLibrary,
   runNow,
   removeEvent,
   moveEvent,
