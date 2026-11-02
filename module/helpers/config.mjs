@@ -553,6 +553,8 @@ CARL_RPG.effectModifiers = {
   // Grants (any value above 0): the crawler sees item values, and can sort by them.
   seeValues: { label: 'CARL_RPG.Effect.Mods.seeValues', key: 'system.bonuses.seeValues' },
   sortValue: { label: 'CARL_RPG.Effect.Mods.sortValue', key: 'system.bonuses.sortValue' },
+  // Grants (any value above 0): skill and spell ranks can go up to 20, not 15.
+  skillCap: { label: 'CARL_RPG.Effect.Mods.skillCap', key: 'system.bonuses.skillCap' },
 };
 
 /**

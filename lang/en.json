@@ -651,7 +651,8 @@
         "hotlist": "Hotlist slots (crawlers)",
         "actions": "Actions per round",
         "seeValues": "Can see item values",
-        "sortValue": "Can sort by value"
+        "sortValue": "Can sort by value",
+        "skillCap": "Skill cap 20"
       }
     },
     "GMTab": {
@@ -1076,6 +1077,7 @@
       "Try": "Try to advance",
       "NotAllowed": "{name} isn't marked as able to advance.",
       "AlreadyTried": "{name} has already had its advancement try this floor.",
+      "AtCap": "{name} is at the skill rank cap ({cap}).",
       "Reminder": {
         "Title": "Advance at the end of a floor?",
         "Content": "Skills at rank 5 and above are meant to advance only at the end of a floor, with one try each. Try to advance {name} (rank {rank}) now?",

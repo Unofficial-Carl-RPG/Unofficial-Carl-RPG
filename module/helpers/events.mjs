@@ -39,6 +39,7 @@ import { allEvents, effectKey, lockedRankFor } from './upgrades.mjs';
 import { summarizeAction } from './event-summary.mjs';
 import { endCombatEffects, tickDurations } from './effect-duration.mjs';
 import { restoreUses } from './uses.mjs';
+import { skillCapOf } from './skill-cap.mjs';
 import { getFloorRules } from './floor.mjs';
 import { logEvent } from './change-log.mjs';
 
@@ -462,8 +463,8 @@ const HANDLERS = {
 
   /**
  * Give the target a skill at a rank, or raise one it has by a number of ranks.
- * Permanent: nothing takes it back. It stops at rank 15 (the cap, until the
- * skill cap effect is built). The owner and the GM get a whisper.
+ * Permanent: nothing takes it back. It stops at the skill rank cap (see
+ * skill-cap.mjs). The owner and the GM get a whisper.
  */
   async grantSkill({ action, actor }) {
     const doc = await fromUuid(action.uuid);
@@ -472,7 +473,7 @@ const HANDLERS = {
     }
     const ranks = await rollAmount(action.amount || '1');
     if (ranks < 1) return;
-    const cap = 15;
+    const cap = skillCapOf(actor);
     const identifier = doc.system?.identifier?.trim();
     const existing = actor.items.find(
       (i) => i.type === 'skill' && (identifier ? i.system.identifier?.trim() === identifier : i.name === doc.name)

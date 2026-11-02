@@ -11,6 +11,7 @@
 import { CarlRPGDialog } from './dialog.mjs';
 import { getFloor } from './floor.mjs';
 import { runEvents } from './events.mjs';
+import { skillCapOf } from './skill-cap.mjs';
 
 const NS = 'carl-rpg';
 
@@ -48,6 +49,12 @@ export async function attemptAdvance(item) {
 
   const rank = item.system.rank;
   const floor = getFloor();
+  // At the skill rank cap there is nothing to roll for; no try is used up.
+  const cap = skillCapOf(actor);
+  if (rank >= cap) {
+    ui.notifications.warn(t('CARL_RPG.Advance.AtCap', { name: esc(item.name), cap }));
+    return null;
+  }
   const atFloorEnd = rank >= FLOOR_END_RANK;
 
   if (atFloorEnd) {
