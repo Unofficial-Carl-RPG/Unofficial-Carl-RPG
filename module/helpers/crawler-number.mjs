@@ -17,6 +17,7 @@ import { getTitle } from './party.mjs';
 export const MAX_SKULL_ICONS = 5;
 
 const SKULL = '\u{1F480}';
+const STAR = '\u2605';
 
 /**
  * Whether an actor can have Crawler Killer skulls: crawlers, and mobs of the
@@ -68,6 +69,35 @@ function skullHtml(actor) {
   return `<span class="message-skulls" title="${Handlebars.escapeExpression(tip)}">${skulls}${number}</span>`;
 }
 
+/** Boss kill stars for a crawler (one for each boss it helped defeat). */
+export function bossStars(actor) {
+  if (actor?.type !== 'crawler') return { count: 0, icons: [], overflow: false };
+  const count = Math.max(0, Math.floor(Number(actor.system.bossKills) || 0));
+  const overflow = count > MAX_SKULL_ICONS;
+  return {
+    count,
+    overflow,
+    icons: overflow ? [0] : Array.from({ length: count }, (_, i) => i),
+  };
+}
+
+/** The stars as text, for the token's nameplate. */
+export function starText(actor) {
+  const { count, overflow } = bossStars(actor);
+  if (!count) return '';
+  return overflow ? `${STAR}\u00D7${count}` : STAR.repeat(count);
+}
+
+/** The stars as icons, for chat cards. */
+function starHtml(actor) {
+  const { count, icons, overflow } = bossStars(actor);
+  if (!count) return '';
+  const tip = game.i18n.localize('CARL_RPG.Combat.BossStars');
+  const stars = icons.map(() => '<i class="fa-solid fa-star"></i>').join('');
+  const number = overflow ? `<span class="skull-count">\u00D7${count}</span>` : '';
+  return `<span class="message-stars" title="${Handlebars.escapeExpression(tip)}">${stars}${number}</span>`;
+}
+
 export function registerCrawlerNumber() {
   // Tokens redraw their nameplate when the number, the kills or the name change.
   Hooks.on('updateActor', (actor, changes) => {
@@ -77,6 +107,7 @@ export function registerCrawlerNumber() {
       !('name' in changes) &&
       system.crawlerNumber === undefined &&
       system.crawlerKills === undefined &&
+      system.bossKills === undefined &&
       system.mobType === undefined
     ) {
       return;
@@ -112,6 +143,8 @@ export function registerCrawlerNumber() {
 
     const skulls = skullHtml(speaker);
     if (skulls) sender.insertAdjacentHTML('beforeend', skulls);
+    const stars = starHtml(speaker);
+    if (stars) sender.insertAdjacentHTML('beforeend', stars);
 
     const label = crawlerNumberLabel(speaker);
     if (label) {

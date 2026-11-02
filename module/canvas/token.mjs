@@ -1,4 +1,4 @@
-import { crawlerNumberLabel, skullText } from '../helpers/crawler-number.mjs';
+import { crawlerNumberLabel, skullText, starText } from '../helpers/crawler-number.mjs';
 
 /** How big the crawler number is next to the name (a fraction of its size). */
 const NUMBER_SCALE = 0.7;
@@ -21,7 +21,7 @@ export class CarlRPGToken extends foundry.canvas.placeables.Token {
   _refreshNameplate() {
     super._refreshNameplate();
     // Crawler Killer skulls go after the name, on the same line.
-    const skulls = skullText(this.actor);
+    const skulls = [skullText(this.actor), starText(this.actor)].filter(Boolean).join(' ');
     if (skulls) this.nameplate.text = `${this.document.name} ${skulls}`;
     this.#updateNumberplate();
   }

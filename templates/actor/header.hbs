@@ -11,10 +11,12 @@
       height='100'
       width='100'
     />
-    {{#if skulls.count}}
+    {{#if killBadge}}
       <span class='kill-skulls' data-tooltip='{{localize "CARL_RPG.Kills.Tooltip" count=skulls.count}}'>
         {{#each skulls.icons}}<i class='fas fa-skull'></i>{{/each}}
         {{#if skulls.overflow}}<span class='skull-count'>&times;{{skulls.count}}</span>{{/if}}
+        {{#each stars.icons}}<i class='fas fa-star'></i>{{/each}}
+        {{#if stars.overflow}}<span class='skull-count'>&times;{{stars.count}}</span>{{/if}}
       </span>
     {{/if}}
   </div>
@@ -73,6 +75,7 @@
   </div>
 {{/if}}{{/if}}
 {{#if canGiveReward}}<button type='button' data-action='giveReward'>{{localize 'CARL_RPG.Combat.GiveReward'}}</button>{{/if}}
+{{#if canGiveStar}}<button type='button' data-action='giveStar'>{{localize 'CARL_RPG.Combat.GiveStar'}}</button>{{/if}}
   {{#if canLoot}}<button type='button' data-action='lootMob'>{{localize 'CARL_RPG.Loot.LootMob'}}</button>{{/if}}
 {{! Small rest buttons: a crawler (or pet) takes their own rests (short, long, full) }}
       {{#if (ne actor.type 'mob')}}{{#if editable}}

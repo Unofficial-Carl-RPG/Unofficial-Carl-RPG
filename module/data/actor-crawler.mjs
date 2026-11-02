@@ -38,6 +38,8 @@ export default class CarlRPGCrawler extends CarlRPGActorBase {
     });
     // Crawler Killer skulls: how many other crawlers this crawler has killed. Shown
     // as skulls beside the name (sheet, token and chat cards).
+    // Boss kill stars: the boss mobs this crawler helped defeat (see Give star).
+    schema.bossKills = new fields.NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 });
     schema.crawlerKills = new fields.NumberField({
       ...requiredInteger,
       initial: 0,

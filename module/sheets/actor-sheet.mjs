@@ -11,7 +11,7 @@ import {
 } from '../helpers/origins.mjs';
 import { dyingEffectOf } from '../helpers/dying.mjs';
 import { creationPending } from '../helpers/creation.mjs';
-import { killSkulls } from '../helpers/crawler-number.mjs';
+import { bossStars, killSkulls } from '../helpers/crawler-number.mjs';
 import { confirmRest } from '../helpers/rests.mjs';
 import {
   promptRoll,
@@ -89,6 +89,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       onEditImage: editOnly(this._onEditImage),
       clearReward: editOnly(this._clearReward),
       giveReward: this._giveReward,
+      giveStar: this._giveStar,
     lootMob: this._lootMob,
     completeQuest: this._completeQuest,
     removeQuest: this._removeQuest,
@@ -525,6 +526,11 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       // The reward box shows as set or empty; its name is looked up when it is given.
       context.hasReward = !!this.actor.system.rewardBox;
       context.canGiveReward = game.user.isGM && context.hasReward && this.actor.statuses.has('dead');
+      context.canGiveStar =
+        game.user.isGM &&
+        this.actor.system.mobType === 'boss' &&
+        this.actor.statuses.has('dead') &&
+        !this.actor.getFlag('carl-rpg', 'starGiven');
     context.canLoot =
       game.user.isGM &&
       this.actor.type === 'mob' &&
@@ -540,6 +546,8 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
     }
     // Crawler Killer skulls shown beside the name (crawlers and crawler mobs).
     context.skulls = killSkulls(this.actor);
+    context.stars = bossStars(this.actor);
+    context.killBadge = context.skulls.count + context.stars.count > 0;
     // From the third floor a crawler without a race (then a class) gets a
     // button to choose one. This applies to the GM too: below that floor the GM
     // can still give a race or class by dropping it on the sheet.
@@ -2119,6 +2127,28 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
       content: `<div class="carl-offering-card"><strong>${Handlebars.escapeExpression(deity.name)}</strong><p>${Handlebars.escapeExpression(text)}</p></div>`,
+    });
+  }
+
+  /** GM: a defeated boss gives every crawler in its combat a star (once per boss). */
+  static async _giveStar() {
+    if (!game.user.isGM) return;
+    const combat = game.combats.get(this.actor.getFlag('carl-rpg', 'defeatedIn')) ?? game.combat;
+    const crawlers = (combat?.combatants.contents ?? [])
+      .map((c) => c.actor)
+      .filter((a) => a?.type === 'crawler');
+    if (!crawlers.length) {
+      ui.notifications.warn(game.i18n.localize('CARL_RPG.Combat.NoCrawlersStar'));
+      return;
+    }
+    for (const crawler of crawlers) {
+      await crawler.update({ 'system.bossKills': (crawler.system.bossKills ?? 0) + 1 });
+    }
+    await this.actor.setFlag('carl-rpg', 'starGiven', true);
+    await ChatMessage.create({
+      content: `<div class="carl-loot-card">${game.i18n.format('CARL_RPG.Combat.StarGiven', {
+        boss: Handlebars.escapeExpression(this.actor.name),
+      })}</div>`,
     });
   }
 }

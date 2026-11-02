@@ -266,6 +266,10 @@
       "BuyAction": "Buy an extra action (1 AI Favor)",
       "BuyActionNoFavor": "This crawler has no AI Favor to buy an action with.",
       "BoughtAction": "{name} buys an extra action for this round (1 AI Favor).",
+      "GiveStar": "Give star",
+      "BossStars": "Boss kill stars",
+      "NoCrawlersStar": "No crawlers are in this combat to give a star to.",
+      "StarGiven": "{boss} is defeated: every crawler in the battle gains a boss kill star.",
       "RefillDone": "Every combatant's actions were refilled.",
       "CleanupNote": "Remaining effects resolve and action counts reset.",
       "Phases": {
