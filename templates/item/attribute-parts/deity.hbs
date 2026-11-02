@@ -1,0 +1,15 @@
+{{! Attributes Tab (Deity) }}
+<section
+  class='tab attributes {{tab.cssClass}}'
+  data-group='primary'
+  data-tab='attributes'
+>
+  <div class='resource'>
+    <label class='resource-label' for='system.offering'>{{localize 'CARL_RPG.Sponsors.OfferingLabel'}}</label>
+    <textarea name='system.offering' rows='3'>{{system.offering}}</textarea>
+  </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.tithe' data-tooltip='{{localize "CARL_RPG.Sponsors.TitheHint"}}'>{{localize 'CARL_RPG.Sponsors.TitheLabel'}}</label>
+    <input type='number' name='system.tithe' value='{{system.tithe}}' min='0' max='100' step='1' data-dtype='Number' />
+  </div>
+</section>

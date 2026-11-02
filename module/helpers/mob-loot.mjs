@@ -8,6 +8,7 @@
  */
 import { CarlRPGDialog } from './dialog.mjs';
 import { grantStoreItem } from './store.mjs';
+import { titheOf } from './tithe.mjs';
 
 /** Whether a mob has anything to loot. */
 export function hasLoot(mob) {
@@ -50,7 +51,8 @@ export async function rollMobLoot(mob) {
 /** GM: roll a mob's loot, give it to the crawler, and mark the mob looted. */
 export async function giveMobLoot(mob, crawler) {
   const result = await rollMobLoot(mob);
-  if (result.gold) await crawler.addGold(result.gold);
+  const { net } = titheOf(crawler, result.gold);
+  if (net) await crawler.addGold(net);
   if (result.junk) {
     await crawler.update({ 'system.junk': (crawler.system.junk ?? 0) + result.junk });
   }
@@ -62,7 +64,7 @@ export async function giveMobLoot(mob, crawler) {
 
   const parts = [];
   if (result.gold) {
-    parts.push(game.i18n.format('CARL_RPG.Loot.GoldGained', { gold: result.gold.toLocaleString() }));
+    parts.push(game.i18n.format('CARL_RPG.Loot.GoldGained', { gold: net.toLocaleString() }));
   }
   if (result.junk) {
     parts.push(game.i18n.format('CARL_RPG.Loot.JunkGained', { junk: result.junk }));

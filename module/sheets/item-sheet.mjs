@@ -122,6 +122,9 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
     attributesPersonalSpace: {
       template: 'systems/carl-rpg/templates/item/attribute-parts/personal-space.hbs',
     },
+    attributesDeity: {
+      template: 'systems/carl-rpg/templates/item/attribute-parts/deity.hbs',
+    },
     attributesSponsor: {
       template: 'systems/carl-rpg/templates/item/attribute-parts/sponsor.hbs',
     },
@@ -213,7 +216,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
         options.parts.push('attributesClub', 'effects');
         break;
       case 'deity':
-        options.parts.push('skills', 'effects');
+        options.parts.push('attributesDeity', 'skills', 'effects');
         break;
       case 'race':
       case 'class':
@@ -632,6 +635,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
       case 'attributesMobAbility':
       case 'attributesLootBox':
       case 'attributesAchievement':
+      case 'attributesDeity':
       case 'attributesSponsor':
       case 'attributesStore':
       case 'attributesQuest':
@@ -743,6 +747,7 @@ export class CarlRPGItemSheet extends api.HandlebarsApplicationMixin(
         case 'attributesMobAbility':
         case 'attributesLootBox':
         case 'attributesAchievement':
+      case 'attributesDeity':
       case 'attributesSponsor':
       case 'attributesClub':
       case 'attributesPersonalSpace':

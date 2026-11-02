@@ -111,6 +111,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       advanceSkill: editOnly(this._advanceSkill),
       rest: editOnly(this._rest),
       roll: observerOnly(this._onRoll),
+      offering: observerOnly(this._offering),
       setHealth: editOnly(this._setHealth),
       // Opening a pet's sheet from its crawler's sheet (anyone who can see the pet).
       openPet: this._openPet,
@@ -442,6 +443,9 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       context.deity = deity
         ? {
             name: deity.name,
+            offering: deity.system.offering?.trim() ?? '',
+            id: deity.id,
+            tier: deity.system.tier ?? 0,
             description: await TextEditor.enrichHTML(deity.system.description ?? '', {
               async: true,
               relativeTo: deity,
@@ -980,6 +984,12 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
     );
     this.#disableOverrides();
     // A weapon's "rolls with" skill, picked on the crawler's own copy.
+    // The GM's deity tier (0 is none), kept on the crawler's copy of the deity.
+    for (const select of this.element.querySelectorAll('select.deity-tier')) {
+      select.addEventListener('change', () =>
+        this.actor.items.get(select.dataset.itemId)?.update({ 'system.tier': Number(select.value) })
+      );
+    }
     for (const select of this.element.querySelectorAll('select.roll-skill')) {
       select.addEventListener('change', () =>
         this.actor.items.get(select.dataset.itemId)?.update({ 'system.rollSkill': select.value })
@@ -2038,6 +2048,8 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
    */
   async _onDropItemCreate(itemData, event) {
     itemData = itemData instanceof Array ? itemData : [itemData];
+    // A deity starts at tier 1 on the crawler (the GM can change it after).
+    for (const d of itemData) if (d.type === 'deity') foundry.utils.setProperty(d, 'system.tier', 1);
     // A crawler has one deity: a new one replaces the old.
     if (itemData.some((d) => d.type === 'deity')) {
       const old = this.actor.itemTypes.deity.map((i) => i.id);
@@ -2094,6 +2106,20 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
         input.disabled = true;
       }
     }
+  }
+
+  /** Post the deity's offering text to chat. */
+  static async _offering(event, target) {
+    const deity = this.actor.itemTypes.deity[0];
+    const text = deity?.system.offering?.trim();
+    if (!deity || !text) {
+      ui.notifications.warn(game.i18n.localize('CARL_RPG.Sponsors.NoOfferingText'));
+      return;
+    }
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `<div class="carl-offering-card"><strong>${Handlebars.escapeExpression(deity.name)}</strong><p>${Handlebars.escapeExpression(text)}</p></div>`,
+    });
   }
 }
 

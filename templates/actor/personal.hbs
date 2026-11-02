@@ -29,6 +29,17 @@
     {{#if deity}}
       <p><strong>{{deity.name}}</strong></p>
       <div class='deity-description'>{{{deity.description}}}</div>
+      {{#if deity.offering}}<button type='button' data-action='offering'>{{localize 'CARL_RPG.Sponsors.OfferButton'}}</button>{{/if}}
+      {{#if isGM}}
+        <label class='resource-label'>{{localize 'CARL_RPG.Sponsors.DeityTierLabel'}}
+          <select class='deity-tier' data-item-id='{{deity.id}}'>
+            <option value='0' {{#if (eq deity.tier 0)}}selected{{/if}}>0</option>
+            <option value='1' {{#if (eq deity.tier 1)}}selected{{/if}}>1</option>
+            <option value='2' {{#if (eq deity.tier 2)}}selected{{/if}}>2</option>
+            <option value='3' {{#if (eq deity.tier 3)}}selected{{/if}}>3</option>
+          </select>
+        </label>
+      {{/if}}
     {{else}}
       <p class='hint'>{{localize 'CARL_RPG.Sponsors.NoDeity'}}</p>
     {{/if}}

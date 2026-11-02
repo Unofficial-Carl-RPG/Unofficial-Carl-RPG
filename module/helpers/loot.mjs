@@ -135,6 +135,8 @@ export async function rollLoot(box) {
 }
 
 /* -------------------------------------------- */
+import { titheOf } from './tithe.mjs';
+
 /*  Granting                                    */
 /* -------------------------------------------- */
 
@@ -172,7 +174,8 @@ export async function grantLoot(actor, result) {
     if (stackable) data.system.quantity = entry.quantity;
     await actor.createEmbeddedDocuments('Item', [data]);
   }
-  if (result.gold) await actor.addGold(result.gold);
+  const { net } = titheOf(actor, result.gold);
+  if (net) await actor.addGold(net);
 }
 
 /** Use up one box (the last one is deleted). */
