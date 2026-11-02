@@ -160,6 +160,12 @@
             />
           </label>
         {{/if}}
+        {{#if starsEditable}}
+          <label class='crawler-number kills-number' data-tooltip='{{localize "CARL_RPG.Combat.BossStars"}}'>
+            <span>{{localize 'CARL_RPG.Combat.BossStars'}}</span>
+            <input name='system.bossKills' type='number' value='{{system.bossKills}}' min='0' step='1' data-dtype='Number' />
+          </label>
+        {{/if}}
         {{#if showDeity}}
           <div class='crawler-deity' data-tooltip='{{localize "CARL_RPG.Actor.Crawler.Header.Deity"}}'>
             <span class='resource-label'>{{localize 'CARL_RPG.Actor.Crawler.Header.Deity'}}</span>

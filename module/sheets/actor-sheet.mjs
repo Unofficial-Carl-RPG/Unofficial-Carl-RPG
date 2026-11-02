@@ -515,6 +515,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
         (context.showRace ? 1 : 0) +
         (context.showClass ? 1 : 0) +
         (this.editMode ? 1 : 0) + // Crawler kills
+        (this.editMode && game.user.isGM ? 1 : 0) + // Boss kill stars
         (context.showDeity ? 1 : 0);
       // With no boxes at all the row is left out (the floor isn't shown here).
       context.identityCount = columns;
@@ -529,8 +530,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
       context.canGiveStar =
         game.user.isGM &&
         this.actor.system.mobType === 'boss' &&
-        this.actor.statuses.has('dead') &&
-        !this.actor.getFlag('carl-rpg', 'starGiven');
+        this.actor.statuses.has('dead');
     context.canLoot =
       game.user.isGM &&
       this.actor.type === 'mob' &&
@@ -548,6 +548,7 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
     context.skulls = killSkulls(this.actor);
     context.stars = bossStars(this.actor);
     context.killBadge = context.skulls.count + context.stars.count > 0;
+    context.starsEditable = this.editMode && game.user.isGM && this.actor.type === 'crawler';
     // From the third floor a crawler without a race (then a class) gets a
     // button to choose one. This applies to the GM too: below that floor the GM
     // can still give a race or class by dropping it on the sheet.
@@ -2144,7 +2145,6 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
     for (const crawler of crawlers) {
       await crawler.update({ 'system.bossKills': (crawler.system.bossKills ?? 0) + 1 });
     }
-    await this.actor.setFlag('carl-rpg', 'starGiven', true);
     await ChatMessage.create({
       content: `<div class="carl-loot-card">${game.i18n.format('CARL_RPG.Combat.StarGiven', {
         boss: Handlebars.escapeExpression(this.actor.name),
