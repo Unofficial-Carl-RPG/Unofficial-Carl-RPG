@@ -95,6 +95,8 @@ export default class CarlRPGItemBase extends foundry.abstract
     });
     // A short version for chat cards and tooltips (blank means use the full text).
     schema.shortDescription = new fields.HTMLField();
+    // An action that counts as an interrupt when it is used in the React phase.
+    schema.interrupt = new fields.BooleanField({ initial: false });
 
     // A unique-ish key for the item (used for things like duplicate checks).
     schema.identifier = new fields.StringField({

@@ -11,4 +11,10 @@
   {{! Usage limits }}
   {{> "systems/carl-rpg/templates/item/uses-fields.hbs"}}
   {{> "systems/carl-rpg/templates/item/targeting.hbs"}}
+  <div class='resource'>
+    <label class='resource-label' data-tooltip='{{localize "CARL_RPG.Combat.InterruptHint"}}'>
+      <input type='checkbox' name='system.interrupt' {{#if system.interrupt}}checked{{/if}}{{#unless @root.editable}} disabled{{/unless}} />
+      {{localize 'CARL_RPG.Combat.InterruptLabel'}}
+    </label>
+  </div>
 </section>

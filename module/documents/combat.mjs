@@ -71,11 +71,11 @@ export class CarlRPGCombat extends Combat {
    */
   async resetActions({ keepExtra = false } = {}) {
     const updates = this.combatants
-      .filter((c) => c.getFlag('carl-rpg', 'actionsSpent') || c.getFlag('carl-rpg', 'extraAction'))
+      .filter((c) => c.getFlag('carl-rpg', 'actionsSpent') || c.getFlag('carl-rpg', 'extraAction') || c.getFlag('carl-rpg', 'interruptUsed'))
       .map((c) => ({
         _id: c.id,
         'flags.carl-rpg.actionsSpent': 0,
-        ...(keepExtra ? {} : { 'flags.carl-rpg.extraAction': false }),
+        ...(keepExtra ? {} : { 'flags.carl-rpg.extraAction': false, 'flags.carl-rpg.interruptUsed': false }),
       }));
     if (updates.length) await this.updateEmbeddedDocuments('Combatant', updates);
   }

@@ -926,6 +926,13 @@ export class CarlRPGItem extends Item {
     // Both checks passed: now the action is actually spent (quietly: it isn't
     // mentioned on the chat card, only the mana is).
     await this.#spendAction(claim);
+    // An Interrupt action used in the React phase marks its crawler for the round.
+    if (this.system.interrupt && this.parent?.type === 'crawler' && claim.combatant) {
+      const phase = CONFIG.CARL_RPG.combatPhases[claim.combatant.parent?.phase];
+      if (phase?.id === 'react') {
+        await updateWithRelay(claim.combatant, { 'flags.carl-rpg.interruptUsed': true });
+      }
+    }
     await spendUse(this);
     const rolling = await this.#useRollingSkill();
     const result = await this._rollCore(event, {

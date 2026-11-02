@@ -275,6 +275,9 @@
       "RecapFloor": "Floor {floor}",
       "RecapNatural20": "natural 20",
       "RecapNatural1": "natural 1",
+      "InterruptLabel": "Interrupt",
+      "InterruptHint": "Counts as an interrupt when used in the React phase.",
+      "InterruptUsed": "Used an interrupt this round",
       "RefillDone": "Every combatant's actions were refilled.",
       "CleanupNote": "Remaining effects resolve and action counts reset.",
       "Phases": {

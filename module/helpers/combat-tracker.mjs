@@ -212,6 +212,14 @@ function addActionPips(li, combatant) {
     pips.append(pip);
   }
 
+  // An interrupt used this round (in the React phase) shows as a bolt.
+  if (combatant.getFlag('carl-rpg', 'interruptUsed')) {
+    const bolt = document.createElement('i');
+    bolt.className = 'fas fa-bolt interrupt-used';
+    bolt.dataset.tooltip = game.i18n.localize('CARL_RPG.Combat.InterruptUsed');
+    pips.append(bolt);
+  }
+
   // A crawler can buy one extra action for the round (1 AI Favor).
   if (combatant.actor?.type === 'crawler' && canEdit && !combatant.getFlag('carl-rpg', 'extraAction')) {
     const buy = document.createElement('a');
