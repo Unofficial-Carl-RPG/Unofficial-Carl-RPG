@@ -717,6 +717,21 @@
         "skillCap": "Skill cap 20"
       }
     },
+    "Recap": {
+      "Title": "Floor {floor} recap",
+      "Party": "Party",
+      "Stars": "Boss stars",
+      "Kills": "Crawler kills",
+      "Achievements": "Achievements",
+      "Boxes": "Loot boxes opened",
+      "Elites": "Elites defeated: {count}",
+      "Nothing": "Nothing to recap on floor {floor} yet.",
+      "LineStar": "earned a boss star",
+      "LineKill": "+{count} crawler kill(s)",
+      "LineAchievement": "earned {achievement}",
+      "LineLoot": "opened {box}",
+      "LineElite": "Elite defeated: {name}"
+    },
     "GMTab": {
       "Title": "Dungeon Info",
       "Floor": "Floor",
@@ -728,6 +743,8 @@
       "Rests": "Rests",
       "BossBattle": "Boss battle",
       "AnnounceBoss": "Announce Boss Battle",
+      "Recap": "Floor Recap",
+      "PostRecap": "Post Recap",
       "NoBosses": "No bosses found. Add a boss to the combat or the scene (set a mob's kind to Boss).",
       "Vs": "vs",
       "And": "and",

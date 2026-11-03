@@ -977,3 +977,45 @@
     animation: none;
   }
 }
+
+// The floor recap card posted from Dungeon Info.
+.chat-message .carl-recap-card {
+  margin: 2px 0;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border-light-tertiary, #666);
+  border-radius: 4px;
+
+  .recap-title {
+    margin-bottom: 4px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th,
+    td {
+      padding: 2px 4px;
+      text-align: center;
+    }
+
+    th[scope='row'] {
+      text-align: left;
+    }
+
+    tfoot th,
+    tfoot td {
+      border-top: 1px solid var(--color-border-light-tertiary, #666);
+      font-weight: 800;
+    }
+  }
+
+  .recap-elites {
+    margin-top: 4px;
+    text-align: center;
+  }
+}

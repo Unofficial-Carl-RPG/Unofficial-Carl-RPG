@@ -226,7 +226,7 @@ async function postResult(actor, box, result, requestId = null) {
     </div>`,
     flags: {
       [NS]: {
-        card: { kind: 'loot', tier: result.tier },
+        card: { kind: 'loot', tier: result.tier, box: box.name },
         ...(requestId ? { lootResponse: { requestId, status: 'done' } } : {}),
       },
     },

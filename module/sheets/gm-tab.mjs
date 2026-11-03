@@ -34,6 +34,7 @@ import {
   setTitle,
 } from '../helpers/party.mjs';
 import { announceBossBattle, findBosses } from '../helpers/announcement.mjs';
+import { postRecap } from '../helpers/recap.mjs';
 import { openFloorRules } from './floor-rules.mjs';
 import { openEncounterBuilder } from './encounter-builder.mjs';
 import { rollEncounter } from '../helpers/encounters.mjs';
@@ -70,6 +71,7 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
       noteRemove: CarlRPGGMTab._onNoteRemove,
       daysDown: CarlRPGGMTab._onDaysDown,
       announceBoss: CarlRPGGMTab._onAnnounceBoss,
+      postRecap: CarlRPGGMTab._onPostRecap,
       toggleBossJoin: CarlRPGGMTab._onToggleBossJoin,
       rest: CarlRPGGMTab._onRest,
       awardAchievement: CarlRPGGMTab._onAwardAchievement,
@@ -541,6 +543,11 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
     if (!game.user.isGM) return;
     // The bosses are looked up again now, so the announcement is always current.
     await announceBossBattle(this.#bossRows());
+  }
+
+  /** Post the current floor's recap card to chat. */
+  static async _onPostRecap() {
+    await postRecap();
   }
 
   /** Take a short, long or full rest (the button's `data-rest`) after asking. */

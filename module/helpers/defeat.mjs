@@ -1,3 +1,5 @@
+import { recordRecap } from './recap.mjs';
+
 /**
  * Taking an actor out of the combat: its combatants are removed from every combat.
  * @param {Actor} actor
@@ -25,4 +27,10 @@ export async function defeatMob(mob) {
   const combat = game.combats.find((c) => c.combatants.some((cb) => cb.actorId === mob.id));
   if (combat) await mob.setFlag('carl-rpg', 'defeatedIn', combat.id);
   await removeFromCombat(mob);
+  if (mob.system.mobType === 'elite') {
+    recordRecap({
+      kind: 'elite',
+      line: game.i18n.format('CARL_RPG.Recap.LineElite', { name: foundry.utils.escapeHTML(mob.name) }),
+    });
+  }
 }
