@@ -33,10 +33,61 @@
 
   h1,
   h2,
-  h3 {
+  h3,
+  h4,
+  h5,
+  h6 {
     color: #d9b45a;
-    border-bottom: 1px solid #6b5423;
+    font-family: var(--dcc-font-display);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     margin: 0.6em 0 0.3em;
+  }
+
+  h1,
+  h2,
+  h3 {
+    border-bottom: 1px solid #6b5423;
+  }
+
+  h4,
+  h5,
+  h6 {
+    font-size: 1em;
+  }
+
+  ul li::marker,
+  ol li::marker {
+    color: #c9a54a;
+  }
+
+  hr {
+    margin: 0.75em 0;
+    border: 0;
+    border-top: 1px solid #6b5423;
+  }
+
+  code {
+    padding: 0 4px;
+    color: #e9c46a;
+    font-family: var(--dcc-font-system, monospace);
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid #6b5423;
+    border-radius: 3px;
+  }
+
+  pre {
+    padding: 6px 8px;
+    overflow: auto;
+    background: #14110f;
+    border: 1px solid #6b5423;
+    border-radius: 3px;
+
+    code {
+      padding: 0;
+      background: none;
+      border: 0;
+    }
   }
 
   a {
@@ -218,9 +269,11 @@ body.carl-journals {
     border: 0;
   }
 
-  // The window: its frame, header, page list and the page area.
+  // The window: its frame, header, page list and the page area (and the Show to Players
+  // dialog, which has the same frame).
   .application.sheet.journal-entry,
-  .application.journal-sheet {
+  .application.journal-sheet,
+  .application.show-to-players {
     background: var(--dcc-bg);
     color: var(--dcc-text);
     font-family: var(--dcc-font-body);
@@ -258,6 +311,74 @@ body.carl-journals {
     .journal-entry-pages,
     .toc {
       scrollbar-color: var(--dcc-gold-dim) transparent;
+    }
+
+    // Form controls: the edit form, the dialog and the page list's search.
+    input,
+    select,
+    textarea {
+      --input-background-color: rgba(0, 0, 0, 0.35);
+      --input-text-color: var(--dcc-text);
+      --input-border-color: var(--dcc-border);
+      --input-focus-outline-color: var(--dcc-gold);
+      --input-placeholder-color: var(--dcc-text-dim);
+    }
+
+    button {
+      --button-text-color: var(--dcc-gold);
+      --button-border-color: var(--dcc-border);
+      --button-hover-border-color: var(--dcc-gold);
+      --button-background-color: var(--dcc-panel-2);
+      --button-hover-background-color: var(--dcc-panel-2);
+      --button-hover-text-color: var(--dcc-gold);
+    }
+
+    input[type='checkbox'],
+    input[type='radio'] {
+      --checkbox-background-color: var(--dcc-gold-dim);
+      --checkbox-checked-color: var(--dcc-gold);
+      --checkbox-checkmark-color: var(--dcc-panel);
+    }
+
+    label {
+      color: var(--dcc-gold);
+    }
+
+    fieldset {
+      border-color: var(--dcc-border);
+    }
+
+    legend {
+      color: var(--dcc-gold);
+      font-family: var(--dcc-font-display);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    // The page editor's toolbar, drop-downs and dialogs.
+    prose-mirror {
+      --menu-background: var(--dcc-panel-2);
+      --dropdown-background: var(--dcc-panel-2);
+      --dropdown-border: var(--dcc-border);
+      --dialog-background: var(--dcc-panel);
+      --dialog-border: var(--dcc-border);
+      --button-text-color: var(--dcc-gold);
+      --color-form-label-hover: var(--dcc-gold);
+    }
+
+    // Picture, PDF and video pages.
+    figure.journal-page-content img,
+    .image-preview img,
+    figure iframe,
+    figure video {
+      border: 1px solid var(--dcc-border);
+      border-radius: 3px;
+    }
+
+    figcaption {
+      color: var(--dcc-text-dim);
+      font-style: italic;
+      text-align: center;
     }
 
     // The page list on the left.
