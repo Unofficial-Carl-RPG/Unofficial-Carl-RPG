@@ -20,7 +20,7 @@ export function registerSounds() {
       name: label,
       scope: 'world',
       config: true,
-      type: new foundry.data.fields.FilePathField({ categories: ['AUDIO'], initial: '' }),
+      type: new foundry.data.fields.FilePathField({ categories: ['AUDIO'], blank: true, initial: '' }),
     });
   }
   game.settings.register(NS, 'soundVolume', {
@@ -46,7 +46,7 @@ export function registerSounds() {
 export function playCue(cue) {
   if (!CUES[cue] || game.settings.get(NS, 'soundMuted')) return;
   const src = game.settings.get(NS, CUES[cue].setting);
-  if (!src) return;
+  if (!src || typeof src !== 'string') return;
   const volume = (game.settings.get(NS, 'soundVolume') ?? 100) / 100;
   foundry.audio.AudioHelper.play({ src, volume, autoplay: true, loop: false }, false);
 }
