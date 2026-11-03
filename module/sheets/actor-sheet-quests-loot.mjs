@@ -5,6 +5,7 @@ import { plainText } from '../helpers/store.mjs';
 import { pickCrawlerAndLoot } from '../helpers/mob-loot.mjs';
 import { openAllLootBoxes, openLootBox } from '../helpers/loot.mjs';
 import { CarlRPGDialog } from '../helpers/dialog.mjs';
+import { revive } from '../helpers/dying.mjs';
 
 export const ActorSheetQuestsAndLoot = (Base) => class ActorSheetQuestsAndLoot extends Base {
   /** A mob's loot list: each item with its name and its chance. */
@@ -161,6 +162,11 @@ export const ActorSheetQuestsAndLoot = (Base) => class ActorSheetQuestsAndLoot e
     event.preventDefault();
     const item = this._getEmbeddedDocument(target);
     if (item) await openLootBox(item);
+  }
+
+  /** GM: bring a dead crawler back with 1 health box. */
+  static async _revive() {
+    if (game.user.isGM) await revive(this.actor);
   }
 
   /** GM: a defeated boss gives every crawler in its combat a star (once per boss). */

@@ -42,6 +42,7 @@ import { restoreUses } from './uses.mjs';
 import { skillCapOf } from './skill-cap.mjs';
 import { getFloorRules } from './floor.mjs';
 import { logEvent } from './change-log.mjs';
+import { revive } from './dying.mjs';
 
 const NS = 'carl-rpg';
 
@@ -545,6 +546,11 @@ const HANDLERS = {
       return;
     }
     await actor.applyDamage(amount, { ignoreDR: !!action.ignoreDR });
+  },
+
+  /** Bring a dead crawler back with 1 health box. */
+  async revive({ actor }) {
+    await revive(actor);
   },
 
   /** Say something in chat, as the one it affects. {name} and {item} are filled in. */

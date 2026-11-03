@@ -122,6 +122,9 @@ class Item {
 }
 class ActiveEffect {}
 class ChatMessage {
+  static getWhisperRecipients() {
+    return [{ id: 'gm1' }];
+  }
   static async create(data) {
     world.chat.push(data);
     return data;

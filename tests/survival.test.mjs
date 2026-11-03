@@ -1,7 +1,7 @@
 import { world, makeActor, makeCrawler } from './stubs.mjs';
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { canDie, dyingEffectOf, startDying, cancelDying, hurtWhileDying, die } from '../module/helpers/dying.mjs';
+import { canDie, dyingEffectOf, startDying, cancelDying, hurtWhileDying, die, revive, isDead } from '../module/helpers/dying.mjs';
 import { tickDurations } from '../module/helpers/effect-duration.mjs';
 import { CarlRPGActor } from '../module/documents/actor.mjs';
 
@@ -36,10 +36,10 @@ test('Dying lasts rounds equal to the CON modifier, and starts only once', async
   assert.equal(dying.getFlag(NS, 'rounds'), 3);
   assert.equal(left(crawler), 3);
   assert.equal(dying.getFlag(NS, 'kind'), 'debuff');
-  assert.equal(world.chat.length, 1);
+  assert.equal(world.chat.length, 2); // public note + GM whisper
   await startDying(crawler); // already Dying
   assert.equal(crawler.effects.length, 1);
-  assert.equal(world.chat.length, 1);
+  assert.equal(world.chat.length, 2);
 });
 
 test('Dying is at least 1 round, and a dead crawler cannot start Dying again', async () => {
@@ -119,6 +119,28 @@ test('death adds a permanent Dead effect, the skull overlay, and takes the crawl
   assert.deepEqual(removed, [['Combatant', ['c1']]]);
   await die(crawler); // already dead: no second Dead effect
   assert.equal(crawler.effects.filter((e) => e.getFlag(NS, 'dead')).length, 1);
+});
+
+test('Dying and death are told to the GM only; death sends nothing public', async () => {
+  const crawler = await makeCrawler({ id: 'carl' });
+  await startDying(crawler);
+  const before = world.chat.length;
+  await die(crawler);
+  const added = world.chat.slice(before);
+  assert.equal(added.length, 1);
+  assert.deepEqual(added[0].whisper, ['gm1']);
+  assert.ok(world.chat.some((m) => m.whisper?.length && !m.flags)); // the Dying reminder
+});
+
+test('revive brings a dead crawler back with 1 health box and no Dying', async () => {
+  const crawler = await makeCrawler({ id: 'carl' });
+  await die(crawler);
+  assert.equal(isDead(crawler), true);
+  await revive(crawler);
+  assert.equal(isDead(crawler), false);
+  assert.equal(crawler.effects.some((e) => e.getFlag(NS, 'dead')), false);
+  assert.equal(dyingEffectOf(crawler), null);
+  assert.equal(crawler.system.health.value, 1);
 });
 
 /* -------------------------------------------- */

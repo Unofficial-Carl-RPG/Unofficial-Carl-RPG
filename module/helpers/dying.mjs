@@ -3,7 +3,8 @@
  * equal to its CON modifier (at least 1). The count drops at each round end (see
  * helpers/effect-duration.mjs) and by 1 for every hit that gets through while
  * Dying. Any healing cancels it. When the count runs out the actor dies: a permanent
- * Dead effect, the skull overlay, and out of the combat. No announcement is sent.
+ * Dead effect, the skull overlay, and out of the combat. Only the GM is told (a whisper);
+ * a GM can bring the crawler back with revive().
  *
  * Other mobs, pets and mounts don't Dying; they just go down (see helpers/defeat.mjs).
  */
@@ -12,6 +13,12 @@ import { removeFromCombat } from './defeat.mjs';
 const NS = 'carl-rpg';
 
 const t = (key, data) => (data ? game.i18n.format(key, data) : game.i18n.localize(key));
+
+/** A note only the GM sees. */
+async function whisperGM(content) {
+  const whisper = ChatMessage.getWhisperRecipients('GM').map((u) => u.id);
+  if (whisper.length) await ChatMessage.create({ content, whisper });
+}
 
 /** Crawlers and Crawler-type mobs can be Dying. */
 export function canDie(actor) {
@@ -56,6 +63,7 @@ export async function startDying(actor) {
     flags: { 'carl-rpg': { cue: 'dying' } },
     content: t('CARL_RPG.Combat.DyingStarted', { name: actor.name, rounds }),
   });
+  await whisperGM(t('CARL_RPG.Combat.DyingGmNote', { name: actor.name, rounds }));
 }
 
 /**
@@ -99,4 +107,28 @@ export async function die(actor) {
   ]);
   await actor.toggleStatusEffect('dead', { active: true, overlay: true });
   await removeFromCombat(actor);
+  await whisperGM(t('CARL_RPG.Combat.DiedGmNote', { name: actor.name }));
+}
+
+/** True when the actor has died (has the Dead effect). */
+export function isDead(actor) {
+  return canDie(actor) && !!actor.statuses?.has('dead');
+}
+
+/**
+ * Bring a dead crawler back: the Dead effect and skull go, any Dying count is cleared,
+ * and they come back with 1 health box. They are not put back in the combat.
+ * @param {Actor} actor
+ */
+export async function revive(actor) {
+  if (!canDie(actor)) return;
+  await cancelDying(actor);
+  const dead = actor.effects.filter((e) => e.getFlag(NS, 'dead'));
+  if (dead.length) await actor.deleteEmbeddedDocuments('ActiveEffect', dead.map((e) => e.id));
+  if (actor.statuses?.has('dead')) await actor.toggleStatusEffect('dead', { active: false });
+  await actor.update({ 'system.health.value': 1 });
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content: t('CARL_RPG.Combat.Revived', { name: actor.name }),
+  });
 }

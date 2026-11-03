@@ -113,6 +113,9 @@ export async function summarizeAction(a, otherEvents = {}) {
     case 'awardAchievement':
       text = t(`${S}awardAchievement`, { name: await nameOf(a.uuid) });
       break;
+    case 'revive':
+      text = t(`${S}revive`);
+      break;
     case 'grantSkill':
       text = t(`${S}grantSkill`, { amount, name: await nameOf(a.uuid) });
       break;

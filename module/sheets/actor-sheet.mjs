@@ -5,7 +5,7 @@ import {
   latestSubclassOf,
   raceOf,
 } from '../helpers/origins.mjs';
-import { dyingEffectOf } from '../helpers/dying.mjs';
+import { dyingEffectOf, isDead } from '../helpers/dying.mjs';
 import { creationPending } from '../helpers/creation.mjs';
 import { bossStars, killSkulls } from '../helpers/crawler-number.mjs';
 import {
@@ -91,6 +91,7 @@ export class CarlRPGActorSheet extends ActorSheetBase {
       clearReward: editOnly(this._clearReward),
       giveReward: this._giveReward,
       giveStar: this._giveStar,
+      revive: this._revive,
     lootMob: this._lootMob,
     completeQuest: this._completeQuest,
     removeQuest: this._removeQuest,
@@ -570,7 +571,12 @@ export class CarlRPGActorSheet extends ActorSheetBase {
     }
     // The Create Character and Choose Race / Class buttons share a line of their
     // own under the name row, which is only there while one of them is.
-    context.hasHeaderActions = !!(context.creationPending || context.originPrompt);
+    context.canRevive = game.user.isGM && isDead(this.actor);
+    context.hasHeaderActions = !!(
+      context.creationPending ||
+      context.originPrompt ||
+      context.canRevive
+    );
 
     // Crawlers (10 boxes) and mobs (a settable number of boxes) have a health
     // bar. Remaining boxes are "filled"; clicking a box sets health to that many
