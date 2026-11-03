@@ -1237,8 +1237,9 @@ export class CarlRPGActorSheet extends ActorSheetBase {
 
   /**
    * Lock the sheet unless edit mode is on. A locked sheet disables every form
-   * control except the ones below and everything on the Notes tab. Buttons and
-   * links for creating items, rolling and clicking health boxes are not form
+   * control except the ones below, the filter and sort bars and everything on the
+   * Notes tab. Buttons and links for creating items, rolling and clicking health
+   * boxes are not form
    * controls, so they keep working; delete buttons and the portrait are hidden
    * from use by CSS (see `.edit-locked` in components/_theme.scss).
    */
@@ -1257,6 +1258,8 @@ export class CarlRPGActorSheet extends ActorSheetBase {
     ]);
     for (const el of this.element.querySelectorAll('input, select, textarea')) {
       if (el.closest('.tab.biography')) continue;
+      // The filter and sort bars above the lists always work: they only change what is shown.
+      if (el.closest('.item-filter-bar')) continue;
       // Hotlist dropdowns stay usable while the sheet is locked.
       if (el.classList.contains('hotlist-select')) continue;
       if (alwaysEditable.has(el.getAttribute('name'))) continue;
