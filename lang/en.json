@@ -1034,6 +1034,8 @@
       "Quantity": "Quantity",
       "Uses": "Uses",
       "RollsWith": "Rolls with",
+      "Interrupt": "Interrupt",
+      "Junk": "Misc Junk",
       "AlsoGrants": "Also grants"
     },
     "Pets": {

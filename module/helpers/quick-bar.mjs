@@ -1,4 +1,5 @@
 import { isLimited, usesLeft } from './uses.mjs';
+import { describeBadges, skillBadges } from './item-badges.mjs';
 
 /*
  * The quick bar: a row above the hotbar for the crawler you have selected. It shows
@@ -38,18 +39,30 @@ export function quickBarItems(actor) {
 const keyLabel = (index) => (index < 9 ? String(index + 1) : index === 9 ? '0' : '');
 
 /**
- * The tooltip's HTML: the Short Description, or the full Description when there is no
- * short one, with its enrichers (links, inline rolls) applied. The name if both are empty.
+ * The tooltip's HTML: the name, the same badges the Description tab shows (stat,
+ * damage, costs, Interrupt, the skill it rolls with...), then the Short Description,
+ * or the full Description when there is no short one, with its enrichers (links,
+ * inline rolls) applied.
  */
 async function tooltipOf(item) {
+  const esc = foundry.utils.escapeHTML;
+  const pills = [...describeBadges(item), ...skillBadges(item)]
+    .map((badge) => `<span class="item-badge">${esc(badge)}</span>`)
+    .join('');
   const short = (item.system.shortDescription ?? '').trim();
   const raw = short || (item.system.description ?? '').trim();
-  if (!raw) return foundry.utils.escapeHTML(item.name);
-  return foundry.applications.ux.TextEditor.implementation.enrichHTML(raw, {
-    secrets: item.isOwner,
-    rollData: item.getRollData(),
-    relativeTo: item,
-  });
+  const body = raw
+    ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(raw, {
+        secrets: item.isOwner,
+        rollData: item.getRollData(),
+        relativeTo: item,
+      })
+    : '';
+  return (
+    `<div class="quick-tip-name">${esc(item.name)}</div>` +
+    (pills ? `<div class="item-badges">${pills}</div>` : '') +
+    body
+  );
 }
 
 /** Use an item from the bar; a click passes its event, so Shift skips the pop-up. */
