@@ -94,17 +94,34 @@
   }
 }
 
-// Gold on the Inventory tab.
+// Gold and Misc Junk share one line on the Inventory tab.
+.gold-rows {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 24px;
+  margin-bottom: 8px;
+}
+
 .gold-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
 
   input {
     width: 140px;
     text-align: right;
   }
+}
+
+// The item sheet's Show in chat button is just the icon.
+.item-chat-btn button {
+  width: auto;
+  padding: 2px 8px;
+}
+
+// Personal tab: room between its sections.
+.tab.personal > div {
+  margin-bottom: 14px;
 }
 
 // Hotlist tab: a grid of boxes, one per hotlist slot.
