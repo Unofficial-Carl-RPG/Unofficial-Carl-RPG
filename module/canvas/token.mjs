@@ -49,7 +49,7 @@ export class CarlRPGToken extends foundry.canvas.placeables.Token {
 
     if (!this.numberplate) {
       this.numberplate = this.addChild(
-        new PreciseText('', this._getTextStyle())
+        new foundry.canvas.containers.PreciseText('', this._getTextStyle())
       );
       this.numberplate.anchor.set(0.5, 0);
     }
