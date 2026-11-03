@@ -16,6 +16,7 @@ const SLOT_TYPES = ['skill', 'spell', 'gear', 'item'];
 const t = (key, data) => (data ? game.i18n.format(key, data) : game.i18n.localize(key));
 
 let bar = null;
+let tip = null;
 
 /** The crawler selected on the canvas, if the user owns it. */
 function selectedCrawler() {
@@ -70,6 +71,21 @@ function useItem(item, event = {}) {
   return item.roll(event);
 }
 
+/** Show the bar's tooltip box above a slot, kept inside the window. */
+function showTip(button) {
+  if (!tip || !button._tipHtml) return;
+  tip.innerHTML = button._tipHtml;
+  tip.hidden = false;
+  const rect = button.getBoundingClientRect();
+  const left = rect.left + rect.width / 2 - tip.offsetWidth / 2;
+  tip.style.left = `${Math.max(8, Math.min(left, window.innerWidth - tip.offsetWidth - 8))}px`;
+  tip.style.top = `${Math.max(8, rect.top - tip.offsetHeight - 8)}px`;
+}
+
+function hideTip() {
+  if (tip) tip.hidden = true;
+}
+
 function slotButton(item, index) {
   const button = document.createElement('button');
   button.type = 'button';
@@ -82,12 +98,14 @@ function slotButton(item, index) {
     button.append(key);
     return button;
   }
-  // A formatted tooltip, filled in once its enrichers are ready.
-  button.dataset.tooltipClass = 'carl-quick-tooltip';
-  button.dataset.tooltipDirection = 'UP';
+  // The bar's own tooltip box, filled in once the enrichers are ready.
   tooltipOf(item).then((html) => {
-    button.dataset.tooltipHtml = html;
+    button._tipHtml = foundry.utils.cleanHTML(html);
+    if (button.matches(':hover')) showTip(button);
   });
+  button.addEventListener('mouseenter', () => showTip(button));
+  button.addEventListener('mouseleave', hideTip);
+  button.addEventListener('blur', hideTip);
   button.addEventListener('click', (event) => useItem(item, event));
 
   const name = document.createElement('span');
@@ -117,6 +135,7 @@ function render() {
   // While the quick bar shows, Foundry's hotbar (the macros bar) is hidden.
   document.body.classList.toggle('carl-quick-bar-active', !!actor);
   if (!actor) return;
+  hideTip();
   const slots = quickBarItems(actor);
   bar.style.setProperty('--slots', String(slots.length));
   bar.replaceChildren(...slots.map((item, index) => slotButton(item, index)));
@@ -137,6 +156,11 @@ export function registerQuickBar() {
       },
     });
   }
+
+  tip = document.createElement('div');
+  tip.id = 'carl-quick-tip';
+  tip.hidden = true;
+  document.body.append(tip);
 
   bar = document.createElement('div');
   bar.id = 'carl-quick-bar';
