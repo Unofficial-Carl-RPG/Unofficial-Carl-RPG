@@ -363,19 +363,14 @@ export class CarlRPGItem extends Item {
   }
 
   /**
-   * The first time a crawler receives an achievement they are given the loot
-   * box it names. Which achievements have paid out is remembered on the actor,
-   * so removing and re-adding one doesn't pay a second time.
+   * Each time a crawler receives an achievement they are given the loot box it
+   * names and its card is posted. Duplicates are blocked while they hold it, so
+   * this only runs again once it has been removed.
    */
   async #grantAchievementReward() {
     const actor = this.parent;
     if (this.type !== 'achievement' || !(actor instanceof Actor)) return;
     if (actor.type !== 'crawler') return;
-
-    const key = achievementKey(this);
-    const rewarded = actor.getFlag('carl-rpg', 'achievementsRewarded') ?? [];
-    if (rewarded.includes(key)) return;
-    await actor.setFlag('carl-rpg', 'achievementsRewarded', [...rewarded, key]);
 
     let box = null;
     if (this.system.lootBox) {
