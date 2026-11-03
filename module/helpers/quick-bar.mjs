@@ -9,7 +9,7 @@ import { isLimited, usesLeft } from './uses.mjs';
 
 const NS = 'carl-rpg';
 const SLOTS = 9;
-const SLOT_TYPES = ['skill', 'spell', 'gear'];
+const SLOT_TYPES = ['skill', 'spell', 'gear', 'item'];
 
 const t = (key, data) => (data ? game.i18n.format(key, data) : game.i18n.localize(key));
 

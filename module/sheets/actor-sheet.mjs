@@ -277,13 +277,14 @@ export class CarlRPGActorSheet extends ActorSheetBase {
     this._prepareItems(context);
 
     // The crawler's hotlist: one box per slot (`hotlist.size`), each showing the
-    // skill, spell or inventory item picked for it, with a dropdown to pick one.
+    // skill, spell, gear or inventory item picked for it, with a dropdown to pick one.
     if (this.actor.type === 'crawler') {
       const { size, items } = this.actor.system.hotlist;
       const esc = Handlebars.escapeExpression;
       const groups = [
         ['skill', 'CARL_RPG.Actor.Tabs.Features'],
         ['spell', 'CARL_RPG.Actor.Tabs.Spells'],
+        ['gear', 'CARL_RPG.Actor.Tabs.Gear'],
         ['item', 'CARL_RPG.Actor.Tabs.Inventory'],
       ].map(([type, label]) => ({
         label: game.i18n.localize(label),
