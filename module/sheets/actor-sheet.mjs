@@ -445,7 +445,7 @@ export class CarlRPGActorSheet extends ActorSheetBase {
             offering: deity.system.offering?.trim() ?? '',
             id: deity.id,
             tier: deity.system.tier ?? 0,
-            description: await TextEditor.enrichHTML(deity.system.description ?? '', {
+            description: await foundry.applications.ux.TextEditor.implementation.enrichHTML(deity.system.description ?? '', {
               async: true,
               relativeTo: deity,
             }),
@@ -619,7 +619,7 @@ export class CarlRPGActorSheet extends ActorSheetBase {
         // Enrich biography info for display
         // Enrichment turns text like `[[/r 1d20]]` into buttons
         context.originGroups = await this._describeOrigins();
-        context.enrichedBiography = await TextEditor.enrichHTML(
+        context.enrichedBiography = await foundry.applications.ux.TextEditor.implementation.enrichHTML(
           this.actor.system.biography,
           {
             // Whether to show secret blocks in the finished html
@@ -854,7 +854,7 @@ export class CarlRPGActorSheet extends ActorSheetBase {
     for (const item of this.actor.items) {
       const desc = item.system.description ?? '';
       const body = desc
-        ? await TextEditor.enrichHTML(desc, { async: true, relativeTo: item })
+        ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(desc, { async: true, relativeTo: item })
         : '';
       out[item.id] = body + this._itemRowExtras(item);
     }
@@ -1021,7 +1021,7 @@ export class CarlRPGActorSheet extends ActorSheetBase {
     const { img } =
       this.document.constructor.getDefaultArtwork?.(this.document.toObject()) ??
       {};
-    const fp = new FilePicker({
+    const fp = new foundry.applications.apps.FilePicker.implementation({
       current,
       type: 'image',
       redirectToRoot: img ? [img] : [],

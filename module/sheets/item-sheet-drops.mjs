@@ -60,7 +60,7 @@ export const ItemSheetDrops = (Base) => class ItemSheetDrops extends Base {
    * @protected
    */
   async _onDrop(event) {
-    const data = TextEditor.getDragEventData(event);
+    const data = foundry.applications.ux.TextEditor.implementation.getDragEventData(event);
     const item = this.item;
     const allowed = Hooks.call('dropItemSheetData', item, this, data);
     if (allowed === false) return;

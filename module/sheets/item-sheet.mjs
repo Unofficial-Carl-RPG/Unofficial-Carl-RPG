@@ -676,7 +676,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
         break;
       case 'description':
         context.tab = context.tabs[partId];
-        context.enrichedShortDescription = await TextEditor.enrichHTML(
+        context.enrichedShortDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML(
           this.item.system.shortDescription ?? '',
           {
             secrets: this.document.isOwner,
@@ -686,7 +686,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
         );
         // Enrich description info for display
         // Enrichment turns text like `[[/r 1d20]]` into buttons
-        context.enrichedDescription = await TextEditor.enrichHTML(
+        context.enrichedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML(
           this.item.system.description,
           {
             // Whether to show secret blocks in the finished html
@@ -906,8 +906,8 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       rollData: item.getRollData(),
       relativeTo: item,
     };
-    const shortHtml = await TextEditor.enrichHTML(short || full, options);
-    const fullHtml = await TextEditor.enrichHTML(full, options);
+    const shortHtml = await foundry.applications.ux.TextEditor.implementation.enrichHTML(short || full, options);
+    const fullHtml = await foundry.applications.ux.TextEditor.implementation.enrichHTML(full, options);
     const more =
       short && full
         ? `<details><summary>${game.i18n.localize('CARL_RPG.ItemDesc.FullDescription')}</summary>${fullHtml}</details>`
@@ -944,7 +944,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
     const { img } =
       this.document.constructor.getDefaultArtwork?.(this.document.toObject()) ??
       {};
-    const fp = new FilePicker({
+    const fp = new foundry.applications.apps.FilePicker.implementation({
       current,
       type: 'image',
       redirectToRoot: img ? [img] : [],
