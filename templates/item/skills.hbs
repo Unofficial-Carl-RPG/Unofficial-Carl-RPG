@@ -40,7 +40,7 @@
           </div>
         </div>
         <div class='item-controls'>
-          {{#if (eq item.system.action.type 'skill')}}
+          {{#if (eq @root.system.action.type 'skill')}}
             <label class='rolls-with-pick' data-tooltip='{{localize "CARL_RPG.Weapon.RollsWithHint"}}'>
               <input type='radio' name='system.rollSkill' value='{{skill.uuid}}'{{#if skill.rollsWith}} checked{{/if}}{{#unless @root.editable}} disabled{{/unless}} />
               {{localize 'CARL_RPG.Weapon.RollsWith'}}
