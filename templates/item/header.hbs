@@ -40,16 +40,21 @@
             data-dtype='Number'
           />
         </div>
+        {{#if showValue}}
+          <div class='resource'>
+            <label class='resource-label'>{{localize 'CARL_RPG.Item.Item.FIELDS.value.label'}}</label>
+            <input type='text' name='system.value' value='{{system.value}}' data-dtype='Number' {{#unless isGM}}readonly{{/unless}} />
+          </div>
+        {{/if}}
       </div>
-    {{/if}}
-    {{#if showValue}}
+    {{else}}{{#if showValue}}
       <div class='grid grid-2col'>
         <div class='resource'>
           <label class='resource-label'>{{localize 'CARL_RPG.Item.Item.FIELDS.value.label'}}</label>
           <input type='text' name='system.value' value='{{system.value}}' data-dtype='Number' {{#unless isGM}}readonly{{/unless}} />
         </div>
       </div>
-    {{/if}}
+    {{/if}}{{/if}}
   </div>
     {{#if (eq item.type 'store')}}{{#if isGM}}
     <div class='item-chat-btn'>
