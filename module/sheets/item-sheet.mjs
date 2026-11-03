@@ -1,6 +1,6 @@
 import { resolveListing, restockListing } from '../helpers/store.mjs';
 import { skillStatLabel } from '../helpers/creation.mjs';
-import { describeBadges, skillBadges } from '../helpers/item-badges.mjs';
+import { describeBadges, itemCardHeader, skillBadges } from '../helpers/item-badges.mjs';
 import {
   buildEventRows,
   eventOptions as buildEventOptions,
@@ -931,10 +931,13 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       short && full
         ? `<details><summary>${game.i18n.localize('CARL_RPG.ItemDesc.FullDescription')}</summary>${fullHtml}</details>`
         : '';
-    const content = `<div class="carl-rpg item-chat-card"><header class="item-chat-head"><img src="${item.img}" width="36" height="36"><strong>${foundry.utils.escapeHTML(item.name)}</strong></header><div class="item-chat-short">${shortHtml}</div>${more}</div>`;
+    const content = `<div class="carl-rpg item-chat-card">${itemCardHeader(item)}<div class="item-chat-short">${shortHtml}</div>${more}</div>`;
+    // Skills, spells, gear and items get the same card look as when they are used.
+    const headed = ['skill', 'spell', 'gear', 'item'].includes(item.type);
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker(item.parent ? { actor: item.parent } : {}),
       content,
+      ...(headed ? { flags: { 'carl-rpg': { card: { kind: item.type, header: true } } } } : {}),
     });
   }
 

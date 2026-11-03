@@ -121,6 +121,27 @@ function rollingSkillOf(item) {
 }
 
 /**
+ * The top of an item's chat card: its image, its name beside it and its badges (the
+ * ones the tooltip shows) under the name. A mob ability shows no badges: its numbers
+ * are for the GM, and a card is written once for everyone.
+ * @param {Item} item
+ * @returns {string} HTML
+ */
+export function itemCardHeader(item) {
+  const esc = foundry.utils.escapeHTML;
+  const badges = (item.type === 'mobAbility' ? [] : [...describeBadges(item), ...skillBadges(item)])
+    .map((badge) => `<span class="item-badge">${esc(badge)}</span>`)
+    .join('');
+  return (
+    '<div class="item-card-head">' +
+    `<img class="item-card-img" src="${esc(item.img)}" alt="" width="40" height="40">` +
+    `<div class="item-card-title"><div class="item-card-name">${esc(item.name)}</div>` +
+    (badges ? `<div class="item-badges">${badges}</div>` : '') +
+    '</div></div>'
+  );
+}
+
+/**
  * Badges for the skills a gear or item holds: the one its skill check rolls with
  * (with its stat), and the others it also grants. Names only, so nothing is fetched.
  * @param {Item} item

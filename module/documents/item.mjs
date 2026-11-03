@@ -6,7 +6,7 @@ import { addModifier } from '../data/action.mjs';
 import { costOf, usesCost } from '../data/costs.mjs';
 import { resolveCheck } from '../helpers/attacks.mjs';
 import { describeUpgrades, effectiveOf } from '../helpers/upgrades.mjs';
-import { describeBadges, shortTextOf, skillBadges } from '../helpers/item-badges.mjs';
+import { itemCardHeader, shortTextOf } from '../helpers/item-badges.mjs';
 import { offerAiFavor } from '../helpers/ai-favor.mjs';
 import { spendUse, usesLeft } from '../helpers/uses.mjs';
 import { declareInsteadOfUsing } from '../helpers/declarations.mjs';
@@ -1098,34 +1098,15 @@ export class CarlRPGItem extends Item {
     return { note: notes.join(' ') };
   }
 
-  /**
-   * The top of a skill, spell, gear or item card: its image, its name beside it, and
-   * its badges (the same ones as the tooltip) under the name.
-   * @returns {string} HTML
-   */
-  #cardHeader() {
-    const esc = foundry.utils.escapeHTML;
-    const badges = [...describeBadges(this), ...skillBadges(this)]
-      .map((badge) => `<span class="item-badge">${esc(badge)}</span>`)
-      .join('');
-    return (
-      '<div class="item-card-head">' +
-      `<img class="item-card-img" src="${esc(this.img)}" alt="" width="40" height="40">` +
-      `<div class="item-card-title"><div class="item-card-name">${esc(this.name)}</div>` +
-      (badges ? `<div class="item-badges">${badges}</div>` : '') +
-      '</div></div>'
-    );
-  }
-
   /** The roll itself: posts the description and rolls the formula, if any. */
   async _rollCore(event, { note = '', options = {} } = {}) {
     const speaker = ChatMessage.getSpeaker({ actor: this.actor });
     const rollMode = game.settings.get('core', 'rollMode');
     // Skills, spells, gear and items head their card with their image, name and badges
-    // (see #cardHeader). Other kinds put their name in the flavor line and show a badge
+    // (see itemCardHeader). Other kinds put their name in the flavor line and show a badge
     // naming the kind (helpers/chat-cards.mjs).
     const headed = ['skill', 'spell', 'gear', 'item'].includes(this.type);
-    const header = headed ? this.#cardHeader() : '';
+    const header = headed ? itemCardHeader(this) : '';
     const label = headed ? undefined : this.name;
     const cardFlags = {
       'carl-rpg': { card: { kind: this.type, ...(headed ? { header: true } : {}) } },
