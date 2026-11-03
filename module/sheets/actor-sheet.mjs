@@ -510,7 +510,7 @@ export class CarlRPGActorSheet extends ActorSheetBase {
       context.showClass = this.editMode || !!context.classDisplay.trim();
       // The Deity box shows the deity item's name (blank and hidden until one is dropped).
       context.deityName = this.actor.itemTypes.deity[0]?.name ?? '';
-      context.showDeity = this.editMode || !!context.deityName;
+      context.showDeity = !!context.deityName;
       const columns =
         (context.showRace ? 1 : 0) +
         (context.showClass ? 1 : 0) +
