@@ -54,20 +54,23 @@ const OLD_DEFAULT = { diceNum: 1, diceSize: 'd20', diceBonus: '+@str.mod+ceil(@l
  * Give an item saved before actions existed the action that matches how it behaved:
  * gear with skills becomes a skill check, gear with a changed roll becomes a custom
  * formula, everything else has none.
+ *
+ * Foundry also runs this on the partial data of every update, so it only acts on gear
+ * that still has the old `roll` (a partial update never does): anything else keeps
+ * the action it has, and a new item starts with none.
  */
 export function migrateAction(source, itemType) {
   if (source.action !== undefined) return source;
+  if (itemType !== 'gear' || source.roll === undefined) return source;
   let action = { type: 'none' };
-  if (itemType === 'gear') {
-    const roll = source.roll ?? {};
-    const num = roll.diceNum ?? OLD_DEFAULT.diceNum;
-    const size = roll.diceSize ?? OLD_DEFAULT.diceSize;
-    const bonus = roll.diceBonus ?? OLD_DEFAULT.diceBonus;
-    const changed =
-      num !== OLD_DEFAULT.diceNum || size !== OLD_DEFAULT.diceSize || bonus !== OLD_DEFAULT.diceBonus;
-    if ((source.skills ?? []).length) action = { type: 'skill' };
-    else if (changed) action = { type: 'custom', formula: `${num}${size}${bonus}` };
-  }
+  const roll = source.roll ?? {};
+  const num = roll.diceNum ?? OLD_DEFAULT.diceNum;
+  const size = roll.diceSize ?? OLD_DEFAULT.diceSize;
+  const bonus = roll.diceBonus ?? OLD_DEFAULT.diceBonus;
+  const changed =
+    num !== OLD_DEFAULT.diceNum || size !== OLD_DEFAULT.diceSize || bonus !== OLD_DEFAULT.diceBonus;
+  if ((source.skills ?? []).length) action = { type: 'skill' };
+  else if (changed) action = { type: 'custom', formula: `${num}${size}${bonus}` };
   source.action = action;
   return source;
 }

@@ -29,7 +29,13 @@ test('old items: a spell mana cost and a use limit become cost rows', () => {
     { resource: 'uses', amount: 1 },
   ]);
   assert.deepEqual(migrateCosts({ manaCost: 0, uses: { max: 0 } }).costs, []);
-  assert.deepEqual(migrateCosts({}).costs, []);
   const kept = { costs: [{ resource: 'junk', amount: 1 }], manaCost: 5 };
   assert.deepEqual(migrateCosts(kept).costs, [{ resource: 'junk', amount: 1 }]);
+});
+
+test('a partial update never gets costs added (they would reset the real ones)', () => {
+  // Foundry runs the migration on update data like this too.
+  assert.equal('costs' in migrateCosts({}), false);
+  assert.equal('costs' in migrateCosts({ equipped: true }), false);
+  assert.equal('costs' in migrateCosts({ uses: { max: 3 } }), false);
 });

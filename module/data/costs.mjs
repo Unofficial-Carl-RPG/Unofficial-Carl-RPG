@@ -50,9 +50,13 @@ export const usesCost = (item) => costOf(item?.system?.costs, 'uses');
  * Give an item saved before costs existed the costs that match how it behaved: a
  * spell's Mana Cost becomes a Mana cost, and an item with a limit on its uses spends
  * one use.
+ *
+ * Foundry also runs this on the partial data of every update, so it only acts on an
+ * item that still has the old `manaCost` (a partial update never does): anything else
+ * keeps the costs it has.
  */
 export function migrateCosts(source) {
-  if (source.costs !== undefined) return source;
+  if (source.costs !== undefined || source.manaCost === undefined) return source;
   const costs = [];
   const mana = Number(source.manaCost ?? 0);
   if (mana > 0) costs.push({ resource: 'mana', amount: Math.trunc(mana) });

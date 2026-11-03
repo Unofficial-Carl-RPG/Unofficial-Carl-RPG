@@ -208,16 +208,14 @@ export default class CarlRPGItemBase extends foundry.abstract
       source.skills = [source.embeddedSkill];
     }
     // The check used to be a type (unopposed, attack, opposed) and a stat; it is
-    // now a single target. Items with a damage formula used to attack against
-    // Evade automatically.
+    // now a single target. (Foundry also runs this on the partial data of every
+    // update, so it only acts on a check that still has the old `type`.)
     if (source.check?.type && source.check.target === undefined) {
       const { type, stat } = source.check;
       source.check = {
         target:
           type === 'attack' ? 'evade' : type === 'opposed' ? (stat ?? 'dex') : 'unopposed',
       };
-    } else if (!source.check && source.damage?.trim()) {
-      source.check = { target: 'evade' };
     }
     migrateCosts(source);
     return super.migrateData(source);

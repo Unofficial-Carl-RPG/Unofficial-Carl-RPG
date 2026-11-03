@@ -17,16 +17,22 @@ test('none has no formula, custom uses its own, skill starts as a plain d20', ()
 });
 
 test('old gear: skills become a skill check, a changed roll becomes custom, the rest none', () => {
-  assert.deepEqual(migrateAction({ skills: ['Item.a'] }, 'gear').action, { type: 'skill' });
-  assert.deepEqual(
-    migrateAction({ skills: [], roll: { diceNum: 1, diceSize: 'd20', diceBonus: '+@str.mod+ceil(@lvl / 2)' } }, 'gear').action,
-    { type: 'none' }
-  );
+  const plain = { diceNum: 1, diceSize: 'd20', diceBonus: '+@str.mod+ceil(@lvl / 2)' };
+  assert.deepEqual(migrateAction({ skills: ['Item.a'], roll: plain }, 'gear').action, { type: 'skill' });
+  assert.deepEqual(migrateAction({ skills: [], roll: plain }, 'gear').action, { type: 'none' });
   assert.deepEqual(
     migrateAction({ roll: { diceNum: 2, diceSize: 'd6', diceBonus: '+3' } }, 'gear').action,
     { type: 'custom', formula: '2d6+3' }
   );
-  assert.deepEqual(migrateAction({ skills: ['Item.a'] }, 'item').action, { type: 'none' });
+  assert.equal(migrateAction({ skills: ['Item.a'], roll: plain }, 'item').action, undefined);
   const kept = { action: { type: 'stat', stat: 'str' } };
   assert.equal(migrateAction(kept, 'gear').action.type, 'stat');
+});
+
+test('a partial update never gets an action added (it would reset the real one)', () => {
+  // Foundry runs the migration on update data like this too.
+  assert.equal('action' in migrateAction({ rollSkill: 'Actor.a.Item.b' }, 'gear'), false);
+  assert.equal('action' in migrateAction({ equipped: true }, 'gear'), false);
+  assert.equal('action' in migrateAction({ skills: ['Item.a'] }, 'gear'), false);
+  assert.equal('action' in migrateAction({ quantity: 2 }, 'item'), false);
 });
