@@ -11,6 +11,9 @@ body.carl-quick-bar-active #hotbar {
   transform: translateX(-50%);
   z-index: 60;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: calc(100vw - 24px);
   gap: 6px;
   padding: 6px 8px;
   background: #1f1a12;
@@ -25,9 +28,13 @@ body.carl-quick-bar-active #hotbar {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 92px;
+    box-sizing: border-box;
+    width: 96px;
+    min-height: 54px;
+    overflow: hidden;
     margin: 0;
-    padding: 4px 6px;
+    padding: 3px 6px;
+    line-height: 1.2;
     font: inherit;
     color: #ead9b4;
     background: rgba(0, 0, 0, 0.25);
@@ -40,20 +47,39 @@ body.carl-quick-bar-active #hotbar {
       background: rgba(201, 164, 74, 0.15);
     }
 
+    &.empty {
+      cursor: default;
+      opacity: 0.45;
+
+      &:hover {
+        border-color: #6b5423;
+        background: rgba(0, 0, 0, 0.25);
+      }
+    }
+
     kbd {
       align-self: flex-start;
+      min-height: 1em;
       font-size: 0.75em;
       color: #d9b45a;
     }
 
     .carl-quick-name {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.9em;
       font-weight: bold;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
 
     small {
-      font-size: 0.75em;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      text-align: center;
+      font-size: 0.7em;
       opacity: 0.8;
     }
   }

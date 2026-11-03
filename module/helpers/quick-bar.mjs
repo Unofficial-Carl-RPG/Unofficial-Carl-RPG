@@ -1,14 +1,15 @@
 import { isLimited, usesLeft } from './uses.mjs';
 
 /*
- * The quick bar: a row above the hotbar for the crawler you have selected. It lists
- * that crawler's hotlisted skills, spells and gear, in hotlist order, up to the
- * hotlist's count. A click uses an item (hold Shift to skip its pop-up). Keys 1 to 9
- * use the first nine; each key can be changed in Foundry's controls settings.
+ * The quick bar: a row above the hotbar for the crawler you have selected. It shows
+ * every hotlist slot (at least ten, empty ones too) in hotlist order. A click uses
+ * an item (hold Shift to skip its pop-up). Keys 1 to 9 and 0 use slots 1 to 10;
+ * slots past ten are click-only. Each key can be changed in Foundry's controls settings.
  */
 
 const NS = 'carl-rpg';
-const SLOTS = 9;
+const KEYED = 10;
+const MIN_SLOTS = 10;
 const SLOT_TYPES = ['skill', 'spell', 'gear', 'item'];
 
 const t = (key, data) => (data ? game.i18n.format(key, data) : game.i18n.localize(key));
@@ -24,15 +25,17 @@ function selectedCrawler() {
   );
 }
 
-/** The hotlisted skills, spells and gear of a crawler, in order (up to nine). */
+/** One entry per hotlist slot (at least ten): the item in it, or null if empty. */
 export function quickBarItems(actor) {
   const { size, items } = actor.system.hotlist;
-  return items
-    .slice(0, size)
-    .map((id) => actor.items.get(id))
-    .filter((item) => item && SLOT_TYPES.includes(item.type))
-    .slice(0, SLOTS);
+  return Array.from({ length: Math.max(MIN_SLOTS, size) }, (_, i) => {
+    const item = i < size ? actor.items.get(items[i] ?? '') : null;
+    return item && SLOT_TYPES.includes(item.type) ? item : null;
+  });
 }
+
+/** The key label for a slot: 1 to 9, then 0 for the tenth; none after that. */
+const keyLabel = (index) => (index < 9 ? String(index + 1) : index === 9 ? '0' : '');
 
 /** The tooltip: the Short Description as plain text, or the name if there is none. */
 function tooltipOf(item) {
@@ -52,11 +55,16 @@ function slotButton(item, index) {
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'carl-quick-slot';
+  const key = document.createElement('kbd');
+  key.textContent = keyLabel(index);
+  if (!item) {
+    button.classList.add('empty');
+    button.disabled = true;
+    button.append(key);
+    return button;
+  }
   button.title = tooltipOf(item);
   button.addEventListener('click', (event) => useItem(item, event));
-
-  const key = document.createElement('kbd');
-  key.textContent = String(index + 1);
 
   const name = document.createElement('span');
   name.className = 'carl-quick-name';
@@ -89,11 +97,11 @@ function render() {
 }
 
 export function registerQuickBar() {
-  // Keys 1 to 9, registered so each person can change them.
-  for (let n = 1; n <= SLOTS; n++) {
+  // Keys 1 to 9 and 0 (slots 1 to 10), registered so each person can change them.
+  for (let n = 1; n <= KEYED; n++) {
     game.keybindings.register(NS, `quickBar${n}`, {
       name: t('CARL_RPG.QuickBar.KeyName', { n }),
-      editable: [{ key: `Digit${n}` }],
+      editable: [{ key: `Digit${n % 10}` }],
       onDown: () => {
         const actor = selectedCrawler();
         const item = actor ? quickBarItems(actor)[n - 1] : null;
