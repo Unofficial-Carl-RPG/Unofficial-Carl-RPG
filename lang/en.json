@@ -1291,7 +1291,7 @@
     },
     "Action": {
       "Label": "Action",
-      "None": "None",
+      "None": "No Roll",
       "Stat": "Stat check",
       "Skill": "Skill check",
       "Custom": "Custom formula",

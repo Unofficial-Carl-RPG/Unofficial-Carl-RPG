@@ -133,6 +133,8 @@ export function degreeOf(natural, total, dc) {
 export async function resolveCheck(item, roll) {
   // Mobs never roll a d20: a crawler rolls against the mob's number instead.
   if (item.actor?.type === 'mob') return resolveMobCheck(item);
+  // An item whose action is No Roll has no check or damage to resolve.
+  if (item.system.action?.type === 'none') return null;
 
   const damaging = hasDamage(item);
   if (!roll && !damaging) return null;
