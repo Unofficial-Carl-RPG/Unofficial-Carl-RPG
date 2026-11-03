@@ -20,7 +20,7 @@ import { degreeOf, naturalD20 } from '../helpers/attacks.mjs';
 import { triedThisFloor } from '../helpers/advancement.mjs';
 import { offerAiFavor } from '../helpers/ai-favor.mjs';
 import { setupItemFilters } from '../helpers/item-filter.mjs';
-import { describeBadges } from '../helpers/item-badges.mjs';
+import { describeBadges, skillBadges } from '../helpers/item-badges.mjs';
 import { ActorSheetEffects } from './actor-sheet-effects.mjs';
 import { ActorSheetQuestsAndLoot } from './actor-sheet-quests-loot.mjs';
 import { ActorSheetUpgrades } from './actor-sheet-upgrades.mjs';
@@ -877,7 +877,7 @@ export class CarlRPGActorSheet extends ActorSheetBase {
   _itemRowExtras(item) {
     const esc = (value) => foundry.utils.escapeHTML(String(value ?? ''));
     let html = '';
-    const keys = describeBadges(item);
+    const keys = [...describeBadges(item), ...skillBadges(item)];
     if (keys.length) {
       html += `<div class="row-keys">${keys.map(esc).join(' · ')}</div>`;
     }

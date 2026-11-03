@@ -102,16 +102,22 @@ export function describeBadges(item) {
   return badges;
 }
 
-/** The skill (as the world has it) a gear or item's skill check rolls with, if any. */
+/**
+ * The skill a gear or item's skill check rolls with, if any: the one picked on its
+ * crawler's sheet (one of the crawler's own skills), else the first it lists.
+ */
 function rollingSkillOf(item) {
   const uuids = item.system.skills ?? [];
   if (!uuids.length) return null;
-  const marked = uuids.includes(item.system.rollSkill) ? item.system.rollSkill : uuids[0];
-  try {
-    return fromUuidSync(marked);
-  } catch {
-    return null;
-  }
+  const find = (uuid) => {
+    try {
+      const skill = uuid ? fromUuidSync(uuid) : null;
+      return skill?.type === 'skill' ? skill : null;
+    } catch {
+      return null;
+    }
+  };
+  return find(item.system.rollSkill) ?? find(uuids[0]);
 }
 
 /**
@@ -125,20 +131,25 @@ export function skillBadges(item) {
   const loc = (key) => game.i18n.localize(key);
   const uuids = item.system.skills ?? [];
   const rolling = item.system.action?.type === 'skill' ? rollingSkillOf(item) : null;
-  return uuids.map((uuid) => {
+  // The crawler's own copy and the skill the weapon lists are the same skill when
+  // their identifier (or name) match.
+  const keyOf = (skill) => skill?.system?.identifier?.trim() || skill?.name;
+  const badges = [];
+  if (rolling) {
+    const abbr = CONFIG.CARL_RPG.abilityAbbreviations[rolling.system?.stat];
+    const stat = abbr ? loc(abbr) : '';
+    const label = stat ? ` (${stat.charAt(0).toUpperCase()}${stat.slice(1).toLowerCase()})` : '';
+    badges.push(`${loc('CARL_RPG.Badges.RollsWith')} ${rolling.name}${label}`);
+  }
+  for (const uuid of uuids) {
     let skill = null;
     try {
       skill = fromUuidSync(uuid);
     } catch {
       /* not loaded: the uuid is shown instead */
     }
-    const name = skill?.name ?? uuid;
-    if (rolling && skill?.uuid === rolling.uuid) {
-      const abbr = CONFIG.CARL_RPG.abilityAbbreviations[skill.system?.stat];
-      const stat = abbr ? loc(abbr) : '';
-      const label = stat ? ` (${stat.charAt(0).toUpperCase()}${stat.slice(1).toLowerCase()})` : '';
-      return `${loc('CARL_RPG.Badges.RollsWith')} ${name}${label}`;
-    }
-    return `${loc('CARL_RPG.Badges.AlsoGrants')} ${name}`;
-  });
+    if (rolling && skill && keyOf(skill) === keyOf(rolling)) continue;
+    badges.push(`${loc('CARL_RPG.Badges.AlsoGrants')} ${skill?.name ?? uuid}`);
+  }
+  return badges;
 }
