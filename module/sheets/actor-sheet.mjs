@@ -1,10 +1,6 @@
-import { plainText } from '../helpers/store.mjs';
-import { hasLoot, pickCrawlerAndLoot } from '../helpers/mob-loot.mjs';
-import { openAllLootBoxes, openLootBox } from '../helpers/loot.mjs';
-import { levelUp, spendPoints, canLevelUp } from '../helpers/level-up.mjs';
+import { hasLoot } from '../helpers/mob-loot.mjs';
+import { canLevelUp } from '../helpers/level-up.mjs';
 import {
-  chooseOrigin,
-  chooseSubclass,
   classOf,
   latestSubclassOf,
   raceOf,
@@ -12,28 +8,25 @@ import {
 import { dyingEffectOf } from '../helpers/dying.mjs';
 import { creationPending } from '../helpers/creation.mjs';
 import { bossStars, killSkulls } from '../helpers/crawler-number.mjs';
-import { confirmRest } from '../helpers/rests.mjs';
 import {
   promptRoll,
   buildFormula,
   optionsNote,
   statOfFormula,
 } from '../helpers/roll-dialog.mjs';
-import { CarlRPGCreationWizard } from './creation-wizard.mjs';
-import {
-  buildEventRows,
-  dropTarget,
-  EVENT_EDITOR_ACTIONS,
-  eventOptions,
-  saveEventField,
-} from '../helpers/event-editor.mjs';
+import { buildEventRows, EVENT_EDITOR_ACTIONS, eventOptions } from '../helpers/event-editor.mjs';
 import { changeProblem, describeUpgrades, effectKey } from '../helpers/upgrades.mjs';
 import { degreeOf, naturalD20 } from '../helpers/attacks.mjs';
-import { attemptAdvance, triedThisFloor } from '../helpers/advancement.mjs';
+import { triedThisFloor } from '../helpers/advancement.mjs';
 import { offerAiFavor } from '../helpers/ai-favor.mjs';
-import { CarlRPGDialog } from '../helpers/dialog.mjs';
 import { setupItemFilters } from '../helpers/item-filter.mjs';
 import { describeBadges } from '../helpers/item-badges.mjs';
+import { ActorSheetEffects } from './actor-sheet-effects.mjs';
+import { ActorSheetQuestsAndLoot } from './actor-sheet-quests-loot.mjs';
+import { ActorSheetUpgrades } from './actor-sheet-upgrades.mjs';
+import { ActorSheetPersonal } from './actor-sheet-personal.mjs';
+import { ActorSheetProgression } from './actor-sheet-progression.mjs';
+import { ActorSheetDrops } from './actor-sheet-drops.mjs';
 
 const { api, sheets } = foundry.applications;
 
@@ -65,13 +58,21 @@ const observerOnly = (action) =>
     return action.call(this, event, target);
   };
 
+// The sheet is built from one mixin per feature (see actor-sheet-*.mjs).
+const ActorSheetBase = [
+  ActorSheetEffects,
+  ActorSheetQuestsAndLoot,
+  ActorSheetUpgrades,
+  ActorSheetPersonal,
+  ActorSheetProgression,
+  ActorSheetDrops,
+].reduce((Base, mixin) => mixin(Base), api.HandlebarsApplicationMixin(sheets.ActorSheetV2));
+
 /**
  * Extend the basic ActorSheet with some very simple modifications
  * @extends {ActorSheetV2}
  */
-export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
-  sheets.ActorSheetV2
-) {
+export class CarlRPGActorSheet extends ActorSheetBase {
   /** @override */
   static DEFAULT_OPTIONS = {
     classes: ['carl-rpg', 'actor'],
@@ -740,27 +741,6 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
     }, {});
   }
 
-  /**
-   * Organize and classify Items for Actor sheets.
-   *
-   * @param {object} context The context object to mutate
-   */
-  /** A mob's loot list: each item with its name and its chance. */
-  async _prepareLootRows(context) {
-    context.lootRows = await Promise.all(
-      (this.actor.system.loot?.items ?? []).map(async (entry, index) => {
-        const doc = entry.uuid ? await fromUuid(entry.uuid) : null;
-        return {
-          index,
-          chance: entry.chance,
-          name: doc?.name ?? entry.uuid,
-          img: doc?.img ?? 'icons/svg/mystery-man.svg',
-          missing: !doc,
-        };
-      })
-    );
-  }
-
   _prepareItems(context) {
     // Initialize containers.
     // You can just use `this.document.itemTypes` instead
@@ -1138,73 +1118,6 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
   }
 
   /**
-   * Determines effect parent to pass to helper
-   *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
-  static async _toggleEffect(event, target) {
-    event.preventDefault();
-    const effect = this._getEmbeddedDocument(target);
-    // Applies the rules: 3 buff limit with a swap prompt, equipment-controlled
-    // effects, adding a stack to stackable debuffs (see CarlRPGActiveEffect).
-    await effect?.setActive();
-  }
-
-  /**
-   * Create a new effect directly on the actor (not from an item) and open it.
-   *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
-  static async _createEffect(event, target) {
-    event.preventDefault();
-    const kind = target.dataset.kind ?? 'buff';
-    const [effect] = await this.actor.createEmbeddedDocuments('ActiveEffect', [
-      {
-        name: game.i18n.format('CARL_RPG.Effect.NewName', {
-          type: game.i18n.localize(CONFIG.CARL_RPG.effectKinds[kind]),
-        }),
-        img: 'icons/svg/aura.svg',
-        origin: this.actor.uuid,
-        // New buffs start off until used; debuffs and passives start on.
-        disabled: kind === 'buff',
-        flags: { 'carl-rpg': { kind, sourceItems: [], stacks: 1 } },
-      },
-    ]);
-    effect?.sheet.render(true);
-  }
-
-  /**
-   * Add a stack, remove a stack, or remove all stacks of a stackable debuff.
-   *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
-  static async _effectStacks(event, target) {
-    event.preventDefault();
-    const effect = this._getEmbeddedDocument(target);
-    if (!effect) return;
-    switch (target.dataset.mode) {
-      case 'add':
-        await effect.changeStacks(1);
-        break;
-      case 'remove':
-        await effect.changeStacks(-1);
-        break;
-      case 'all':
-        await effect.removeAllStacks();
-        break;
-    }
-  }
-
-  /**
    * The actor's effects as the three sections of the Buffs/Debuffs tab.
    * @returns {object[]}
    */
@@ -1337,36 +1250,6 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
   }
 
   /**
-   * Try to advance a skill or spell: a d20 against its rank (see
-   * helpers/advancement.mjs).
-   *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @protected
-   */
-  static async _advanceSkill(event, target) {
-    event.preventDefault();
-    const item = this._getEmbeddedDocument(target);
-    if (item) await attemptAdvance(item);
-  }
-
-  /**
-   * Mark a skill or spell as one the crawler can try to raise the rank of (or not).
-   *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @protected
-   */
-  static async _toggleAdvanceable(event, target) {
-    event.preventDefault();
-    const item = this._getEmbeddedDocument(target);
-    if (!item) return;
-    await item.update({ 'system.advanceable': !item.system.advanceable });
-  }
-
-  /**
    * Equip or unequip a piece of gear. Equipping into a full slot prompts for
    * which equipped gear to swap out (see CarlRPGItem#toggleEquipped).
    *
@@ -1379,487 +1262,6 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
     event.preventDefault();
     const item = this._getEmbeddedDocument(target);
     await item?.toggleEquipped();
-  }
-
-  /**
-   * This crawler takes a short, long or full rest (the button's `data-rest`),
-   * after asking. Effects that last until that rest (or a shorter one) end.
-   *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @protected
-   */
-  /** The crawler's quests, with their reward and deadline, for the Quests tab. */
-  async _prepareQuests(context) {
-    context.isGM = game.user.isGM;
-    context.quests = await Promise.all(
-      (this.actor.itemTypes?.quest ?? []).map(async (quest) => {
-        const s = quest.system;
-        const box = s.rewardBox ? await fromUuid(s.rewardBox) : null;
-        const ach = s.rewardAchievement ? await fromUuid(s.rewardAchievement) : null;
-        let deadlineLabel = '';
-        if (s.deadline.type === 'floor') {
-          deadlineLabel = game.i18n.format('CARL_RPG.Item.Quest.DeadlineFloor', { floor: s.deadline.value });
-        } else if (s.deadline.type === 'days') {
-          deadlineLabel = game.i18n.format('CARL_RPG.Item.Quest.DeadlineDays', { days: s.deadline.value });
-        }
-        return {
-          id: quest.id,
-          name: quest.name,
-          img: quest.img,
-          giver: s.giver,
-          completed: s.completed,
-          canComplete: game.user.isGM && !s.completed,
-          tooltip: plainText(s.shortDescription),
-          deadlineLabel,
-          objectives: s.objectives.map((o, index) => ({ index, text: o.text, done: o.done })),
-          gold: s.rewardGold,
-          box: box?.name ?? '',
-          achievement: ach?.name ?? '',
-        };
-      })
-    );
-  }
-
-  /** A quest's objectives: its checkboxes save together. */
-  async _saveQuestObjectives(event) {
-    const questEl = event.currentTarget.closest('.quest');
-    const quest = this.actor.items.get(questEl?.dataset.id);
-    if (!quest) return;
-    const objectives = quest.toObject().system.objectives.map((o, index) => ({
-      ...o,
-      done: !!questEl.querySelector(`.quest-objective[data-index="${index}"]`)?.checked,
-    }));
-    await quest.update({ 'system.objectives': objectives });
-  }
-
-  /** GM: complete a quest on this crawler: pay its gold, give its loot box and achievement. */
-  static async _completeQuest(event, target) {
-    if (!game.user.isGM) return;
-    const quest = this.actor.items.get(target.closest('.quest').dataset.id);
-    if (!quest || quest.system.completed) return;
-    const { rewardGold, rewardBox, rewardAchievement } = quest.system;
-    if (rewardGold) await this.actor.addGold(rewardGold);
-    for (const uuid of [rewardBox, rewardAchievement]) {
-      const doc = uuid ? await fromUuid(uuid) : null;
-      if (doc?.documentName === 'Item') {
-        await this.actor.createEmbeddedDocuments('Item', [game.items.fromCompendium(doc)]);
-      }
-    }
-    await quest.update({ 'system.completed': true });
-    await ChatMessage.create({
-      content: `<div class="carl-quest-card">${game.i18n.format('CARL_RPG.Item.Quest.Done', {
-        crawler: this.actor.name,
-        quest: quest.name,
-      })}</div>`,
-    });
-  }
-
-  /** GM: remove a quest from this crawler. */
-  static async _removeQuest(event, target) {
-    if (!game.user.isGM) return;
-    const quest = this.actor.items.get(target.closest('.quest').dataset.id);
-    await quest?.delete();
-  }
-
-  /** GM: loot this defeated mob, giving its loot to the crawler picked. */
-  static async _lootMob() {
-    await pickCrawlerAndLoot(this.actor);
-  }
-
-  /** GM: take one item off the mob's loot list. */
-  static async _removeLoot(event, target) {
-    const index = Number(target.closest('.loot-row').dataset.index);
-    const items = this.actor.toObject().system.loot.items;
-    items.splice(index, 1);
-    await this.actor.update({ 'system.loot.items': items });
-  }
-
-  /** Save the chances of the loot rows (they have no form names). */
-  async _saveLootChances() {
-    const items = this.actor.toObject().system.loot.items;
-    for (const row of this.element.querySelectorAll('.loot-row')) {
-      const entry = items[Number(row.dataset.index)];
-      if (!entry) continue;
-      const value = Math.floor(Number(row.querySelector('.loot-chance').value)) || 0;
-      entry.chance = Math.min(100, Math.max(0, value));
-    }
-    await this.actor.update({ 'system.loot.items': items });
-  }
-
-  /** GM: take the mob's reward box off it. */
-  static async _clearReward() {
-    await this.actor.update({ 'system.rewardBox': '' });
-  }
-
-  /** GM: after a mob is defeated, give its reward loot box to the crawlers picked. */
-  static async _giveReward() {
-    if (!game.user.isGM) return;
-    const box = await fromUuid(this.actor.system.rewardBox);
-    if (!box || box.type !== 'lootBox') return;
-    const crawlers = game.actors.filter((a) => a.type === 'crawler');
-    if (!crawlers.length) return;
-    const rows = crawlers
-      .map(
-        (c) =>
-          `<label class="reward-pick"><input type="checkbox" name="crawler" value="${c.id}" checked> ${foundry.utils.escapeHTML(c.name)}</label>`
-      )
-      .join('');
-    const ids = await CarlRPGDialog.prompt({
-      window: { title: game.i18n.localize('CARL_RPG.Combat.RewardTitle') },
-      content: `<p>${game.i18n.localize('CARL_RPG.Combat.RewardPick')}</p>${rows}`,
-      ok: {
-        label: game.i18n.localize('CARL_RPG.Combat.GiveReward'),
-        callback: (event, button) =>
-          [...button.form.querySelectorAll('input[name="crawler"]:checked')].map((i) => i.value),
-      },
-    });
-    if (!ids?.length) return;
-    for (const id of ids) {
-      const crawler = game.actors.get(id);
-      if (crawler) await crawler.createEmbeddedDocuments('Item', [game.items.fromCompendium(box)]);
-    }
-  }
-
-  static async _rest(event, target) {
-    event.preventDefault();
-    await confirmRest(target.dataset.rest, this.actor);
-  }
-
-  /**
-   * Change a pet's stored upgrades with a function, then save them. (The shared
-   * events editor, helpers/event-editor.mjs, saves through this.) Saving as a GM
-   * marks the events the upgrades carry as trusted; see CarlRPGActor#_preUpdate.
-   * @param {(system: object) => void} mutate
-   */
-  async _updateEvents(mutate) {
-    if (!this.actor.isOwner) return;
-    const system = this.actor.toObject().system;
-    mutate(system);
-    await this.actor.update({ 'system.upgrades': system.upgrades });
-  }
-
-  /** The document whose events these are (the editor's "run now" button uses it). */
-  get eventDoc() {
-    return this.actor;
-  }
-
-  /**
-   * A GM approves a pet's upgrade events as they are.
-   * @this CarlRPGActorSheet
-   */
-  static async _approveEvents() {
-    if (!game.user.isGM) return;
-    await this.actor.update({ 'system.eventsTrusted': true });
-  }
-
-  /** New events on a pet start with a trigger that makes sense for a pet. */
-  get defaultEventTrigger() {
-    return CONFIG.CARL_RPG.petUpgrades.triggers[0];
-  }
-
-  /** Save one field of an upgrade (a level, description, change or event field). */
-  async _saveUpgradeField(el) {
-    const path = el.dataset.path;
-    const value =
-      el.type === 'checkbox'
-        ? el.checked
-        : el.type === 'number'
-          ? Number(el.value) || 0
-          : el.value;
-    await this._updateEvents((system) => {
-      foundry.utils.setProperty(system, path, value);
-      // Upgrades are kept in level order.
-      if (/^upgrades\.\d+\.rank$/.test(path)) {
-        system.upgrades.sort((a, b) => a.rank - b.rank);
-      }
-      // A different kind of change starts with a value that suits it.
-      if (/^upgrades\.\d+\.changes\.\d+\.type$/.test(path)) {
-        foundry.utils.setProperty(system, path.replace(/\.type$/, '.value'), '1');
-      }
-    });
-  }
-
-  /** Tick or untick an effect an upgrade unlocks. */
-  async _toggleUnlockedEffect(ui, key, on) {
-    await this._updateEvents((system) => {
-      const list = system.upgrades[ui].unlocksEffects;
-      const at = list.indexOf(key);
-      if (on && at < 0) list.push(key);
-      if (!on && at >= 0) list.splice(at, 1);
-    });
-  }
-
-  /**
-   * Add a row to the kills list.
-   * @this CarlRPGActorSheet
-   */
-  static async _addKill() {
-    const kills = [...this.document.system.killLog, { name: '', note: '' }];
-    await this.document.update({ 'system.killLog': kills });
-  }
-
-  /**
-   * Add a row to a mount list (occupants, accessories or attacks). The button's
-   * data-path names the list; attacks get a blank attack row.
-   * @this CarlRPGActorSheet
-   */
-  static async _addMountRow(event, target) {
-    const path = target.dataset.path;
-    const list = foundry.utils.getProperty(this.document, path) ?? [];
-    const blank = path === 'system.attacks' ? { name: '', roll: '', damage: '' } : '';
-    await this.document.update({ [path]: [...list, blank] });
-  }
-
-  /** @this CarlRPGActorSheet */
-  static async _removeMountRow(event, target) {
-    const path = target.dataset.path;
-    const index = Number(target.dataset.index);
-    const list = foundry.utils.getProperty(this.document, path) ?? [];
-    await this.document.update({ [path]: list.filter((_, i) => i !== index) });
-  }
-
-  /**
-   * GM only: a sponsor sends the crawler a loot box. The GM picks a world loot box,
-   * a copy goes onto the crawler and the sponsor posts a card about it.
-   * @this CarlRPGActorSheet
-   */
-  static async _sendGift(event, target) {
-    if (!game.user.isGM) return;
-    const sponsor = this.document.items.get(target.dataset.sponsor);
-    if (!sponsor) return;
-    const boxes = game.items
-      .filter((i) => i.type === 'lootBox')
-      .sort((a, b) => a.name.localeCompare(b.name));
-    if (!boxes.length) {
-      ui.notifications.warn(game.i18n.localize('CARL_RPG.Sponsors.NoBoxes'));
-      return;
-    }
-    const options = boxes
-      .map((b) => `<option value="${b.uuid}">${foundry.utils.escapeHTML(b.name)}</option>`)
-      .join('');
-    const picked = await CarlRPGDialog.wait({
-      window: { title: game.i18n.localize('CARL_RPG.Sponsors.SendGift') },
-      content: `<p class="hint">${game.i18n.localize('CARL_RPG.Sponsors.GiftHint')}</p><select name="box">${options}</select>`,
-      buttons: [
-        {
-          action: 'send',
-          label: game.i18n.localize('CARL_RPG.Sponsors.SendGift'),
-          default: true,
-          callback: (event, button) => button.form.elements.box.value,
-        },
-        { action: 'cancel', label: game.i18n.localize('CARL_RPG.Sponsors.Cancel') },
-      ],
-    });
-    if (!picked || picked === 'cancel') return;
-    const box = await fromUuid(picked);
-    if (!box) return;
-    await this.document.createEmbeddedDocuments('Item', [box.toObject()]);
-    await ChatMessage.create({
-      content: game.i18n.format('CARL_RPG.Sponsors.GiftCard', {
-        sponsor: sponsor.name,
-        name: this.document.name,
-        box: box.name,
-      }),
-      speaker: ChatMessage.getSpeaker({ actor: this.document }),
-    });
-  }
-
-  /** @this CarlRPGActorSheet */
-  static async _removeKill(event, target) {
-    const index = Number(target.dataset.index);
-    const kills = this.document.system.killLog.filter((_, i) => i !== index);
-    await this.document.update({ 'system.killLog': kills });
-  }
-
-  /**
-   * Add an upgrade, at level 15 (or the next level after the ones already used).
-   * The list is kept in level order.
-   * @this CarlRPGActorSheet
-   */
-  static async _addUpgrade() {
-    const { defaultLevel, levelStep } = CONFIG.CARL_RPG.petUpgrades;
-    await this._updateEvents((system) => {
-      const used = system.upgrades.map((u) => u.rank);
-      const rank = used.includes(defaultLevel)
-        ? Math.max(...used) + levelStep
-        : defaultLevel;
-      system.upgrades.push({
-        id: foundry.utils.randomID(),
-        rank,
-        description: '',
-        changes: [],
-        grants: [],
-        unlocksEffects: [],
-        events: [],
-      });
-      system.upgrades.sort((a, b) => a.rank - b.rank);
-    });
-  }
-
-  /** @this CarlRPGActorSheet */
-  static async _removeUpgrade(event, target) {
-    const ui = Number(target.dataset.ui);
-    await this._updateEvents((system) => system.upgrades.splice(ui, 1));
-  }
-
-  /** @this CarlRPGActorSheet */
-  static async _addChange(event, target) {
-    const ui = Number(target.dataset.ui);
-    await this._updateEvents((system) => {
-      system.upgrades[ui].changes.push({ type: 'statBonus', value: '1', stat: 'str' });
-    });
-  }
-
-  /** @this CarlRPGActorSheet */
-  static async _removeChange(event, target) {
-    const ui = Number(target.dataset.ui);
-    const ci = Number(target.dataset.ci);
-    await this._updateEvents((system) => system.upgrades[ui].changes.splice(ci, 1));
-  }
-
-  /** @this CarlRPGActorSheet */
-  static async _removeGrant(event, target) {
-    const ui = Number(target.dataset.ui);
-    const gi = Number(target.dataset.gi);
-    await this._updateEvents((system) => system.upgrades[ui].grants.splice(gi, 1));
-  }
-
-  /**
-   * Drops on a pet's Upgrades tab: a document on one of the events editor's drop
-   * boxes, or a skill or spell on an upgrade's list of what it gives. Anything
-   * else is handled as usual.
-   * @override
-   */
-  async _onDrop(event) {
-    const zone = ['pet', 'mob'].includes(this.actor.type) ? event.target.closest('.drop-target') : null;
-    if (!zone) return super._onDrop(event);
-    event.preventDefault();
-    if (!this.actor.isOwner) return;
-    const data = foundry.applications.ux.TextEditor.implementation.getDragEventData(event);
-
-    if (zone.dataset.accept === 'grant') {
-      const dropped = data.type === 'Item' && data.uuid ? await fromUuid(data.uuid) : null;
-      if (!dropped || !['skill', 'spell'].includes(dropped.type)) {
-        ui.notifications.warn(game.i18n.localize('CARL_RPG.Upgrades.OnlySkillsSpells'));
-        return;
-      }
-      const ui_ = Number(zone.dataset.ui);
-      await this._updateEvents((system) => {
-        const list = system.upgrades[ui_].grants;
-        if (!list.includes(dropped.uuid)) list.push(dropped.uuid);
-      });
-      return;
-    }
-    if (zone.dataset.accept === 'mobLoot') {
-      const dropped = data.type === 'Item' && data.uuid ? await fromUuid(data.uuid) : null;
-      if (!dropped || dropped.documentName !== 'Item') return;
-      const items = this.actor.toObject().system.loot.items;
-      if (items.some((entry) => entry.uuid === dropped.uuid)) return;
-      items.push({ uuid: dropped.uuid, chance: 100 });
-      await this.actor.update({ 'system.loot.items': items });
-      return;
-    }
-    if (zone.dataset.accept === 'lootBox') {
-      const dropped = data.type === 'Item' && data.uuid ? await fromUuid(data.uuid) : null;
-      if (!dropped || dropped.type !== 'lootBox') {
-        ui.notifications.warn(game.i18n.localize('CARL_RPG.Combat.RewardOnlyBox'));
-        return;
-      }
-      await this.actor.update({ 'system.rewardBox': dropped.uuid });
-      return;
-    }
-    return dropTarget.call(this, zone, data);
-  }
-
-  /**
-   * Open a pet's sheet from the Pets list on its crawler's sheet.
-   *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
-  static _openPet(event, target) {
-    event.preventDefault();
-    game.actors.get(target.dataset.actorId)?.sheet.render(true);
-  }
-
-  /**
-   * Level the crawler up (see helpers/level-up.mjs).
-   *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
-  static async _levelUp(event, target) {
-    event.preventDefault();
-    await levelUp(this.actor);
-  }
-
-  /**
-   * Open the character creation wizard (see sheets/creation-wizard.mjs).
-   *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
-  static async _createCharacter(event, target) {
-    event.preventDefault();
-    CarlRPGCreationWizard.open(this.actor);
-  }
-
-  /**
-   * Choose a subclass (see helpers/origins.mjs).
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The element that was clicked
-   */
-  static async _chooseSubclass(event, target) {
-    await chooseSubclass(this.actor);
-  }
-
-  /**
-   * Choose a race, then a class (see helpers/origins.mjs).
-   *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
-  static async _chooseOrigin(event, target) {
-    event.preventDefault();
-    await chooseOrigin(this.actor);
-  }
-
-  /**
-   * Open the Spend Points dialog.
-   *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
-  static async _spendPoints(event, target) {
-    event.preventDefault();
-    await spendPoints(this.actor);
-  }
-
-  /**
-   * Open one of the crawler's loot boxes (see helpers/loot.mjs).
-   *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
-  static async _openLootBox(event, target) {
-    event.preventDefault();
-    const item = this._getEmbeddedDocument(target);
-    if (item) await openLootBox(item);
   }
 
   /**
@@ -1942,159 +1344,6 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
     } else return console.warn('Could not find document class');
   }
 
-  /***************
-   *
-   * Drag and Drop
-   *
-   ***************/
-
-  /**
-   * Handle the dropping of ActiveEffect data onto an Actor Sheet
-   * @param {DragEvent} event                  The concluding DragEvent which contains drop data
-   * @param {object} data                      The data transfer extracted from the event
-   * @returns {Promise<ActiveEffect|boolean>}  The created ActiveEffect object or false if it couldn't be created.
-   * @protected
-   */
-  async _onDropActiveEffect(event, data) {
-    const aeCls = getDocumentClass('ActiveEffect');
-    const effect = await aeCls.fromDropData(data);
-    if (!this.actor.isOwner || !effect) return false;
-    if (effect.target === this.actor)
-      return this._onSortActiveEffect(event, effect);
-    return aeCls.create(effect, { parent: this.actor });
-  }
-
-  /**
-   * Handle a drop event for an existing embedded Active Effect to sort that Active Effect relative to its siblings
-   *
-   * @param {DragEvent} event
-   * @param {ActiveEffect} effect
-   */
-  async _onSortActiveEffect(event, effect) {
-    /** @type {HTMLElement} */
-    const dropTarget = event.target.closest('[data-effect-id]');
-    if (!dropTarget) return;
-    const target = this._getEmbeddedDocument(dropTarget);
-
-    // Don't sort on yourself
-    if (effect.uuid === target.uuid) return;
-
-    // Identify sibling items based on adjacent HTML elements
-    const siblings = [];
-    for (const el of dropTarget.parentElement.children) {
-      const siblingId = el.dataset.effectId;
-      const parentId = el.dataset.parentId;
-      if (
-        siblingId &&
-        parentId &&
-        (siblingId !== effect.id || parentId !== effect.parent.id)
-      )
-        siblings.push(this._getEmbeddedDocument(el));
-    }
-
-    // Perform the sort
-    const sortUpdates = SortingHelpers.performIntegerSort(effect, {
-      target,
-      siblings,
-    });
-
-    // Split the updates up by parent document
-    const directUpdates = [];
-
-    const grandchildUpdateData = sortUpdates.reduce((items, u) => {
-      const parentId = u.target.parent.id;
-      const update = { _id: u.target.id, ...u.update };
-      if (parentId === this.actor.id) {
-        directUpdates.push(update);
-        return items;
-      }
-      if (items[parentId]) items[parentId].push(update);
-      else items[parentId] = [update];
-      return items;
-    }, {});
-
-    // Effects-on-items updates
-    for (const [itemId, updates] of Object.entries(grandchildUpdateData)) {
-      await this.actor.items
-        .get(itemId)
-        .updateEmbeddedDocuments('ActiveEffect', updates);
-    }
-
-    // Update on the main actor
-    return this.actor.updateEmbeddedDocuments('ActiveEffect', directUpdates);
-  }
-
-  /**
-   * Handle dropping of an Actor data onto another Actor sheet
-   * @param {DragEvent} event            The concluding DragEvent which contains drop data
-   * @param {object} data                The data transfer extracted from the event
-   * @returns {Promise<object|boolean>}  A data object which describes the result of the drop, or false if the drop was
-   *                                     not permitted.
-   * @protected
-   */
-  async _onDropActor(event, data) {
-    if (!this.actor.isOwner) return false;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Handle dropping of a Folder on an Actor Sheet.
-   * The core sheet currently supports dropping a Folder of Items to create all items as owned items.
-   * @param {DragEvent} event     The concluding DragEvent which contains drop data
-   * @param {object} data         The data transfer extracted from the event
-   * @returns {Promise<Item[]>}
-   * @protected
-   */
-  async _onDropFolder(event, data) {
-    if (!this.actor.isOwner) return [];
-    const folder = await Folder.implementation.fromDropData(data);
-    if (folder.type !== 'Item') return [];
-    const droppedItemData = await Promise.all(
-      folder.contents.map(async (item) => {
-        if (!(document instanceof Item)) item = await fromUuid(item.uuid);
-        return item;
-      })
-    );
-    return this._onDropItemCreate(droppedItemData, event);
-  }
-
-  /**
-   * Handle the final creation of dropped Item data on the Actor.
-   * This method is factored out to allow downstream classes the opportunity to override item creation behavior.
-   * @param {object[]|object} itemData      The item data requested for creation
-   * @param {DragEvent} event               The concluding DragEvent which provided the drop data
-   * @returns {Promise<Item[]>}
-   * @private
-   */
-  async _onDropItemCreate(itemData, event) {
-    itemData = itemData instanceof Array ? itemData : [itemData];
-    // A deity starts at tier 1 on the crawler (the GM can change it after).
-    for (const d of itemData) if (d.type === 'deity') foundry.utils.setProperty(d, 'system.tier', 1);
-    // A crawler has one deity: a new one replaces the old.
-    if (itemData.some((d) => d.type === 'deity')) {
-      const old = this.actor.itemTypes.deity.map((i) => i.id);
-      if (old.length) await this.actor.deleteEmbeddedDocuments('Item', old);
-    }
-    // A crawler has one Personal Space: a new one replaces the old.
-    if (itemData.some((d) => d.type === 'personalSpace')) {
-      const old = this.actor.itemTypes.personalSpace.map((i) => i.id);
-      if (old.length) await this.actor.deleteEmbeddedDocuments('Item', old);
-    }
-    // A crawler can hold up to the sponsor limit (-1 means no limit).
-    const limit = game.settings.get('carl-rpg', 'sponsorLimit');
-    const incoming = itemData.filter((d) => d.type === 'sponsor');
-    if (incoming.length && limit >= 0) {
-      const held = this.actor.itemTypes.sponsor.length;
-      if (held + incoming.length > limit) {
-        ui.notifications.warn(game.i18n.format('CARL_RPG.Sponsors.Full', { limit }));
-        itemData = itemData.filter((d) => d.type !== 'sponsor');
-        if (!itemData.length) return [];
-      }
-    }
-    return this.actor.createEmbeddedDocuments('Item', itemData);
-  }
-
   /********************
    *
    * Actor Override Handling
@@ -2127,46 +1376,6 @@ export class CarlRPGActorSheet extends api.HandlebarsApplicationMixin(
         input.disabled = true;
       }
     }
-  }
-
-  /** Post the deity's offering text to chat. */
-  static async _offering(event, target) {
-    const deity = this.actor.itemTypes.deity[0];
-    const text = deity?.system.offering?.trim();
-    if (!deity || !text) {
-      ui.notifications.warn(game.i18n.localize('CARL_RPG.Sponsors.NoOfferingText'));
-      return;
-    }
-    await ChatMessage.create({
-      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-      content: `<div class="carl-offering-card"><strong>${Handlebars.escapeExpression(deity.name)}</strong><p>${Handlebars.escapeExpression(text)}</p></div>`,
-    });
-  }
-
-  /** GM: a defeated boss gives every crawler in its combat a star (once per boss). */
-  static async _giveStar() {
-    if (!game.user.isGM) return;
-    const combat = game.combats.get(this.actor.getFlag('carl-rpg', 'defeatedIn')) ?? game.combat;
-    const crawlers = (combat?.combatants.contents ?? [])
-      .map((c) => c.actor)
-      .filter((a) => a?.type === 'crawler');
-    if (!crawlers.length) {
-      ui.notifications.warn(game.i18n.localize('CARL_RPG.Combat.NoCrawlersStar'));
-      return;
-    }
-    for (const crawler of crawlers) {
-      await crawler.update({ 'system.bossKills': (crawler.system.bossKills ?? 0) + 1 });
-    }
-    await ChatMessage.create({
-      content: `<div class="carl-loot-card">${game.i18n.format('CARL_RPG.Combat.StarGiven', {
-        boss: Handlebars.escapeExpression(this.actor.name),
-      })}</div>`,
-    });
-  }
-
-  /** Open all of this crawler's loot boxes, lowest tier first. */
-  static async _openAllBoxes(event, target) {
-    await openAllLootBoxes(this.actor);
   }
 }
 
