@@ -87,9 +87,10 @@
         {{/if}}
       </div>
     </li>
+    {{! Gear is listed here too, with the same controls as on the Gear tab (new gear is added there) }}
     {{#each inventory as |item id|}}
       <li
-        class='item flexrow draggable'
+        class='item flexrow draggable {{#if item.system.equipped}}equipped{{/if}}'
         data-item-id='{{item._id}}'
         data-document-class='Item'
       >
@@ -108,6 +109,15 @@
         </div>
         <div class='item-prop'>{{item.system.quantity}}</div>
         <div class='item-controls'>
+          {{#if (eq item.type 'gear')}}
+            <a
+              class='item-control'
+              data-action='toggleEquipped'
+              data-tooltip='{{#if item.system.equipped}}{{localize "CARL_RPG.Item.Gear.Equip.Unequip"}}{{else}}{{localize "CARL_RPG.Item.Gear.Equip.Equip"}}{{/if}}'
+            >
+              <i class='fas {{#if item.system.equipped}}fa-check-square{{else}}fa-square{{/if}}'></i>
+            </a>
+          {{/if}}
           <a
             class='item-control item-edit'
             data-tooltip='{{localize "DOCUMENT.Update" type='Item'}}'

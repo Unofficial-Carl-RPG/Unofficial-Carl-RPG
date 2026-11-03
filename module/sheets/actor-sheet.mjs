@@ -804,7 +804,7 @@ export class CarlRPGActorSheet extends ActorSheetBase {
     context.gear = gear.sort(bySort);
     context.features = features.sort(bySort);
     context.spells = spells.sort(bySort);
-    context.inventory = inventory.sort(bySort);
+    context.inventory = [...inventory, ...gear].sort(bySort); // gear is listed here too
     context.mobAbilities = mobAbilities.sort(bySort);
     context.lootBoxes = lootBoxes.sort((a, b) => a.name.localeCompare(b.name));
     context.perBoxOpen = game.settings.get('carl-rpg', 'lootPerBoxOpen') === true;
