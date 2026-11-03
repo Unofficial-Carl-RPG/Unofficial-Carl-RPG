@@ -1,6 +1,6 @@
 import { resolveListing, restockListing } from '../helpers/store.mjs';
 import { skillStatLabel } from '../helpers/creation.mjs';
-import { describeBadges } from '../helpers/item-badges.mjs';
+import { describeBadges, skillBadges } from '../helpers/item-badges.mjs';
 import {
   buildEventRows,
   eventOptions as buildEventOptions,
@@ -392,6 +392,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
 
     // The automatic badges at the top of the Description tab.
     context.itemBadges = describeBadges(this.item);
+    context.gearSkillBadges = skillBadges(this.item);
     // Quantity always goes in the header, for every kind of item that has one
     // (gear, plain items and loot boxes).
     context.headerQuantity = 'quantity' in this.item.system;
@@ -610,8 +611,22 @@ export class CarlRPGItemSheet extends ItemSheetBase {
     // missing. A background's list also shows each skill's stat, like "(Cha)".
     if (['gear', 'item', 'background'].includes(this.item.type)) {
       const showStat = this.item.type === 'background';
+      // The skill a weapon rolls with: the one picked (on a crawler's sheet that can be
+      // any skill the crawler has), else the first it lists. A listed skill is the same
+      // skill when its identifier (or name) matches.
+      const listed = this.item.system.skills ?? [];
+      const keyOf = (s) => s?.system?.identifier?.trim() || s?.name;
+      const loadSkill = async (uuid) => {
+        try {
+          const doc = uuid ? await fromUuid(uuid) : null;
+          return doc?.type === 'skill' ? doc : null;
+        } catch {
+          return null;
+        }
+      };
+      const rolling = (await loadSkill(this.item.system.rollSkill)) ?? (await loadSkill(listed[0]));
       context.embeddedSkills = await Promise.all(
-        (this.item.system.skills ?? []).map(async (uuid) => {
+        listed.map(async (uuid) => {
           const skill = await fromUuid(uuid);
           return {
             uuid,
@@ -622,10 +637,9 @@ export class CarlRPGItemSheet extends ItemSheetBase {
             stat: skillStatLabel(skill),
             rollsWith:
               this.item.system.action?.type === 'skill' &&
-              uuid ===
-                ((this.item.system.skills ?? []).includes(this.item.system.rollSkill)
-                  ? this.item.system.rollSkill
-                  : (this.item.system.skills ?? [])[0]),
+              !!skill &&
+              !!rolling &&
+              keyOf(skill) === keyOf(rolling),
             missing: !skill,
           };
         })
