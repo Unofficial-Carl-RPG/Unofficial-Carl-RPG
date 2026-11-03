@@ -431,6 +431,43 @@ nav.tabs {
   }
 }
 
+// The "Rolls with" radio on an item's Skills tab. Foundry draws radios itself in its own
+// colours, which vanish on the dark panels, so the glyphs get the theme's colours here.
+.tab.skills .items-list .item-controls {
+  flex: 0 0 auto;
+}
+
+.rolls-with-pick {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 8px;
+  white-space: nowrap;
+  font-size: 11px;
+  cursor: pointer;
+
+  input[type='radio'] {
+    flex: 0 0 auto;
+    margin: 0;
+
+    &::before {
+      color: var(--dcc-gold-dim);
+    }
+
+    &:checked::before {
+      color: var(--dcc-panel);
+    }
+
+    &:checked::after {
+      color: var(--dcc-gold);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
+}
+
 // ---- Effects ------------------------------------------------------------
 .effects-list .effect.inactive {
   opacity: 0.55;
