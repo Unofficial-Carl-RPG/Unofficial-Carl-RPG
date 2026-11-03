@@ -36,6 +36,38 @@
     letter-spacing: 0.12em;
     text-transform: uppercase;
   }
+
+  // A skill, spell, gear or item card: its image, then its name with its badges under it.
+  .item-card-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 6px;
+
+    .item-card-img {
+      flex: 0 0 40px;
+      width: 40px;
+      height: 40px;
+      max-width: none;
+      object-fit: cover;
+      border: 1px solid color-mix(in srgb, var(--card-accent) 70%, #000);
+      border-radius: 3px;
+    }
+
+    .item-card-title {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .item-card-name {
+      font-size: 1.1em;
+      font-weight: 700;
+    }
+
+    .item-badges {
+      margin: 3px 0 0;
+    }
+  }
 }
 
 // ---- items, skills and spells ----------------------------------------------

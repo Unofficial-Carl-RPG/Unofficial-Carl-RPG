@@ -68,10 +68,11 @@ export function registerChatCards() {
     // A System announcement's look depends on what it announces.
     if (flag?.system) html.classList.add(`carl-sys-${flag.system}`);
 
-    // A small badge naming the kind of card, at the top of its content.
+    // A small badge naming the kind of card, at the top of its content (a card with its
+    // own header, an item's image, name and badges, doesn't need one).
     const icon = KINDS[kind];
     const content = html.querySelector('.message-content');
-    if (icon && content && !content.querySelector('.card-kind')) {
+    if (icon && content && !flag?.header && !content.querySelector('.card-kind')) {
       const badge = document.createElement('div');
       badge.className = 'card-kind';
       badge.innerHTML = `<i class="fas ${icon}"></i> ${foundry.utils.escapeHTML(
