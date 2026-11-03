@@ -180,3 +180,9 @@ nav.tabs {
 .resource {
   padding: 4px 6px;
 }
+
+// Item Attributes tabs: every panel has the same room around it as the grids do.
+.tab.attributes > .resource,
+.tab.attributes > .targeting-group > .resource {
+  margin: 10px 0;
+}
