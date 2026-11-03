@@ -233,6 +233,9 @@ async function applyEffect(uuid) {
 const ownsEmbed = (doc) =>
   doc instanceof Item || doc instanceof ActiveEffect || (doc instanceof Actor && doc.type === 'mob');
 
+/** The kind a card is coloured by: the item type, "effect" or "mob". */
+const embedKind = (doc) => (doc instanceof Actor ? 'mob' : doc instanceof ActiveEffect ? 'effect' : doc.type);
+
 /**
  * The key numbers an embed shows. Players see a mob's Evade and DR (they show on
  * the journal page); the GM also sees an item's value.
@@ -262,6 +265,7 @@ function embedNumbers(doc) {
 async function embedCard(doc, label, options = {}) {
   const card = document.createElement('div');
   card.className = 'carl-embed';
+  card.dataset.kind = embedKind(doc);
 
   const head = document.createElement('div');
   head.className = 'carl-embed-head';

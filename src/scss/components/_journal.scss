@@ -374,42 +374,126 @@ secret-block > section.secret {
     }
   }
 
-  // @Embed cards for items, effects and mobs.
+  // @Embed cards for items, effects and mobs: an item card in an accent colour by kind (the
+  // same colours as the chat cards, set by data-kind from embedCard), with a framed picture,
+  // the key numbers as chips, the description and the upgrades.
   .carl-embed {
-    margin: 0.5em 0;
-    padding: 6px 8px;
-    border: 1px solid #6b5423;
-    border-radius: 3px;
-    background: rgba(0, 0, 0, 0.2);
+    --embed-accent: #c9a54a;
+    margin: 0.75em 0;
+    padding: 8px 10px 10px;
+    border: 2px solid var(--embed-accent);
+    border-radius: 4px;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--embed-accent) 22%, transparent),
+        color-mix(in srgb, var(--embed-accent) 6%, transparent)
+      ),
+      #17130f;
+    box-shadow:
+      inset 0 0 0 3px rgba(0, 0, 0, 0.3),
+      inset 0 0 0 4px color-mix(in srgb, var(--embed-accent) 55%, #000),
+      0 0 10px color-mix(in srgb, var(--embed-accent) 30%, transparent);
     cursor: pointer;
+    transition: box-shadow 0.15s;
 
-    img {
-      width: 32px;
-      height: 32px;
-      border: 1px solid #6b5423;
-      border-radius: 3px;
-      object-fit: cover;
+    &:hover {
+      box-shadow:
+        inset 0 0 0 3px rgba(0, 0, 0, 0.3),
+        inset 0 0 0 4px color-mix(in srgb, var(--embed-accent) 55%, #000),
+        0 0 14px color-mix(in srgb, var(--embed-accent) 55%, transparent);
+    }
+
+    &[data-kind='skill'] {
+      --embed-accent: #3a8fb7;
+    }
+
+    &[data-kind='spell'] {
+      --embed-accent: #9b59d0;
+    }
+
+    &[data-kind='gear'] {
+      --embed-accent: #b08d57;
+    }
+
+    &[data-kind='item'] {
+      --embed-accent: #6fa05a;
+    }
+
+    &[data-kind='effect'] {
+      --embed-accent: #7a7f88;
+    }
+
+    &[data-kind='mob'] {
+      --embed-accent: #c23b3b;
     }
   }
 
   .carl-embed-head {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
+
+    img {
+      flex: 0 0 auto;
+      width: 48px;
+      height: 48px;
+      border: 2px solid var(--embed-accent);
+      border-radius: 4px;
+      object-fit: cover;
+      box-shadow: 0 0 6px color-mix(in srgb, var(--embed-accent) 45%, transparent);
+    }
+
+    strong {
+      color: color-mix(in srgb, var(--embed-accent) 35%, #fff);
+      font-family: var(--dcc-font-display);
+      font-size: 1.3em;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
   }
 
   .carl-embed-numbers {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px 10px;
-    margin: 0.25em 0;
-    font-size: 0.9em;
-    color: #d9b45a;
+    gap: 4px;
+    margin: 0.5em 0 0.25em;
+
+    span {
+      padding: 1px 8px;
+      border: 1px solid color-mix(in srgb, var(--embed-accent) 70%, #000);
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--embed-accent) 22%, transparent);
+      color: color-mix(in srgb, var(--embed-accent) 75%, #fff);
+      font-size: 0.85em;
+      white-space: nowrap;
+    }
+  }
+
+  .carl-embed-body {
+    margin-top: 0.3em;
+
+    > :first-child {
+      margin-top: 0;
+    }
+
+    > :last-child {
+      margin-bottom: 0;
+    }
   }
 
   .carl-embed-upgrades {
-    margin-top: 0.4em;
+    margin-top: 0.6em;
+    padding-top: 0.4em;
+    border-top: 1px solid color-mix(in srgb, var(--embed-accent) 45%, transparent);
     font-size: 0.9em;
+
+    strong {
+      color: color-mix(in srgb, var(--embed-accent) 35%, #fff);
+      font-family: var(--dcc-font-display);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
   }
 
   // Buttons from @Check, @Gold, @Junk, @LootBox, @Effect and @Announce.
