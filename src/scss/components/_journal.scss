@@ -26,6 +26,31 @@
 // a page can still opt in with a carl-rpg wrapper. All of it is scoped to journal pages so
 // the sheets (which also use the carl-rpg class) are not restyled.
 
+// The Reveal / Hide button on a secret block is only an eye: crossed out while the secret
+// is hidden, open once it is revealed. Its words are hidden here; they are its tooltip
+// (see tagRevealButtons in helpers/journal.mjs).
+section.secret > button.reveal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 24px;
+  padding: 0;
+  font-size: 0;
+  line-height: 1;
+
+  &::before {
+    content: '\f070'; // eye-slash
+    font-family: var(--font-awesome);
+    font-size: 14px;
+    font-weight: 900;
+  }
+}
+
+section.secret.revealed > button.reveal::before {
+  content: '\f06e'; // eye
+}
+
 // What the text on a page looks like: headings, links, tables, callouts, embeds, buttons.
 @mixin journal-content {
   color: #ead9b4;

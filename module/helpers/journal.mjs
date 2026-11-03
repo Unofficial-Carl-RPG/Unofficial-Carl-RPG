@@ -362,10 +362,42 @@ function installEmbedOverride() {
   };
 }
 
+/*  Secret blocks                               */
+
+/**
+ * The Reveal / Hide button on a secret block is only an eye (see the stylesheet), so its
+ * words become its tooltip. Foundry words it for the state the secret is in now, and
+ * draws the button again whenever that changes.
+ */
+function tagRevealButtons(root) {
+  const buttons = [];
+  if (root.matches?.('section.secret > button.reveal')) buttons.push(root);
+  buttons.push(...(root.querySelectorAll?.('section.secret > button.reveal') ?? []));
+  for (const button of buttons) {
+    if (button.dataset.tooltip) continue;
+    const words = button.textContent.trim();
+    if (!words) continue;
+    button.dataset.tooltip = words;
+    button.setAttribute('aria-label', words);
+  }
+}
+
+function watchRevealButtons() {
+  tagRevealButtons(document.body);
+  new MutationObserver((records) => {
+    for (const record of records) {
+      for (const node of record.addedNodes) {
+        if (node.nodeType === Node.ELEMENT_NODE) tagRevealButtons(node);
+      }
+    }
+  }).observe(document.body, { childList: true, subtree: true });
+}
+
 /*  Registration                                */
 
 export function registerJournalEnrichers() {
   installEmbedOverride();
+  watchRevealButtons();
 
   // Clicking an embed card opens it: the innermost card, when one is inside another.
   document.addEventListener('click', async (event) => {
