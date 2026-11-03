@@ -153,6 +153,21 @@ Hooks.once('init', function () {
     'carl-chat-log',
     game.settings.get('carl-rpg', 'chatLogStyle')
   );
+  // Whether journals use the system's look (a world setting, on by default, so the GM's
+  // choice is the same for everyone). The look is switched by a class on the page.
+  game.settings.register('carl-rpg', 'journalStyle', {
+    name: 'CARL_RPG.Journals.Name',
+    hint: 'CARL_RPG.Journals.Hint',
+    scope: 'world',
+    config: true,
+    type: Boolean,
+    default: true,
+    onChange: (value) => document.body.classList.toggle('carl-journals', value),
+  });
+  document.body.classList.toggle(
+    'carl-journals',
+    game.settings.get('carl-rpg', 'journalStyle')
+  );
   // How many sponsors a crawler can hold (-1 for no limit). Only the GM changes it.
   game.settings.register('carl-rpg', 'sponsorLimit', {
     name: 'CARL_RPG.Sponsors.LimitName',

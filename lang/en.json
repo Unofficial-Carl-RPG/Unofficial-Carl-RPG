@@ -1079,6 +1079,10 @@
       "Name": "Game-style chat",
       "Hint": "Show everyday chat messages as compact dark rows, like a game's chat window. Turn off for Foundry's default look."
     },
+    "Journals": {
+      "Name": "Game-style journals",
+      "Hint": "Show every journal in the game's look. Turn off for Foundry's default look."
+    },
     "System": {
       "Title": "System Announcements",
       "Ribbon": "System Announcement",

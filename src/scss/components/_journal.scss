@@ -21,14 +21,14 @@
   }
 }
 
-// Journal pages: the game's look, for pages that opt in with a carl-rpg class.
-// Scoped to journal pages so the sheets (which also use the carl-rpg class) are not restyled.
-.journal-entry-page .carl-rpg {
-  padding: 6px 10px;
+// Journals: the game's look. Every journal has it while the world setting "Game-style
+// journals" is on (the class `carl-journals` on the page, see carl-rpg.mjs). With it off,
+// a page can still opt in with a carl-rpg wrapper. All of it is scoped to journal pages so
+// the sheets (which also use the carl-rpg class) are not restyled.
+
+// What the text on a page looks like: headings, links, tables, callouts, embeds, buttons.
+@mixin journal-content {
   color: #ead9b4;
-  background: #2b241b;
-  border: 1px solid #6b5423;
-  border-radius: 4px;
   line-height: 1.5;
 
   h1,
@@ -193,5 +193,147 @@
   .carl-live {
     font-weight: bold;
     color: #e9c46a;
+  }
+}
+
+// A wrapper added by hand: its own panel, for when the world setting is off.
+.journal-entry-page .carl-rpg {
+  padding: 6px 10px;
+  background: #2b241b;
+  border: 1px solid #6b5423;
+  border-radius: 4px;
+
+  @include journal-content;
+}
+
+body.carl-journals {
+  .journal-entry-page {
+    @include journal-content;
+  }
+
+  // The window is already styled, so a wrapper adds no second panel.
+  .journal-entry-page .carl-rpg {
+    padding: 0;
+    background: none;
+    border: 0;
+  }
+
+  // The window: its frame, header, page list and the page area.
+  .application.sheet.journal-entry,
+  .application.journal-sheet {
+    background: var(--dcc-bg);
+    color: var(--dcc-text);
+    font-family: var(--dcc-font-body);
+    border: 2px solid var(--dcc-border);
+    box-shadow: 0 0 0 1px #000, 0 8px 24px rgba(0, 0, 0, 0.7);
+
+    .window-header {
+      background: var(--dcc-panel-2);
+      border-bottom: 2px solid var(--dcc-blood);
+      color: var(--dcc-gold);
+
+      .window-title {
+        font-family: var(--dcc-font-display);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+    }
+
+    .window-content {
+      background: var(--dcc-bg);
+      color: var(--dcc-text);
+    }
+
+    .journal-entry-content {
+      background: var(--dcc-panel);
+    }
+
+    .journal-header .title {
+      color: var(--dcc-gold);
+      font-family: var(--dcc-font-display);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .journal-entry-pages,
+    .toc {
+      scrollbar-color: var(--dcc-gold-dim) transparent;
+    }
+
+    // The page list on the left.
+    .journal-sidebar {
+      background: var(--dcc-panel);
+      color: var(--dcc-text);
+      border-right: 1px solid var(--dcc-border);
+
+      button {
+        --button-text-color: var(--dcc-gold);
+        --button-border-color: var(--dcc-border);
+        --button-hover-border-color: var(--dcc-gold);
+        --button-background-color: var(--dcc-panel-2);
+        --button-hover-background-color: var(--dcc-panel-2);
+        --button-hover-text-color: var(--dcc-gold);
+      }
+
+      input {
+        --input-background-color: rgba(0, 0, 0, 0.35);
+        --input-text-color: var(--dcc-text);
+        --input-border-color: var(--dcc-border);
+        --input-focus-outline-color: var(--dcc-gold);
+        --input-placeholder-color: var(--dcc-text-dim);
+      }
+
+      .toc {
+        li.page,
+        li.category {
+          border-top-color: var(--dcc-border);
+          border-bottom-color: var(--dcc-bg);
+        }
+
+        li.page:first-child,
+        li.category:first-child {
+          border-top-color: transparent;
+        }
+
+        li.page:last-child {
+          border-bottom-color: transparent;
+        }
+
+        li.page.active,
+        li.page:not(.active) + .active,
+        li.page.active + :not(.active) {
+          border-top-color: var(--dcc-gold-dim);
+        }
+
+        li.page.active {
+          border-bottom-color: var(--dcc-gold-dim);
+        }
+
+        li.category strong {
+          color: var(--dcc-gold);
+          font-family: var(--dcc-font-display);
+        }
+
+        .page-heading {
+          .page-number,
+          .page-index {
+            color: var(--dcc-text-dim);
+          }
+
+          .page-title {
+            color: var(--dcc-text);
+          }
+
+          .page-title:hover {
+            color: var(--dcc-gold);
+            text-shadow: none;
+          }
+        }
+
+        li.page.active > .page-heading .page-title {
+          color: var(--dcc-gold);
+        }
+      }
+    }
   }
 }
