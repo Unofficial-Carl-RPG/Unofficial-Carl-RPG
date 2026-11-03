@@ -10,14 +10,7 @@ export const ItemSheetStoreQuestLoot = (Base) => class ItemSheetStoreQuestLoot e
     await this.item.update({ 'system.lootBox': '' });
   }
 
-  /**
-   * Remove an entry from a loot box's reward list.
-   *
-   * @this CarlRPGItemSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
+  /** Remove an entry from a loot box's reward list. */
   static async _removeReward(event, target) {
     const row = target.closest('[data-index]');
     const index = Number(row?.dataset.index);

@@ -7,11 +7,6 @@ import { openAllLootBoxes, openLootBox } from '../helpers/loot.mjs';
 import { CarlRPGDialog } from '../helpers/dialog.mjs';
 
 export const ActorSheetQuestsAndLoot = (Base) => class ActorSheetQuestsAndLoot extends Base {
-  /**
-   * Organize and classify Items for Actor sheets.
-   *
-   * @param {object} context The context object to mutate
-   */
   /** A mob's loot list: each item with its name and its chance. */
   async _prepareLootRows(context) {
     context.lootRows = await Promise.all(
@@ -28,15 +23,6 @@ export const ActorSheetQuestsAndLoot = (Base) => class ActorSheetQuestsAndLoot e
     );
   }
 
-  /**
-   * This crawler takes a short, long or full rest (the button's `data-rest`),
-   * after asking. Effects that last until that rest (or a shorter one) end.
-   *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @protected
-   */
   /** The crawler's quests, with their reward and deadline, for the Quests tab. */
   async _prepareQuests(context) {
     context.isGM = game.user.isGM;
@@ -169,14 +155,7 @@ export const ActorSheetQuestsAndLoot = (Base) => class ActorSheetQuestsAndLoot e
     }
   }
 
-  /**
-   * Open one of the crawler's loot boxes (see helpers/loot.mjs).
-   *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
+  /** Open one of the crawler's loot boxes (see helpers/loot.mjs). */
   static async _openLootBox(event, target) {
     event.preventDefault();
     const item = this._getEmbeddedDocument(target);

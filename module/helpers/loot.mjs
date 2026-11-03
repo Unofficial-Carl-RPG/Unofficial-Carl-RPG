@@ -4,7 +4,7 @@
  * Opening a box draws items from its reward list (weighted), rolls its gold,
  * gives both to the crawler, uses the box up and posts a chat card.
  *
- * With GM approval turned on (a world setting in the GM tab), a player's box
+ * With GM approval turned on (a system setting), a player's box
  * is not rolled by them at all: they send a request to the GM, whose client
  * does the draw, shows the result and lets the GM approve it, re-roll it or
  * discard it. If no GM is connected the box can't be opened at all, and if the
@@ -21,9 +21,7 @@ export const LOOT_APPROVAL_SETTING = 'lootApproval';
 /** Requests this client has sent and is waiting on: box id -> request id. */
 const pending = new Map();
 
-/* -------------------------------------------- */
 /*  Setting                                     */
-/* -------------------------------------------- */
 
 export function registerLootSettings() {
   // A regular system setting (Game Settings -> Configure Settings).
@@ -54,9 +52,7 @@ export function lootApprovalRequired() {
   }
 }
 
-/* -------------------------------------------- */
 /*  Rolling                                     */
-/* -------------------------------------------- */
 
 /**
  * The reward entries that can actually be drawn: the item can be found, is not
@@ -142,11 +138,9 @@ export async function rollLoot(box) {
   return { tier: box.system.tier, items: [...drawn.values()], gold };
 }
 
-/* -------------------------------------------- */
 import { titheOf } from './tithe.mjs';
 
 /*  Granting                                    */
-/* -------------------------------------------- */
 
 /**
  * Give a rolled result to an actor. Items go through the normal add path (so
@@ -239,9 +233,7 @@ async function postResult(actor, box, result, requestId = null) {
   });
 }
 
-/* -------------------------------------------- */
 /*  Opening                                     */
-/* -------------------------------------------- */
 
 /**
  * Open one of a crawler's loot boxes.
@@ -352,9 +344,7 @@ async function requestApproval(actor, box) {
   return true;
 }
 
-/* -------------------------------------------- */
 /*  GM side                                     */
-/* -------------------------------------------- */
 
 /** Handle a player's request on the GM's client. */
 async function handleRequest(message, request) {
@@ -457,9 +447,7 @@ async function approvalDialog(actor, box, result) {
   return choice ?? 'discard';
 }
 
-/* -------------------------------------------- */
 /*  Requests waiting on this GM                 */
-/* -------------------------------------------- */
 
 /** Requests this (GM) client is handling now, shown in the GM tab. */
 const waiting = new Set();
@@ -477,9 +465,7 @@ function trackWaiting(requestId, promise) {
   });
 }
 
-/* -------------------------------------------- */
 /*  Hooks                                       */
-/* -------------------------------------------- */
 
 export function registerLootBoxes() {
   registerLootSettings();

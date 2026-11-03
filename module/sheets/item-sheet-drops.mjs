@@ -11,7 +11,6 @@ export const ItemSheetDrops = (Base) => class ItemSheetDrops extends Base {
    * @protected
    */
   _canDragStart(selector) {
-    // game.user fetches the current user
     return this.isEditable;
   }
 
@@ -22,7 +21,6 @@ export const ItemSheetDrops = (Base) => class ItemSheetDrops extends Base {
    * @protected
    */
   _canDragDrop(selector) {
-    // game.user fetches the current user
     return this.isEditable;
   }
 
@@ -80,15 +78,7 @@ export const ItemSheetDrops = (Base) => class ItemSheetDrops extends Base {
       return this._onDropTarget(zone, data);
     }
 
-    // Although you will find implmentations to all doc types here, it is important to keep 
-    // in mind that only Active Effects are "valid" for items.
-    // Actors have items, but items do not have actors.
-    // Items in items is not implemented on Foudry per default. If you need an implementation with that,
-    // try to search how other systems do. Basically they will use the drag and drop, but they will store
-    // the UUID of the item.
-    // Folders can only contain Actors or Items. So, fall on the cases above.
-    // We left them here so you can have an idea of how that would work, if you want to do some kind of
-    // implementation for that.
+    // Each kind of dropped document goes to its own handler.
     switch (data.type) {
       case 'ActiveEffect':
         return this._onDropActiveEffect(event, data);

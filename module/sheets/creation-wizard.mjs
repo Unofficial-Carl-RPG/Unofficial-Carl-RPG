@@ -106,9 +106,7 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
     return new CarlRPGCreationWizard(actor).render({ force: true });
   }
 
-  /* -------------------------------------------- */
   /*  Validation                                  */
-  /* -------------------------------------------- */
 
   /**
    * Whether a step is filled in. Nothing stops moving between steps; only
@@ -229,9 +227,7 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
     return problems;
   }
 
-  /* -------------------------------------------- */
   /*  Context                                     */
-  /* -------------------------------------------- */
 
   /** @override */
   async _prepareContext(options) {
@@ -417,9 +413,7 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
     return context;
   }
 
-  /* -------------------------------------------- */
   /*  Events                                      */
-  /* -------------------------------------------- */
 
   /** @override */
   async _onRender(context, options) {
@@ -488,7 +482,6 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
   /**
    * Click a value for a stat: it is given to that stat, and clicking the stat's
    * chosen value again clears it. (A value another stat has is disabled.)
-   * @this CarlRPGCreationWizard
    */
   static _onPickStat(event, target) {
     if (getCreationDefaults().statMethod === 'roll') return;
@@ -518,10 +511,7 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
     return true;
   }
 
-  /**
-   * A background (or "any skill") was clicked in a category's list.
-   * @this CarlRPGCreationWizard
-   */
+  /** A background (or "any skill") was clicked in a category's list. */
   static _onPickSource(event, target) {
     this.#setSource(target.dataset.group, target.dataset.source);
     this.render();
@@ -531,7 +521,6 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
    * A skill chip was clicked: it is picked, or put back if it was already
    * picked. Clicking a chip of another background switches to that background
    * first. Two can be picked, and a skill picked in another category can't be.
-   * @this CarlRPGCreationWizard
    */
   static _onToggleSkill(event, target) {
     const { group, source, skill } = target.dataset;
@@ -553,7 +542,6 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
    * a couple of seconds apart. Each is 1d6, re-rolling 1s. A value is kept on the
    * crawler as soon as it is rolled, so closing the wizard doesn't allow a
    * re-roll (and an interrupted roll carries on with the stats that are left).
-   * @this CarlRPGCreationWizard
    */
   static async _onRollStats() {
     if (this.#rolling || getCreationDefaults().statMethod !== 'roll') return;
@@ -600,7 +588,6 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
    * The GM resets a crawler's rolled stats (after asking). The saved rolls are
    * removed from the crawler, and the player's open wizard, if any, clears its
    * stats too (see the updateActor hook below).
-   * @this CarlRPGCreationWizard
    */
   static async _onResetRolls() {
     if (!game.user.isGM || this.#rolling) return;
@@ -616,10 +603,7 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
     this.clearRolledStats();
   }
 
-  /**
-   * Jump to a step (from the Review step's list of what is still to fill in).
-   * @this CarlRPGCreationWizard
-   */
+  /** Jump to a step (from the Review step's list of what is still to fill in). */
   static _onGoto(event, target) {
     const step = STEPS.indexOf(target.dataset.step);
     if (step >= 0) {

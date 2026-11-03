@@ -122,9 +122,7 @@ export function installFromUuid() {
   };
 }
 
-/* -------------------------------------------- */
 /*  The GM's side                               */
-/* -------------------------------------------- */
 
 const entryOf = (doc) => ({ pack: doc.pack, data: doc.toObject() });
 

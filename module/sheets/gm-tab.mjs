@@ -45,9 +45,9 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { AbstractSidebarTab } = foundry.applications.sidebar;
 
 /**
- * A GM-only tab in the right-hand sidebar with the game's controls: the global
- * floor, the party's name and the boss battle announcement. Right-click its
- * tab icon to pop it out into its own window.
+ * The Dungeon Info tab in the right-hand sidebar: the game's controls for the GM
+ * (the global floor, the party, announcements) and a read-only view for players.
+ * Right-click its tab icon to pop it out into its own window.
  */
 export class CarlRPGGMTab extends HandlebarsApplicationMixin(
   AbstractSidebarTab
@@ -421,10 +421,7 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
     await this.#setFloor(getFloor() - 1);
   }
 
-  /**
-   * Send the System announcement that has been written.
-   * @this CarlRPGGMTab
-   */
+  /** Send the System announcement that has been written. */
   static async _onSendSystem() {
     if (!game.user.isGM) return;
     const kind = this.#sysKind;
@@ -482,7 +479,6 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
   /**
    * The GM reveals a hidden race, class or subclass to a crawler: it is listed in
    * their chooser from then on (kept as a flag on the crawler).
-   * @this CarlRPGGMTab
    */
   static async _onRevealOrigin() {
     if (!game.user.isGM) return;
@@ -508,7 +504,6 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
   /**
    * Give the chosen crawler AI favor (a negative amount takes some away; it
    * never goes below 0) and say so in chat.
-   * @this CarlRPGGMTab
    */
   static async _onAwardFavor() {
     if (!game.user.isGM) return;
@@ -548,10 +543,7 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
     await announceBossBattle(this.#bossRows());
   }
 
-  /**
-   * Take a short, long or full rest (the button's `data-rest`) after asking.
-   * @this CarlRPGGMTab
-   */
+  /** Take a short, long or full rest (the button's `data-rest`) after asking. */
   static async _onRest(event, target) {
     if (!game.user.isGM) return;
     await confirmRest(target.dataset.rest);
@@ -560,7 +552,6 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
   /**
    * Switch how a boss is joined to the one before it: "vs" starts a new line,
    * "and" puts it on the same line.
-   * @this CarlRPGGMTab
    */
   static _onToggleBossJoin(event, target) {
     const id = target.dataset.id;
@@ -568,9 +559,7 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
     this.render();
   }
 }
-/* -------------------------------------------- */
 /*  Keep the award lists up to date             */
-/* -------------------------------------------- */
 
 // The crawler and achievement dropdowns are built when the tab is drawn, so it
 // is drawn again when a crawler (or a world achievement) is added, removed or

@@ -29,32 +29,18 @@ import {
 /** What identifies an achievement: its identifier, or its name if it has none. */
 const achievementKey = (item) => item.system.identifier?.trim() || item.name;
 
-/**
- * Extend the basic Item with some very simple modifications.
- * @extends {Item}
- */
+/** The Carl RPG item: equipping, granting skills and effects, and rolling. */
 export class CarlRPGItem extends Item {
-  /**
-   * Augment the basic Item data model with additional dynamic data.
-   */
   prepareData() {
-    // As with the actor class, items are documents that can have their data
-    // preparation methods overridden (such as prepareBaseData()).
     super.prepareData();
   }
 
-  /**
-   * Prepare a data object which defines the data schema used by dice roll commands against this Item
-   * @override
-   */
+  /** The roll data for this item: its system data and its actor's. @override */
   getRollData() {
-    // Starts off by populating the roll data with a shallow copy of `this.system`
     const rollData = { ...this.system };
 
-    // Quit early if there's no parent actor
     if (!this.actor) return rollData;
 
-    // If present, add the actor's roll data
     rollData.actor = this.actor.getRollData();
 
     return rollData;
@@ -93,7 +79,6 @@ export class CarlRPGItem extends Item {
       return true;
     }
 
-    // The slot is full: ask which equipped gear to swap out.
     const slotName = game.i18n.localize(CONFIG.CARL_RPG.gearSlots[slot]);
     const choice = await CarlRPGDialog.wait({
       window: {

@@ -131,7 +131,6 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
   /**
    * A GM approves the item's events as they are (events a player saved are limited
    * to what that player could do themselves).
-   * @this CarlRPGItemSheet
    */
   static async _approveEvents() {
     if (!game.user.isGM) return;

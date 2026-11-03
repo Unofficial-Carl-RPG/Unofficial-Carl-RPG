@@ -4,10 +4,7 @@
 import { CarlRPGDialog } from '../helpers/dialog.mjs';
 
 export const ActorSheetPersonal = (Base) => class ActorSheetPersonal extends Base {
-  /**
-   * Add a row to the kills list.
-   * @this CarlRPGActorSheet
-   */
+  /** Add a row to the kills list. */
   static async _addKill() {
     const kills = [...this.document.system.killLog, { name: '', note: '' }];
     await this.document.update({ 'system.killLog': kills });
@@ -16,7 +13,6 @@ export const ActorSheetPersonal = (Base) => class ActorSheetPersonal extends Bas
   /**
    * Add a row to a mount list (occupants, accessories or attacks). The button's
    * data-path names the list; attacks get a blank attack row.
-   * @this CarlRPGActorSheet
    */
   static async _addMountRow(event, target) {
     const path = target.dataset.path;
@@ -36,7 +32,6 @@ export const ActorSheetPersonal = (Base) => class ActorSheetPersonal extends Bas
   /**
    * GM only: a sponsor sends the crawler a loot box. The GM picks a world loot box,
    * a copy goes onto the crawler and the sponsor posts a card about it.
-   * @this CarlRPGActorSheet
    */
   static async _sendGift(event, target) {
     if (!game.user.isGM) return;
@@ -86,14 +81,7 @@ export const ActorSheetPersonal = (Base) => class ActorSheetPersonal extends Bas
     await this.document.update({ 'system.killLog': kills });
   }
 
-  /**
-   * Open a pet's sheet from the Pets list on its crawler's sheet.
-   *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
+  /** Open a pet's sheet from the Pets list on its crawler's sheet. */
   static _openPet(event, target) {
     event.preventDefault();
     game.actors.get(target.dataset.actorId)?.sheet.render(true);

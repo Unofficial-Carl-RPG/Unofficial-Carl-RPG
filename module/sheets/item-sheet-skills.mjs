@@ -6,11 +6,6 @@ export const ItemSheetEmbeddedSkills = (Base) => class ItemSheetEmbeddedSkills e
   /**
    * Create a brand new Skill (in the world's Items directory), embed it in this
    * gear or item, and open it for editing.
-   *
-   * @this CarlRPGItemSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
    */
   static async _newEmbeddedSkill(event, target) {
     event.preventDefault();
@@ -23,28 +18,14 @@ export const ItemSheetEmbeddedSkills = (Base) => class ItemSheetEmbeddedSkills e
     skill.sheet.render(true);
   }
 
-  /**
-   * Open an embedded skill's own sheet.
-   *
-   * @this CarlRPGItemSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
+  /** Open an embedded skill's own sheet. */
   static async _viewEmbeddedSkill(event, target) {
     const uuid = target.closest('[data-skill-uuid]')?.dataset.skillUuid;
     const skill = uuid ? await fromUuid(uuid) : null;
     skill?.sheet.render(true);
   }
 
-  /**
-   * Remove a skill from this gear or item (the skill itself is not deleted).
-   *
-   * @this CarlRPGItemSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
+  /** Remove a skill from this gear or item (the skill itself is not deleted). */
   static async _removeEmbeddedSkill(event, target) {
     const uuid = target.closest('[data-skill-uuid]')?.dataset.skillUuid;
     if (!uuid) return;

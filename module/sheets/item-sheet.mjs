@@ -100,7 +100,6 @@ export class CarlRPGItemSheet extends ItemSheetBase {
     form: {
       submitOnChange: true,
     },
-    // Custom property that's merged into `this.options`
     dragDrop: [{ dragSelector: '.draggable', dropSelector: null }],
   };
 
@@ -275,7 +274,6 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       flags: this.item.flags,
       // Adding a pointer to CONFIG.CARL_RPG
       config: CONFIG.CARL_RPG,
-      // You can factor out context construction to helper functions
       tabs: this._getTabs(options.parts),
       // Necessary for formInput and formFields helpers
       fields: this.document.schema.fields,
@@ -737,11 +735,8 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       const tab = {
         cssClass: '',
         group: tabGroup,
-        // Matches tab property to
         id: '',
-        // FontAwesome Icon, if you so choose
         icon: '',
-        // Run through localization
         label: 'CARL_RPG.Item.Tabs.',
       };
       switch (partId) {
@@ -899,21 +894,9 @@ export class CarlRPGItemSheet extends ItemSheetBase {
         drop: this._onDrop.bind(this)
       }
     }).bind(this.element);
-    // You may want to add other special handling here
-    // Foundry comes with a large number of utility classes, e.g. SearchFilter
-    // That you may want to implement yourself.
   }
 
-  /**************
-   *
-   *   ACTIONS
-   *
-   **************/
-
-  /**
-   * Post this item to chat: its Short Description, with the full text one click away.
-   * @this CarlRPGItemSheet
-   */
+  /** Post this item to chat: its Short Description, with the full text one click away. */
   static async _showInChat() {
     const item = this.item;
     const short = (item.system.shortDescription ?? '').trim();
@@ -952,9 +935,6 @@ export class CarlRPGItemSheet extends ItemSheetBase {
   /**
    * Handle changing a Document's image.
    *
-   * @this CarlRPGItemSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
    * @returns {Promise}
    * @protected
    */

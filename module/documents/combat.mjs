@@ -1,5 +1,5 @@
 /**
- * Carl RPG combat: there is no initiative. Each round is four phases, and the
+ * Carl RPG combat: there is no initiative. Each round is five phases, and the
  * Combat tracks which phase it is in (stored as a flag):
  *
  *   1. Mobs declare their attacks

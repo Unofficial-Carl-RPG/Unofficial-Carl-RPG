@@ -25,9 +25,7 @@
 const t = (key, data) =>
   data ? game.i18n.format(key, data) : game.i18n.localize(key);
 
-/* -------------------------------------------- */
 /*  Dice                                        */
-/* -------------------------------------------- */
 
 /**
  * Move every die in a formula up (or down) the ladder of dice sizes. A die that
@@ -63,9 +61,7 @@ function addToFormula(formula, extra) {
   return sign ? `${base} ${add[0]} ${add.slice(1).trim()}` : `${base} + ${add}`;
 }
 
-/* -------------------------------------------- */
 /*  Working out the numbers                     */
-/* -------------------------------------------- */
 
 /**
  * The rank an upgrade list is measured against: a skill's rank, or a pet's level
@@ -226,9 +222,7 @@ export function effectiveOf(item) {
   );
 }
 
-/* -------------------------------------------- */
 /*  Events carried by upgrades                  */
-/* -------------------------------------------- */
 
 /**
  * Every event an item can run: its own, plus the events carried by the upgrades
@@ -246,9 +240,7 @@ export function allEvents(item) {
   return carried.length ? [...own, ...carried] : own;
 }
 
-/* -------------------------------------------- */
 /*  Effects unlocked by upgrades                */
-/* -------------------------------------------- */
 
 /** How an effect is found again: its identifier, else its name. */
 export function effectKey(effect) {
@@ -282,9 +274,7 @@ export function lockedRankFor(item, key) {
   return levelOf(item.system) >= need ? null : need;
 }
 
-/* -------------------------------------------- */
 /*  Describing upgrades                         */
-/* -------------------------------------------- */
 
 /** A short sentence for each change, for an upgrade with no description of its own. */
 export function summarizeChanges(upgrade, effectNames = [], grantNames = []) {

@@ -37,7 +37,6 @@ export const ItemSheetTags = (Base) => class ItemSheetTags extends Base {
   /**
    * Add what was typed in the box next to the button (ignoring case, so it
    * can't be added twice). `data-field` says which list: tags or categories.
-   * @this CarlRPGItemSheet
    */
   static async _addTag(event, target) {
     const field = target?.dataset.field;

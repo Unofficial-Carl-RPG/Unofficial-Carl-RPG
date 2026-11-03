@@ -36,10 +36,10 @@ export default class CarlRPGCrawler extends CarlRPGActorBase {
       initial: 0,
       min: 0,
     });
-    // Crawler Killer skulls: how many other crawlers this crawler has killed. Shown
-    // as skulls beside the name (sheet, token and chat cards).
     // Boss kill stars: the boss mobs this crawler helped defeat (see Give star).
     schema.bossKills = new fields.NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 });
+    // Crawler Killer skulls: how many other crawlers this crawler has killed. Shown
+    // as skulls beside the name (sheet, token and chat cards).
     schema.crawlerKills = new fields.NumberField({
       ...requiredInteger,
       initial: 0,
@@ -95,9 +95,7 @@ export default class CarlRPGCrawler extends CarlRPGActorBase {
       ),
     });
 
-    // Background sections shown on the Notes tab (plain text, edited in
-    // textareas). Not to be confused with the Hotlist tab, which will later
-    // list items, skills and spells.
+    // Background sections shown on the Notes tab (plain text, edited in textareas).
     schema.background = new fields.SchemaField({
       pastTrauma: new fields.StringField(),
       popularity: new fields.StringField(),
@@ -112,7 +110,6 @@ export default class CarlRPGCrawler extends CarlRPGActorBase {
       })
     );
 
-    // Iterate over ability names and create a new SchemaField for each.
     schema.abilities = new fields.SchemaField(
       Object.keys(CONFIG.CARL_RPG.abilities).reduce((obj, ability) => {
         obj[ability] = new fields.SchemaField({
@@ -154,7 +151,6 @@ export default class CarlRPGCrawler extends CarlRPGActorBase {
 
     // The floor is global (set by the GM in the sidebar), not stored per actor.
     this.floor = CONFIG.CARL_RPG.getFloor();
-    // Loop through ability scores, and add their modifiers to our sheet output.
     // Active effects add to the Enhanced value through `bonuses`.
     for (const key in this.abilities) {
       const bonus = this.bonuses[key] ?? 0;
@@ -162,7 +158,6 @@ export default class CarlRPGCrawler extends CarlRPGActorBase {
 
       this.abilities[key].mod = CONFIG.CARL_RPG.getStatModifier(this.abilities[key].enhanced);
 
-      // Handle ability label localization.
       this.abilities[key].label =
         game.i18n.localize(CONFIG.CARL_RPG.abilities[key]) ?? key;
     }

@@ -245,9 +245,7 @@ export async function resolveCheck(item, roll) {
   };
 }
 
-/* -------------------------------------------- */
 /*  A mob's checks                              */
-/* -------------------------------------------- */
 
 /**
  * What a crawler adds to their d20 when defending against a mob's check: their
@@ -570,9 +568,7 @@ async function handleMobRelay(relayMessage, relay) {
   });
 }
 
-/* -------------------------------------------- */
 /*  Injuries                                    */
-/* -------------------------------------------- */
 
 /** How long a kind of rest is, for comparing how long effects last. */
 const restRank = (rest) => CONFIG.CARL_RPG.rests.indexOf(rest);
@@ -662,9 +658,7 @@ async function markInjury(actor, severity) {
   counts[severity] = (counts[severity] ?? 0) + 1;
   await combatant.setFlag(NS, 'injuries', counts);
 }
-/* -------------------------------------------- */
 /*  The chat card                               */
-/* -------------------------------------------- */
 
 /** The damage multipliers the GM can apply, in the order their buttons show. */
 const MULTIPLIERS = [

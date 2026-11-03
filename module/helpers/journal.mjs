@@ -22,9 +22,7 @@ const STATS = ['str', 'int', 'con', 'dex', 'cha'];
 const t = (key, data) => (data ? game.i18n.format(key, data) : game.i18n.localize(key));
 const loc = (key, data) => t(`CARL_RPG.Enrichers.${key}`, data);
 
-/* -------------------------------------------- */
 /*  Live values                                 */
-/* -------------------------------------------- */
 
 const LIVE = {
   floor: () => getFloor(),
@@ -49,9 +47,7 @@ export function refreshLiveValues() {
   }
 }
 
-/* -------------------------------------------- */
 /*  Helpers                                     */
-/* -------------------------------------------- */
 
 const isGM = () => game.user.isGM;
 
@@ -106,9 +102,7 @@ async function pickCrawler(title) {
   return id ? game.actors.get(id) : null;
 }
 
-/* -------------------------------------------- */
 /*  @Check                                      */
-/* -------------------------------------------- */
 
 /**
  * Parse the inside of @Check[...]: an optional skill name (which may contain
@@ -188,9 +182,7 @@ async function rollCheck({ skill, stat, dc }) {
   });
 }
 
-/* -------------------------------------------- */
 /*  GM actions                                  */
-/* -------------------------------------------- */
 
 async function giveGold(amount) {
   const crawler = await pickCrawler(loc('GiveGold', { n: amount }));
@@ -235,9 +227,7 @@ async function applyEffect(uuid) {
   await copy.setActive(true);
 }
 
-/* -------------------------------------------- */
 /*  @Embed                                      */
-/* -------------------------------------------- */
 
 /** Whether an @Embed target is one this system draws (the rest stay Foundry's). */
 const ownsEmbed = (doc) =>
@@ -348,9 +338,7 @@ function installEmbedOverride() {
   };
 }
 
-/* -------------------------------------------- */
 /*  Registration                                */
-/* -------------------------------------------- */
 
 export function registerJournalEnrichers() {
   installEmbedOverride();

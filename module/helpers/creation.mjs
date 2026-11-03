@@ -18,9 +18,7 @@ export const CREATION_SETTING = 'creationDefaults';
 const t = (key, data) =>
   data ? game.i18n.format(key, data) : game.i18n.localize(key);
 
-/* -------------------------------------------- */
 /*  Setting                                     */
-/* -------------------------------------------- */
 
 export function registerCreationSetting() {
   const fields = foundry.data.fields;
@@ -84,9 +82,7 @@ export function getCreationDefaults() {
   return game.settings.get(NS, CREATION_SETTING);
 }
 
-/* -------------------------------------------- */
 /*  What the wizard offers                      */
-/* -------------------------------------------- */
 
 /**
  * The skills that can be picked: skills carrying the skill tag, from the sources
@@ -161,9 +157,7 @@ export async function weaponSkill(weapon) {
 export const creationPending = (actor) =>
   actor?.type === 'crawler' && !!actor.getFlag(NS, 'creationPending');
 
-/* -------------------------------------------- */
 /*  Working out what a finished wizard gives    */
-/* -------------------------------------------- */
 
 /** What identifies a skill: its identifier, or its name if it has none. */
 const skillKey = (skill) => skill.system.identifier?.trim() || skill.name;
@@ -197,9 +191,7 @@ export async function planSkills(state) {
   return [...wanted.values()];
 }
 
-/* -------------------------------------------- */
 /*  Applying a finished wizard                  */
-/* -------------------------------------------- */
 
 /**
  * Write a finished wizard to a crawler.

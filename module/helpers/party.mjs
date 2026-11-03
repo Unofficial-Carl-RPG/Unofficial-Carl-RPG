@@ -66,9 +66,7 @@ export function getPartyName() {
   return name || game.i18n.localize('CARL_RPG.GMTab.DefaultParty');
 }
 
-/* -------------------------------------------- */
 /*  Leader and titles                           */
-/* -------------------------------------------- */
 
 /** The crawler designated as the party leader, if there is one. */
 export function getLeader() {

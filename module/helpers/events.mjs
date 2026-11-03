@@ -45,9 +45,7 @@ import { logEvent } from './change-log.mjs';
 
 const NS = 'carl-rpg';
 
-/* -------------------------------------------- */
 /*  Small helpers                               */
-/* -------------------------------------------- */
 
 const t = (key, data) =>
   data ? game.i18n.format(key, data) : game.i18n.localize(key);
@@ -182,9 +180,7 @@ async function resolveTargets(action, owner, ctx = {}) {
   return [...new Set(actors)].filter(Boolean);
 }
 
-/* -------------------------------------------- */
 /*  Requirements (block using an item)          */
-/* -------------------------------------------- */
 
 /**
  * Check an item's requirements. Warns about each one that isn't met.
@@ -259,9 +255,7 @@ export function checkRequirements(item) {
   return true;
 }
 
-/* -------------------------------------------- */
 /*  Conditions                                  */
-/* -------------------------------------------- */
 
 const REST_ORDER = ['short', 'long', 'full'];
 
@@ -350,9 +344,7 @@ async function conditionsMet(event, ctx) {
   return event.match === 'any' ? results.some(Boolean) : results.every(Boolean);
 }
 
-/* -------------------------------------------- */
 /*  Action handlers                             */
-/* -------------------------------------------- */
 
 const HANDLERS = {
   /** Use another item the owner has, as if they had used it. */
@@ -625,9 +617,7 @@ const HANDLERS = {
 // action; the difference is who it affects (see resolveTargets).
 HANDLERS.applyEffect = HANDLERS.toggleEffect;
 
-/* -------------------------------------------- */
 /*  Running events                              */
-/* -------------------------------------------- */
 
 /**
  * Run an item's (or effect's, or pet's) events for a trigger.
@@ -833,9 +823,7 @@ async function executeAction(item, event, index, ctx, actor) {
   await handler({ item, event, action, actor, ctx });
 }
 
-/* -------------------------------------------- */
 /*  Handing actions to the GM's client          */
-/* -------------------------------------------- */
 
 async function relayToGM(item, event, index, ctx, targets) {
   if (!isTrusted(item)) {
@@ -915,9 +903,7 @@ async function handleRelay(message, relay) {
   }
 }
 
-/* -------------------------------------------- */
 /*  Triggers that belong to the actor           */
-/* -------------------------------------------- */
 
 /**
  * Whether this client should run phase, round, combat and floor events for an
@@ -991,9 +977,7 @@ async function fireForWorld(trigger, ctx, after) {
   }
 }
 
-/* -------------------------------------------- */
 /*  Setup                                       */
-/* -------------------------------------------- */
 
 export function registerEvents() {
   // Phase events run when the combat moves to a new phase: the one it left ends,

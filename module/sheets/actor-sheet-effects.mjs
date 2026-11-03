@@ -3,14 +3,7 @@
  */
 
 export const ActorSheetEffects = (Base) => class ActorSheetEffects extends Base {
-  /**
-   * Determines effect parent to pass to helper
-   *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
+  /** Determines effect parent to pass to helper */
   static async _toggleEffect(event, target) {
     event.preventDefault();
     const effect = this._getEmbeddedDocument(target);
@@ -19,14 +12,7 @@ export const ActorSheetEffects = (Base) => class ActorSheetEffects extends Base 
     await effect?.setActive();
   }
 
-  /**
-   * Create a new effect directly on the actor (not from an item) and open it.
-   *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
+  /** Create a new effect directly on the actor (not from an item) and open it. */
   static async _createEffect(event, target) {
     event.preventDefault();
     const kind = target.dataset.kind ?? 'buff';
@@ -45,14 +31,7 @@ export const ActorSheetEffects = (Base) => class ActorSheetEffects extends Base 
     effect?.sheet.render(true);
   }
 
-  /**
-   * Add a stack, remove a stack, or remove all stacks of a stackable debuff.
-   *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
+  /** Add a stack, remove a stack, or remove all stacks of a stackable debuff. */
   static async _effectStacks(event, target) {
     event.preventDefault();
     const effect = this._getEmbeddedDocument(target);

@@ -6,7 +6,6 @@ export const ItemSheetUpgrades = (Base) => class ItemSheetUpgrades extends Base 
   /**
    * Add an upgrade, at the next default rank that isn't used yet (5, 10, 15,
    * 20, then every 5). The list is kept in rank order.
-   * @this CarlRPGItemSheet
    */
   static async _addUpgrade() {
     const { defaultRanks, rankStep } = CONFIG.CARL_RPG.upgrades;

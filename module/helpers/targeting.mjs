@@ -132,15 +132,10 @@ export async function chooseTargets(item) {
 }
 
 /**
- * Place an area with Foundry's own template tool (the shape from the item). The
- * tokens inside it become the targets, and the area is cleared again. Escape
- * cancels. Players who can't create templates get a warning; the GM places it.
- * @param {CarlRPGItem} item
- * @returns {Promise<boolean>} false if cancelled or not allowed
- */
-/**
- * Place the item's areas one after another (its "areas per use"). The tokens picked
- * in each are added to the targets. Escape cancels the rest.
+ * Place the item's areas one after another (its "areas per use") with Foundry's own
+ * template tool. The tokens picked in each are added to the targets, and the area is
+ * cleared again. Escape cancels the rest. Players who can't create templates get a
+ * warning; the GM places it.
  * @param {CarlRPGItem} item
  * @returns {Promise<boolean>} false if cancelled or not allowed
  */

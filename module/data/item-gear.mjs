@@ -50,7 +50,6 @@ export default class CarlRPGGear extends CarlRPGItemBase {
       min: 1,
     });
 
-    // Break down roll formula into three independent fields
     schema.roll = new fields.SchemaField({
       diceNum: new fields.NumberField({
         ...requiredInteger,
@@ -69,7 +68,6 @@ export default class CarlRPGGear extends CarlRPGItemBase {
   }
 
   prepareDerivedData() {
-    // Build the formula dynamically using string interpolation
     const roll = this.roll;
 
     this.formula = `${roll.diceNum}${roll.diceSize}${roll.diceBonus}`;

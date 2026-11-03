@@ -134,8 +134,6 @@ export class CarlRPGActorSheet extends ActorSheetBase {
         Object.entries(EVENT_EDITOR_ACTIONS).map(([name, fn]) => [name, editOnly(fn)])
       ),
     },
-    // Custom property that's merged into `this.options`
-    // dragDrop: [{ dragSelector: '.draggable', dropSelector: null }],
     form: {
       submitOnChange: true,
     },
@@ -248,8 +246,6 @@ export class CarlRPGActorSheet extends ActorSheetBase {
       options.parts.push('biography');
     }
   }
-
-  /* -------------------------------------------- */
 
   /** @override */
   async _prepareContext(options) {
@@ -666,11 +662,8 @@ export class CarlRPGActorSheet extends ActorSheetBase {
       const tab = {
         cssClass: '',
         group: tabGroup,
-        // Matches tab property to
         id: '',
-        // FontAwesome Icon, if you so choose
         icon: '',
-        // Run through localization
         label: 'CARL_RPG.Actor.Tabs.',
       };
       switch (partId) {
@@ -742,10 +735,6 @@ export class CarlRPGActorSheet extends ActorSheetBase {
   }
 
   _prepareItems(context) {
-    // Initialize containers.
-    // You can just use `this.document.itemTypes` instead
-    // if you don't need to subdivide a given type
-    // (e.g. into groups)
     const gear = [];
     const features = [];
     const spells = [];
@@ -976,8 +965,6 @@ export class CarlRPGActorSheet extends ActorSheetBase {
       !this.document.testUserPermission(game.user, 'OBSERVER')
     );
     this.#disableOverrides();
-    // A weapon's "rolls with" skill, picked on the crawler's own copy.
-    // The GM's deity tier (0 is none), kept on the crawler's copy of the deity.
     // Rest and Level Up buttons can be dragged to the hotbar, where they become macros.
     for (const el of this.element.querySelectorAll('[data-carl-macro]')) {
       el.addEventListener('dragstart', (event) => {
@@ -1020,23 +1007,11 @@ export class CarlRPGActorSheet extends ActorSheetBase {
       }
     }
     this.#applyEditMode();
-    // You may want to add other special handling here
-    // Foundry comes with a large number of utility classes, e.g. SearchFilter
-    // That you may want to implement yourself.
   }
-
-  /**************
-   *
-   *   ACTIONS
-   *
-   **************/
 
   /**
    * Handle changing a Document's image.
    *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
    * @returns {Promise}
    * @protected
    */
@@ -1062,9 +1037,6 @@ export class CarlRPGActorSheet extends ActorSheetBase {
   /**
    * Renders an embedded document's sheet
    *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
    * @protected
    */
   static async _viewDoc(event, target) {
@@ -1075,9 +1047,6 @@ export class CarlRPGActorSheet extends ActorSheetBase {
   /**
    * Handles item deletion
    *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
    * @protected
    */
   static async _deleteDoc(event, target) {
@@ -1085,14 +1054,7 @@ export class CarlRPGActorSheet extends ActorSheetBase {
     await doc.delete();
   }
 
-  /**
-   * Handle creating a new Owned Item or ActiveEffect for the actor using initial data defined in the HTML dataset
-   *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
+  /** Handle creating a new Owned Item or ActiveEffect for the actor using initial data defined in the HTML dataset */
   static async _createDoc(event, target) {
     // Retrieve the configured document class for Item or ActiveEffect
     const docCls = getDocumentClass(target.dataset.documentClass);
@@ -1162,9 +1124,6 @@ export class CarlRPGActorSheet extends ActorSheetBase {
   /**
    * Handle clickable rolls.
    *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
    * @protected
    */
   static async _onRoll(event, target) {
@@ -1231,9 +1190,6 @@ export class CarlRPGActorSheet extends ActorSheetBase {
    * Set the health bar by clicking a box. Clicking the box that is already the
    * last filled one removes it, so the bar can also be lowered to zero.
    *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
    * @protected
    */
   static async _setHealth(event, target) {
@@ -1253,9 +1209,6 @@ export class CarlRPGActorSheet extends ActorSheetBase {
    * Equip or unequip a piece of gear. Equipping into a full slot prompts for
    * which equipped gear to swap out (see CarlRPGItem#toggleEquipped).
    *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
    * @protected
    */
   static async _toggleEquipped(event, target) {
@@ -1267,9 +1220,6 @@ export class CarlRPGActorSheet extends ActorSheetBase {
   /**
    * Toggle the sheet between locked and edit mode.
    *
-   * @this CarlRPGActorSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
    * @protected
    */
   static async _toggleEditMode(event, target) {
@@ -1310,7 +1260,6 @@ export class CarlRPGActorSheet extends ActorSheetBase {
   /**
    * Save the item picked in a hotlist slot. The whole `items` array is
    * replaced so the slots stay in order.
-   * @param {Event} event
    */
   async #onHotlistChange(event) {
     const slot = Number(event.currentTarget.dataset.slot);
@@ -1325,7 +1274,6 @@ export class CarlRPGActorSheet extends ActorSheetBase {
   /**
    * Fetches the embedded document representing the containing HTML element
    *
-   * @param {HTMLElement} target    The element subject to search
    * @returns {Item | ActiveEffect} The embedded Item or ActiveEffect
    */
   _getEmbeddedDocument(target) {
@@ -1343,12 +1291,6 @@ export class CarlRPGActorSheet extends ActorSheetBase {
       return parent.effects.get(docRow?.dataset.effectId);
     } else return console.warn('Could not find document class');
   }
-
-  /********************
-   *
-   * Actor Override Handling
-   *
-   ********************/
 
   /**
    * Submit a document update based on the processed form data.

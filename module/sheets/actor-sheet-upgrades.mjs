@@ -21,10 +21,7 @@ export const ActorSheetUpgrades = (Base) => class ActorSheetUpgrades extends Bas
     return this.actor;
   }
 
-  /**
-   * A GM approves a pet's upgrade events as they are.
-   * @this CarlRPGActorSheet
-   */
+  /** A GM approves a pet's upgrade events as they are. */
   static async _approveEvents() {
     if (!game.user.isGM) return;
     await this.actor.update({ 'system.eventsTrusted': true });
@@ -70,7 +67,6 @@ export const ActorSheetUpgrades = (Base) => class ActorSheetUpgrades extends Bas
   /**
    * Add an upgrade, at level 15 (or the next level after the ones already used).
    * The list is kept in level order.
-   * @this CarlRPGActorSheet
    */
   static async _addUpgrade() {
     const { defaultLevel, levelStep } = CONFIG.CARL_RPG.petUpgrades;

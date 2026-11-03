@@ -5,7 +5,7 @@
  * level above 1. They are banked until the floor reaches
  * CONFIG.CARL_RPG.levelUp.spendFloor, then can be spent on stats (+1 each, no
  * cap) with the Spend Points dialog. The GM raises a crawler's level with the
- * Level Up button; a world setting (in the GM tab) lets players do it for their
+ * Level Up button; a world setting (in the system settings) lets players do it for their
  * own crawlers too.
  */
 import { CarlRPGDialog } from './dialog.mjs';
@@ -20,9 +20,7 @@ export const PLAYERS_LEVEL_SETTING = 'playersCanLevel';
 const t = (key, data) =>
   data ? game.i18n.format(key, data) : game.i18n.localize(key);
 
-/* -------------------------------------------- */
 /*  Setting                                     */
-/* -------------------------------------------- */
 
 export function registerLevelUp() {
   game.settings.register(NS, PLAYERS_LEVEL_SETTING, {
@@ -61,9 +59,7 @@ export function canLevelUp(user, actor) {
   return playersCanLevel() && actor.testUserPermission(user, 'OWNER');
 }
 
-/* -------------------------------------------- */
 /*  Level Up                                    */
-/* -------------------------------------------- */
 
 /**
  * Raise a crawler's level by 1 (after confirming), banking more stat points.
@@ -104,9 +100,7 @@ export async function levelUp(actor) {
   return true;
 }
 
-/* -------------------------------------------- */
 /*  Spending points                             */
-/* -------------------------------------------- */
 
 /**
  * Open the Spend Points dialog: +1 to a stat per point, any amounts, as long as

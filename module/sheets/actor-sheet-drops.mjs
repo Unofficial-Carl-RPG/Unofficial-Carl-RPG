@@ -51,12 +51,6 @@ export const ActorSheetDrops = (Base) => class ActorSheetDrops extends Base {
     return dropTarget.call(this, zone, data);
   }
 
-  /***************
-   *
-   * Drag and Drop
-   *
-   ***************/
-
   /**
    * Handle the dropping of ActiveEffect data onto an Actor Sheet
    * @param {DragEvent} event                  The concluding DragEvent which contains drop data
@@ -145,8 +139,6 @@ export const ActorSheetDrops = (Base) => class ActorSheetDrops extends Base {
     if (!this.actor.isOwner) return false;
   }
 
-  /* -------------------------------------------- */
-
   /**
    * Handle dropping of a Folder on an Actor Sheet.
    * The core sheet currently supports dropping a Folder of Items to create all items as owned items.
@@ -174,7 +166,6 @@ export const ActorSheetDrops = (Base) => class ActorSheetDrops extends Base {
    * @param {object[]|object} itemData      The item data requested for creation
    * @param {DragEvent} event               The concluding DragEvent which provided the drop data
    * @returns {Promise<Item[]>}
-   * @private
    */
   async _onDropItemCreate(itemData, event) {
     itemData = itemData instanceof Array ? itemData : [itemData];

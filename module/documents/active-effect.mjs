@@ -20,9 +20,7 @@ const NS = 'carl-rpg';
  * system keeps pointed at `system.bonuses.*` (see CONFIG.CARL_RPG.effectModifiers).
  */
 export class CarlRPGActiveEffect extends ActiveEffect {
-  /* -------------------------------------------- */
   /*  Details                                     */
-  /* -------------------------------------------- */
 
   get kind() {
     return this.getFlag(NS, 'kind') ?? 'buff';
@@ -111,9 +109,7 @@ export class CarlRPGActiveEffect extends ActiveEffect {
     return a.name === b.name;
   }
 
-  /* -------------------------------------------- */
   /*  Applying                                    */
-  /* -------------------------------------------- */
 
   /**
    * Stacks multiply a stackable debuff's numbers.
@@ -181,9 +177,7 @@ export class CarlRPGActiveEffect extends ActiveEffect {
     return Number(this.getFlag(NS, 'roundsLeft')) || this.rounds;
   }
 
-  /* -------------------------------------------- */
   /*  Turning effects on and off                  */
-  /* -------------------------------------------- */
 
   /**
    * Turn this effect on or off (toggles by default), following the rules:
@@ -321,9 +315,7 @@ export class CarlRPGActiveEffect extends ActiveEffect {
     return true;
   }
 
-  /* -------------------------------------------- */
   /*  Links to the items that gave this effect    */
-  /* -------------------------------------------- */
 
   /**
    * Record another item as a source of this effect (the actor already had it).

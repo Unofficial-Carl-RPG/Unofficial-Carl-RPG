@@ -27,9 +27,7 @@ const t = (key, data) =>
   data ? game.i18n.format(key, data) : game.i18n.localize(key);
 const esc = (text) => foundry.utils.escapeHTML(String(text ?? ''));
 
-/* -------------------------------------------- */
 /*  Reading and changing the declarations       */
-/* -------------------------------------------- */
 
 /** Everything declared this round, by combatant id. */
 export function allDeclarations(combat) {
@@ -86,9 +84,7 @@ export async function clearDeclarations(combat) {
   await combat.unsetFlag(NS, 'declarations');
 }
 
-/* -------------------------------------------- */
 /*  Declaring                                   */
-/* -------------------------------------------- */
 
 /** The targeted tokens, as a declaration remembers them. */
 function currentTargets() {
@@ -144,9 +140,7 @@ export async function declareMove(combatant) {
   await add(combat, combatant, { kind: 'move', note });
 }
 
-/* -------------------------------------------- */
 /*  Showing them                                */
-/* -------------------------------------------- */
 
 /** One declaration as a line of text (no attack numbers: they aren't stored). */
 export function describeDeclaration(declaration) {
@@ -177,9 +171,7 @@ export async function announceDeclarations(combat) {
   });
 }
 
-/* -------------------------------------------- */
 /*  Resolving                                   */
-/* -------------------------------------------- */
 
 /** Put the declared targets back as the GM's targets (the ones on this scene). */
 async function retarget(declaration) {
@@ -240,9 +232,7 @@ export async function resolveDeclarations(combat) {
   await save(combat, declarations);
 }
 
-/* -------------------------------------------- */
 /*  Setup                                       */
-/* -------------------------------------------- */
 
 export function registerDeclarations() {
   // The mobs' declarations carry out as Resolve starts, are announced as React

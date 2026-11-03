@@ -24,9 +24,7 @@ const t = (key) => game.i18n.localize(key);
 export const eventList = (system, target) =>
   foundry.utils.getProperty(system, target?.dataset?.list || 'events');
 
-/* -------------------------------------------- */
 /*  New events, conditions and actions          */
-/* -------------------------------------------- */
 
 /** A new event, with every field filled in. */
 export function newEvent(trigger = 'used', extra = {}) {
@@ -141,9 +139,7 @@ export const EVENT_TEMPLATES = {
     }),
 };
 
-/* -------------------------------------------- */
 /*  What the template needs                     */
-/* -------------------------------------------- */
 
 /**
  * The rows the editor shows for a list of events, with every drop target's name
@@ -333,9 +329,7 @@ export function eventOptions(triggers) {
   };
 }
 
-/* -------------------------------------------- */
 /*  Buttons                                     */
-/* -------------------------------------------- */
 
 /** @this {object} A sheet that provides _updateEvents */
 async function addEvent(event, target) {
@@ -482,14 +476,9 @@ export const EVENT_EDITOR_ACTIONS = {
   clearTarget,
 };
 
-/* -------------------------------------------- */
 /*  Fields and drop boxes                       */
-/* -------------------------------------------- */
 
-/**
- * Save one field of an event, condition or action (by its `data-path`).
- * @this {object} A sheet that provides _updateEvents
- */
+/** Save one field of an event, condition or action (by its `data-path`). */
 export async function saveEventField(el) {
   const value =
     el.type === 'checkbox'
@@ -504,7 +493,6 @@ export async function saveEventField(el) {
 
 /**
  * A document was dropped on one of the editor's drop boxes: store its UUID.
- * @this {object} A sheet that provides _updateEvents
  * @param {HTMLElement} zone  The drop box
  * @param {object} data       The drag data
  * @returns {Promise<boolean>}

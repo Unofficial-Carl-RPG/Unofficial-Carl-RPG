@@ -76,8 +76,7 @@ export default class CarlRPGFeature extends CarlRPGItemBase {
     // (never stored: the skill's own fields stay as they were typed).
     this.effective = computeEffective(this);
 
-    // Build the formula dynamically using string interpolation. An upgrade can
-    // add a bonus to the roll.
+    // An upgrade can add a bonus to the roll.
     const bonus = this.effective.rollBonus;
     this.formula =
       `1d20 + @${this.stat}.mod + ${this.rank}` +

@@ -1,9 +1,6 @@
 export const CARL_RPG = {};
 
-/**
- * The set of Ability Scores used within the system.
- * @type {Object}
- */
+/** The set of Ability Scores used within the system. */
 CARL_RPG.abilities = {
   str: 'CARL_RPG.Ability.Str.long',
   int: 'CARL_RPG.Ability.Int.long',
@@ -12,10 +9,7 @@ CARL_RPG.abilities = {
   cha: 'CARL_RPG.Ability.Cha.long',
 };
 
-/**
- * The equipment slots a piece of gear can occupy (from the character sheet).
- * @type {Object}
- */
+/** The equipment slots a piece of gear can occupy (from the character sheet). */
 CARL_RPG.gearSlots = {
   head: 'CARL_RPG.Item.Gear.Slots.head',
   torso: 'CARL_RPG.Item.Gear.Slots.torso',
@@ -29,7 +23,6 @@ CARL_RPG.gearSlots = {
 /**
  * How many pieces of gear can be equipped in each slot at once (from the
  * character sheet: one each for the body slots, up to 10 accessories).
- * @type {Object<string, number>}
  */
 CARL_RPG.gearSlotLimits = {
   head: 1,
@@ -503,7 +496,6 @@ CARL_RPG.maxEventDepth = 5;
  * tier pays when opened (a number or dice formula); a box can override it.
  * Bronze 1d10, Silver (1d10) x 100, Gold (1d10) x 1000, Platinum (2d6) x 1000,
  * Legendary (1d10) x 10000. Celestial pays no gold.
- * @type {Object<string, {label: string, color: string, gold: string}>}
  */
 CARL_RPG.lootTiers = {
   bronze: { label: 'CARL_RPG.Loot.Tiers.bronze', color: '#cd7f32', gold: '1d10' },
@@ -520,7 +512,6 @@ CARL_RPG.lootTiers = {
  *  - buff: toggled on and off; at most CARL_RPG.maxActiveBuffs active at once
  *  - debuff: toggled on and off, no limit; only stacks if marked stackable
  *  - passive: toggled on and off, never counts toward any limit
- * @type {Object}
  */
 CARL_RPG.effectKinds = {
   buff: 'CARL_RPG.Effect.Kinds.buff',
@@ -535,7 +526,6 @@ CARL_RPG.maxActiveBuffs = 3;
  * What an effect can modify. Effects write into the actor's `system.bonuses`,
  * which the actor data models add to the matching base values, so nothing an
  * effect does is ever saved into the actor's own numbers.
- * @type {Object<string, {label: string, key: string}>}
  */
 CARL_RPG.effectModifiers = {
   str: { label: 'CARL_RPG.Effect.Mods.str', key: 'system.bonuses.str' },
@@ -557,10 +547,7 @@ CARL_RPG.effectModifiers = {
   skillCap: { label: 'CARL_RPG.Effect.Mods.skillCap', key: 'system.bonuses.skillCap' },
 };
 
-/**
- * Creature sizes, smallest to largest (shared by crawlers and mobs).
- * @type {Object}
- */
+/** Creature sizes, smallest to largest (shared by crawlers and mobs). */
 CARL_RPG.sizes = {
   tiny: 'CARL_RPG.Size.tiny',
   small: 'CARL_RPG.Size.small',
@@ -588,7 +575,6 @@ CARL_RPG.sizeOptions = () =>
 /**
  * The phases of a combat round, in order. `side` is who acts in that phase
  * ('all' means everyone, e.g. the cleanup phase).
- * @type {Array<{id: string, side: string}>}
  */
 CARL_RPG.combatPhases = [
   { id: 'declare', side: 'mob' },

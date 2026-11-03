@@ -10,7 +10,7 @@ import {
 
 /**
  * Adjusts Foundry's combat tracker for phase-based combat (no initiative):
- *  - shows the round and the four phases, with the current one highlighted
+ *  - shows the round and the phases, with the current one highlighted
  *  - highlights every combatant on the side that acts in the current phase
  *    (instead of a single active turn)
  *  - posts a chat message whenever the phase changes

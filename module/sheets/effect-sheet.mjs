@@ -125,7 +125,6 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
   /**
    * A GM approves the effect's events as they are (events a player saved are limited
    * to what that player could do themselves).
-   * @this CarlRPGEffectSheet
    */
   static async _approveEvents() {
     if (!game.user.isGM) return;
@@ -184,10 +183,7 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
     await this.document.update({ changes });
   }
 
-  /**
-   * Add a modifier row (a +1 Strength bonus to start with).
-   * @this CarlRPGEffectSheet
-   */
+  /** Add a modifier row (a +1 Strength bonus to start with). */
   static async _addModifier(event, target) {
     event.preventDefault();
     const changes = this.document.toObject().changes;
@@ -200,10 +196,7 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
     await this.document.update({ changes });
   }
 
-  /**
-   * Remove a modifier row.
-   * @this CarlRPGEffectSheet
-   */
+  /** Remove a modifier row. */
   static async _removeModifier(event, target) {
     event.preventDefault();
     const index = Number(target.closest('[data-index]')?.dataset.index);
@@ -212,10 +205,7 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
     await this.document.update({ changes });
   }
 
-  /**
-   * Choose a new icon for the effect.
-   * @this CarlRPGEffectSheet
-   */
+  /** Choose a new icon for the effect. */
   static async _onEditImage(event, target) {
     const attr = target.dataset.edit;
     const current = foundry.utils.getProperty(this.document, attr);

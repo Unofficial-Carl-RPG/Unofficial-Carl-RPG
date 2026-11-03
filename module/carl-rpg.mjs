@@ -1,15 +1,12 @@
-// Import document classes.
 import { CarlRPGActor } from './documents/actor.mjs';
 import { CarlRPGItem } from './documents/item.mjs';
 import { CarlRPGCombat, refillCombatActions } from './documents/combat.mjs';
 import { CarlRPGCombatant } from './documents/combatant.mjs';
 import { CarlRPGActiveEffect } from './documents/active-effect.mjs';
-// Import sheet classes.
 import { CarlRPGActorSheet } from './sheets/actor-sheet.mjs';
 import { CarlRPGLootPileSheet } from './sheets/loot-pile-sheet.mjs';
 import { CarlRPGItemSheet } from './sheets/item-sheet.mjs';
 import CarlRPGEffectSheet from './sheets/effect-sheet.mjs';
-// Import helper/utility classes and constants.
 import { CARL_RPG } from './helpers/config.mjs';
 import { registerCombatTracker } from './helpers/combat-tracker.mjs';
 import { CarlRPGGMTab } from './sheets/gm-tab.mjs';
@@ -52,18 +49,14 @@ import { registerChangeLog } from './helpers/change-log.mjs';
 import { registerQuickBar } from './helpers/quick-bar.mjs';
 import CarlRPGSystemMessagePage from './data/page-system-message.mjs';
 import CarlRPGSystemMessageSheet from './sheets/system-message-sheet.mjs';
-// Import DataModel classes
 import * as models from './data/_module.mjs';
 
 const collections = foundry.documents.collections;
 const sheets = foundry.appv1.sheets;
 
-/* -------------------------------------------- */
 /*  Init Hook                                   */
-/* -------------------------------------------- */
 
-// Add key classes to the global scope so they can be more easily used
-// by downstream developers
+// Exposed globally for macros and other modules.
 globalThis.carlrpg = {
   documents: {
     CarlRPGActor,
@@ -81,7 +74,6 @@ globalThis.carlrpg = {
 };
 
 Hooks.once('init', function () {
-  // Add custom constants for configuration.
   CONFIG.CARL_RPG = CARL_RPG;
 
   // A player can use items from compendiums they can't open: the GM's client
@@ -97,7 +89,7 @@ Hooks.once('init', function () {
     'systems/carl-rpg/templates/sidebar/party-management.hbs',
   ]);
 
-  // Global floor, and the GM-only sidebar tab that controls it
+  // The global floor, set from the Dungeon Info tab.
   CONFIG.CARL_RPG.getFloor = getFloor;
   registerFloorSetting();
 
@@ -221,12 +213,9 @@ Hooks.once('init', function () {
   // Last, so the Validate menu comes at the end of the system settings.
   registerValidateMenu();
 
-  // Define custom Document and DataModel classes
   CONFIG.Actor.documentClass = CarlRPGActor;
 
-  // Note that you don't need to declare a DataModel
-  // for the base actor/item classes - they are included
-  // with the Crawler/Mob as part of super.defineSchema()
+  // The base classes need no model: Crawler and Mob include it through super.defineSchema().
   CONFIG.Actor.dataModels = {
     crawler: models.CarlRPGCrawler,
     mob: models.CarlRPGMob,
@@ -277,7 +266,6 @@ Hooks.once('init', function () {
     }
   );
 
-  // Register sheet application classes
   collections.Actors.unregisterSheet('core', sheets.ActorSheet);
   collections.Actors.registerSheet('carl-rpg', CarlRPGActorSheet, {
     makeDefault: true,
@@ -301,11 +289,8 @@ Hooks.once('init', function () {
   );
 });
 
-/* -------------------------------------------- */
 /*  Handlebars Helpers                          */
-/* -------------------------------------------- */
 
-// If you need to add Handlebars helpers, here is a useful example:
 Handlebars.registerHelper('toLowerCase', function (str) {
   return str.toLowerCase();
 });
@@ -323,9 +308,7 @@ Handlebars.registerHelper('itemTip', function (item) {
   return [describeBadges(item).join(' · '), body || item?.name || ''].filter(Boolean).join('. ');
 });
 
-/* -------------------------------------------- */
 /*  Actors directory: Create Crawler            */
-/* -------------------------------------------- */
 
 // A GM-only button that creates a new crawler and opens the creation wizard.
 Hooks.on('renderActorDirectory', (app, html) => {
@@ -349,9 +332,7 @@ Hooks.on('renderActorDirectory', (app, html) => {
   actions.append(button);
 });
 
-/* -------------------------------------------- */
 /*  Ready Hook                                  */
-/* -------------------------------------------- */
 
 Hooks.once('ready', function () {
   // A world last used with an older version is brought up to date (the active GM's client).
@@ -365,9 +346,7 @@ Hooks.once('ready', function () {
   Hooks.on('hotbarDrop', (bar, data, slot) => createDocMacro(data, slot));
 });
 
-/* -------------------------------------------- */
 /*  Hotbar Macros                               */
-/* -------------------------------------------- */
 
 /**
  * Create a Macro from an Item drop.
@@ -377,17 +356,14 @@ Hooks.once('ready', function () {
  * @returns {Promise}
  */
 async function createDocMacro(data, slot) {
-  // First, determine if this is a valid owned item.
   if (data.type !== 'Item') return;
   if (!data.uuid.includes('Actor.') && !data.uuid.includes('Token.')) {
     return ui.notifications.warn(
       'You can only create macro buttons for owned Items'
     );
   }
-  // If it is, retrieve it based on the uuid.
   const item = await Item.fromDropData(data);
 
-  // Create the macro command using the uuid.
   const command = `game.carlrpg.rollItemMacro("${data.uuid}");`;
   let macro = game.macros.find(
     (m) => m.name === item.name && m.command === command
@@ -405,20 +381,13 @@ async function createDocMacro(data, slot) {
   return false;
 }
 
-/**
- * Create a Macro from an Item drop.
- * Get an existing item macro if one exists, otherwise create a new one.
- * @param {string} itemUuid
- */
+/** Roll an item from its UUID (used by the macros made when an item is dropped on the hotbar). */
 function rollItemMacro(itemUuid) {
-  // Reconstruct the drop data so that we can load the item.
   const dropData = {
     type: 'Item',
     uuid: itemUuid,
   };
-  // Load the item from the uuid.
   Item.fromDropData(dropData).then((item) => {
-    // Determine if the item loaded and if it's an owned item.
     if (!item || !item.parent) {
       const itemName = item?.name ?? itemUuid;
       return ui.notifications.warn(
@@ -426,7 +395,6 @@ function rollItemMacro(itemUuid) {
       );
     }
 
-    // Trigger the item roll
     item.roll();
   });
 }

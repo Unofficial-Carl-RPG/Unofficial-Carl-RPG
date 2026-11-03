@@ -75,9 +75,7 @@ export async function knownTags(type, suggested = []) {
   return [...found.values()].sort((a, b) => a.localeCompare(b));
 }
 
-/* -------------------------------------------- */
 /*  One-time move of class tags to categories   */
-/* -------------------------------------------- */
 
 /**
  * Class tags were first stored as regular tags. Move them to categories, for the

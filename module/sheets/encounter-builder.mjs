@@ -85,10 +85,7 @@ export class CarlRPGEncounterBuilder extends HandlebarsApplicationMixin(
     this.render();
   }
 
-  /**
-   * Place the chosen mobs: the GM clicks the map (see placeEncounter).
-   * @this CarlRPGEncounterBuilder
-   */
+  /** Place the chosen mobs: the GM clicks the map (see placeEncounter). */
   static async _onPlace() {
     if (!game.user.isGM) return;
     const entries = [];

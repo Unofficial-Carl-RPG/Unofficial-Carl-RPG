@@ -7,9 +7,6 @@ export const ItemSheetEffects = (Base) => class ItemSheetEffects extends Base {
   /**
    * Renders an embedded document's sheet
    *
-   * @this CarlRPGItemSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
    * @protected
    */
   static async _viewEffect(event, target) {
@@ -20,9 +17,6 @@ export const ItemSheetEffects = (Base) => class ItemSheetEffects extends Base {
   /**
    * Handles item deletion
    *
-   * @this CarlRPGItemSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
    * @protected
    */
   static async _deleteEffect(event, target) {
@@ -30,14 +24,7 @@ export const ItemSheetEffects = (Base) => class ItemSheetEffects extends Base {
     await effect.delete();
   }
 
-  /**
-   * Handle creating a new Owned Item or ActiveEffect for the actor using initial data defined in the HTML dataset
-   *
-   * @this CarlRPGItemSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
+  /** Handle creating a new Owned Item or ActiveEffect for the actor using initial data defined in the HTML dataset */
   static async _createEffect(event, target) {
     // Retrieve the configured document class for ActiveEffect
     const aeCls = getDocumentClass('ActiveEffect');
@@ -68,14 +55,7 @@ export const ItemSheetEffects = (Base) => class ItemSheetEffects extends Base {
     effect?.sheet.render(true);
   }
 
-  /**
-   * Determines effect parent to pass to helper
-   *
-   * @this CarlRPGItemSheet
-   * @param {PointerEvent} event   The originating click event
-   * @param {HTMLElement} target   The capturing HTML element which defined a [data-action]
-   * @private
-   */
+  /** Determines effect parent to pass to helper */
   static async _toggleEffect(event, target) {
     const effect = this._getEffect(target);
     await effect.update({ disabled: !effect.disabled });
@@ -94,19 +74,12 @@ export const ItemSheetEffects = (Base) => class ItemSheetEffects extends Base {
   /**
    * Fetches the row with the data for the rendered embedded document
    *
-   * @param {HTMLElement} target  The element with the action
    * @returns {HTMLLIElement} The document's row
    */
   _getEffect(target) {
     const li = target.closest('.effect');
     return this.item.effects.get(li?.dataset?.effectId);
   }
-
-  /**
-   *
-   * DragDrop
-   *
-   */
 
   /**
    * Handle the dropping of ActiveEffect data onto an Actor Sheet
