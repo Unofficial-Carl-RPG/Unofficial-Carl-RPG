@@ -211,7 +211,6 @@ async function postResult(actor, box, result, requestId = null) {
   // helpers/chat-cards.mjs adds: bronze, silver, gold, platinum, legendary, celestial).
   await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
-    flags: { 'carl-rpg': { cue: 'loot' } },
     content: `<div class="carl-loot-card">
       <div class="loot-ribbon"><i class="fas fa-box-open"></i> ${game.i18n.format(
         'CARL_RPG.Loot.Banner',
@@ -226,6 +225,7 @@ async function postResult(actor, box, result, requestId = null) {
     </div>`,
     flags: {
       [NS]: {
+        cue: 'loot',
         card: { kind: 'loot', tier: result.tier, box: box.name },
         ...(requestId ? { lootResponse: { requestId, status: 'done' } } : {}),
       },
