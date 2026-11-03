@@ -29,15 +29,15 @@ export function usesLeft(item) {
 }
 
 /**
- * Spend one use of an item (nothing happens if it has no limit). An Observer
+ * Spend uses of an item (one by default; nothing happens if it has no limit). An Observer
  * using an item has it done by the GM's client (see helpers/relay.mjs).
  * @param {Item} item
  */
-export async function spendUse(item) {
-  if (!isLimited(item) || usesLeft(item) < 1) return;
+export async function spendUse(item, amount = 1) {
+  if (!isLimited(item) || amount < 1 || usesLeft(item) < amount) return;
   const { updateWithRelay } = await import('./relay.mjs');
-  const left = usesLeft(item) - 1;
-  await updateWithRelay(item, { 'system.uses.spent': item.system.uses.spent + 1 });
+  const left = usesLeft(item) - amount;
+  await updateWithRelay(item, { 'system.uses.spent': item.system.uses.spent + amount });
   logUse(item.actor, left);
 }
 

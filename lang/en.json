@@ -1301,6 +1301,23 @@
       "ModifierHint": "Optional: a formula added to the roll, like 2 or 1d4",
       "Formula": "Roll Formula"
     },
+    "Costs": {
+      "Title": "Costs",
+      "Add": "Add cost",
+      "Remove": "Remove cost",
+      "Mana": "Mana",
+      "Junk": "Misc Junk",
+      "Uses": "This item's uses",
+      "Hint": "Spent each time it is used. Uses come from the Uses settings.",
+      "NotEnoughJunk": {
+        "Title": "Not enough Misc Junk",
+        "Content": "{item} costs {cost} Misc Junk, but {name} only has {have}. Use it anyway and spend what is left?",
+        "Yes": "Use anyway",
+        "No": "Cancel"
+      },
+      "JunkSpent": "Spent {spent} Misc Junk.",
+      "JunkSpentPartial": "Spent {spent} of {cost} Misc Junk."
+    },
     "Check": {
       "NumberLabel": "Attack number",
       "NumberHint": "Mobs don't roll a d20: a crawler rolls against this number plus the Floor.",

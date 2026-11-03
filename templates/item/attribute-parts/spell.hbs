@@ -50,19 +50,6 @@
       </div>
     {{/if}}
     <div class='resource'>
-      <label class='resource-label' for='system.manaCost'>{{localize 'CARL_RPG.Item.Spell.FIELDS.manaCost.label'}}</label>
-      <input
-        type='number'
-        name='system.manaCost'
-        value='{{system.manaCost}}'
-        step='1'
-        min='0'
-      />
-      {{#if effective.manaChanged}}
-        <p class='upgrade-now'><i class='fas fa-arrow-up'></i> {{localize 'CARL_RPG.Upgrades.NowMana' value=effective.manaCost}}</p>
-      {{/if}}
-    </div>
-    <div class='resource'>
       <label class='resource-label' for='system.stat'>{{localize 'CARL_RPG.Item.Spell.FIELDS.stat.label'}}</label>
       <select name='system.stat'>
         {{selectOptions config.abilities selected=system.stat localize=true}}
@@ -80,6 +67,7 @@
   </div>
   {{! Usage limits }}
   {{> "systems/carl-rpg/templates/item/uses-fields.hbs"}}
+  {{> "systems/carl-rpg/templates/item/costs-fields.hbs"}}
   {{> "systems/carl-rpg/templates/item/targeting.hbs"}}
   <div class='resource'>
     <label class='resource-label' data-tooltip='{{localize "CARL_RPG.Combat.InterruptHint"}}'>

@@ -86,6 +86,7 @@ Hooks.once('init', function () {
     'systems/carl-rpg/templates/item/event-cards.hbs',
     'systems/carl-rpg/templates/item/uses-fields.hbs',
     'systems/carl-rpg/templates/item/action-fields.hbs',
+    'systems/carl-rpg/templates/item/costs-fields.hbs',
     'systems/carl-rpg/templates/item/targeting.hbs',
     'systems/carl-rpg/templates/sidebar/party-management.hbs',
   ]);

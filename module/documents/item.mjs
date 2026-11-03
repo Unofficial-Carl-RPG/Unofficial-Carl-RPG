@@ -3,6 +3,7 @@ import { CarlRPGActiveEffect } from './active-effect.mjs';
 import { checkRequirements, runEvents } from '../helpers/events.mjs';
 import { grantLoot } from '../helpers/loot.mjs';
 import { addModifier } from '../data/action.mjs';
+import { costOf, usesCost } from '../data/costs.mjs';
 import { resolveCheck } from '../helpers/attacks.mjs';
 import { describeUpgrades, effectiveOf } from '../helpers/upgrades.mjs';
 import { shortTextOf } from '../helpers/item-badges.mjs';
@@ -862,7 +863,8 @@ export class CarlRPGItem extends Item {
     // The item can be blocked from being used (not enough mana, ...).
     if (!checkRequirements(this)) return null;
     // An item with a limit on its uses needs one left (see helpers/uses.mjs).
-    if (usesLeft(this) < 1) {
+    const usesNeeded = usesCost(this);
+    if (usesNeeded && usesLeft(this) < usesNeeded) {
       ui.notifications.warn(
         game.i18n.format('CARL_RPG.Uses.NoneLeft', {
           name: Handlebars.escapeExpression(this.name),
@@ -913,7 +915,7 @@ export class CarlRPGItem extends Item {
       await ChatMessage.create({ whisper: ChatMessage.getWhisperRecipients('GM'), content: message });
       return null;
     }
-    const mana = await this.#payManaCost();
+    const mana = await this.#payCosts();
     if (mana === false) return null;
     // Both checks passed: now the action is actually spent (quietly: it isn't
     // mentioned on the chat card, only the mana is).
@@ -925,7 +927,7 @@ export class CarlRPGItem extends Item {
         await updateWithRelay(claim.combatant, { 'flags.carl-rpg.interruptUsed': true });
       }
     }
-    await spendUse(this);
+    await spendUse(this, usesNeeded);
     const rolling = await this.#useRollingSkill();
     const result = await this._rollCore(event, {
       note: mana.note,
@@ -1029,46 +1031,72 @@ export class CarlRPGItem extends Item {
   }
 
   /**
-   * A spell spends its mana cost when used. If the crawler doesn't have enough,
-   * a pop-up asks whether to cast anyway; casting anyway spends all the mana
-   * they have left (it never goes below 0). Cancelling stops the spell and
-   * spends nothing.
-   * @returns {Promise<{note: string}|false>}  false if the spell was cancelled
+   * What the item spends from its user when used: Mana and Misc Junk costs (uses are
+   * spent separately). If the user doesn't have enough of one, a pop-up asks whether
+   * to use it anyway; using it anyway spends all they have left (it never goes below
+   * 0). Cancelling stops the use and spends nothing.
+   * @returns {Promise<{note: string}|false>}  false if it was cancelled
    */
-  async #payManaCost() {
+  async #payCosts() {
     const actor = this.parent;
-    if (this.type !== 'spell' || !(actor instanceof Actor)) return { note: '' };
-    // (Crawlers and pets have mana.)
-    if (actor.type === 'mob') return { note: '' };
-    // (An upgrade can change what a spell costs.)
-    const cost = effectiveOf(this).manaCost;
-    if (!cost) return { note: '' };
+    // (Crawlers and pets have mana; only crawlers have junk. Mobs spend nothing.)
+    if (!(actor instanceof Actor) || actor.type === 'mob') return { note: '' };
 
-    const have = actor.system.mana.value;
-    let spent = cost;
-    if (have < cost) {
-      const castAnyway = await CarlRPGDialog.confirm({
-        window: { title: game.i18n.localize('CARL_RPG.Spell.NotEnoughMana.Title') },
-        content: `<p>${game.i18n.format('CARL_RPG.Spell.NotEnoughMana.Content', {
+    const wanted = [];
+    // (An upgrade can change what a skill or spell costs in Mana.)
+    const mana = effectiveOf(this).manaCost;
+    if (mana && actor.system.mana) {
+      wanted.push({
+        path: 'system.mana.value',
+        have: actor.system.mana.value,
+        cost: mana,
+        dialog: 'CARL_RPG.Spell.NotEnoughMana',
+        note: 'CARL_RPG.Spell.ManaSpent',
+        log: logMana,
+      });
+    }
+    const junk = costOf(this.system.costs, 'junk');
+    if (junk && actor.type === 'crawler') {
+      wanted.push({
+        path: 'system.junk',
+        have: actor.system.junk ?? 0,
+        cost: junk,
+        dialog: 'CARL_RPG.Costs.NotEnoughJunk',
+        note: 'CARL_RPG.Costs.JunkSpent',
+      });
+    }
+
+    // Ask about everything that is short first, so cancelling spends nothing.
+    for (const entry of wanted) {
+      entry.spent = entry.cost;
+      if (entry.have >= entry.cost) continue;
+      const go = await CarlRPGDialog.confirm({
+        window: { title: game.i18n.localize(`${entry.dialog}.Title`) },
+        content: `<p>${game.i18n.format(`${entry.dialog}.Content`, {
           spell: Handlebars.escapeExpression(this.name),
-          cost,
+          item: Handlebars.escapeExpression(this.name),
+          cost: entry.cost,
           name: Handlebars.escapeExpression(actor.name),
-          have,
+          have: entry.have,
         })}</p>`,
-        yes: { label: game.i18n.localize('CARL_RPG.Spell.NotEnoughMana.Yes') },
-        no: { label: game.i18n.localize('CARL_RPG.Spell.NotEnoughMana.No') },
+        yes: { label: game.i18n.localize(`${entry.dialog}.Yes`) },
+        no: { label: game.i18n.localize(`${entry.dialog}.No`) },
         rejectClose: false,
       });
-      if (!castAnyway) return false;
-      spent = have;
+      if (!go) return false;
+      entry.spent = entry.have;
     }
 
-    if (spent > 0) {
-      await updateWithRelay(actor, { 'system.mana.value': have - spent });
-      logMana(actor, spent, have - spent);
+    const notes = [];
+    for (const entry of wanted) {
+      if (entry.spent > 0) {
+        await updateWithRelay(actor, { [entry.path]: entry.have - entry.spent });
+        entry.log?.(actor, entry.spent, entry.have - entry.spent);
+      }
+      const key = entry.spent < entry.cost ? `${entry.note}Partial` : entry.note;
+      notes.push(game.i18n.format(key, { spent: entry.spent, cost: entry.cost }));
     }
-    const key = spent < cost ? 'ManaSpentPartial' : 'ManaSpent';
-    return { note: game.i18n.format(`CARL_RPG.Spell.${key}`, { spent, cost }) };
+    return { note: notes.join(' ') };
   }
 
   /** The roll itself: posts the description and rolls the formula, if any. */

@@ -1,4 +1,5 @@
 import CarlRPGFeature from './item-feature.mjs';
+import { manaCostOf } from './costs.mjs';
 
 /**
  * A spell is a skill (description, rank, advanceable, stat, rolled formula)
@@ -15,13 +16,13 @@ export default class CarlRPGSpell extends CarlRPGFeature {
     const requiredInteger = { required: true, nullable: false, integer: true };
     const schema = super.defineSchema();
 
-    // Mana spent to cast the spell (whole number, never negative).
-    schema.manaCost = new fields.NumberField({
-      ...requiredInteger,
-      initial: 0,
-      min: 0,
-    });
-
+    // (The Mana a spell spends is one of its costs, see data/costs.mjs.)
     return schema;
+  }
+
+  prepareDerivedData() {
+    super.prepareDerivedData();
+    // The Mana its costs add up to (never stored), for the lists and badges.
+    this.manaCost = manaCostOf(this.costs);
   }
 }

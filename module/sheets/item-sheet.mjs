@@ -21,6 +21,7 @@ import { ItemSheetEffects } from './item-sheet-effects.mjs';
 import { ItemSheetEmbeddedSkills } from './item-sheet-skills.mjs';
 import { ItemSheetEvents } from './item-sheet-events.mjs';
 import { ItemSheetTags } from './item-sheet-tags.mjs';
+import { ItemSheetCosts } from './item-sheet-costs.mjs';
 import { ItemSheetUpgrades } from './item-sheet-upgrades.mjs';
 import { ItemSheetStoreQuestLoot } from './item-sheet-store-quest-loot.mjs';
 import { ItemSheetDrops } from './item-sheet-drops.mjs';
@@ -34,6 +35,7 @@ const ItemSheetBase = [
   ItemSheetEmbeddedSkills,
   ItemSheetEvents,
   ItemSheetTags,
+  ItemSheetCosts,
   ItemSheetUpgrades,
   ItemSheetStoreQuestLoot,
   ItemSheetDrops,
@@ -74,6 +76,8 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       newEmbeddedSkill: this._newEmbeddedSkill,
       viewEmbeddedSkill: this._viewEmbeddedSkill,
       removeEmbeddedSkill: this._removeEmbeddedSkill,
+      addCost: this._addCost,
+      removeCost: this._removeCost,
       removeReward: this._removeReward,
       removeListing: this._removeListing,
       openStore: this._openStore,

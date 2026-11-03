@@ -1,0 +1,24 @@
+{{! Costs (skills, spells, gear and items): what is spent each time the item is used. }}
+<div class='resource costs-fields'>
+  <label class='resource-label'>{{localize 'CARL_RPG.Costs.Title'}}</label>
+  {{#each system.costs as |cost index|}}
+    <div class='cost-row'>
+      <select name='system.costs.{{index}}.resource'{{#unless @root.editable}} disabled{{/unless}}>
+        <option value='mana' {{#if (eq cost.resource 'mana')}}selected{{/if}}>{{localize 'CARL_RPG.Costs.Mana'}}</option>
+        <option value='junk' {{#if (eq cost.resource 'junk')}}selected{{/if}}>{{localize 'CARL_RPG.Costs.Junk'}}</option>
+        <option value='uses' {{#if (eq cost.resource 'uses')}}selected{{/if}}>{{localize 'CARL_RPG.Costs.Uses'}}</option>
+      </select>
+      <input type='number' name='system.costs.{{index}}.amount' value='{{cost.amount}}' min='1' step='1' data-dtype='Number'{{#unless @root.editable}} disabled{{/unless}} />
+      {{#if @root.editable}}
+        <a class='item-control' data-action='removeCost' data-index='{{index}}' data-tooltip='{{localize "CARL_RPG.Costs.Remove"}}'><i class='fas fa-trash'></i></a>
+      {{/if}}
+    </div>
+  {{/each}}
+  {{#if effective.manaChanged}}
+    <p class='upgrade-now'><i class='fas fa-arrow-up'></i> {{localize 'CARL_RPG.Upgrades.NowMana' value=effective.manaCost}}</p>
+  {{/if}}
+  {{#if @root.editable}}
+    <a class='item-control' data-action='addCost'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Costs.Add'}}</a>
+  {{/if}}
+  <p class='hint'>{{localize 'CARL_RPG.Costs.Hint'}}</p>
+</div>

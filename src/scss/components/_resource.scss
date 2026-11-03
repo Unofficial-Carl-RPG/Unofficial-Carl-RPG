@@ -119,6 +119,24 @@
   padding: 2px 8px;
 }
 
+// Item sheets: one row per cost.
+.cost-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+
+  select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  input {
+    flex: 0 0 70px;
+    width: 70px;
+  }
+}
+
 // Personal tab: room between its sections.
 .tab.personal > div {
   margin-bottom: 14px;

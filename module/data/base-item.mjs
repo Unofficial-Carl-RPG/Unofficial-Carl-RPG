@@ -1,3 +1,4 @@
+import { costsSchema, migrateCosts } from './costs.mjs';
 /**
  * The events field: a list of events (trigger, conditions, actions). Items hold one,
  * and each upgrade of a skill or spell holds its own (see helpers/upgrades.mjs).
@@ -163,6 +164,9 @@ export default class CarlRPGItemBase extends foundry.abstract
     // Usage limits: how many times the item can be used before it has to recharge
     // (0 = no limit), and how often it recharges. `spent` counts the uses so far.
     // See helpers/uses.mjs.
+    // What using it spends (see data/costs.mjs).
+    schema.costs = costsSchema();
+
     schema.uses = new fields.SchemaField({
       max: new fields.NumberField({
         required: true,
@@ -215,6 +219,7 @@ export default class CarlRPGItemBase extends foundry.abstract
     } else if (!source.check && source.damage?.trim()) {
       source.check = { target: 'evade' };
     }
+    migrateCosts(source);
     return super.migrateData(source);
   }
 }

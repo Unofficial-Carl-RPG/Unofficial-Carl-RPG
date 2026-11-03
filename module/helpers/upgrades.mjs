@@ -1,3 +1,4 @@
+import { manaCostOf } from '../data/costs.mjs';
 /**
  * Skill, spell and pet upgrades.
  *
@@ -124,7 +125,7 @@ export function changeProblem(change) {
  */
 export function computeEffective(system) {
   let damage = String(system.damage ?? '');
-  let manaCost = Number(system.manaCost ?? 0);
+  let manaCost = manaCostOf(system.costs, system.manaCost);
   let rollBonus = 0;
   let target = system.check?.target ?? 'unopposed';
 
@@ -214,7 +215,7 @@ export function effectiveOf(item) {
   return (
     system.effective ?? {
       damage: String(system.damage ?? ''),
-      manaCost: Number(system.manaCost ?? 0),
+      manaCost: manaCostOf(system.costs, system.manaCost),
       rollBonus: 0,
       target: system.check?.target ?? 'unopposed',
       unlocked: [],
