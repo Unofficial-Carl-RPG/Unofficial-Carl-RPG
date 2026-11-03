@@ -10,18 +10,6 @@
     <input type='text' name='system.identifier' value='{{system.identifier}}' />
   </div>
   <div class='resource'>
-    <label class='resource-label' for='system.check.target'>{{localize 'CARL_RPG.Check.Label'}}</label>
-    <select name='system.check.target'>
-      {{selectOptions config.checkTargets selected=system.check.target localize=true}}
-    </select>
-    <p class='hint'>{{localize 'CARL_RPG.Check.Hint'}}</p>
-  </div>
-  <div class='resource'>
-    <label class='resource-label' for='system.damage'>{{localize 'CARL_RPG.Item.base.FIELDS.damage.label'}}</label>
-    <input type='text' name='system.damage' value='{{system.damage}}' placeholder='1d6+@str.mod' />
-    <p class='hint'>{{localize 'CARL_RPG.Attack.DamageHint'}}</p>
-  </div>
-  <div class='resource'>
     <label class='resource-label' for='system.slot'>{{localize 'CARL_RPG.Item.Gear.FIELDS.slot.label'}}</label>
     <select name='system.slot'>
       {{selectOptions config.gearSlots selected=system.slot localize=true}}
