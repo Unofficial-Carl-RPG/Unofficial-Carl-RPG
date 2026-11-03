@@ -253,8 +253,13 @@ function embedNumbers(doc) {
   return rows;
 }
 
-/** A card for an embed: picture, name, key numbers and description. */
-function embedCard(doc, label) {
+/**
+ * A card for an embed: picture, name, key numbers and description. The description is
+ * enriched like any other text, so links, inline rolls and other embeds typed into it
+ * work. `options` are the enrichment options of the text the embed is in: they carry the
+ * embed depth, which stops embeds that point back at each other.
+ */
+async function embedCard(doc, label, options = {}) {
   const card = document.createElement('div');
   card.className = 'carl-embed';
 
@@ -285,7 +290,15 @@ function embedCard(doc, label) {
 
   const body = document.createElement('div');
   body.className = 'carl-embed-body';
-  body.innerHTML = doc.system?.description ?? '';
+  const description = doc.system?.description ?? '';
+  body.innerHTML = description
+    ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(description, {
+        ...options,
+        secrets: doc.isOwner,
+        rollData: doc.getRollData?.() ?? {},
+        relativeTo: doc,
+      })
+    : '';
   card.append(body);
 
   // Every upgrade the item has, reached or not.
@@ -303,7 +316,11 @@ function embedCard(doc, label) {
     }
     card.append(list);
   }
-  card.addEventListener('click', () => openEmbed(doc, label));
+  // Clicks are handled for every card together (see registerJournalEnrichers): a card
+  // inside another card's description opens itself, and it still works after the text
+  // around it has been rebuilt.
+  card.dataset.embedUuid = doc.uuid;
+  if (label) card.dataset.embedLabel = label;
   return card;
 }
 
@@ -311,11 +328,12 @@ function embedCard(doc, label) {
  * Clicking an embed opens the real sheet for a player who can view the document,
  * otherwise a read-only preview of the same card.
  */
-function openEmbed(doc, label) {
+async function openEmbed(doc, label) {
   if (doc.testUserPermission(game.user, 'OBSERVER')) return doc.sheet?.render(true);
+  const card = await embedCard(doc, label);
   return CarlRPGDialog.prompt({
     window: { title: label || doc.name },
-    content: `<div class="carl-embed-preview">${embedCard(doc, label).outerHTML}</div>`,
+    content: `<div class="carl-embed-preview">${card.outerHTML}</div>`,
     ok: { label: loc('Close'), callback: () => true },
   });
 }
@@ -333,7 +351,13 @@ function installEmbedOverride() {
     const doc = await foundry.utils
       .fromUuid(config.uuid, { relative: options.relativeTo })
       .catch(() => null);
-    if (doc && ownsEmbed(doc)) return embedCard(doc, match.groups?.label);
+    if (doc && ownsEmbed(doc)) {
+      // Foundry's limit on embeds inside embeds applies to ours too (it warns and stops).
+      if (options._embedDepth > CONST.TEXT_ENRICH_EMBED_MAX_DEPTH) {
+        return original.call(this, match, options);
+      }
+      return embedCard(doc, match.groups?.label, options);
+    }
     return original.call(this, match, options);
   };
 }
@@ -342,6 +366,14 @@ function installEmbedOverride() {
 
 export function registerJournalEnrichers() {
   installEmbedOverride();
+
+  // Clicking an embed card opens it: the innermost card, when one is inside another.
+  document.addEventListener('click', async (event) => {
+    const card = event.target.closest?.('.carl-embed[data-embed-uuid]');
+    if (!card || event.target.closest('a, button')) return;
+    const doc = await fromUuid(card.dataset.embedUuid).catch(() => null);
+    if (doc) openEmbed(doc, card.dataset.embedLabel);
+  });
 
   CONFIG.TextEditor.enrichers.push(
     { pattern: /@Floor\b/g, enricher: liveEnricher('floor') },
