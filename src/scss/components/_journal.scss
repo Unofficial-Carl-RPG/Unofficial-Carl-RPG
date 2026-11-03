@@ -65,6 +65,58 @@ secret-block > section.secret {
   }
 }
 
+// Secret blocks look like a classified file, wherever a secret appears. Hidden (only the GM
+// sees it): a dashed blood-red frame, a hazard stripe down the eye column and the label
+// "Secret: GM only". Revealed: gold with a solid frame and "Secret: Revealed", so the GM sees
+// at a glance what players can read.
+@mixin secret-look($accent, $label-color, $label) {
+  background: linear-gradient(180deg, rgba($accent, 0.14), rgba($accent, 0.05)), #17110f;
+  border: 2px dashed $accent;
+  border-radius: 4px;
+
+  &::before {
+    content: $label;
+    display: block;
+    margin-bottom: 0.25em;
+    color: $label-color;
+    font-family: var(--dcc-font-display);
+    font-size: 0.85em;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  // The stripe sits behind the eye button and lets clicks through.
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 36px;
+    background: repeating-linear-gradient(135deg, rgba($accent, 0.3) 0 6px, transparent 6px 12px);
+    border-right: 1px dashed $accent;
+    border-radius: 2px 0 0 2px;
+    pointer-events: none;
+  }
+}
+
+secret-block > section.secret {
+  @include secret-look(#a3181d, #e06a6a, 'Secret: GM only');
+  padding-top: 0.4em;
+  padding-right: 0.75em;
+  padding-bottom: 0.5em;
+
+  > button.reveal {
+    z-index: 1;
+  }
+
+  &.revealed {
+    @include secret-look(#c9a54a, #d9b45a, 'Secret: Revealed');
+    border-style: solid;
+  }
+}
+
 // A colour-keyed callout frame: a full border in the accent colour, an inner line, a soft
 // glow, and a fill that fades from a tint of the accent. The label is the display font.
 @mixin callout-frame($accent, $inner, $label-color, $label) {
