@@ -197,15 +197,34 @@ secret-block > section.secret {
     }
   }
 
+  // The System: a green terminal screen with a glowing frame and faint scanlines, like the
+  // System cards in chat but in the terminal's green.
   .carl-system {
+    position: relative;
+    overflow: hidden;
     font-family: monospace;
     color: #7cff9b;
-    background: #0d1a10;
-    border-left-color: #3ddc84;
+    background: radial-gradient(ellipse at 50% 0%, #17361f 0%, #0d1a10 76%);
+    border: 2px solid #3ddc84;
+    border-radius: 4px;
+    box-shadow:
+      0 0 0 1px #000,
+      inset 0 0 20px rgba(61, 220, 132, 0.22),
+      0 0 12px rgba(61, 220, 132, 0.35);
 
     &::before {
       content: 'System';
       color: #3ddc84;
+      text-shadow: 0 0 6px rgba(61, 220, 132, 0.6);
+    }
+
+    // Scanlines over the text; clicks pass through them.
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 3px);
+      pointer-events: none;
     }
   }
 
