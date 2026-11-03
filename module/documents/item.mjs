@@ -139,8 +139,9 @@ export class CarlRPGItem extends Item {
   }
 
   /**
-   * Gear gives its skills while it is equipped: they are granted when it goes on and
-   * taken away when it comes off. Only the user who made the change does the work.
+   * Gear gives its skills when it is added to a crawler (see _onCreate) and keeps
+   * them when it comes off; they are put back if missing when it is equipped. Only
+   * the user who made the change does the work.
    * @override
    */
   _onUpdate(changed, options, userId) {
@@ -153,11 +154,11 @@ export class CarlRPGItem extends Item {
     if (!foundry.utils.hasProperty(changed, 'system.equipped')) return;
     (async () => {
       try {
+        // Skills are given when the gear is added and kept when it comes off, so
+        // equipping only has to put back any that the crawler has since lost.
         if (this.system.equipped) {
           await this.#grantEmbeddedSkills();
           await this.#grantRollingSkill();
-        } else {
-          await this.#revokeEmbeddedSkills();
         }
       } catch (err) {
         console.error('carl-rpg | changing the skills of equipped gear failed', err);
@@ -751,7 +752,7 @@ export class CarlRPGItem extends Item {
   }
 
   /**
-   * Take away the skills this item gave the crawler when it comes off or is deleted.
+   * Take away the skills this item gave the crawler when it is removed from them.
    * A skill stays if the crawler raised it, or if another item still gives it (the
    * owner and the GM are whispered when that happens).
    */
@@ -760,7 +761,7 @@ export class CarlRPGItem extends Item {
     if (!(actor instanceof Actor)) return;
     const givesNow = (id) => {
       const other = actor.items.get(id);
-      return !!other && (other.type !== 'gear' || other.system.equipped);
+      return !!other;
     };
     const remove = [];
     for (const skill of actor.itemTypes.skill) {
@@ -792,8 +793,6 @@ export class CarlRPGItem extends Item {
     const uuids = this.system?.skills ?? [];
     if (!(actor instanceof Actor) || !uuids.length) return;
     if (!['gear', 'item'].includes(this.type)) return;
-    // Gear gives its skills only while it is equipped (see _onUpdate).
-    if (this.type === 'gear' && !this.system.equipped) return;
 
     const toCreate = [];
     for (const uuid of uuids) {
