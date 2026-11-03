@@ -82,6 +82,7 @@ async function buyRowsFor(store) {
       return {
         index,
         name: resolved.name,
+        uuid: resolved.missing ? '' : resolved.key,
         tooltip: plainText(resolved.short),
         img: resolved.img,
         price: resolved.missing ? 0 : listingPrice(listing, resolved.value),
@@ -101,6 +102,7 @@ function sellRowsFor(store, actor) {
     .filter((i) => STACKABLE.includes(i.type))
     .map((i) => ({
       id: i.id,
+      uuid: i.uuid,
       name: i.name,
       img: i.img,
       price: sellPrice(i, store),

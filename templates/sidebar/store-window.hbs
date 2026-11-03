@@ -11,9 +11,9 @@
       <li class='item flexrow store-row' data-index='{{row.index}}'>
         <div class='item-name'>
           <div class='item-image'>
-            <img src='{{row.img}}' data-tooltip='{{row.name}}' width='24' height='24' />
+            <img src='{{row.img}}' data-item-tip='{{row.uuid}}' width='24' height='24' />
           </div>
-          <div data-tooltip='{{row.tooltip}}'>{{row.name}}</div>
+          <div data-item-tip='{{row.uuid}}'>{{row.name}}</div>
         </div>
         <div class='item-prop'>{{row.price}}</div>
         <div class='item-prop'>{{row.stockLabel}}</div>
@@ -35,9 +35,9 @@
         <li class='item flexrow sell-row' data-id='{{row.id}}'>
           <div class='item-name'>
             <div class='item-image'>
-              <img src='{{row.img}}' data-tooltip='{{row.name}}' width='24' height='24' />
+              <img src='{{row.img}}' data-item-tip='{{row.uuid}}' width='24' height='24' />
             </div>
-            <div>{{row.name}}</div>
+            <div data-item-tip='{{row.uuid}}'>{{row.name}}</div>
           </div>
           <div class='item-prop'>{{row.price}}</div>
           <div class='item-controls'>

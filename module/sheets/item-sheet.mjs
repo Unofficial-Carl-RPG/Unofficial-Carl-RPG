@@ -301,6 +301,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
           const resolved = await resolveListing(listing);
           return {
             index,
+            uuid: resolved.missing ? '' : resolved.key,
             name: resolved.name,
             img: resolved.img,
             missing: resolved.missing,

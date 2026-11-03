@@ -7,7 +7,7 @@
     <div class='quest' data-id='{{quest.id}}'>
       <div class='quest-head'>
         <img src='{{quest.img}}' width='24' height='24' />
-        <strong data-tooltip='{{quest.tooltip}}'>{{quest.name}}</strong>
+        <strong data-item-tip='{{@root.actor.uuid}}.Item.{{quest.id}}'>{{quest.name}}</strong>
         {{#if quest.completed}}<em>({{localize 'CARL_RPG.Item.Quest.Completed'}})</em>{{/if}}
       </div>
       {{#if quest.giver}}

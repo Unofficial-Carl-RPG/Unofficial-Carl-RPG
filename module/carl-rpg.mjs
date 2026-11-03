@@ -18,7 +18,6 @@ import { registerLootBoxes } from './helpers/loot.mjs';
 import { registerEvents } from './helpers/events.mjs';
 import { registerDeclarations } from './helpers/declarations.mjs';
 import { registerChatCards } from './helpers/chat-cards.mjs';
-import { describeBadges } from './helpers/item-badges.mjs';
 import { registerSystemAnnouncements } from './helpers/system-announcements.mjs';
 import { registerLevelUp } from './helpers/level-up.mjs';
 import { registerMigration, runMigration } from './helpers/migration.mjs';
@@ -47,6 +46,7 @@ import { CarlRPGActorDirectory } from './helpers/crawler-summary.mjs';
 import { registerGroupChecks } from './helpers/group-check.mjs';
 import { registerChangeLog } from './helpers/change-log.mjs';
 import { registerQuickBar } from './helpers/quick-bar.mjs';
+import { registerItemTooltip } from './helpers/item-tooltip.mjs';
 import CarlRPGSystemMessagePage from './data/page-system-message.mjs';
 import CarlRPGSystemMessageSheet from './sheets/system-message-sheet.mjs';
 import * as models from './data/_module.mjs';
@@ -133,6 +133,7 @@ Hooks.once('init', function () {
   registerChangeLog();
   // The quick bar for the selected crawler, and keys 1 to 9 to use its first items.
   registerQuickBar();
+  registerItemTooltip();
 
   // Character creation defaults: stored as a setting, edited in a dialog opened
   // from a button in the system settings.
@@ -295,19 +296,6 @@ Hooks.once('init', function () {
 
 Handlebars.registerHelper('toLowerCase', function (str) {
   return str.toLowerCase();
-});
-
-// An item's hover text: its Short Description as plain text (the full description
-// if there is no short one), or its name when neither has any words.
-Handlebars.registerHelper('itemTip', function (item) {
-  const short = (item?.system?.shortDescription ?? '').trim();
-  const html = short || item?.system?.description || '';
-  // DOMParser keeps any markup inert while its text is read.
-  const text = new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
-  const plain = text.replace(/\s+/g, ' ').trim();
-  const body = plain.length > 240 ? `${plain.slice(0, 237)}...` : plain;
-  // The badges (stat, type, damage, ...) come first, then the text.
-  return [describeBadges(item).join(' · '), body || item?.name || ''].filter(Boolean).join('. ');
 });
 
 /*  Actors directory: Create Crawler            */

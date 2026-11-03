@@ -15,6 +15,7 @@ export const ActorSheetQuestsAndLoot = (Base) => class ActorSheetQuestsAndLoot e
         return {
           index,
           chance: entry.chance,
+          uuid: doc ? entry.uuid : '',
           name: doc?.name ?? entry.uuid,
           img: doc?.img ?? 'icons/svg/mystery-man.svg',
           missing: !doc,
