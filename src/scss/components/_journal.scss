@@ -51,6 +51,20 @@ section.secret.revealed > button.reveal::before {
   content: '\f06e'; // eye
 }
 
+// The eye sits in a column of its own to the left of all of the secret's text.
+secret-block > section.secret {
+  position: relative;
+  min-height: 32px;
+  padding-left: 42px;
+
+  > button.reveal {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    margin: 0;
+  }
+}
+
 // What the text on a page looks like: headings, links, tables, callouts, embeds, buttons.
 @mixin journal-content {
   color: #ead9b4;
