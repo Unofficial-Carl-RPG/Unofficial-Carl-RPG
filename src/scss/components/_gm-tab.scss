@@ -309,6 +309,7 @@
 
   .creation-buttons {
     display: flex;
+    flex-wrap: wrap;
     justify-content: flex-end;
     gap: 8px;
     margin-top: 10px;
@@ -328,7 +329,9 @@
 
     li {
       flex: 1;
+      min-width: 0;
       padding: 2px 4px;
+      overflow-wrap: anywhere;
       border-bottom: 2px solid var(--dcc-border);
       font-size: 0.8em;
       text-align: center;
