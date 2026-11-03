@@ -1578,7 +1578,7 @@
       "Ask": "{name}: {what}?",
       "AskYes": "Do it",
       "AskNo": "Skip it",
-      "FromTemplate": "Start from:",
+      "FromTemplate": "Templates:",
       "Approve": "Approve",
       "Triggers": {
         "used": "the item is used",
