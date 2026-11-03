@@ -37,13 +37,19 @@ export function quickBarItems(actor) {
 /** The key label for a slot: 1 to 9, then 0 for the tenth; none after that. */
 const keyLabel = (index) => (index < 9 ? String(index + 1) : index === 9 ? '0' : '');
 
-/** The tooltip: the Short Description as plain text, or the name if there is none. */
-function tooltipOf(item) {
-  const html = item.system.shortDescription ?? '';
-  const text = (new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  return text || item.name;
+/**
+ * The tooltip's HTML: the Short Description, or the full Description when there is no
+ * short one, with its enrichers (links, inline rolls) applied. The name if both are empty.
+ */
+async function tooltipOf(item) {
+  const short = (item.system.shortDescription ?? '').trim();
+  const raw = short || (item.system.description ?? '').trim();
+  if (!raw) return foundry.utils.escapeHTML(item.name);
+  return foundry.applications.ux.TextEditor.implementation.enrichHTML(raw, {
+    secrets: item.isOwner,
+    rollData: item.getRollData(),
+    relativeTo: item,
+  });
 }
 
 /** Use an item from the bar; a click passes its event, so Shift skips the pop-up. */
@@ -63,7 +69,12 @@ function slotButton(item, index) {
     button.append(key);
     return button;
   }
-  button.title = tooltipOf(item);
+  // A formatted tooltip, filled in once its enrichers are ready.
+  button.dataset.tooltipClass = 'carl-quick-tooltip';
+  button.dataset.tooltipDirection = 'UP';
+  tooltipOf(item).then((html) => {
+    button.dataset.tooltipHtml = html;
+  });
   button.addEventListener('click', (event) => useItem(item, event));
 
   const name = document.createElement('span');

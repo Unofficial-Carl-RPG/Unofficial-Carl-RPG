@@ -86,3 +86,18 @@ body.carl-quick-bar-active #hotbar {
     }
   }
 }
+
+
+// The tooltip of a quick bar slot: its description, formatted.
+#tooltip.carl-quick-tooltip {
+  max-width: 340px;
+  text-align: left;
+
+  p {
+    margin: 0 0 0.4em;
+  }
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+}
