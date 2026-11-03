@@ -624,9 +624,6 @@
       "Gear": {
         "FIELDS": {
           "rollFormula": {"label": "Roll Formula"},
-          "numDice": {"label": "Number of Dice"},
-          "dieSize": {"label": "Die Size"},
-          "rollMod": {"label": "Roll Modifier"},
           "quantity": {"label": "Quantity"},
           "slot": {"label": "Slot"},
           "dr": {"label": "Damage Resistance"},
@@ -1291,6 +1288,18 @@
       "Healed": "Healed {health} health box(es).",
       "ManaBack": "Recovered {mana} mana.",
       "Ended": "Ended:"
+    },
+    "Action": {
+      "Label": "Action",
+      "None": "None",
+      "Stat": "Stat check",
+      "Skill": "Skill check",
+      "Custom": "Custom formula",
+      "StatLabel": "Stat",
+      "SkillHint": "Rolls the skill marked Rolls with on the Skills tab",
+      "Modifier": "Roll Modifier",
+      "ModifierHint": "Optional: a formula added to the roll, like 2 or 1d4",
+      "Formula": "Roll Formula"
     },
     "Check": {
       "NumberLabel": "Attack number",

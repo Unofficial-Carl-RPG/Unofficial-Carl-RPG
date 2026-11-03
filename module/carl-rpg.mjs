@@ -85,6 +85,7 @@ Hooks.once('init', function () {
   foundry.applications.handlebars.loadTemplates([
     'systems/carl-rpg/templates/item/event-cards.hbs',
     'systems/carl-rpg/templates/item/uses-fields.hbs',
+    'systems/carl-rpg/templates/item/action-fields.hbs',
     'systems/carl-rpg/templates/item/targeting.hbs',
     'systems/carl-rpg/templates/sidebar/party-management.hbs',
   ]);

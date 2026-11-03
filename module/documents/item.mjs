@@ -2,6 +2,7 @@ import { CarlRPGDialog } from '../helpers/dialog.mjs';
 import { CarlRPGActiveEffect } from './active-effect.mjs';
 import { checkRequirements, runEvents } from '../helpers/events.mjs';
 import { grantLoot } from '../helpers/loot.mjs';
+import { addModifier } from '../data/action.mjs';
 import { resolveCheck } from '../helpers/attacks.mjs';
 import { describeUpgrades, effectiveOf } from '../helpers/upgrades.mjs';
 import { shortTextOf } from '../helpers/item-badges.mjs';
@@ -626,13 +627,18 @@ export class CarlRPGItem extends Item {
     }
   }
 
+  /** Whether this gear or item has a Skill check as its action. */
+  get usesSkillAction() {
+    return ['gear', 'item'].includes(this.type) && this.system.action?.type === 'skill';
+  }
+
   /**
-   * The crawler's copy of the skill this weapon rolls with: the one marked
+   * The crawler's copy of the skill a skill check rolls with: the one marked
    * "Rolls with", or the first skill when none is marked.
    * @returns {Promise<Item|null>}
    */
   async rollingSkill() {
-    if (this.type !== 'gear' || !(this.parent instanceof Actor)) return null;
+    if (!this.usesSkillAction || !(this.parent instanceof Actor)) return null;
     const uuids = this.system.skills ?? [];
     if (!uuids.length) return null;
     const keyOf = (skill) => skill.system.identifier?.trim() || skill.name;
@@ -650,6 +656,7 @@ export class CarlRPGItem extends Item {
 
   /** Whether this weapon has a skill it rolls with that the crawler no longer has. */
   async #rollingSkillMissing() {
+    if (!this.usesSkillAction) return false;
     if (!this.system.rollSkill || !(this.system.skills ?? []).length) return false;
     return !(await this.rollingSkill());
   }
@@ -659,7 +666,8 @@ export class CarlRPGItem extends Item {
     const actor = this.parent;
     if (!(actor instanceof Actor)) return;
     const key = this.system.identifier?.trim() || this.name;
-    for (const gear of actor.itemTypes.gear) {
+    for (const gear of [...actor.itemTypes.gear, ...actor.itemTypes.item]) {
+      if (!gear.usesSkillAction) continue;
       const marked = gear.system.rollSkill;
       if (!marked) continue;
       let hit = marked === this.uuid;
@@ -688,12 +696,13 @@ export class CarlRPGItem extends Item {
     if (!skill) return null;
     const sys = this.system;
     const saved = { formula: sys.formula, damage: sys.damage };
-    const { diceNum, diceSize } = sys.roll;
     const bonus = skill.system.effective?.rollBonus ?? 0;
     const rank = skill.system.rank ?? 0;
-    sys.formula =
-      `${diceNum}${diceSize} + @${skill.system.stat}.mod + ${rank}` +
-      (bonus ? ` ${bonus > 0 ? '+' : '-'} ${Math.abs(bonus)}` : '');
+    sys.formula = addModifier(
+      `1d20 + @${skill.system.stat}.mod + ${rank}` +
+        (bonus ? ` ${bonus > 0 ? '+' : '-'} ${Math.abs(bonus)}` : ''),
+      sys.action?.modifier
+    );
     const skillDamage = (skill.system.effective?.damage ?? '').trim();
     sys.damage = [String(saved.damage ?? '').trim(), skillDamage].filter(Boolean).join(' + ');
     return {
@@ -710,7 +719,7 @@ export class CarlRPGItem extends Item {
    * and the GM is whispered about it.
    */
   async #grantRollingSkill() {
-    if (this.type !== 'gear' || !(this.parent instanceof Actor)) return;
+    if (!this.usesSkillAction || !(this.parent instanceof Actor)) return;
     if (await this.rollingSkill()) return;
     const uuids = this.system.skills ?? [];
     if (!uuids.length) return;
@@ -876,8 +885,9 @@ export class CarlRPGItem extends Item {
       this.system.formula &&
       this.actor?.type !== 'mob'
     ) {
-      const stat =
-        this.system.stat && this.system.formula.includes(`@${this.system.stat}.mod`)
+      const stat = this.usesSkillAction
+        ? ((await this.rollingSkill())?.system.stat ?? 'str')
+        : this.system.stat && this.system.formula.includes(`@${this.system.stat}.mod`)
           ? this.system.stat
           : statOfFormula(this.system.formula);
       const chosen = await promptRoll({ title: this.name, stat, tip: shortTextOf(this) });

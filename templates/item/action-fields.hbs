@@ -1,0 +1,27 @@
+{{! Action (gear and items): what using the item rolls. Other fields show for the chosen action. }}
+<div class='resource action-fields'>
+  <label class='resource-label' for='system.action.type'>{{localize 'CARL_RPG.Action.Label'}}</label>
+  <select name='system.action.type'>
+    <option value='none' {{#if (eq system.action.type 'none')}}selected{{/if}}>{{localize 'CARL_RPG.Action.None'}}</option>
+    <option value='stat' {{#if (eq system.action.type 'stat')}}selected{{/if}}>{{localize 'CARL_RPG.Action.Stat'}}</option>
+    <option value='skill' {{#if (eq system.action.type 'skill')}}selected{{/if}}>{{localize 'CARL_RPG.Action.Skill'}}</option>
+    <option value='custom' {{#if (eq system.action.type 'custom')}}selected{{/if}}>{{localize 'CARL_RPG.Action.Custom'}}</option>
+  </select>
+  {{#if (eq system.action.type 'stat')}}
+    <label class='resource-label' for='system.action.stat'>{{localize 'CARL_RPG.Action.StatLabel'}}</label>
+    <select name='system.action.stat'>
+      {{selectOptions config.abilities selected=system.action.stat localize=true}}
+    </select>
+  {{/if}}
+  {{#if (eq system.action.type 'skill')}}
+    <p class='hint'>{{localize 'CARL_RPG.Action.SkillHint'}}</p>
+  {{/if}}
+  {{#if (eq system.action.type 'custom')}}
+    <label class='resource-label' for='system.action.formula'>{{localize 'CARL_RPG.Action.Formula'}}</label>
+    <input type='text' name='system.action.formula' value='{{system.action.formula}}' placeholder='1d20+@str.mod' />
+  {{/if}}
+  {{#unless (eq system.action.type 'none')}}{{#unless (eq system.action.type 'custom')}}
+    <label class='resource-label' for='system.action.modifier'>{{localize 'CARL_RPG.Action.Modifier'}}</label>
+    <input type='text' name='system.action.modifier' value='{{system.action.modifier}}' placeholder='{{localize "CARL_RPG.Action.ModifierHint"}}' />
+  {{/unless}}{{/unless}}
+</div>

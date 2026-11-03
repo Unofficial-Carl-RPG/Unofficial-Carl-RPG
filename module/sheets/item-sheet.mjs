@@ -616,7 +616,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
             statLabel: showStat ? skillStatLabel(skill) : '',
             stat: skillStatLabel(skill),
             rollsWith:
-              this.item.type === 'gear' &&
+              this.item.system.action?.type === 'skill' &&
               uuid ===
                 ((this.item.system.skills ?? []).includes(this.item.system.rollSkill)
                   ? this.item.system.rollSkill

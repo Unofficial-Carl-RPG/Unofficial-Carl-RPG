@@ -1,4 +1,5 @@
 import CarlRPGItemBase from './base-item.mjs';
+import { actionFormula, actionSchema, migrateAction } from './action.mjs';
 
 export default class CarlRPGGear extends CarlRPGItemBase {
   static LOCALIZATION_PREFIXES = [
@@ -50,26 +51,21 @@ export default class CarlRPGGear extends CarlRPGItemBase {
       min: 1,
     });
 
-    schema.roll = new fields.SchemaField({
-      diceNum: new fields.NumberField({
-        ...requiredInteger,
-        initial: 1,
-        min: 1,
-      }),
-      diceSize: new fields.StringField({ initial: 'd20' }),
-      diceBonus: new fields.StringField({
-        initial: '+@str.mod+ceil(@lvl / 2)',
-      }),
-    });
+    // What using it does, roll-wise (see data/action.mjs).
+    schema.action = actionSchema();
 
     schema.formula = new fields.StringField({ blank: true });
 
     return schema;
   }
 
-  prepareDerivedData() {
-    const roll = this.roll;
+  /** @inheritdoc */
+  static migrateData(source) {
+    super.migrateData(source);
+    return migrateAction(source, 'gear');
+  }
 
-    this.formula = `${roll.diceNum}${roll.diceSize}${roll.diceBonus}`;
+  prepareDerivedData() {
+    this.formula = actionFormula(this.action);
   }
 }

@@ -816,7 +816,7 @@ export class CarlRPGActorSheet extends ActorSheetBase {
     const out = {};
     const skills = [...this.actor.itemTypes.skill].sort((a, b) => a.name.localeCompare(b.name));
     for (const gear of this.actor.itemTypes.gear) {
-      if (!(gear.system.skills ?? []).length) continue;
+      if (!gear.usesSkillAction || !(gear.system.skills ?? []).length) continue;
       const rolling = await gear.rollingSkill();
       out[gear.id] = skills.map((s) => ({ uuid: s.uuid, name: s.name, selected: s.id === rolling?.id }));
     }

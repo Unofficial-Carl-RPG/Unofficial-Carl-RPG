@@ -1,7 +1,8 @@
 import CarlRPGItemBase from './base-item.mjs';
+import { actionFormula, actionSchema, migrateAction } from './action.mjs';
 
 /**
- * A plain inventory item (the "Item" type): a description and a quantity.
+ * A plain inventory item (the "Item" type): a description, a quantity and an action.
  */
 export default class CarlRPGGenericItem extends CarlRPGItemBase {
   static LOCALIZATION_PREFIXES = [
@@ -26,6 +27,23 @@ export default class CarlRPGGenericItem extends CarlRPGItemBase {
       new fields.StringField({ required: true, blank: false })
     );
 
+    // The skill (one of the skills above) a skill check rolls with. Blank means the first.
+    schema.rollSkill = new fields.StringField({ blank: true, initial: '' });
+
+    // What using it does, roll-wise (see data/action.mjs).
+    schema.action = actionSchema();
+    schema.formula = new fields.StringField({ blank: true });
+
     return schema;
+  }
+
+  /** @inheritdoc */
+  static migrateData(source) {
+    super.migrateData(source);
+    return migrateAction(source, 'item');
+  }
+
+  prepareDerivedData() {
+    this.formula = actionFormula(this.action);
   }
 }
