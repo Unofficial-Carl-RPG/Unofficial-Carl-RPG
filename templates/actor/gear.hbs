@@ -6,7 +6,6 @@
       <div class='item-prop item-equipped'>{{localize 'CARL_RPG.Item.Gear.FIELDS.equipped.label'}}</div>
       <div class='item-prop'>{{localize 'CARL_RPG.Item.Gear.FIELDS.slot.label'}}</div>
       <div class='item-prop'>{{localize 'CARL_RPG.Item.Gear.DRShort'}}</div>
-      <div class='item-formula'>{{localize 'CARL_RPG.Item.Gear.FIELDS.rollFormula.label'}}</div>
       <div class='item-controls'>
         {{#if @root.editable}}
           <a
@@ -57,7 +56,6 @@
         </div>
         <div class='item-prop'>{{localize (lookup @root.config.gearSlots item.system.slot)}}</div>
         <div class='item-prop'>{{item.system.dr}}</div>
-        <div class='item-formula item-prop'>{{item.system.formula}}</div>
         <div class='item-controls'>
           <a
             class='item-control item-edit'
