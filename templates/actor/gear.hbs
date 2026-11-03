@@ -5,7 +5,8 @@
       <div class='item-name'>{{localize 'Name'}}</div>
       <div class='item-prop item-equipped'>{{localize 'CARL_RPG.Item.Gear.FIELDS.equipped.label'}}</div>
       <div class='item-prop'>{{localize 'CARL_RPG.Item.Gear.FIELDS.slot.label'}}</div>
-      <div class='item-prop'>{{localize 'CARL_RPG.Item.Gear.DRShort'}}</div>
+      <div class='item-prop item-dr'>{{localize 'CARL_RPG.Item.Gear.DRShort'}}</div>
+      <div class='item-prop item-skill'>{{localize 'TYPES.Item.skill'}}</div>
       <div class='item-controls'>
         {{#if @root.editable}}
           <a
@@ -38,11 +39,6 @@
               />
             </a>
           </div>
-          {{#with (lookup @root.rollChoices item._id) as |choices|}}{{#if choices}}
-            <select class='roll-skill' data-item-id='{{item._id}}' data-tooltip='{{localize "CARL_RPG.Weapon.RollsWithHint"}}'{{#unless @root.editable}} disabled{{/unless}}>
-              {{#each choices as |c|}}<option value='{{c.uuid}}'{{#if c.selected}} selected{{/if}}>{{c.name}}</option>{{/each}}
-            </select>
-          {{/if}}{{/with}}
           <div>{{item.name}}{{#if item.usesPips.length}} <span class='uses-pips' data-tooltip='{{localize "CARL_RPG.Uses.Tooltip"}}'>{{#each item.usesPips}}<i class='fas fa-circle uses-pip {{#unless this}}spent{{/unless}}'></i>{{/each}}</span>{{/if}}</div>
         </div>
         <div class='item-prop item-equipped'>
@@ -55,7 +51,14 @@
           </a>
         </div>
         <div class='item-prop'>{{localize (lookup @root.config.gearSlots item.system.slot)}}</div>
-        <div class='item-prop'>{{item.system.dr}}</div>
+        <div class='item-prop item-dr'>{{item.system.dr}}</div>
+        <div class='item-prop item-skill'>
+          {{#with (lookup @root.rollChoices item._id) as |choices|}}{{#if choices}}
+            <select class='roll-skill' data-item-id='{{item._id}}' data-tooltip='{{localize "CARL_RPG.Weapon.RollsWithHint"}}'{{#unless @root.editable}} disabled{{/unless}}>
+              {{#each choices as |c|}}<option value='{{c.uuid}}'{{#if c.selected}} selected{{/if}}>{{c.name}}</option>{{/each}}
+            </select>
+          {{/if}}{{/with}}
+        </div>
         <div class='item-controls'>
           <a
             class='item-control item-edit'

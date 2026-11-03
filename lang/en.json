@@ -646,7 +646,7 @@
           "head": "Head",
           "torso": "Torso",
           "arms": "Arms",
-          "hands": "Hands/Holding",
+          "hands": "Held",
           "legs": "Legs",
           "feet": "Feet",
           "accessory": "Accessory"
