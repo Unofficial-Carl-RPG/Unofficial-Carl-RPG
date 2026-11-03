@@ -93,7 +93,9 @@ function render() {
   // While the quick bar shows, Foundry's hotbar (the macros bar) is hidden.
   document.body.classList.toggle('carl-quick-bar-active', !!actor);
   if (!actor) return;
-  bar.replaceChildren(...quickBarItems(actor).map((item, index) => slotButton(item, index)));
+  const slots = quickBarItems(actor);
+  bar.style.setProperty('--slots', String(slots.length));
+  bar.replaceChildren(...slots.map((item, index) => slotButton(item, index)));
 }
 
 export function registerQuickBar() {

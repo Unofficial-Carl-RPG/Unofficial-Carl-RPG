@@ -10,11 +10,12 @@ body.carl-quick-bar-active #hotbar {
   left: 50%;
   transform: translateX(-50%);
   z-index: 60;
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: center;
+  // Every slot is the same size, filled or empty: the columns split the bar evenly,
+  // and the bar is as wide as its slots at their full size (or the window).
+  display: grid;
+  grid-template-columns: repeat(var(--slots, 10), minmax(0, 1fr));
   box-sizing: border-box;
-  max-width: calc(100vw - 24px);
+  width: min(calc(100vw - 24px), calc(var(--slots, 10) * 102px + 10px));
   gap: 6px;
   padding: 6px 8px;
   background: #1f1a12;
@@ -30,15 +31,13 @@ body.carl-quick-bar-active #hotbar {
     flex-direction: column;
     align-items: center;
     box-sizing: border-box;
-    flex: 1 1 96px;
     min-width: 0;
-    max-width: 96px;
-    min-height: 54px;
+    height: 62px;
     overflow: hidden;
     margin: 0;
     padding: 3px 6px;
-    line-height: 1.2;
     font: inherit;
+    line-height: 1.2;
     color: #ead9b4;
     background: rgba(0, 0, 0, 0.25);
     border: 1px solid #6b5423;
