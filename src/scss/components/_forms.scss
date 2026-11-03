@@ -3,7 +3,8 @@
 }
 
 .sheet-header {
-  flex: 0 auto;
+  // Never shrinks, so a tall tab can't squash it.
+  flex: 0 0 auto;
   overflow: hidden;
   display: flex;
   flex-direction: row;
