@@ -106,6 +106,19 @@ test('the card has a row per crawler and the party totals', async () => {
   assert.match(page.text.content, /<strong>Ann<\/strong>: l/);
 });
 
+test('natural 20s and 1s are counted from the lines on the page, even with nothing else counted', async () => {
+  await recordRecap({ kind: 'roll', actor: crawler('a', 'Ann'), line: 'Sword, Unarmed Combat (natural 20)' });
+  await recordRecap({ kind: 'roll', actor: crawler('a', 'Ann'), line: 'Fireball (natural 20)' });
+  await recordRecap({ kind: 'roll', actor: crawler('a', 'Ann'), line: 'Fireball (natural 1)' });
+  await recordRecap({ kind: 'roll', actor: crawler('b', 'Bob & Co'), line: 'Dodge (natural 1)' });
+  await postRecap();
+  assert.equal(notes.length, 0);
+  const card = chat[0];
+  assert.match(card, /<th scope="row">Ann<\/th><td>0<\/td><td>0<\/td><td>0<\/td><td>0<\/td><td>2<\/td><td>1<\/td>/);
+  assert.match(card, /<th scope="row">Bob &amp; Co<\/th><td>0<\/td><td>0<\/td><td>0<\/td><td>0<\/td><td>0<\/td><td>1<\/td>/);
+  assert.match(card, /<th scope="row">Party<\/th>(<td>0<\/td>){4}<td>2<\/td><td>2<\/td>/);
+});
+
 test('with nothing counted yet the GM is told instead of a card being posted', async () => {
   await postRecap();
   assert.equal(chat.length, 0);

@@ -725,6 +725,8 @@
       "Kills": "Crawler kills",
       "Achievements": "Achievements",
       "Boxes": "Loot boxes opened",
+      "Nat20s": "Natural 20s",
+      "Nat1s": "Natural 1s",
       "Elites": "Elites defeated: {count}",
       "Nothing": "Nothing to recap on floor {floor} yet.",
       "LineStar": "earned a boss star",

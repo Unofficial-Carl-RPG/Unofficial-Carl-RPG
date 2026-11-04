@@ -186,6 +186,42 @@ async function floorPage(journal, floor) {
   return page;
 }
 
+/** Undo escapeHTML, for the names written into the page's lines. */
+const unescapeHTML = (text) =>
+  String(text)
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;|&#39;/g, "'")
+    .replace(/&amp;/g, '&');
+
+/**
+ * How many natural 20s and 1s each crawler rolled on a floor's page, counted from the
+ * lines in the page itself (so lines written before they were counted, and lines the GM
+ * has edited, are included).
+ * @param {JournalEntryPage|undefined} page
+ * @returns {Object<string, {nat20s: number, nat1s: number}>}  by crawler name
+ */
+function naturalCounts(page) {
+  const found = {};
+  const content = page?.text?.content;
+  if (!content) return found;
+  const labels = [
+    [t('CARL_RPG.Combat.RecapNatural20'), 'nat20s'],
+    [t('CARL_RPG.Combat.RecapNatural1'), 'nat1s'],
+  ];
+  // Each line is `<p><strong>name</strong>: what (label)</p>` (see writeRecap).
+  for (const [, who, rest] of content.matchAll(/<p><strong>(.*?)<\/strong>: (.*?)<\/p>/gs)) {
+    const text = rest.replace(/<[^>]*>/g, '').trim();
+    const name = unescapeHTML(who).trim();
+    for (const [label, key] of labels) {
+      if (!text.endsWith(`(${label})`)) continue;
+      (found[name] ??= { nat20s: 0, nat1s: 0 })[key] += 1;
+    }
+  }
+  return found;
+}
+
 /**
  * The GM posts the current floor's recap to chat: a row for each crawler (boss stars,
  * crawler kills, achievements, loot boxes opened) and the party's totals, with the
@@ -197,7 +233,14 @@ export async function postRecap() {
   const journalId = game.settings.get(NS, RECAP_SETTING);
   const page = game.journal.get(journalId)?.pages.find((p) => p.name === pageTitle(floor));
   const counts = page?.getFlag(NS, 'recap');
-  const rows = Object.values(counts?.crawlers ?? {}).sort((a, b) => a.name.localeCompare(b.name));
+  // A row for each crawler with something counted, plus their natural 20s and 1s.
+  const natural = naturalCounts(page);
+  const byName = new Map(Object.values(counts?.crawlers ?? {}).map((row) => [row.name, { ...row }]));
+  for (const name of Object.keys(natural)) {
+    if (!byName.has(name)) byName.set(name, { name, stars: 0, kills: 0, achievements: 0, boxes: 0 });
+  }
+  for (const row of byName.values()) Object.assign(row, natural[row.name] ?? { nat20s: 0, nat1s: 0 });
+  const rows = [...byName.values()].sort((a, b) => a.name.localeCompare(b.name));
   if (!rows.length && !counts?.elites) {
     ui.notifications.info(t('CARL_RPG.Recap.Nothing', { floor }));
     return;
@@ -208,6 +251,8 @@ export async function postRecap() {
     ['kills', 'fa-skull', 'CARL_RPG.Recap.Kills'],
     ['achievements', 'fa-trophy', 'CARL_RPG.Recap.Achievements'],
     ['boxes', 'fa-box-open', 'CARL_RPG.Recap.Boxes'],
+    ['nat20s', 'fa-dice-d20', 'CARL_RPG.Recap.Nat20s'],
+    ['nat1s', 'fa-dice-one', 'CARL_RPG.Recap.Nat1s'],
   ];
   const head = columns
     .map(([, icon, label]) => `<th data-tooltip="${esc(t(label))}"><i class="fas ${icon}"></i></th>`)
