@@ -73,6 +73,14 @@ function slotButton(item, index) {
   if (isLimited(item)) detail.push(t('CARL_RPG.QuickBar.UsesLeft', { n: usesLeft(item) }));
   const info = document.createElement('small');
   info.textContent = detail.join(' · ');
+  // A weapon shows the rank of the skill it rolls with, as soon as that skill is found.
+  if (['gear', 'item'].includes(item.type) && item.usesSkillAction) {
+    item.rollingSkill().then((skill) => {
+      if (!skill) return;
+      detail.unshift(`${t('CARL_RPG.QuickBar.Rank')} ${skill.system.rank ?? 0}`);
+      info.textContent = detail.join(' · ');
+    });
+  }
 
   button.append(key, name, info);
   return button;
