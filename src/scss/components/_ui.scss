@@ -22,14 +22,14 @@ body.carl-ui .themed {
 
   --sidebar-background: rgba(20, 17, 15, 0.96);
   --sidebar-separator: 1px solid var(--dcc-border);
-  --sidebar-entry-hover-bg: rgba(163, 24, 29, 0.22);
+  --sidebar-entry-hover-bg: rgba(106, 64, 184, 0.22);
   --sidebar-folder-color: #2a1d17;
 
   --table-background-color: rgba(20, 17, 15, 0.6);
   --table-header-bg-color: var(--dcc-panel-2);
   --table-header-border-color: var(--dcc-border);
   --table-row-color-even: rgba(255, 255, 255, 0.04);
-  --table-row-color-highlight: rgba(163, 24, 29, 0.3);
+  --table-row-color-highlight: rgba(106, 64, 184, 0.3);
 
   --content-link-background: var(--dcc-panel);
   --content-link-border-color: var(--dcc-gold-dim);
@@ -41,7 +41,7 @@ body.carl-ui .themed {
   --color-level-info-bg: rgba(18, 28, 42, 0.94);
   --color-level-warning: var(--dcc-gold);
   --color-level-warning-bg: rgba(44, 33, 10, 0.94);
-  --color-level-error: var(--dcc-blood-bright);
+  --color-level-error: var(--dcc-danger-bright);
   --color-level-error-bg: rgba(44, 11, 13, 0.94);
   --color-level-success: #6fa05a;
   --color-level-success-bg: rgba(17, 32, 15, 0.94);
@@ -119,13 +119,13 @@ body.carl-ui #measurement .waypoint-label {
   --control-hover-bg-color: var(--dcc-panel-2);
   --control-hover-border-color: var(--dcc-gold-dim);
   --control-hover-icon-color: var(--dcc-gold);
-  --control-active-bg-color: #2a1213;
+  --control-active-bg-color: #1d1233;
   --control-active-border-color: var(--dcc-blood-bright);
   --control-active-icon-color: var(--dcc-gold);
   --control-button-border-color: var(--dcc-gold-dim);
   --control-button-hover-bg-color: var(--dcc-blood);
   --control-button-hover-border-color: var(--dcc-gold);
-  --toggle-bg-color: rgba(60, 14, 16, 0.85);
+  --toggle-bg-color: rgba(34, 18, 70, 0.85);
   --toggle-border-color: var(--dcc-blood);
   --toggle-active-bg-color: var(--dcc-blood);
   --toggle-active-border-color: var(--dcc-blood-bright);
@@ -161,8 +161,8 @@ body.carl-ui #context-menu {
 
 body.carl-ui .combat-tracker {
   --active-input-bg-color: var(--dcc-bg);
-  --entry-hover-bg: rgba(163, 24, 29, 0.22);
-  --entry-active-bg: rgba(163, 24, 29, 0.35);
+  --entry-hover-bg: rgba(106, 64, 184, 0.22);
+  --entry-active-bg: rgba(106, 64, 184, 0.35);
 }
 
 // ---- frames and accents ------------------------------------------------------
@@ -188,7 +188,7 @@ body.carl-ui .application:not(.carl-rpg) {
 // The sidebar: a red edge down its side, folders as red-edged bars, hovered rows lit.
 body.carl-ui #sidebar .sidebar-tab:not(.sidebar-popout) {
   border-left: 2px solid var(--dcc-blood);
-  box-shadow: inset 8px 0 16px -12px rgba(163, 24, 29, 0.7);
+  box-shadow: inset 8px 0 16px -12px rgba(106, 64, 184, 0.7);
 }
 
 body.carl-ui .directory {
@@ -251,20 +251,20 @@ body.carl-ui #pause {
   background: linear-gradient(
     to right,
     transparent 0%,
-    rgba(40, 6, 8, 0.78) 40%,
-    rgba(40, 6, 8, 0.78) 60%,
+    rgba(24, 10, 48, 0.78) 40%,
+    rgba(24, 10, 48, 0.78) 60%,
     transparent 100%
   );
 
   img {
-    filter: drop-shadow(0 0 8px rgba(163, 24, 29, 0.9));
+    filter: drop-shadow(0 0 8px rgba(106, 64, 184, 0.9));
   }
 
   figcaption {
     color: var(--dcc-gold);
     font-family: var(--dcc-font-display);
     letter-spacing: 0.35em;
-    text-shadow: 0 0 12px rgba(163, 24, 29, 0.9), 0 2px 0 #000;
+    text-shadow: 0 0 12px rgba(106, 64, 184, 0.9), 0 2px 0 #000;
   }
 }
 

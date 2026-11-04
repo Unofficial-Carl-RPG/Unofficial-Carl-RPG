@@ -330,7 +330,7 @@
   overflow: hidden;
   margin: 2px 0;
   padding: 0 0 12px;
-  border: 2px solid var(--dcc-blood-bright);
+  border: 2px solid var(--dcc-danger-bright);
   border-radius: 4px;
   background: radial-gradient(ellipse at 50% 0%, #5c0d12 0%, #1a0b0b 78%);
   box-shadow:
@@ -346,7 +346,7 @@
   .boss-banner {
     margin-bottom: 10px;
     padding: 4px 0;
-    background: linear-gradient(90deg, transparent, var(--dcc-blood) 18%, var(--dcc-blood-bright) 50%, var(--dcc-blood) 82%, transparent);
+    background: linear-gradient(90deg, transparent, var(--dcc-danger) 18%, var(--dcc-danger-bright) 50%, var(--dcc-danger) 82%, transparent);
     color: #fff;
     font-size: 0.8em;
     font-weight: 800;
@@ -374,7 +374,7 @@
     align-items: center;
     gap: 10px;
     margin: 6px 16px;
-    color: var(--dcc-blood-bright);
+    color: var(--dcc-danger-bright);
     font-size: 0.95em;
     font-weight: 800;
     letter-spacing: 0.35em;
@@ -385,7 +385,7 @@
       content: '';
       flex: 1;
       height: 1px;
-      background: linear-gradient(90deg, transparent, var(--dcc-blood-bright), transparent);
+      background: linear-gradient(90deg, transparent, var(--dcc-danger-bright), transparent);
     }
   }
 
@@ -396,7 +396,7 @@
     font-size: 1.55em;
     line-height: 1.15;
     letter-spacing: 0.06em;
-    text-shadow: 0 0 12px var(--dcc-blood-bright), 0 2px 0 #000;
+    text-shadow: 0 0 12px var(--dcc-danger-bright), 0 2px 0 #000;
     text-transform: uppercase;
 
     em {
@@ -441,7 +441,7 @@
     align-items: center;
     gap: 1.2rem;
     width: min(60vw, 700px);
-    color: var(--dcc-blood-bright);
+    color: var(--dcc-danger-bright);
     font-size: 1.8rem;
     font-weight: 800;
     letter-spacing: 0.5em;
@@ -453,7 +453,7 @@
       content: '';
       flex: 1;
       height: 2px;
-      background: linear-gradient(90deg, transparent, var(--dcc-blood-bright), transparent);
+      background: linear-gradient(90deg, transparent, var(--dcc-danger-bright), transparent);
     }
   }
 
@@ -468,7 +468,7 @@
 
   .announce-boss {
     color: #fff;
-    text-shadow: 0 0 22px var(--dcc-blood-bright), 0 0 4px var(--dcc-blood-bright), 0 4px 0 #000;
+    text-shadow: 0 0 22px var(--dcc-danger-bright), 0 0 4px var(--dcc-danger-bright), 0 4px 0 #000;
   }
 
   .announce-and {

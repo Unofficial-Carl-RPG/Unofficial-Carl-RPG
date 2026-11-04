@@ -13,7 +13,7 @@
 
   // Everyone on the side acting in the current phase is highlighted.
   .combatant.phase-active {
-    background: rgba(163, 24, 29, 0.25);
+    background: rgba(106, 64, 184, 0.25);
     box-shadow: inset 3px 0 0 var(--dcc-gold);
   }
 }
@@ -88,7 +88,7 @@
     &.current {
       color: #fff;
       font-weight: bold;
-      background: rgba(163, 24, 29, 0.5);
+      background: rgba(106, 64, 184, 0.5);
       border-left-color: var(--dcc-gold);
     }
   }

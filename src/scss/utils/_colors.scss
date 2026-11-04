@@ -1,12 +1,16 @@
 // Dungeon Crawler Carl palette: a grimy dungeon (warm near-black panels, worn
-// parchment text) lit by Borant gold and blood red. Retheming = editing these.
+// parchment text) lit by Borant gold and royal purple. Retheming = editing these.
 :root {
   --dcc-bg: #14110f;
   --dcc-panel: #1f1a16;
   --dcc-panel-2: #2a231d;
   --dcc-border: #4a3b2e;
-  --dcc-blood: #a3181d;
-  --dcc-blood-bright: #d6282e;
+  // The accent: royal purple. (The names stay from when it was blood red.)
+  --dcc-blood: #4b2a8a;
+  --dcc-blood-bright: #7a52c7;
+  // Reds that carry a meaning (danger, errors, boss battles, deleting): not the accent.
+  --dcc-danger: #a3181d;
+  --dcc-danger-bright: #d6282e;
   --dcc-gold: #e0a526;
   --dcc-gold-dim: #9a7420;
   --dcc-text: #e8dcc8;

@@ -95,12 +95,12 @@
   .announce-and {
     font-family: var(--dcc-font-system);
     font-size: 1.6rem;
-    color: var(--dcc-blood-bright);
+    color: var(--dcc-danger-bright);
   }
 
   .announce-boss {
     color: #fff;
-    text-shadow: 0 0 12px var(--dcc-blood-bright);
+    text-shadow: 0 0 12px var(--dcc-danger-bright);
   }
 }
 
@@ -167,7 +167,7 @@
 // Level up chat card and the Spend Points dialog (outside the sheets).
 .carl-level-card {
   padding: 4px 8px;
-  border-left: 3px solid #d6282e;
+  border-left: 3px solid var(--dcc-blood-bright);
   font-weight: bold;
 }
 
@@ -239,7 +239,7 @@
 
 .carl-origin-card {
   padding: 4px 8px;
-  border-left: 3px solid #d6282e;
+  border-left: 3px solid var(--dcc-blood-bright);
   font-weight: bold;
 
   .origin-override {
@@ -304,7 +304,7 @@
   }
 
   .drop-name.missing {
-    color: var(--dcc-blood-bright);
+    color: var(--dcc-danger-bright);
   }
 
   .creation-buttons {
@@ -446,7 +446,7 @@
 
     .boss-join {
       flex: 0 0 2.6em;
-      color: var(--dcc-blood-bright);
+      color: var(--dcc-danger-bright);
       font-family: var(--dcc-font-system);
       text-align: right;
 
@@ -939,7 +939,7 @@
       cursor: pointer;
 
       &:hover {
-        color: var(--dcc-blood-bright);
+        color: var(--dcc-danger-bright);
       }
     }
   }
