@@ -1,0 +1,280 @@
+// The GM and shop windows: the store, the loot pile, the encounter builder and the
+// floor rules editor. The frame, form fields and buttons come from the theme; this is
+// the inside of each. Imported inside .carl-rpg, before the theme.
+//
+// Shop and loot get a gold-trimmed ledger look (a gold bar, striped rows, prices in
+// monospace); the two GM editors get plain panels.
+
+// A short note under a window's top (hint text in the GM windows).
+.encounter-builder,
+.floor-rules,
+.loot-pile {
+  .hint {
+    margin: 0 0 8px;
+    padding: 4px 8px;
+    border-left: 3px solid var(--dcc-border);
+    color: var(--dcc-text-dim);
+    font-size: 0.85em;
+    font-style: italic;
+  }
+}
+
+// ---- the ledger bar: gold in the store, gold and junk in a loot pile -----
+@mixin ledger-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--dcc-gold-dim);
+  border-left: 3px solid var(--dcc-gold);
+  background: linear-gradient(90deg, rgba(224, 165, 38, 0.16), var(--dcc-panel-2) 70%);
+  color: var(--dcc-gold);
+  font-family: var(--dcc-font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+// ---- the store -----------------------------------------------------------
+.store-window-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .store-gold {
+    @include ledger-bar;
+
+    font-size: 1.05em;
+  }
+
+  // Not the first bar: the heading of the sell list.
+  .items-list + .store-gold {
+    margin-top: 10px;
+  }
+
+  .items-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-color: var(--dcc-gold-dim);
+
+    .items-header {
+      border-bottom: 2px solid var(--dcc-gold);
+      font-family: var(--dcc-font-display);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .item {
+      align-items: center;
+      padding: 3px 6px;
+      border-left: 3px solid transparent;
+      transition: background 0.12s, border-color 0.12s;
+    }
+
+    .store-row {
+      border-left-color: var(--dcc-gold-dim);
+
+      &:hover {
+        background: rgba(224, 165, 38, 0.14);
+        border-left-color: var(--dcc-gold);
+      }
+    }
+
+    .sell-row {
+      border-left-color: #6fa05a;
+
+      &:hover {
+        background: rgba(111, 160, 90, 0.16);
+        border-left-color: #8fc074;
+      }
+    }
+
+    .item-prop {
+      font-family: var(--dcc-font-system);
+      text-align: center;
+    }
+
+    // The price, in gold.
+    .store-row .item-name + .item-prop,
+    .sell-row .item-prop {
+      color: var(--dcc-gold);
+    }
+
+    .item-controls {
+      display: flex;
+      justify-content: flex-end;
+      gap: 4px;
+
+      button {
+        min-width: 52px;
+        margin: 0;
+        padding: 2px 8px;
+        line-height: 1.4;
+      }
+
+      button[data-action='buy'],
+      button[data-action='sell'] {
+        border-color: var(--dcc-gold-dim);
+        color: var(--dcc-gold);
+
+        &:hover:not(:disabled) {
+          border-color: var(--dcc-gold);
+          box-shadow: 0 0 6px rgba(224, 165, 38, 0.45);
+        }
+
+        &:disabled {
+          color: var(--dcc-text-dim);
+          border-color: var(--dcc-border);
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}
+
+// ---- the loot pile -------------------------------------------------------
+.loot-pile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+
+  .resource-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--dcc-gold);
+    font-family: var(--dcc-font-display);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+
+    select {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  .pile-gold {
+    @include ledger-bar;
+
+    margin: 0;
+    font-size: 1.05em;
+
+    span {
+      flex: 1;
+    }
+
+    button {
+      margin: 0;
+      padding: 2px 8px;
+      font-family: var(--dcc-font-body);
+      letter-spacing: 0;
+      text-transform: none;
+      line-height: 1.4;
+    }
+  }
+
+  .pile-items {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--dcc-gold-dim);
+    background: var(--dcc-panel);
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 8px;
+      border-bottom: 1px solid rgba(74, 59, 46, 0.6);
+      border-left: 3px solid var(--dcc-gold-dim);
+      color: var(--dcc-text);
+      transition: background 0.12s, border-color 0.12s;
+
+      &:last-child {
+        border-bottom: 0;
+      }
+
+      &:nth-child(even) {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      &:hover {
+        background: rgba(224, 165, 38, 0.14);
+        border-left-color: var(--dcc-gold);
+      }
+
+      img {
+        flex: none;
+        border: 1px solid var(--dcc-gold-dim);
+        border-radius: 2px;
+      }
+
+      button {
+        margin: 0 0 0 auto;
+        padding: 2px 10px;
+        line-height: 1.4;
+        border-color: var(--dcc-gold-dim);
+        color: var(--dcc-gold);
+
+        &:hover {
+          border-color: var(--dcc-gold);
+          box-shadow: 0 0 6px rgba(224, 165, 38, 0.45);
+        }
+      }
+    }
+  }
+}
+
+// ---- the encounter builder and the floor rules editor ---------------------
+.encounter-builder,
+.floor-rules {
+  padding: 4px;
+}
+
+.encounter-builder {
+  .event-row {
+    margin: 4px 0;
+    padding: 4px 6px;
+    border: 1px solid var(--dcc-border);
+    border-left: 3px solid var(--dcc-blood);
+    background: var(--dcc-panel);
+
+    .b-count {
+      flex: 0 0 64px;
+      text-align: center;
+      font-family: var(--dcc-font-system);
+    }
+
+    .item-delete {
+      color: var(--dcc-text-dim);
+
+      &:hover {
+        color: var(--dcc-blood-bright);
+      }
+    }
+  }
+
+  .event-add {
+    display: block;
+    margin: 6px 0;
+    padding: 5px 8px;
+    border: 1px dashed var(--dcc-gold-dim);
+    border-radius: 3px;
+    text-align: center;
+    transition: background 0.12s, border-color 0.12s;
+
+    &:hover {
+      border-color: var(--dcc-gold);
+      background: rgba(224, 165, 38, 0.1);
+    }
+  }
+
+  .announce-button {
+    width: 100%;
+    margin-top: 4px;
+  }
+}
