@@ -126,6 +126,11 @@
         "critFail": "Critical Fail"
       }
     },
+    "Hotlist": {
+      "OnlyName": "Hotlist-only spells",
+      "OnlyHint": "Players can only cast spells that are on their hotlist.",
+      "NotOnList": "{name} is not on the hotlist."
+    },
     "Floor": {
       "State": "Floor state",
       "Exploring": "Exploring",

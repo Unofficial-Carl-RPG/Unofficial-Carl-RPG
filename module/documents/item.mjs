@@ -1,6 +1,7 @@
 import { CarlRPGDialog } from '../helpers/dialog.mjs';
 import { CarlRPGActiveEffect } from './active-effect.mjs';
 import { checkRequirements, runEvents } from '../helpers/events.mjs';
+import { castBlockedByHotlist } from '../helpers/hotlist-rule.mjs';
 import { grantLoot } from '../helpers/loot.mjs';
 import { addModifier } from '../data/action.mjs';
 import { costOf, usesCost } from '../data/costs.mjs';
@@ -857,6 +858,15 @@ export class CarlRPGItem extends Item {
     // A Dying crawler can't act or roll (see helpers/dying.mjs).
     if (dyingEffectOf(this.actor)) {
       ui.notifications.warn(game.i18n.localize('CARL_RPG.Combat.DyingNoAction'));
+      return null;
+    }
+    // With the Hotlist-only spells rule on, a spell has to be on the hotlist.
+    if (depth === 0 && castBlockedByHotlist(this)) {
+      ui.notifications.warn(
+        game.i18n.format('CARL_RPG.Hotlist.NotOnList', {
+          name: Handlebars.escapeExpression(this.name),
+        })
+      );
       return null;
     }
     // The item can be blocked from being used (not enough mana, ...).

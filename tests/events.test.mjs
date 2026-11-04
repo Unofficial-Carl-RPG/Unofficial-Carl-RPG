@@ -8,6 +8,7 @@ import {
   isPhaseExecutor,
   checkRequirements,
 } from '../module/helpers/events.mjs';
+import { castBlockedByHotlist, HOTLIST_ONLY_SETTING } from '../module/helpers/hotlist-rule.mjs';
 import { usesLeft, isLimited, spendUse, restoreUses, tickCooldowns, RECHARGE_BY_REST } from '../module/helpers/uses.mjs';
 import { tickDurations, endCombatEffects } from '../module/helpers/effect-duration.mjs';
 
@@ -344,6 +345,30 @@ test('an Every N rounds item gets its uses back at the end of the Nth round afte
   await restoreUses(crawler, ['round', 'rounds', 'combat']); // the combat ended
   assert.equal(bolt.system.uses.spent, 0);
   assert.equal(bolt.system.uses.waited, 0);
+});
+
+test('Hotlist-only spells blocks a crawler casting a spell that is off the hotlist', async () => {
+  const bolt = makeItem({ type: 'spell', name: 'Bolt', system: {} });
+  const sword = makeItem({ type: 'gear', name: 'Sword', system: {} });
+  const crawler = await makeCrawler({ items: [bolt, sword] });
+  crawler.system.hotlist = { size: 2, items: [] };
+  const player = { id: 'p1', isGM: false };
+  const saved = game.user;
+  try {
+    game.user = player;
+    assert.equal(castBlockedByHotlist(bolt), false); // setting is off
+    world.settings[HOTLIST_ONLY_SETTING] = true;
+    assert.equal(castBlockedByHotlist(bolt), true);
+    assert.equal(castBlockedByHotlist(sword), false); // only spells
+    crawler.system.hotlist.items = [bolt.id];
+    assert.equal(castBlockedByHotlist(bolt), false);
+    crawler.system.hotlist.items = ['x', 'y', bolt.id]; // past the slots
+    assert.equal(castBlockedByHotlist(bolt), true);
+    game.user = saved; // the GM
+    assert.equal(castBlockedByHotlist(bolt), false);
+  } finally {
+    game.user = saved;
+  }
 });
 
 /* -------------------------------------------- */

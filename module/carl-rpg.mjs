@@ -11,6 +11,7 @@ import { CARL_RPG } from './helpers/config.mjs';
 import { registerCombatTracker } from './helpers/combat-tracker.mjs';
 import { CarlRPGGMTab } from './sheets/gm-tab.mjs';
 import { registerFloorSetting, getFloor } from './helpers/floor.mjs';
+import { registerHotlistRule } from './helpers/hotlist-rule.mjs';
 import { registerPartySetting, registerPartySocket } from './helpers/party.mjs';
 import { registerAnnouncements } from './helpers/announcement.mjs';
 import './helpers/chat-commands.mjs';
@@ -94,6 +95,7 @@ Hooks.once('init', function () {
   // The global floor, set from the Dungeon Info tab.
   CONFIG.CARL_RPG.getFloor = getFloor;
   registerFloorSetting();
+  registerHotlistRule();
 
   registerPartySetting();
   registerAnnouncements();
