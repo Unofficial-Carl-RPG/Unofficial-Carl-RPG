@@ -893,3 +893,59 @@
     resize: vertical;
   }
 }
+
+// Rows in the Dungeon Info tab: a floor note (floor number, text, remove) and a random
+// encounter table (floor number, table, remove); the Days box matches the Floor box.
+.carlGM-sidebar,
+#carlGM-popout {
+  .floor-control .days-input {
+    flex: 1;
+    text-align: center;
+    font-family: var(--dcc-font-system);
+    font-size: 1.4em;
+  }
+
+  .note-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 4px 0;
+    padding: 4px;
+    border: 1px solid var(--dcc-border);
+    background: var(--dcc-panel-2);
+
+    .note-floor,
+    .enc-floor {
+      flex: 0 0 56px;
+      width: 56px;
+      text-align: center;
+      font-family: var(--dcc-font-system);
+    }
+
+    .note-text,
+    .enc-table {
+      flex: 1;
+      min-width: 0;
+      width: auto;
+    }
+
+    .note-text {
+      resize: vertical;
+    }
+
+    a {
+      padding-top: 4px;
+      color: var(--dcc-text-dim);
+      cursor: pointer;
+
+      &:hover {
+        color: var(--dcc-blood-bright);
+      }
+    }
+  }
+
+  .favor-amount {
+    text-align: center;
+    font-family: var(--dcc-font-system);
+  }
+}
