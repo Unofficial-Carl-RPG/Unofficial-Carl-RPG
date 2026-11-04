@@ -1,0 +1,247 @@
+// The Personal tab (sponsors, deity, mounts, clubs, personal space, kills) and the
+// Quests tab. Each section is a dark panel with a red edge; rows are striped lines
+// with a framed picture. Imported inside .carl-rpg, before the theme.
+
+.tab.personal > div {
+  gap: 4px;
+  padding: 6px 8px 8px;
+  border: 1px solid var(--dcc-border);
+  border-left: 3px solid var(--dcc-blood);
+  background: var(--dcc-panel);
+
+  // The section's heading.
+  > .resource-label {
+    margin: 0 0 4px;
+    padding-bottom: 2px;
+    border-bottom: 1px solid var(--dcc-border);
+    color: var(--dcc-gold);
+    font-family: var(--dcc-font-display);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  .hint {
+    color: var(--dcc-text-dim);
+    font-size: 0.85em;
+    font-style: italic;
+  }
+}
+
+.sponsor-row,
+.mount-row,
+.club-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 6px;
+  border-left: 2px solid var(--dcc-gold-dim);
+  color: var(--dcc-text);
+
+  &:nth-child(even) {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  img {
+    flex: none;
+    border: 1px solid var(--dcc-gold-dim);
+    border-radius: 2px;
+  }
+
+  span:first-of-type {
+    flex: 1;
+    min-width: 0;
+  }
+
+  // The little note on the right (a club role, a mount's health).
+  .hint {
+    margin-left: auto;
+    font-style: normal;
+  }
+
+  button {
+    margin: 0;
+    padding: 2px 8px;
+    line-height: 1.4;
+  }
+}
+
+.deity-panel {
+  strong {
+    color: var(--dcc-gold);
+    font-family: var(--dcc-font-display);
+    font-size: 1.1em;
+    letter-spacing: 0.05em;
+  }
+
+  .deity-description {
+    padding: 4px 8px;
+    border-left: 2px solid var(--dcc-border);
+    color: var(--dcc-text-dim);
+    font-size: 0.9em;
+    line-height: 1.4;
+
+    p {
+      margin: 0 0 4px;
+    }
+  }
+
+  .deity-tier {
+    width: auto;
+    min-width: 48px;
+  }
+}
+
+.space-panel {
+  ul {
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    padding: 3px 6px;
+    border-left: 2px solid var(--dcc-gold-dim);
+    color: var(--dcc-text-dim);
+    font-size: 0.9em;
+
+    &:nth-child(even) {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    strong {
+      color: var(--dcc-text);
+    }
+  }
+}
+
+.kills-panel {
+  .kill-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 6px;
+    border-left: 2px solid var(--dcc-blood);
+
+    &:nth-child(even) {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    input:first-child {
+      flex: 0 0 38%;
+    }
+
+    strong {
+      flex: 0 0 38%;
+      color: var(--dcc-text);
+    }
+
+    span {
+      flex: 1;
+      color: var(--dcc-text-dim);
+    }
+
+    button {
+      flex: none;
+      margin: 0;
+    }
+  }
+
+  > button[data-action='addKill'] {
+    align-self: flex-start;
+  }
+}
+
+// ---- the Quests tab -----------------------------------------------------
+.tab.quests {
+  .quest {
+    margin-bottom: 12px;
+    padding: 6px 10px 8px;
+    border: 1px solid var(--dcc-gold-dim);
+    border-left: 3px solid var(--dcc-gold);
+    background: linear-gradient(180deg, rgba(224, 165, 38, 0.1), var(--dcc-panel) 60%);
+
+    p {
+      margin: 2px 0;
+    }
+
+    .hint {
+      color: var(--dcc-text-dim);
+      font-size: 0.85em;
+    }
+  }
+
+  .quest-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid var(--dcc-border);
+
+    img {
+      border: 1px solid var(--dcc-gold-dim);
+      border-radius: 2px;
+    }
+
+    strong {
+      color: var(--dcc-gold);
+      font-family: var(--dcc-font-display);
+      font-size: 1.1em;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    em {
+      color: #6fa05a;
+      font-size: 0.85em;
+      font-style: normal;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+  }
+
+  .items-list {
+    margin: 4px 0;
+    padding: 0;
+    list-style: none;
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+  }
+
+  .quest-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 6px;
+
+    button {
+      margin: 0;
+      padding: 2px 12px;
+      line-height: 1.4;
+    }
+
+    button[data-action='completeQuest'] {
+      border-color: var(--dcc-gold-dim);
+      color: var(--dcc-gold);
+
+      &:hover {
+        border-color: var(--dcc-gold);
+        box-shadow: 0 0 6px rgba(224, 165, 38, 0.45);
+      }
+    }
+  }
+}
