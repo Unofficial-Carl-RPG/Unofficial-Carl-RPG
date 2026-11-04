@@ -8,7 +8,7 @@ import {
   isPhaseExecutor,
   checkRequirements,
 } from '../module/helpers/events.mjs';
-import { usesLeft, isLimited, spendUse, restoreUses, RECHARGE_BY_REST } from '../module/helpers/uses.mjs';
+import { usesLeft, isLimited, spendUse, restoreUses, tickCooldowns, RECHARGE_BY_REST } from '../module/helpers/uses.mjs';
 import { tickDurations, endCombatEffects } from '../module/helpers/effect-duration.mjs';
 
 beforeEach(() => world.reset());
@@ -325,6 +325,25 @@ test('uses come back only for the recharge that came round', async () => {
   await restoreUses(crawler, RECHARGE_BY_REST.short);
   assert.equal(items[3].system.uses.spent, 0);
   assert.equal(items[4].system.uses.spent, 2); // "never" never comes back
+});
+
+test('an Every N rounds item gets its uses back at the end of the Nth round after use', async () => {
+  const bolt = limited('Bolt', { max: 1, spent: 0, recharge: 'rounds', every: 3, waited: 0 });
+  const idle = limited('Idle', { max: 1, spent: 0, recharge: 'rounds', every: 3, waited: 0 });
+  const crawler = await makeCrawler({ items: [bolt, idle] });
+  await spendUse(bolt);
+  await tickCooldowns(crawler);
+  await tickCooldowns(crawler);
+  assert.equal(bolt.system.uses.spent, 1); // two round ends so far
+  await tickCooldowns(crawler);
+  assert.equal(bolt.system.uses.spent, 0);
+  assert.equal(bolt.system.uses.waited, 0);
+  assert.equal(idle.system.uses.waited, 0); // never spent: nothing counts
+  await spendUse(bolt);
+  await tickCooldowns(crawler);
+  await restoreUses(crawler, ['round', 'rounds', 'combat']); // the combat ended
+  assert.equal(bolt.system.uses.spent, 0);
+  assert.equal(bolt.system.uses.waited, 0);
 });
 
 /* -------------------------------------------- */

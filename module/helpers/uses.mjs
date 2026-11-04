@@ -8,7 +8,9 @@ import { logUse } from './change-log.mjs';
  * means no limit. Using the item spends a use; a use comes back when its recharge
  * comes round: at the end of a round, the end of a combat, when the floor changes,
  * or after a short, long or full rest (a longer rest also gives back what a
- * shorter one does).
+ * shorter one does). "Every N rounds" is a cooldown: the uses come back at the
+ * end of the Nth round after one was spent (see tickCooldowns), or when the
+ * combat ends.
  */
 
 /** The recharge settings each kind of rest gives back. */
@@ -54,6 +56,29 @@ export async function restoreUses(actor, when) {
         item.system.uses.spent > 0 &&
         when.includes(item.system.uses.recharge)
     )
-    .map((item) => ({ _id: item.id, 'system.uses.spent': 0 }));
+    .map((item) => ({ _id: item.id, 'system.uses.spent': 0, 'system.uses.waited': 0 }));
+  if (updates.length) await actor.updateEmbeddedDocuments('Item', updates);
+}
+
+/**
+ * A round ended: count a round for every spent "Every N rounds" item, and give
+ * its uses back once N have passed (the round the use was spent in counts as one).
+ * @param {Actor} actor
+ */
+export async function tickCooldowns(actor) {
+  const updates = [];
+  for (const item of actor.items) {
+    if (!isLimited(item) || item.system.uses.recharge !== 'rounds') continue;
+    const { spent, waited, every } = item.system.uses;
+    if (spent <= 0) {
+      if (waited) updates.push({ _id: item.id, 'system.uses.waited': 0 });
+      continue;
+    }
+    if (waited + 1 >= every) {
+      updates.push({ _id: item.id, 'system.uses.spent': 0, 'system.uses.waited': 0 });
+    } else {
+      updates.push({ _id: item.id, 'system.uses.waited': waited + 1 });
+    }
+  }
   if (updates.length) await actor.updateEmbeddedDocuments('Item', updates);
 }

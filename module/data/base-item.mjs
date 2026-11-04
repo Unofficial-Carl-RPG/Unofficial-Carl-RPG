@@ -188,6 +188,21 @@ export default class CarlRPGItemBase extends foundry.abstract
         choices: Object.keys(CONFIG.CARL_RPG.usesRecharge),
         initial: 'never',
       }),
+      // For "Every N rounds": N, and the round ends counted since the use.
+      every: new fields.NumberField({
+        required: true,
+        nullable: false,
+        integer: true,
+        min: 1,
+        initial: 2,
+      }),
+      waited: new fields.NumberField({
+        required: true,
+        nullable: false,
+        integer: true,
+        min: 0,
+        initial: 0,
+      }),
     });
 
     // Whether the events were last saved by a GM. Only events saved by a GM may

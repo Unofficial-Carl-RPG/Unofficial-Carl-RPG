@@ -38,7 +38,7 @@ import { classHasTag } from './tags.mjs';
 import { allEvents, effectKey, lockedRankFor } from './upgrades.mjs';
 import { summarizeAction } from './event-summary.mjs';
 import { endCombatEffects, tickDurations } from './effect-duration.mjs';
-import { restoreUses } from './uses.mjs';
+import { restoreUses, tickCooldowns } from './uses.mjs';
 import { skillCapOf } from './skill-cap.mjs';
 import { getFloorRules } from './floor.mjs';
 import { logEvent } from './change-log.mjs';
@@ -1008,6 +1008,7 @@ export function registerEvents() {
         await fireForCombat(combat, 'roundEnd', { phase: phases[next].id }, async (actor) => {
           await tickDurations(actor);
           await restoreUses(actor, ['round']);
+          await tickCooldowns(actor);
         });
         await runFloorRules('roundEnd', {});
       }
@@ -1019,7 +1020,7 @@ export function registerEvents() {
   Hooks.on('deleteCombat', (combat) =>
     fireForCombat(combat, 'combatEnd', {}, async (actor) => {
       await endCombatEffects(actor);
-      await restoreUses(actor, ['round', 'combat']);
+      await restoreUses(actor, ['round', 'rounds', 'combat']);
     })
   );
 

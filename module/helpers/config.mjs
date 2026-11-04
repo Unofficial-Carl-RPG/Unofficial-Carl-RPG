@@ -370,6 +370,7 @@ CARL_RPG.effectDurations = {
 CARL_RPG.usesRecharge = {
   never: 'CARL_RPG.Uses.Recharge.never',
   round: 'CARL_RPG.Uses.Recharge.round',
+  rounds: 'CARL_RPG.Uses.Recharge.rounds',
   combat: 'CARL_RPG.Uses.Recharge.combat',
   floor: 'CARL_RPG.Uses.Recharge.floor',
   short: 'CARL_RPG.Uses.Recharge.short',

@@ -9,6 +9,9 @@
     <select name='system.uses.recharge'>
       {{selectOptions @root.usesRechargeOptions selected=system.uses.recharge localize=true}}
     </select>
+    {{#if (eq system.uses.recharge 'rounds')}}
+      <input type='number' name='system.uses.every' value='{{system.uses.every}}' min='1' step='1' data-tooltip='{{localize "CARL_RPG.Uses.EveryHint"}}' />
+    {{/if}}
   </div>
   <div class='resource'>
     <label class='resource-label' for='system.uses.spent'>{{localize 'CARL_RPG.Uses.Spent'}}</label>
