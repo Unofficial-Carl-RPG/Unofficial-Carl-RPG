@@ -14,7 +14,7 @@
 body.carl-ui,
 body.carl-ui .themed {
   --color-text-accent: var(--dcc-gold);
-  --color-text-selection-bg: var(--dcc-blood);
+  --color-text-selection-bg: var(--dcc-accent);
   --color-text-emphatic: var(--dcc-text);
   --color-text-primary: var(--dcc-text);
   --color-text-secondary: var(--dcc-text);
@@ -69,7 +69,7 @@ body.carl-ui kbd {
   --button-border-color: var(--dcc-gold-dim);
   --button-text-color: var(--dcc-text);
   --button-focus-outline-color: var(--dcc-gold);
-  --button-hover-background-color: var(--dcc-blood);
+  --button-hover-background-color: var(--dcc-accent);
   --button-hover-border-color: var(--dcc-gold);
   --button-hover-text-color: #fff;
 }
@@ -120,15 +120,15 @@ body.carl-ui #measurement .waypoint-label {
   --control-hover-border-color: var(--dcc-gold-dim);
   --control-hover-icon-color: var(--dcc-gold);
   --control-active-bg-color: #1d1233;
-  --control-active-border-color: var(--dcc-blood-bright);
+  --control-active-border-color: var(--dcc-accent-bright);
   --control-active-icon-color: var(--dcc-gold);
   --control-button-border-color: var(--dcc-gold-dim);
-  --control-button-hover-bg-color: var(--dcc-blood);
+  --control-button-hover-bg-color: var(--dcc-accent);
   --control-button-hover-border-color: var(--dcc-gold);
   --toggle-bg-color: rgba(34, 18, 70, 0.85);
-  --toggle-border-color: var(--dcc-blood);
-  --toggle-active-bg-color: var(--dcc-blood);
-  --toggle-active-border-color: var(--dcc-blood-bright);
+  --toggle-border-color: var(--dcc-accent);
+  --toggle-active-bg-color: var(--dcc-accent);
+  --toggle-active-border-color: var(--dcc-accent-bright);
 }
 
 // The players list, hotbar and context menu.
@@ -155,7 +155,7 @@ body.carl-ui #context-menu {
   --text-color: var(--dcc-text);
   --hover-text-color: var(--dcc-gold);
   --group-separator: var(--dcc-border);
-  --hover-entry-border: var(--dcc-blood);
+  --hover-entry-border: var(--dcc-accent);
   --hover-entry-background: var(--dcc-bg);
 }
 
@@ -173,7 +173,7 @@ body.carl-ui .application:not(.carl-rpg) {
   box-shadow: 0 0 14px #000, inset 0 0 0 1px rgba(224, 165, 38, 0.12);
 
   .window-header {
-    border-bottom: 2px solid var(--dcc-blood);
+    border-bottom: 2px solid var(--dcc-accent);
     background: linear-gradient(180deg, #17120f, #0e0b09);
 
     .window-title {
@@ -187,7 +187,7 @@ body.carl-ui .application:not(.carl-rpg) {
 
 // The sidebar: a red edge down its side, folders as red-edged bars, hovered rows lit.
 body.carl-ui #sidebar .sidebar-tab:not(.sidebar-popout) {
-  border-left: 2px solid var(--dcc-blood);
+  border-left: 2px solid var(--dcc-accent);
   box-shadow: inset 8px 0 16px -12px rgba(106, 64, 184, 0.7);
 }
 
@@ -197,13 +197,13 @@ body.carl-ui .directory {
     transition: background 0.12s, border-color 0.12s;
 
     &:hover {
-      border-left-color: var(--dcc-blood-bright);
+      border-left-color: var(--dcc-accent-bright);
     }
   }
 
   .folder > header,
   .folder > .folder-header {
-    border-left: 3px solid var(--dcc-blood);
+    border-left: 3px solid var(--dcc-accent);
     color: var(--dcc-gold);
     font-family: var(--dcc-font-display);
     letter-spacing: 0.06em;
@@ -231,7 +231,7 @@ body.carl-ui #scene-navigation .scene-navigation-menu .scene {
 // The players list.
 body.carl-ui #players #players-active,
 body.carl-ui #players #players-inactive {
-  border-left: 3px solid var(--dcc-blood);
+  border-left: 3px solid var(--dcc-accent);
   border-radius: 3px;
 }
 
@@ -278,7 +278,7 @@ body.carl-ui #notifications > .notification {
 
 // The context menu.
 body.carl-ui #context-menu {
-  border-left: 3px solid var(--dcc-blood);
+  border-left: 3px solid var(--dcc-accent);
 }
 
 // The token HUD and the other placeable HUDs.
@@ -294,7 +294,7 @@ body.carl-ui .placeable-hud .control-icon {
   }
 
   &.active {
-    border-color: var(--dcc-blood-bright);
+    border-color: var(--dcc-accent-bright);
     color: var(--dcc-gold);
   }
 }

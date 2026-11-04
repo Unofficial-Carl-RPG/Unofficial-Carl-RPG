@@ -18,7 +18,7 @@
     padding: 6px 8px;
     background: var(--dcc-panel);
     border: 1px solid var(--dcc-border);
-    border-left: 3px solid var(--dcc-blood);
+    border-left: 3px solid var(--dcc-accent);
   }
 
   .floor-control {
@@ -167,7 +167,7 @@
 // Level up chat card and the Spend Points dialog (outside the sheets).
 .carl-level-card {
   padding: 4px 8px;
-  border-left: 3px solid var(--dcc-blood-bright);
+  border-left: 3px solid var(--dcc-accent-bright);
   font-weight: bold;
 }
 
@@ -239,7 +239,7 @@
 
 .carl-origin-card {
   padding: 4px 8px;
-  border-left: 3px solid var(--dcc-blood-bright);
+  border-left: 3px solid var(--dcc-accent-bright);
   font-weight: bold;
 
   .origin-override {
@@ -279,7 +279,7 @@
     padding: 6px 8px;
     background: var(--dcc-panel);
     border: 1px solid var(--dcc-border);
-    border-left: 3px solid var(--dcc-blood);
+    border-left: 3px solid var(--dcc-accent);
   }
 
   h4 {
@@ -339,7 +339,7 @@
       color: var(--dcc-text-dim);
 
       &.done {
-        border-color: var(--dcc-blood);
+        border-color: var(--dcc-accent);
       }
 
       &.current {

@@ -6,7 +6,7 @@
   &:hover,
   &:focus {
     color: $c-black;
-    text-shadow: 0 0 10px var(--dcc-blood-bright);
+    text-shadow: 0 0 10px var(--dcc-accent-bright);
     cursor: pointer;
   }
 }

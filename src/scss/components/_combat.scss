@@ -40,7 +40,7 @@
     }
 
     &:hover:not(.readonly) {
-      border-color: var(--dcc-blood-bright);
+      border-color: var(--dcc-accent-bright);
     }
 
     &.readonly {
@@ -55,7 +55,7 @@
   padding: 6px 8px;
   background: var(--dcc-panel);
   border: 1px solid var(--dcc-border);
-  border-left: 3px solid var(--dcc-blood);
+  border-left: 3px solid var(--dcc-accent);
   color: var(--dcc-text);
 
   .phase-round {

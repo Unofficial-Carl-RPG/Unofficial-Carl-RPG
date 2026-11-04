@@ -14,7 +14,7 @@
 
   .window-header {
     background: var(--dcc-panel-2);
-    border-bottom: 2px solid var(--dcc-blood);
+    border-bottom: 2px solid var(--dcc-accent);
     color: var(--dcc-gold);
 
     .window-title {
@@ -85,7 +85,7 @@ select option {
 }
 
 input[type='checkbox'] {
-  accent-color: var(--dcc-blood-bright);
+  accent-color: var(--dcc-accent-bright);
 }
 
 // Numbers read like System output.
@@ -107,7 +107,7 @@ button {
   letter-spacing: 0.05em;
 
   &:hover {
-    background: var(--dcc-blood);
+    background: var(--dcc-accent);
     color: #fff;
     border-color: var(--dcc-gold);
     box-shadow: 0 0 8px rgba(122, 82, 199, 0.6);
@@ -157,7 +157,7 @@ nav.tabs {
 
     &.active {
       color: var(--dcc-gold);
-      border-bottom-color: var(--dcc-blood-bright);
+      border-bottom-color: var(--dcc-accent-bright);
       background: rgba(106, 64, 184, 0.25);
     }
   }
@@ -174,7 +174,7 @@ nav.tabs {
 }
 
 .defense {
-  border-left: 3px solid var(--dcc-blood);
+  border-left: 3px solid var(--dcc-accent);
 }
 
 .ability {
@@ -557,7 +557,7 @@ nav.tabs {
   padding: 6px 8px;
   background: var(--dcc-panel);
   border: 1px solid var(--dcc-border);
-  border-left: 3px solid var(--dcc-blood);
+  border-left: 3px solid var(--dcc-accent);
 
   &.disabled {
     opacity: 0.6;
@@ -776,7 +776,7 @@ prose-mirror,
 // Chat messages live outside the sheet window.
 @at-root {
   .chat-message .item-description {
-    border-left: 3px solid var(--dcc-blood);
+    border-left: 3px solid var(--dcc-accent);
     padding: 4px 8px;
     margin: 4px 0;
     background: rgba(0, 0, 0, 0.08);
@@ -805,7 +805,7 @@ prose-mirror,
     white-space: nowrap;
 
     &:hover {
-      color: var(--dcc-blood-bright);
+      color: var(--dcc-accent-bright);
     }
 
     // Banked points that can't be spent yet (below the spend floor).
@@ -847,7 +847,7 @@ prose-mirror,
   cursor: pointer;
 
   &:hover {
-    color: var(--dcc-blood-bright);
+    color: var(--dcc-accent-bright);
   }
 }
 
