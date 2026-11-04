@@ -168,6 +168,18 @@ Hooks.once('init', function () {
     'carl-journals',
     game.settings.get('carl-rpg', 'journalStyle')
   );
+  // Whether Foundry's own interface (sidebar, scene controls, players, windows, HUDs)
+  // wears the game's look. A client setting, so each player chooses for themselves.
+  game.settings.register('carl-rpg', 'uiStyle', {
+    name: 'CARL_RPG.UI.Name',
+    hint: 'CARL_RPG.UI.Hint',
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    default: true,
+    onChange: (value) => document.body.classList.toggle('carl-ui', value),
+  });
+  document.body.classList.toggle('carl-ui', game.settings.get('carl-rpg', 'uiStyle'));
   // How many sponsors a crawler can hold (-1 for no limit). Only the GM changes it.
   game.settings.register('carl-rpg', 'sponsorLimit', {
     name: 'CARL_RPG.Sponsors.LimitName',

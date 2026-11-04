@@ -1,0 +1,309 @@
+// Foundry's own interface in the game's look: the sidebar and its lists, the scene
+// controls and navigation, the players list, the pause banner, the hotbar frame,
+// notifications, core windows, context menus and the token HUD.
+//
+// Foundry v13 draws its interface from CSS variables inside cascade layers, so this
+// sets those variables again (unlayered styles always win over layered ones) and adds
+// the frames and accents on top. Nothing here changes the layout.
+//
+// Only while the page has the class `carl-ui`, which the client setting "Game-style
+// interface" adds or removes (see carl-rpg.mjs). The system's own windows
+// (`.carl-rpg`) have their own look and are left to the theme.
+
+// ---- colours: the game's palette in place of Foundry's ----------------------
+body.carl-ui,
+body.carl-ui .themed {
+  --color-text-accent: var(--dcc-gold);
+  --color-text-selection-bg: var(--dcc-blood);
+  --color-text-emphatic: var(--dcc-text);
+  --color-text-primary: var(--dcc-text);
+  --color-text-secondary: var(--dcc-text);
+  --color-text-subtle: var(--dcc-text-dim);
+
+  --sidebar-background: rgba(20, 17, 15, 0.96);
+  --sidebar-separator: 1px solid var(--dcc-border);
+  --sidebar-entry-hover-bg: rgba(163, 24, 29, 0.22);
+  --sidebar-folder-color: #2a1d17;
+
+  --table-background-color: rgba(20, 17, 15, 0.6);
+  --table-header-bg-color: var(--dcc-panel-2);
+  --table-header-border-color: var(--dcc-border);
+  --table-row-color-even: rgba(255, 255, 255, 0.04);
+  --table-row-color-highlight: rgba(163, 24, 29, 0.3);
+
+  --content-link-background: var(--dcc-panel);
+  --content-link-border-color: var(--dcc-gold-dim);
+  --content-link-icon-color: var(--dcc-gold);
+  --content-link-text-color: var(--dcc-text);
+
+  // Notifications.
+  --color-level-info: #5b8fc7;
+  --color-level-info-bg: rgba(18, 28, 42, 0.94);
+  --color-level-warning: var(--dcc-gold);
+  --color-level-warning-bg: rgba(44, 33, 10, 0.94);
+  --color-level-error: var(--dcc-blood-bright);
+  --color-level-error-bg: rgba(44, 11, 13, 0.94);
+  --color-level-success: #6fa05a;
+  --color-level-success-bg: rgba(17, 32, 15, 0.94);
+}
+
+// Windows (every Foundry application).
+body.carl-ui .application,
+body.carl-ui .application.themed {
+  --background: rgba(20, 17, 15, 0.95);
+  --color-header-background: #0e0b09;
+  --color-border: var(--dcc-border);
+  --color-tabs-border: var(--dcc-gold-dim);
+  --color-fieldset-border: var(--dcc-border);
+  --color-form-label: var(--dcc-text-dim);
+  --color-form-label-hover: var(--dcc-gold);
+  --color-form-hint: var(--dcc-text-dim);
+  --color-form-hint-hover: var(--dcc-text);
+}
+
+// Buttons, fields and checkboxes.
+body.carl-ui button,
+body.carl-ui a.button,
+body.carl-ui kbd {
+  --button-background-color: var(--dcc-panel-2);
+  --button-border-color: var(--dcc-gold-dim);
+  --button-text-color: var(--dcc-text);
+  --button-focus-outline-color: var(--dcc-gold);
+  --button-hover-background-color: var(--dcc-blood);
+  --button-hover-border-color: var(--dcc-gold);
+  --button-hover-text-color: #fff;
+}
+
+body.carl-ui button[disabled],
+body.carl-ui a.button[disabled] {
+  --button-background-color: var(--dcc-panel);
+  --button-border-color: transparent;
+  --button-text-color: var(--dcc-text-dim);
+  --button-hover-background-color: var(--dcc-panel);
+  --button-hover-border-color: transparent;
+  --button-hover-text-color: var(--dcc-text-dim);
+}
+
+body.carl-ui button.bright,
+body.carl-ui a.button.bright {
+  --button-background-color: var(--dcc-gold);
+  --button-border-color: var(--dcc-gold-dim);
+  --button-text-color: #1a1208;
+  --button-hover-background-color: #f0b83a;
+  --button-hover-border-color: #fff3c4;
+  --button-hover-text-color: #000;
+}
+
+body.carl-ui input,
+body.carl-ui select,
+body.carl-ui textarea {
+  --input-background-color: #0e0b09;
+  --input-border-color: var(--dcc-border);
+  --input-text-color: var(--dcc-text);
+  --input-placeholder-color: var(--dcc-text-dim);
+  --input-focus-outline-color: var(--dcc-gold);
+}
+
+body.carl-ui input[type='checkbox'],
+body.carl-ui input[type='radio'] {
+  --checkbox-checked-color: var(--dcc-gold);
+}
+
+// Round controls and toggles on the canvas: scene controls, HUDs.
+body.carl-ui .ui-control,
+body.carl-ui .placeable-hud,
+body.carl-ui #measurement .waypoint-label {
+  --control-bg-color: rgba(31, 26, 22, 0.9);
+  --control-border-color: var(--dcc-border);
+  --control-icon-color: var(--dcc-text);
+  --control-hover-bg-color: var(--dcc-panel-2);
+  --control-hover-border-color: var(--dcc-gold-dim);
+  --control-hover-icon-color: var(--dcc-gold);
+  --control-active-bg-color: #2a1213;
+  --control-active-border-color: var(--dcc-blood-bright);
+  --control-active-icon-color: var(--dcc-gold);
+  --control-button-border-color: var(--dcc-gold-dim);
+  --control-button-hover-bg-color: var(--dcc-blood);
+  --control-button-hover-border-color: var(--dcc-gold);
+  --toggle-bg-color: rgba(60, 14, 16, 0.85);
+  --toggle-border-color: var(--dcc-blood);
+  --toggle-active-bg-color: var(--dcc-blood);
+  --toggle-active-border-color: var(--dcc-blood-bright);
+}
+
+// The players list, hotbar and context menu.
+body.carl-ui #players {
+  --background-color: rgba(20, 17, 15, 0.9);
+  --border-color: var(--dcc-border);
+  --text-color: var(--dcc-text);
+  --player-name-color: var(--dcc-text);
+  --player-name-idle-color: var(--dcc-text-dim);
+  --player-name-self-color: var(--dcc-gold);
+}
+
+body.carl-ui #hotbar {
+  --slot-color: rgba(20, 17, 15, 0.92);
+  --key-bg-color-empty: var(--dcc-panel);
+  --key-bg-color-full: var(--dcc-panel-2);
+  --key-text-color: var(--dcc-gold);
+  --page-control-color: var(--dcc-panel);
+}
+
+body.carl-ui #context-menu {
+  --background-color: var(--dcc-panel);
+  --border-color: var(--dcc-gold-dim);
+  --text-color: var(--dcc-text);
+  --hover-text-color: var(--dcc-gold);
+  --group-separator: var(--dcc-border);
+  --hover-entry-border: var(--dcc-blood);
+  --hover-entry-background: var(--dcc-bg);
+}
+
+body.carl-ui .combat-tracker {
+  --active-input-bg-color: var(--dcc-bg);
+  --entry-hover-bg: rgba(163, 24, 29, 0.22);
+  --entry-active-bg: rgba(163, 24, 29, 0.35);
+}
+
+// ---- frames and accents ------------------------------------------------------
+
+// Core windows (the system's own windows are framed by the theme): a red rule under a
+// display-font title.
+body.carl-ui .application:not(.carl-rpg) {
+  box-shadow: 0 0 14px #000, inset 0 0 0 1px rgba(224, 165, 38, 0.12);
+
+  .window-header {
+    border-bottom: 2px solid var(--dcc-blood);
+    background: linear-gradient(180deg, #17120f, #0e0b09);
+
+    .window-title {
+      color: var(--dcc-gold);
+      font-family: var(--dcc-font-display);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+  }
+}
+
+// The sidebar: a red edge down its side, folders as red-edged bars, hovered rows lit.
+body.carl-ui #sidebar .sidebar-tab:not(.sidebar-popout) {
+  border-left: 2px solid var(--dcc-blood);
+  box-shadow: inset 8px 0 16px -12px rgba(163, 24, 29, 0.7);
+}
+
+body.carl-ui .directory {
+  .directory-item {
+    border-left: 3px solid transparent;
+    transition: background 0.12s, border-color 0.12s;
+
+    &:hover {
+      border-left-color: var(--dcc-blood-bright);
+    }
+  }
+
+  .folder > header,
+  .folder > .folder-header {
+    border-left: 3px solid var(--dcc-blood);
+    color: var(--dcc-gold);
+    font-family: var(--dcc-font-display);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+}
+
+// Scene navigation: tabs with a left edge; the open scene in gold.
+body.carl-ui #scene-navigation .scene-navigation-menu .scene {
+  border-left-width: 3px;
+  font-family: var(--dcc-font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+
+  &:hover {
+    border-left-color: var(--dcc-gold);
+  }
+
+  &.active {
+    border-left-color: var(--dcc-gold);
+    color: var(--dcc-gold);
+  }
+}
+
+// The players list.
+body.carl-ui #players #players-active,
+body.carl-ui #players #players-inactive {
+  border-left: 3px solid var(--dcc-blood);
+  border-radius: 3px;
+}
+
+// The hotbar's slots.
+body.carl-ui #hotbar #action-bar .slot {
+  border: 1px solid var(--dcc-border);
+  border-radius: 3px;
+
+  &:hover {
+    border-color: var(--dcc-gold);
+    box-shadow: 0 0 6px rgba(224, 165, 38, 0.4);
+  }
+}
+
+// The pause banner.
+body.carl-ui #pause {
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(40, 6, 8, 0.78) 40%,
+    rgba(40, 6, 8, 0.78) 60%,
+    transparent 100%
+  );
+
+  img {
+    filter: drop-shadow(0 0 8px rgba(163, 24, 29, 0.9));
+  }
+
+  figcaption {
+    color: var(--dcc-gold);
+    font-family: var(--dcc-font-display);
+    letter-spacing: 0.35em;
+    text-shadow: 0 0 12px rgba(163, 24, 29, 0.9), 0 2px 0 #000;
+  }
+}
+
+// Notifications: a thick coloured edge (the colour is the level's, set above).
+body.carl-ui #notifications > .notification {
+  border-left-width: 4px;
+  box-shadow: 0 0 12px #000, inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  color: var(--dcc-text);
+  text-shadow: none;
+}
+
+// The context menu.
+body.carl-ui #context-menu {
+  border-left: 3px solid var(--dcc-blood);
+}
+
+// The token HUD and the other placeable HUDs.
+body.carl-ui .placeable-hud .control-icon {
+  border: 1px solid var(--dcc-border);
+  background: var(--dcc-panel);
+  color: var(--dcc-text);
+
+  &:hover {
+    border-color: var(--dcc-gold);
+    color: var(--dcc-gold);
+    box-shadow: 0 0 6px rgba(224, 165, 38, 0.4);
+  }
+
+  &.active {
+    border-color: var(--dcc-blood-bright);
+    color: var(--dcc-gold);
+  }
+}
+
+// Scroll bars.
+body.carl-ui ::-webkit-scrollbar-thumb {
+  background: var(--dcc-gold-dim);
+}
+
+body.carl-ui ::-webkit-scrollbar-track {
+  background: var(--dcc-bg);
+}

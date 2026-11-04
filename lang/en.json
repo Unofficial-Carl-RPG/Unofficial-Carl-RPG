@@ -1085,6 +1085,10 @@
       "Name": "Game-style journals",
       "Hint": "Show every journal in the game's look. Turn off for Foundry's default look."
     },
+    "UI": {
+      "Name": "Game-style interface",
+      "Hint": "Show Foundry's sidebar, scene controls, players list, windows and HUDs in the game's look. Turn off for Foundry's default look."
+    },
     "System": {
       "Title": "System Announcements",
       "Ribbon": "System Announcement",
