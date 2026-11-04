@@ -301,6 +301,7 @@ CARL_RPG.damageModes = {
 CARL_RPG.compendiumPurposes = {
   achievements: { type: 'achievement', label: 'CARL_RPG.Sources.Purposes.achievements' },
   races: { type: 'race', label: 'CARL_RPG.Sources.Purposes.races' },
+  species: { type: 'species', label: 'CARL_RPG.Sources.Purposes.species' },
   classes: { type: 'class', extraTypes: ['subclass'], label: 'CARL_RPG.Sources.Purposes.classes' },
   backgrounds: { type: 'background', label: 'CARL_RPG.Sources.Purposes.backgrounds' },
   skills: { type: 'skill', label: 'CARL_RPG.Sources.Purposes.skills' },

@@ -449,7 +449,7 @@ export class CarlRPGItem extends Item {
    */
   async #grantRankedSkills() {
     const actor = this.parent;
-    if (!['race', 'class', 'subclass'].includes(this.type)) return;
+    if (!['race', 'class', 'subclass', 'species'].includes(this.type)) return;
     if (!(actor instanceof Actor)) return;
 
     const toCreate = [];
@@ -488,13 +488,18 @@ export class CarlRPGItem extends Item {
    */
   async #applyOrigin(options = {}) {
     const actor = this.parent;
-    if (!['race', 'class', 'subclass'].includes(this.type)) return;
+    if (!['race', 'class', 'subclass', 'species'].includes(this.type)) return;
     if (!(actor instanceof Actor) || actor.type !== 'crawler') return;
 
     // A subclass isn't stored on the crawler: the sheet shows the newest one.
     if (this.type !== 'subclass') {
-      const field = this.type === 'race' ? 'system.race' : 'system.className';
-      await actor.update({ [field]: this.name });
+      const field = ['race', 'species'].includes(this.type)
+        ? 'system.race'
+        : 'system.className';
+      const update = { [field]: this.name };
+      // A species also sets the crawler's size.
+      if (this.type === 'species') update['system.size'] = this.system.size;
+      await actor.update(update);
     }
 
     const esc = Handlebars.escapeExpression;
@@ -574,11 +579,11 @@ export class CarlRPGItem extends Item {
       runEvents(this, 'removed');
       // A removed race or class no longer shows on the crawler sheet.
       if (
-        ['race', 'class'].includes(this.type) &&
+        ['race', 'class', 'species'].includes(this.type) &&
         this.parent instanceof Actor &&
         this.parent.type === 'crawler'
       ) {
-        const field = this.type === 'race' ? 'race' : 'className';
+        const field = ['race', 'species'].includes(this.type) ? 'race' : 'className';
         if (this.parent.system[field] === this.name) {
           this.parent.update({ [`system.${field}`]: '' });
         }

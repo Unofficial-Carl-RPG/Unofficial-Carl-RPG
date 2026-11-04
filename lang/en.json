@@ -616,6 +616,12 @@
         "NoMembers": "No crawler is in this club yet.",
         "RolePlaceholder": "Rank or role"
       },
+      "Species": {
+        "FIELDS": {
+          "size": {"label": "Size"}
+        },
+        "SizeHint": "Sets the crawler's size."
+      },
       "PersonalSpace": {
         "FIELDS": {
           "tier": {"label": "Tier"},
@@ -939,7 +945,8 @@
         "weapon": "Weapon",
         "gear": "Gear",
         "bio": "Bio",
-        "review": "Review"
+        "review": "Review",
+        "species": "Species"
       },
       "Groups": {
         "childhood": "Childhood",
@@ -950,6 +957,9 @@
       "Wizard": {
         "Title": "Create your crawler",
         "BasicsHint": "Race and class come later, on the third floor.",
+        "SpeciesHint": "Optional. An animal crawler picks a species; it sets their size and skills.",
+        "SpeciesNone": "None (a normal crawler)",
+        "NoSpecies": "No species yet. A GM can make them as Items.",
         "Name": "Name",
         "Gender": "Gender / pronouns",
         "Size": "Size",
@@ -1120,7 +1130,8 @@
         "races": "Races",
         "classes": "Classes",
         "backgrounds": "Backgrounds",
-        "skills": "Skills offered in character creation"
+        "skills": "Skills offered in character creation",
+        "species": "Species (animal crawlers)"
       }
     },
     "ChatLog": {
@@ -1548,7 +1559,8 @@
       "Chosen": {
         "race": "{name} chose the race {origin}!",
         "subclass": "{name} took the subclass {origin}!",
-        "class": "{name} chose the class {origin}!"
+        "class": "{name} chose the class {origin}!",
+        "species": "{name} is a {origin}!"
       },
       "Subclass": {
         "AlreadyHas": "{name} already has the subclass {subclass}.",
@@ -1949,7 +1961,8 @@
       "sponsor": "Sponsor",
       "personalSpace": "Personal Space",
       "club": "Club",
-      "deity": "Deity"
+      "deity": "Deity",
+      "species": "Species"
     }
   }
 }

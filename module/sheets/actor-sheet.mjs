@@ -838,7 +838,7 @@ export class CarlRPGActorSheet extends ActorSheetBase {
   async _describeOrigins() {
     const groups = [];
     for (const item of this.actor.items) {
-      if (!['race', 'class', 'subclass'].includes(item.type)) continue;
+      if (!['race', 'class', 'subclass', 'species'].includes(item.type)) continue;
       const skills = [];
       for (const entry of item.system.grantedSkills ?? []) {
         const skill = await fromUuid(entry.uuid);

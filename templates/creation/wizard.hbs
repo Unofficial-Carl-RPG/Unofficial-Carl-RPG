@@ -31,6 +31,29 @@
       </div>
     {{/if}}
 
+    {{! ---------- Species (when the GM allows them) ---------- }}
+    {{#if is.species}}
+      <p class='hint'>{{localize 'CARL_RPG.Creation.Wizard.SpeciesHint'}}</p>
+      {{#if noSpecies}}
+        <p class='loot-warning'><i class='fas fa-triangle-exclamation'></i> {{localize 'CARL_RPG.Creation.Wizard.NoSpecies'}}</p>
+      {{else}}
+        <div class='resource'>
+          <label class='resource-label'>{{localize 'CARL_RPG.Creation.Steps.species'}}</label>
+          <select data-field='species' data-redraw='true'>
+            {{selectOptions speciesOptions selected=species}}
+          </select>
+        </div>
+        {{#if speciesInfo}}
+          <p>{{localize 'CARL_RPG.Creation.Wizard.Size'}}: {{speciesInfo.size}}</p>
+          <ul class='wizard-list'>
+            {{#each speciesInfo.skills as |skill|}}
+              <li>{{skill.name}} ({{localize 'CARL_RPG.Item.Skill.FIELDS.rank.label'}} {{skill.rank}})</li>
+            {{/each}}
+          </ul>
+        {{/if}}
+      {{/if}}
+    {{/if}}
+
     {{! ---------- Stats ---------- }}
     {{#if is.stats}}
       <p class='hint'>{{#if rollMode}}{{localize 'CARL_RPG.Creation.Wizard.StatsHintRoll'}}{{else}}{{localize 'CARL_RPG.Creation.Wizard.StatsHint'}}{{/if}}</p>
@@ -189,6 +212,9 @@
     {{! ---------- Review ---------- }}
     {{#if is.review}}
       <h4>{{name}}</h4>
+      {{#if reviewSpecies}}
+        <p>{{localize 'CARL_RPG.Creation.Steps.species'}}: {{reviewSpecies}}</p>
+      {{/if}}
       <table class='wizard-table'>
         <thead>
           <tr>

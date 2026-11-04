@@ -116,7 +116,7 @@ export const ItemSheetDrops = (Base) => class ItemSheetDrops extends Base {
     if (!this.item.isOwner) return false;
 
     // Races and classes: skills dropped on the Skills tab are granted at rank 1.
-    if (['race', 'class', 'subclass'].includes(this.item.type)) {
+    if (['race', 'class', 'subclass', 'species'].includes(this.item.type)) {
       if (!event.target.closest('.tab.grantedSkills')) return false;
       const dropped = await Item.fromDropData(data);
       if (dropped?.type !== 'skill' || !dropped.uuid) {

@@ -269,6 +269,7 @@ Hooks.once('init', function () {
     race: models.CarlRPGRace,
     class: models.CarlRPGClass,
     subclass: models.CarlRPGSubclass,
+    species: models.CarlRPGSpecies,
     background: models.CarlRPGBackground,
     sponsor: models.CarlRPGSponsor,
     personalSpace: models.CarlRPGPersonalSpace,

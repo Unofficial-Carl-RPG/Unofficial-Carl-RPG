@@ -65,6 +65,9 @@
         "subclass": {
             "htmlFields": ["description"]
         },
+        "species": {
+            "htmlFields": ["description"]
+        },
         "sponsor": {
             "htmlFields": ["description"]
         },

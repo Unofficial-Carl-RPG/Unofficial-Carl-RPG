@@ -167,6 +167,9 @@ export class CarlRPGItemSheet extends ItemSheetBase {
     attributesOrigin: {
       template: 'systems/carl-rpg/templates/item/attribute-parts/origin.hbs',
     },
+    attributesSpecies: {
+      template: 'systems/carl-rpg/templates/item/attribute-parts/species.hbs',
+    },
     attributesBackground: {
       template: 'systems/carl-rpg/templates/item/attribute-parts/background.hbs',
     },
@@ -254,6 +257,9 @@ export class CarlRPGItemSheet extends ItemSheetBase {
           'prerequisites',
           'effects'
         );
+        break;
+      case 'species':
+        options.parts.push('attributesSpecies', 'grantedSkills', 'effects');
         break;
       case 'background':
         // Just a description, the categories it is offered in and its skills.
@@ -406,10 +412,11 @@ export class CarlRPGItemSheet extends ItemSheetBase {
 
     // Races and classes: categories, granted skills and prerequisites, with
     // every drop target's name resolved.
-    if (['race', 'class', 'subclass'].includes(this.item.type)) {
+    if (['race', 'class', 'subclass', 'species'].includes(this.item.type)) {
       const cfg = CONFIG.CARL_RPG;
       const system = this.item.system;
-      const isRace = this.item.type === 'race';
+      // (A species is built like a race: granted skills and effects, no categories.)
+      const isRace = ['race', 'species'].includes(this.item.type);
       context.isRace = isRace;
       context.isOrigin = true;
       context.isSubclass = this.item.type === 'subclass';
@@ -681,6 +688,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
         context.tab = context.tabs[partId];
         break;
       case 'attributesPersonalSpace':
+      case 'attributesSpecies':
         context.tab = context.tabs[partId];
         context.sizeOptions = CONFIG.CARL_RPG.sizeOptions();
         break;
@@ -783,6 +791,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       case 'attributesPersonalSpace':
         case 'attributesOrigin':
         case 'attributesBackground':
+        case 'attributesSpecies':
           tab.id = 'attributes';
           tab.label += 'Attributes';
           break;

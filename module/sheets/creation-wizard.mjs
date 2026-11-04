@@ -3,10 +3,12 @@ import {
   applyCreation,
   getCreationDefaults,
   loadBackgrounds,
+  loadSpecies,
   planSkills,
   resolveItems,
   skillPool,
   skillStatLabel,
+  speciesAllowed,
   weaponSkill,
 } from '../helpers/creation.mjs';
 
@@ -14,7 +16,7 @@ const { ApplicationV2, HandlebarsApplicationMixin } =
   foundry.applications.api;
 
 const NS = 'carl-rpg';
-const STEPS = ['basics', 'stats', 'skills', 'weapon', 'gear', 'bio', 'review'];
+const BASE_STEPS = ['basics', 'stats', 'skills', 'weapon', 'gear', 'bio', 'review'];
 const BACKGROUND = ['pastTrauma', 'popularity', 'looseEnds', 'regrets'];
 
 /**
@@ -54,6 +56,8 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
       sources: Object.fromEntries(
         CONFIG.CARL_RPG.creation.skillGroups.map((group) => [group.id, ''])
       ),
+      // The species chosen (a UUID), when the GM allows species.
+      species: '',
       weapon: '',
       gear: [],
       background: Object.fromEntries(BACKGROUND.map((k) => [k, ''])),
@@ -97,6 +101,15 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
   #backgrounds = {};
   /** The skills "any skill" can pick from, loaded at each render (see skillPool). */
   #skillPool = [];
+  /** The species on offer, loaded at each render (see loadSpecies). */
+  #species = [];
+
+  /** The steps in order: Species follows Basics when the GM allows species. */
+  #steps() {
+    return speciesAllowed()
+      ? ['basics', 'species', ...BASE_STEPS.slice(1)]
+      : BASE_STEPS;
+  }
 
   /** Open the wizard for a crawler. */
   static open(actor) {
@@ -143,7 +156,7 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
 
   /** Whether everything before the review step is complete. */
   #allValid() {
-    return STEPS.slice(0, -1).every((step) => this.#valid(step));
+    return this.#steps().slice(0, -1).every((step) => this.#valid(step));
   }
 
   /** The indexes in the draft's skills list that belong to a category. */
@@ -235,20 +248,22 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
     const cfg = CONFIG.CARL_RPG;
     const defaults = getCreationDefaults();
     const s = this.draft;
-    const step = STEPS[this.#step];
+    const steps = this.#steps();
+    const step = steps[this.#step];
     // The backgrounds on offer (needed by the skills step and the problems list).
     this.#backgrounds = await loadBackgrounds();
     this.#skillPool = await skillPool();
+    this.#species = speciesAllowed() ? await loadSpecies() : [];
 
-    context.steps = STEPS.map((id, i) => ({
+    context.steps = steps.map((id, i) => ({
       id,
       label: `CARL_RPG.Creation.Steps.${id}`,
       current: i === this.#step,
       done: i < this.#step,
     }));
-    context.is = Object.fromEntries(STEPS.map((id) => [id, id === step]));
+    context.is = Object.fromEntries(steps.map((id) => [id, id === step]));
     context.isFirst = this.#step === 0;
-    context.isLast = this.#step === STEPS.length - 1;
+    context.isLast = this.#step === steps.length - 1;
     context.canFinish = this.#allValid();
     context.problems = step === 'review' ? this.#problems() : [];
 
@@ -258,6 +273,18 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
     // (Each size shows its Size Class number, like "Medium (4)".)
     context.sizes = cfg.sizeOptions();
     context.size = s.size;
+
+    // Species (optional): the one chosen, with its size and skills.
+    const chosen = this.#species.find((sp) => sp.uuid === s.species) ?? null;
+    context.noSpecies = !this.#species.length;
+    context.speciesOptions = {
+      '': game.i18n.localize('CARL_RPG.Creation.Wizard.SpeciesNone'),
+      ...Object.fromEntries(this.#species.map((sp) => [sp.uuid, sp.name])),
+    };
+    context.species = chosen ? s.species : '';
+    context.speciesInfo = chosen
+      ? { size: cfg.sizeOptions()[chosen.size] ?? chosen.size, skills: chosen.skills }
+      : null;
 
     // Stats. With the Standard Array: a row of buttons, one per value, where a
     // value another stat has taken is disabled until that stat lets go of it.
@@ -404,6 +431,7 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
       context.reviewSkills = (await planSkills(s))
         .map(({ skill, rank }) => ({ name: skill.name, rank }))
         .sort((a, b) => b.rank - a.rank || a.name.localeCompare(b.name));
+      context.reviewSpecies = chosen?.name ?? '';
       context.reviewWeapon = picked?.name ?? '';
       context.reviewGear = gear
         .filter((g) => s.gear.includes(g.uuid))
@@ -434,6 +462,11 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
       value = value === '' ? null : Number(value);
     }
     foundry.utils.setProperty(this.draft, path, value);
+    // A species sets the size.
+    if (path === 'species') {
+      const species = this.#species.find((sp) => sp.uuid === value);
+      if (species) this.draft.size = species.size;
+    }
     if (el.dataset.redraw) this.render();
     else this.#refreshNav();
   }
@@ -473,7 +506,7 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
 
   /** @this CarlRPGCreationWizard */
   static _onNext() {
-    if (this.#step < STEPS.length - 1) {
+    if (this.#step < this.#steps().length - 1) {
       this.#step += 1;
       this.render();
     }
@@ -605,7 +638,7 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
 
   /** Jump to a step (from the Review step's list of what is still to fill in). */
   static _onGoto(event, target) {
-    const step = STEPS.indexOf(target.dataset.step);
+    const step = this.#steps().indexOf(target.dataset.step);
     if (step >= 0) {
       this.#step = step;
       this.render();
@@ -617,6 +650,10 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
     if (this.#busy || !this.#allValid()) return;
     this.#busy = true;
     try {
+      // (A species only counts while the GM allows species and it is still on offer.)
+      if (!this.#species.some((sp) => sp.uuid === this.draft.species)) {
+        this.draft.species = '';
+      }
       await applyCreation(this.actor, this.draft);
       await this.close();
     } catch (err) {

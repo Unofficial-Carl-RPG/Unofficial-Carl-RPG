@@ -14,6 +14,7 @@ import { itemHasTag } from './tags.mjs';
 
 const NS = 'carl-rpg';
 export const CREATION_SETTING = 'creationDefaults';
+export const SPECIES_SETTING = 'speciesInCreation';
 
 const t = (key, data) =>
   data ? game.i18n.format(key, data) : game.i18n.localize(key);
@@ -75,6 +76,15 @@ export function registerCreationSetting() {
       }),
     }),
   });
+  // Off by default: when on, character creation has an optional Species step for
+  // animal crawlers (see loadSpecies).
+  game.settings.register(NS, SPECIES_SETTING, {
+    name: 'CARL_RPG.Creation.SpeciesName',
+    hint: 'CARL_RPG.Creation.SpeciesHint',
+    scope: 'world',
+    config: true,
+    type: new fields.BooleanField({ initial: false }),
+  });
 }
 
 /** The current creation defaults. */
@@ -82,7 +92,41 @@ export function getCreationDefaults() {
   return game.settings.get(NS, CREATION_SETTING);
 }
 
+/** Whether the GM lets new crawlers start as a species (an optional wizard step). */
+export function speciesAllowed() {
+  try {
+    return !!game.settings.get(NS, SPECIES_SETTING);
+  } catch (err) {
+    return false;
+  }
+}
+
 /*  What the wizard offers                      */
+
+/**
+ * The species on offer: the items of the Species list in the compendium sources, each
+ * with its size and the skills it grants.
+ * @returns {Promise<Array<{uuid: string, name: string, size: string,
+ *   skills: Array<{name: string, rank: number}>}>>}
+ */
+export async function loadSpecies() {
+  const species = await sourceItems('species');
+  return Promise.all(
+    species.map(async (item) => ({
+      uuid: item.uuid,
+      name: item.name,
+      size: item.system.size || 'medium',
+      skills: (
+        await Promise.all(
+          (item.system.grantedSkills ?? []).map(async (entry) => {
+            const skill = await fromUuid(entry.uuid);
+            return skill ? { name: skill.name, rank: entry.rank } : null;
+          })
+        )
+      ).filter(Boolean),
+    }))
+  );
+}
 
 /**
  * The skills that can be picked: skills carrying the skill tag, from the sources
@@ -202,6 +246,7 @@ export async function planSkills(state) {
  * @param {string} state.size
  * @param {Object<string, number>} state.stats        Value for each stat
  * @param {string[]} state.skills                     The 8 chosen skill UUIDs, in group order
+ * @param {string} [state.species]                    UUID of the chosen species (animal crawlers)
  * @param {string} state.weapon                       UUID of the chosen weapon
  * @param {string[]} state.gear                       UUIDs of the chosen starting gear
  * @param {Object<string, string>} state.background   pastTrauma, popularity, looseEnds, regrets
@@ -238,6 +283,16 @@ export async function applyCreation(actor, state) {
     return data;
   });
   if (skillData.length) await actor.createEmbeddedDocuments('Item', skillData);
+
+  // An animal crawler's species goes on as an item: it sets the Race box and size,
+  // raises the skills it grants and copies its effects (see Item#applyOrigin).
+  const species = state.species ? await fromUuid(state.species) : null;
+  if (species?.type === 'species') {
+    const [item] = await actor.createEmbeddedDocuments('Item', [
+      game.items.fromCompendium(species),
+    ]);
+    await item?._grantsDone;
+  }
 
   const gearDocs = [weapon, ...(await resolveItems(state.gear))].filter(Boolean);
   const gearData = gearDocs.map((doc) => {
