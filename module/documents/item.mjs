@@ -1108,8 +1108,18 @@ export class CarlRPGItem extends Item {
     const headed = ['skill', 'spell', 'gear', 'item'].includes(this.type);
     const header = headed ? itemCardHeader(this) : '';
     const label = headed ? undefined : this.name;
+    // The card also remembers what was used and, for a weapon, the skill it rolled
+    // with, for the recap log (a natural 1 or 20 names them).
+    const rolledSkill = this.usesSkillAction ? (await this.rollingSkill())?.name : null;
     const cardFlags = {
-      'carl-rpg': { card: { kind: this.type, ...(headed ? { header: true } : {}) } },
+      'carl-rpg': {
+        card: {
+          kind: this.type,
+          name: this.name,
+          ...(rolledSkill ? { skill: rolledSkill } : {}),
+          ...(headed ? { header: true } : {}),
+        },
+      },
     };
 
     // Enrich the description so links and inline rolls work in chat.

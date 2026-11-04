@@ -151,7 +151,10 @@ async function logRecap(message) {
   } else {
     const natural = naturalOf(message);
     if (!natural) return;
-    const what = (message.flavor ?? '').replace(/<[^>]*>/g, '').trim();
+    // What was rolled: the flavor line, or (on item cards, which have none) the item's
+    // name and, for a weapon, the skill it rolled with.
+    const flavor = (message.flavor ?? '').replace(/<[^>]*>/g, '').trim();
+    const what = flavor || [card?.name, card?.skill].filter(Boolean).join(', ');
     const label = t(natural === 20 ? 'CARL_RPG.Combat.RecapNatural20' : 'CARL_RPG.Combat.RecapNatural1');
     await writeRecap({ kind: 'roll', actor, floor, line: `${what ? `${esc(what)} ` : ''}(${label})` });
   }
