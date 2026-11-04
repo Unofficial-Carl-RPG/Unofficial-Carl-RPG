@@ -451,13 +451,19 @@
     {{/if}}
 
     {{#if (eq actor.type 'mob')}}
-      {{! Mob combat numbers: set values. The Surprise, Evade and Damage Resistance totals include the Floor (the floor itself isn't shown on the sheet). }}
+      {{! Mob combat numbers. Surprise and Evade are formulas (10 + mod + Floor + effects); the Damage Resistance total includes the Floor (the floor itself isn't shown on the sheet). }}
       <div class='defenses'>
         <div class='defense'>
           <label class='resource-label'>{{localize 'CARL_RPG.Actor.Mob.Header.Surprise'}}</label>
           <div class='defense-values'>
             <div class='defense-cell'>
-              <input type='text' name='system.surprise' value='{{system.surprise}}' data-dtype='Number' />
+              <strong>{{numberFormat system.abilities.int.mod decimals=0}}</strong>
+              <label>{{localize 'CARL_RPG.Actor.Mob.Header.IntMod'}}</label>
+            </div>
+            <span>+</span>
+            <div class='defense-cell'>
+              <strong>{{numberFormat system.bonuses.surprise decimals=0}}</strong>
+              <label>{{localize 'CARL_RPG.Actor.Crawler.Combat.Buffs'}}</label>
             </div>
             <span>=</span>
             <div class='defense-cell total'>
@@ -467,7 +473,7 @@
           </div>
         </div>
 
-        {{! A mob's Evade is Dex mod + Floor + other bonuses + effects. The typed-in number is the "other bonuses"; effects add to the total but aren't part of that box. }}
+        {{! A mob's Evade is 10 + Dex mod + Floor + effects (no typed number); the base and the Floor aren't shown. }}
         {{#if seesMobNumbers}}
         <div class='defense'>
           <label class='resource-label'>{{localize 'CARL_RPG.Actor.Crawler.Combat.Evade'}}</label>
@@ -475,11 +481,6 @@
             <div class='defense-cell'>
               <strong>{{numberFormat system.abilities.dex.mod decimals=0}}</strong>
               <label>{{localize 'CARL_RPG.Actor.Crawler.Combat.DexMod'}}</label>
-            </div>
-            <span>+</span>
-            <div class='defense-cell'>
-              <input type='text' name='system.evade' value='{{system.evade}}' data-dtype='Number' />
-              <label>{{localize 'CARL_RPG.Actor.Mob.Header.OtherBonuses'}}</label>
             </div>
             <span>+</span>
             <div class='defense-cell'>

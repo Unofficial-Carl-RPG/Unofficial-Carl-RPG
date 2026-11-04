@@ -72,11 +72,9 @@ export default class CarlRPGMob extends CarlRPGActorBase {
       }),
     });
 
-    // Flat numbers. Surprise and Damage Resistance are set values that have the
-    // Floor added in their totals. Evade is a formula: the Dexterity modifier +
-    // the Floor + this number (the "other bonuses") + effects.
-    schema.surprise = new fields.NumberField({ ...requiredInteger, initial: 0 });
-    schema.evade = new fields.NumberField({ ...requiredInteger, initial: 0 });
+    // Flat numbers. Damage Resistance is a set value that has the Floor added in
+    // its total. Surprise and Evade have no typed number: they are formulas (see
+    // prepareDerivedData).
     schema.move = new fields.NumberField({ ...requiredInteger, initial: 0 });
     schema.dr = new fields.NumberField({ ...requiredInteger, initial: 0 });
 
@@ -114,17 +112,14 @@ export default class CarlRPGMob extends CarlRPGActorBase {
         game.i18n.localize(CONFIG.CARL_RPG.abilities[key]) ?? key;
     }
 
-    // Totals: the set value plus the Floor (for Surprise, Evade and Damage
-    // Resistance) plus what active effects add. The set values are numbers the
-    // GM types in, not formulas.
-    this.surpriseTotal = this.surprise + this.floor + this.bonuses.surprise;
-    // Evade is the Dexterity modifier + the Floor + the number typed in (the
-    // "other bonuses") + what effects add.
+    // Surprise and Evade start from the check base (10), add the Intelligence or
+    // Dexterity modifier and the Floor, then what active effects add. Damage
+    // Resistance is the set value plus the Floor plus effects.
+    const base = CONFIG.CARL_RPG.checks.base;
+    this.surpriseTotal =
+      base + (this.abilities.int?.mod ?? 0) + this.floor + this.bonuses.surprise;
     this.evadeTotal =
-      (this.abilities.dex?.mod ?? 0) +
-      this.floor +
-      this.evade +
-      this.bonuses.evade;
+      base + (this.abilities.dex?.mod ?? 0) + this.floor + this.bonuses.evade;
     this.drTotal = this.dr + this.floor + this.bonuses.dr;
     this.moveTotal = this.move + this.bonuses.move;
 

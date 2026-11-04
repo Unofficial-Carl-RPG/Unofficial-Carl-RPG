@@ -449,7 +449,7 @@
           "PinFloorHint": "Use this mob's own Floor, not the current floor.",
           "Actions": "Actions",
           "Surprise": "Surprise",
-          "OtherBonuses": "Other"
+          "IntMod": "INT Mod"
         }
       }
     },
