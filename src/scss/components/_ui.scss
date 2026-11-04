@@ -307,3 +307,14 @@ body.carl-ui ::-webkit-scrollbar-thumb {
 body.carl-ui ::-webkit-scrollbar-track {
   background: var(--dcc-bg);
 }
+
+// The category list in Configure Settings (and the other category windows): the framed
+// buttons need room between their edge and the text.
+body.carl-ui .category-browser aside nav.tabs > button {
+  padding: 0.35rem 0.85rem;
+  text-align: left;
+}
+
+body.carl-ui .category-browser .main .categories section.tab {
+  padding-inline: 0.5rem;
+}
