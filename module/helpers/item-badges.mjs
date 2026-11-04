@@ -121,6 +121,20 @@ function rollingSkillOf(item) {
 }
 
 /**
+ * A row of badges for a chat card. The parts must already be safe HTML (they are made
+ * from translated text and escaped values); a closing full stop is dropped.
+ * @param {string[]} parts
+ * @param {string} [className]   An extra class for the row
+ * @returns {string} HTML ('' when there is nothing to show)
+ */
+export function badgeRowHtml(parts, className = '') {
+  const shown = parts.filter(Boolean).map((part) => String(part).trim().replace(/\.$/, ''));
+  if (!shown.length) return '';
+  const badges = shown.map((part) => `<span class="item-badge">${part}</span>`).join('');
+  return `<div class="item-badges ${className}">${badges}</div>`;
+}
+
+/**
  * The top of an item's chat card: its image, its name beside it and its badges (the
  * ones the tooltip shows) under the name. A mob ability shows no badges: its numbers
  * are for the GM, and a card is written once for everyone.

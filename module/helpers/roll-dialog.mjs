@@ -132,7 +132,16 @@ export function buildFormula(formula, { bonus = '', stat = null, mode = 'normal'
  * @param {{bonus?: string, stat?: string|null, mode?: string}} [options]
  * @returns {string}
  */
-export function optionsNote({ bonus = '', stat = null, mode = 'normal' } = {}) {
+export function optionsNote(options = {}) {
+  return optionsParts(options).join('; ');
+}
+
+/**
+ * What was chosen in the pop-up, one short phrase for each choice (for badges).
+ * @param {{bonus?: string, stat?: string|null, mode?: string}} [options]
+ * @returns {string[]}
+ */
+export function optionsParts({ bonus = '', stat = null, mode = 'normal' } = {}) {
   const parts = [];
   if (mode === 'advantage') parts.push(t('CARL_RPG.RollDialog.Advantage'));
   if (mode === 'disadvantage') parts.push(t('CARL_RPG.RollDialog.Disadvantage'));
@@ -142,5 +151,5 @@ export function optionsNote({ bonus = '', stat = null, mode = 'normal' } = {}) {
       t('CARL_RPG.RollDialog.StatNote', { stat: t(CONFIG.CARL_RPG.abilities[stat]) })
     );
   }
-  return parts.join('; ');
+  return parts;
 }

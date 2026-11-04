@@ -38,6 +38,18 @@ import { applyQueuedEffect, runEvents } from './events.mjs';
 import { effectiveOf } from './upgrades.mjs';
 import { offerAiFavor } from './ai-favor.mjs';
 import { promptRoll, buildFormula, optionsNote } from './roll-dialog.mjs';
+import { badgeRowHtml } from './item-badges.mjs';
+
+/**
+ * The top of a check or attack card: a badge saying what kind of check it is and what
+ * it is against; a damage roll's heading stays bold text.
+ */
+function checkHeadingHtml(heading, damaging) {
+  const inner = damaging
+    ? `<strong>${esc(heading)}</strong>`
+    : badgeRowHtml([esc(heading)]);
+  return `<div class="carl-attack-card">${inner}</div>`;
+}
 
 const NS = 'carl-rpg';
 
@@ -220,7 +232,7 @@ export async function resolveCheck(item, roll) {
   const message = await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: owner }),
     rolls: damageRoll ? [damageRoll] : [],
-    content: `<div class="carl-attack-card"><strong>${esc(heading)}</strong></div>`,
+    content: checkHeadingHtml(heading, damaging),
     sound: damageRoll ? CONFIG.sounds.dice : undefined,
     flags: { [NS]: { attack: check } },
   });
@@ -395,7 +407,7 @@ async function resolveMobCheck(item) {
   await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: owner }),
     rolls: damageRoll ? [damageRoll] : [],
-    content: `<div class="carl-attack-card"><strong>${esc(heading)}</strong></div>`,
+    content: checkHeadingHtml(heading, damaging),
     sound: damageRoll ? CONFIG.sounds.dice : undefined,
     flags: { [NS]: { attack: check } },
   });

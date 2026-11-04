@@ -6,6 +6,12 @@
   margin-bottom: 6px;
 }
 
+// Badges made from sentences (what was chosen in a roll, what a use cost) start with a capital.
+.item-badges.roll-options .item-badge::first-letter,
+.item-badges.spell-cost .item-badge::first-letter {
+  text-transform: uppercase;
+}
+
 .item-badge {
   padding: 1px 6px;
   border: 1px solid color-mix(in srgb, var(--dcc-gold-dim) 70%, #000);

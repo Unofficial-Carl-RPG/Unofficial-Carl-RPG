@@ -6,7 +6,7 @@ import { addModifier } from '../data/action.mjs';
 import { costOf, usesCost } from '../data/costs.mjs';
 import { resolveCheck } from '../helpers/attacks.mjs';
 import { describeUpgrades, effectiveOf } from '../helpers/upgrades.mjs';
-import { itemCardHeader, shortTextOf } from '../helpers/item-badges.mjs';
+import { badgeRowHtml, itemCardHeader, shortTextOf } from '../helpers/item-badges.mjs';
 import { offerAiFavor } from '../helpers/ai-favor.mjs';
 import { spendUse, usesLeft } from '../helpers/uses.mjs';
 import { declareInsteadOfUsing } from '../helpers/declarations.mjs';
@@ -14,7 +14,7 @@ import { updateWithRelay } from '../helpers/relay.mjs';
 import {
   promptRoll,
   buildFormula,
-  optionsNote,
+  optionsParts,
   statOfFormula,
 } from '../helpers/roll-dialog.mjs';
 import { chooseTargets } from '../helpers/targeting.mjs';
@@ -929,7 +929,7 @@ export class CarlRPGItem extends Item {
     await spendUse(this, usesNeeded);
     const rolling = await this.#useRollingSkill();
     const result = await this._rollCore(event, {
-      note: mana.note,
+      costs: mana.notes,
       options: rollOptions,
     });
     // A mistyped bonus: nothing was rolled, and nothing further happens.
@@ -1034,12 +1034,12 @@ export class CarlRPGItem extends Item {
    * spent separately). If the user doesn't have enough of one, a pop-up asks whether
    * to use it anyway; using it anyway spends all they have left (it never goes below
    * 0). Cancelling stops the use and spends nothing.
-   * @returns {Promise<{note: string}|false>}  false if it was cancelled
+   * @returns {Promise<{notes: string[]}|false>}  one line for each cost; false if it was cancelled
    */
   async #payCosts() {
     const actor = this.parent;
     // (Crawlers and pets have mana; only crawlers have junk. Mobs spend nothing.)
-    if (!(actor instanceof Actor) || actor.type === 'mob') return { note: '' };
+    if (!(actor instanceof Actor) || actor.type === 'mob') return { notes: [] };
 
     const wanted = [];
     // (An upgrade can change what a skill or spell costs in Mana.)
@@ -1095,11 +1095,11 @@ export class CarlRPGItem extends Item {
       const key = entry.spent < entry.cost ? `${entry.note}Partial` : entry.note;
       notes.push(game.i18n.format(key, { spent: entry.spent, cost: entry.cost }));
     }
-    return { note: notes.join(' ') };
+    return { notes };
   }
 
   /** The roll itself: posts the description and rolls the formula, if any. */
-  async _rollCore(event, { note = '', options = {} } = {}) {
+  async _rollCore(event, { costs = [], options = {} } = {}) {
     const speaker = ChatMessage.getSpeaker({ actor: this.actor });
     const rollMode = game.settings.get('core', 'rollMode');
     // Skills, spells, gear and items head their card with their image, name and badges
@@ -1157,10 +1157,8 @@ export class CarlRPGItem extends Item {
       : description
         ? `<div class="item-description">${description}</div>`
         : '';
-    const content =
-      descBlock +
-      upgradeList +
-      (note ? `<div class="spell-cost">${note}</div>` : '');
+    // What using it cost is shown as badges (see badgeRowHtml).
+    const content = descBlock + upgradeList + badgeRowHtml(costs, 'spell-cost');
 
     // No formula: just post the description. Mobs never roll a d20 either: a
     // crawler rolls against the mob's number (see helpers/attacks.mjs).
@@ -1184,15 +1182,14 @@ export class CarlRPGItem extends Item {
     const favor = await offerAiFavor(this.actor, first);
     const roll = favor.roll;
     const rollHtml = await roll.render();
-    const notes = [optionsNote(options), favor.note].filter(Boolean).join(' ');
+    // What was chosen in the pop-up, and an AI Favor reroll, are shown as badges.
+    const notes = badgeRowHtml([...optionsParts(options), favor.note], 'roll-options');
     const messageData = {
       speaker,
       flavor: label,
       flags: cardFlags,
       rolls: [roll],
-      content: `${header}${rollHtml}${
-        notes ? `<div class="roll-options">${notes}</div>` : ''
-      }${content}`,
+      content: `${header}${rollHtml}${notes}${content}`,
       sound: CONFIG.sounds.dice,
     };
     ChatMessage.applyRollMode(messageData, rollMode);
