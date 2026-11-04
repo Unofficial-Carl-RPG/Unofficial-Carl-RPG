@@ -36,6 +36,7 @@
 import { getFloor } from './floor.mjs';
 import { applyQueuedEffect, runEvents } from './events.mjs';
 import { effectiveOf } from './upgrades.mjs';
+import { damageTypeLabel } from './damage-types.mjs';
 import { offerAiFavor } from './ai-favor.mjs';
 import { promptRoll, buildFormula, optionsNote } from './roll-dialog.mjs';
 import { badgeRowHtml } from './item-badges.mjs';
@@ -62,6 +63,15 @@ const HITS = ['critHit', 'amazing', 'success'];
 
 /** Whether an item has a damage formula. */
 const hasDamage = (item) => !!effectiveOf(item).damage?.trim();
+
+/** The heading of a damage roll: the damage, its type and whether it is Armor-Piercing. */
+function damageHeading(item, damage) {
+  const { damageType, armorPiercing } = effectiveOf(item);
+  let text = t('CARL_RPG.Attack.Damage', { damage });
+  if (damageType) text += ` ${damageTypeLabel(damageType)}`;
+  if (armorPiercing) text += ` (${t('CARL_RPG.Damage.ArmorPiercing')})`;
+  return text;
+}
 
 /** A target's Evade total. */
 export function evadeOf(actor) {
@@ -216,12 +226,14 @@ export async function resolveCheck(item, roll) {
   // What an opposed check is against, in words: a stat or the Size Class.
   const targetLabel = t(CONFIG.CARL_RPG.checkTargets[targetKey] ?? '');
   const heading = damaging
-    ? t('CARL_RPG.Attack.Damage', { damage })
+    ? damageHeading(item, damage)
     : t(`CARL_RPG.Check.Header.${type}`, { stat: targetLabel });
   const check = {
     itemName: item.name,
     type,
     damage,
+    damageType: effectiveOf(item).damageType ?? '',
+    armorPiercing: !!effectiveOf(item).armorPiercing,
     floor,
     natural,
     crit,
@@ -391,6 +403,8 @@ async function resolveMobCheck(item) {
     itemUuid: item.uuid,
     mob: true,
     targetKey,
+    damageType: effectiveOf(item).damageType ?? '',
+    armorPiercing: !!effectiveOf(item).armorPiercing,
     type,
     number,
     damage,
@@ -402,7 +416,7 @@ async function resolveMobCheck(item) {
     targets: rows,
   };
   const heading = damaging
-    ? t('CARL_RPG.Attack.Damage', { damage })
+    ? damageHeading(item, damage)
     : t(`CARL_RPG.Check.Header.${type}`, { stat: defenseLabel(targetKey) });
   await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: owner }),
@@ -683,6 +697,12 @@ const MULTIPLIERS = [
 
 import { cancelDying, dyingEffectOf } from './dying.mjs';
 
+/** How an attack's damage is applied: Armor-Piercing skips DR, and the type is passed on. */
+const hitOptions = (attack) => ({
+  ignoreDR: !!attack.armorPiercing,
+  damageType: attack.damageType ?? '',
+});
+
 /** The damage an attack does at a multiplier (halves round down). */
 const scaled = (damage, multiplier) => Math.floor(damage * multiplier);
 
@@ -701,7 +721,7 @@ async function applyAttackDamage(message, which, multiplier = 1) {
   if (which === 'current') {
     const damage = scaled(attack.damage, multiplier);
     for (const token of game.user.targets) {
-      await token.actor?.applyDamage(damage);
+      await token.actor?.applyDamage(damage, hitOptions(attack));
     }
     return;
   }
@@ -725,7 +745,7 @@ async function applyAttackDamage(message, which, multiplier = 1) {
     // Each target has its own damage (an Amazing Success adds the Floor).
     const damage = scaled(target.damage ?? attack.damage, multiplier);
     const undo = { before: actor.system.health.value, wasDying: !!dyingEffectOf(actor) };
-    await actor.applyDamage(damage);
+    await actor.applyDamage(damage, hitOptions(attack));
     // Remember what was applied, so the card can say so, and what Undo puts back.
     target.applied = true;
     target.undo = undo;

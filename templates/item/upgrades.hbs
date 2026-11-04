@@ -56,6 +56,11 @@
                 {{selectOptions @root.upgradeTargetOptions selected=change.value localize=true}}
               </select>
             {{/if}}
+            {{#if change.isDamageType}}
+              <select data-path='{{change.path}}.value'>
+                {{selectOptions @root.damageTypeOptions selected=change.value}}
+              </select>
+            {{/if}}
             {{#if change.invalid}}
               <i class='fas fa-triangle-exclamation upgrade-invalid' data-tooltip='{{localize "CARL_RPG.Upgrades.Invalid"}}'></i>
             {{/if}}

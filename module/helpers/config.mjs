@@ -276,8 +276,21 @@ CARL_RPG.upgrades = {
     manaCost: 'CARL_RPG.Upgrades.Changes.manaCost',
     rollBonus: 'CARL_RPG.Upgrades.Changes.rollBonus',
     rollTarget: 'CARL_RPG.Upgrades.Changes.rollTarget',
+    armorPiercing: 'CARL_RPG.Upgrades.Changes.armorPiercing',
+    damageType: 'CARL_RPG.Upgrades.Changes.damageType',
   },
   spellOnly: ['manaCost'],
+};
+
+/** The damage types a new world starts with (the GM edits the list in the settings). */
+CARL_RPG.defaultDamageTypes =
+  'Physical, Fire, Cold, Lightning, Poison, Acid, Necrotic, Psychic';
+
+/** How an effect can treat a damage type (see helpers/damage-types.mjs). */
+CARL_RPG.damageModes = {
+  resist: 'CARL_RPG.Damage.Modes.resist',
+  immune: 'CARL_RPG.Damage.Modes.immune',
+  vulnerable: 'CARL_RPG.Damage.Modes.vulnerable',
 };
 
 /**

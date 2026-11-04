@@ -133,6 +133,31 @@
     {{/if}}
   </div>
 
+  {{! What the effect does to damage types }}
+  <div class='effect-modifiers'>
+    <h3>{{localize 'CARL_RPG.Damage.Section'}}</h3>
+    {{#each damageMods as |mod|}}
+      <div class='modifier-row damage-mod-row' data-index='{{mod.index}}'>
+        <select class='damage-mod-mode'>
+          {{selectOptions @root.damageModeOptions selected=mod.mode localize=true}}
+        </select>
+        <select class='damage-mod-type'>
+          {{selectOptions @root.damageTypeOptions selected=mod.type}}
+        </select>
+        {{#if @root.editable}}
+          <a class='item-control' data-action='removeDamageMod' data-tooltip='{{localize "CARL_RPG.Damage.RemoveMod"}}'>
+            <i class='fas fa-trash'></i>
+          </a>
+        {{/if}}
+      </div>
+    {{/each}}
+    {{#if editable}}
+      <a class='item-control add-modifier' data-action='addDamageMod'>
+        <i class='fas fa-plus'></i> {{localize 'CARL_RPG.Damage.AddMod'}}
+      </a>
+    {{/if}}
+  </div>
+
   {{! Events that run while the effect is on }}
   <div class='effect-events'>
     <h3>{{localize 'CARL_RPG.Effect.Events'}}</h3>

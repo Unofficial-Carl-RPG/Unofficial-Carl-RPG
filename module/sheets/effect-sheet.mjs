@@ -6,6 +6,8 @@ import {
   saveEventField,
 } from '../helpers/event-editor.mjs';
 
+import { damageTypeOptions } from '../helpers/damage-types.mjs';
+
 const { HandlebarsApplicationMixin, DocumentSheetV2 } =
   foundry.applications.api;
 
@@ -29,6 +31,8 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
       editImage: this._onEditImage,
       addModifier: this._addModifier,
       removeModifier: this._removeModifier,
+      addDamageMod: this._addDamageMod,
+      removeDamageMod: this._removeDamageMod,
       approveEvents: this._approveEvents,
       // The events editor's buttons are shared (helpers/event-editor.mjs).
       ...EVENT_EDITOR_ACTIONS,
@@ -71,6 +75,11 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
       stat: change.key.split('.').pop(),
       value: change.value,
     }));
+    // What it does to damage types: resist, immune, vulnerable.
+    const { '': noType, ...typeMenu } = damageTypeOptions();
+    context.damageTypeOptions = typeMenu;
+    context.damageModeOptions = CONFIG.CARL_RPG.damageModes;
+    context.damageMods = (flags.damageMods ?? []).map((row, index) => ({ index, ...row }));
     context.enrichedDescription =
       await foundry.applications.ux.TextEditor.implementation.enrichHTML(
         effect.description ?? '',
@@ -159,6 +168,10 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
     )) {
       el.addEventListener('change', () => this.#saveModifiers());
     }
+    // So do the damage type rows; they are saved as a whole list.
+    for (const el of this.element.querySelectorAll('.damage-mod-row select')) {
+      el.addEventListener('change', () => this.#saveDamageMods());
+    }
     // The events editor's fields have no form names; they save into the stored list.
     for (const el of this.element.querySelectorAll(
       '.effect-events input[data-path], .effect-events select[data-path], .effect-events textarea[data-path]'
@@ -181,6 +194,34 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
       };
     });
     await this.document.update({ changes });
+  }
+
+  /** Save the damage type rows as the effect's `damageMods` flag. */
+  async #saveDamageMods() {
+    const rows = this.element.querySelectorAll('.damage-mod-row');
+    const damageMods = Array.from(rows).map((row) => ({
+      type: row.querySelector('.damage-mod-type').value,
+      mode: row.querySelector('.damage-mod-mode').value,
+    }));
+    await this.document.update({ [`flags.${NS}.damageMods`]: damageMods });
+  }
+
+  /** Add a damage type row (resist the first type to start with). */
+  static async _addDamageMod(event, target) {
+    event.preventDefault();
+    const first = Object.keys(damageTypeOptions()).find((id) => id) ?? '';
+    const damageMods = foundry.utils.deepClone(this.document.getFlag(NS, 'damageMods') ?? []);
+    damageMods.push({ type: first, mode: 'resist' });
+    await this.document.update({ [`flags.${NS}.damageMods`]: damageMods });
+  }
+
+  /** Remove a damage type row. */
+  static async _removeDamageMod(event, target) {
+    event.preventDefault();
+    const index = Number(target.closest('[data-index]')?.dataset.index);
+    const damageMods = foundry.utils.deepClone(this.document.getFlag(NS, 'damageMods') ?? []);
+    damageMods.splice(index, 1);
+    await this.document.update({ [`flags.${NS}.damageMods`]: damageMods });
   }
 
   /** Add a modifier row (a +1 Strength bonus to start with). */

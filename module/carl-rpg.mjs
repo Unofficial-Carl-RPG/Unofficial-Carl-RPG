@@ -12,6 +12,7 @@ import { registerCombatTracker } from './helpers/combat-tracker.mjs';
 import { CarlRPGGMTab } from './sheets/gm-tab.mjs';
 import { registerFloorSetting, getFloor } from './helpers/floor.mjs';
 import { registerHotlistRule } from './helpers/hotlist-rule.mjs';
+import { registerDamageTypes } from './helpers/damage-types.mjs';
 import { registerPartySetting, registerPartySocket } from './helpers/party.mjs';
 import { registerAnnouncements } from './helpers/announcement.mjs';
 import './helpers/chat-commands.mjs';
@@ -96,6 +97,7 @@ Hooks.once('init', function () {
   CONFIG.CARL_RPG.getFloor = getFloor;
   registerFloorSetting();
   registerHotlistRule();
+  registerDamageTypes();
 
   registerPartySetting();
   registerAnnouncements();

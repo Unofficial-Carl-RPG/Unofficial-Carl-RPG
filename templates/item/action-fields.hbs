@@ -35,6 +35,16 @@
     <div class='action-extra'>
       <label class='resource-label' for='system.damage'>{{localize 'CARL_RPG.Item.base.FIELDS.damage.label'}}</label>
       <input type='text' name='system.damage' value='{{system.damage}}' placeholder='1d6+@str.mod' />
+      <div class='damage-extra'>
+        <label class='resource-label' for='system.damageType'>{{localize 'CARL_RPG.Damage.Type'}}</label>
+        <select name='system.damageType'>
+          {{selectOptions @root.damageTypeOptions selected=system.damageType}}
+        </select>
+        <label class='damage-pierce'>
+          <input type='checkbox' name='system.armorPiercing' {{checked system.armorPiercing}} />
+          {{localize 'CARL_RPG.Damage.ArmorPiercing'}}
+        </label>
+      </div>
       <p class='hint'>{{localize 'CARL_RPG.Attack.DamageHint'}}</p>
     </div>
   {{/unless}}

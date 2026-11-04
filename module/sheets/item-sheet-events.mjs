@@ -1,3 +1,4 @@
+import { damageTypes } from '../helpers/damage-types.mjs';
 /**
  * Item sheet: the Events tab and an item's Requirements.
  */
@@ -53,6 +54,7 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
           manaCost: '-1',
           rollBonus: '1',
           rollTarget: 'evade',
+          damageType: damageTypes()[0]?.id ?? '',
         };
         foundry.utils.setProperty(
           system,

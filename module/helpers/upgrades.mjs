@@ -1,4 +1,5 @@
 import { manaCostOf } from '../data/costs.mjs';
+import { damageTypes } from './damage-types.mjs';
 /**
  * Skill, spell and pet upgrades.
  *
@@ -21,6 +22,8 @@ import { manaCostOf } from '../data/costs.mjs';
  *  - manaCost       change the mana cost (a spell; it never goes below 0)
  *  - rollBonus      add a number to the d20 roll
  *  - rollTarget     roll against something else (a key of CONFIG.CARL_RPG.checkTargets)
+ *  - armorPiercing  the damage ignores Damage Resistance (no value)
+ *  - damageType     the damage becomes this type (an id from the GM's damage types)
  */
 
 const t = (key, data) =>
@@ -96,6 +99,10 @@ export function changeProblem(change) {
       return !Number.isFinite(Number(value)) || value === '';
     case 'rollTarget':
       return !(value in CONFIG.CARL_RPG.checkTargets);
+    case 'armorPiercing':
+      return false;
+    case 'damageType':
+      return !damageTypes().some((d) => d.id === value);
     // A pet's changes.
     case 'statBonus':
       return (
@@ -120,7 +127,7 @@ export function changeProblem(change) {
  * @param {object} system  The item's system data (uses its rank, damage, check,
  *                         manaCost and upgrades)
  * @returns {{damage: string, manaCost: number, rollBonus: number,
- *   target: string, unlocked: string[]}}
+ *   target: string, damageType: string, armorPiercing: boolean, unlocked: string[]}}
  *   `unlocked` is the ids of the upgrades that have been reached.
  */
 export function computeEffective(system) {
@@ -128,6 +135,8 @@ export function computeEffective(system) {
   let manaCost = manaCostOf(system.costs, system.manaCost);
   let rollBonus = 0;
   let target = system.check?.target ?? 'unopposed';
+  let damageType = system.damageType ?? '';
+  let armorPiercing = !!system.armorPiercing;
 
   const reached = unlockedUpgrades(system);
   for (const upgrade of reached) {
@@ -153,10 +162,24 @@ export function computeEffective(system) {
         case 'rollTarget':
           target = value;
           break;
+        case 'armorPiercing':
+          armorPiercing = true;
+          break;
+        case 'damageType':
+          damageType = value;
+          break;
       }
     }
   }
-  return { damage, manaCost, rollBonus, target, unlocked: reached.map((u) => u.id) };
+  return {
+    damage,
+    manaCost,
+    rollBonus,
+    target,
+    damageType,
+    armorPiercing,
+    unlocked: reached.map((u) => u.id),
+  };
 }
 
 /**
@@ -218,6 +241,8 @@ export function effectiveOf(item) {
       manaCost: manaCostOf(system.costs, system.manaCost),
       rollBonus: 0,
       target: system.check?.target ?? 'unopposed',
+      damageType: system.damageType ?? '',
+      armorPiercing: !!system.armorPiercing,
       unlocked: [],
     }
   );
@@ -313,6 +338,16 @@ export function summarizeChanges(upgrade, effectNames = [], grantNames = []) {
         parts.push(
           t('CARL_RPG.Upgrades.Summary.rollTarget', {
             target: t(CONFIG.CARL_RPG.checkTargets[value]),
+          })
+        );
+        break;
+      case 'armorPiercing':
+        parts.push(t('CARL_RPG.Upgrades.Summary.armorPiercing'));
+        break;
+      case 'damageType':
+        parts.push(
+          t('CARL_RPG.Upgrades.Summary.damageType', {
+            type: damageTypes().find((d) => d.id === value)?.label ?? value,
           })
         );
         break;

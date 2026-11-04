@@ -1,4 +1,5 @@
 /** The Carl RPG actor: crawlers, mobs, pets, loot piles and mounts. */
+import { adjustForType, damageTypeNote } from '../helpers/damage-types.mjs';
 import { runActorEvents } from '../helpers/events.mjs';
 import { defeatMob } from '../helpers/defeat.mjs';
 import { canDie, cancelDying, hurtWhileDying, startDying } from '../helpers/dying.mjs';
@@ -104,10 +105,16 @@ export class CarlRPGActor extends Actor {
    * @param {number} amount                     Total damage before DR
    * @param {object} [options]
    * @param {boolean} [options.ignoreDR=false]  Skip damage reduction
+   * @param {string} [options.damageType='']  The damage's type; effects can halve, double or stop it
    * @returns {Promise<{amount: number, dr: number, net: number, boxes: number, value: number}>}
    */
-  async applyDamage(amount, { ignoreDR = false } = {}) {
+  async applyDamage(amount, { ignoreDR = false, damageType = '' } = {}) {
     amount = Number(amount) || 0;
+    // Effects that make the actor resist, be immune to or be vulnerable to the type.
+    const typed = adjustForType(amount, this, damageType);
+    amount = typed.amount;
+    const typeNote = damageTypeNote(typed.multiplier, this.name, damageType);
+    const withNote = (text) => (typeNote ? `${text} ${typeNote}` : text);
     // (Crawlers and pets have the 10 box health bar; mobs have set health.)
     if (this.type === 'mob') {
       // Mobs: their Damage Resistance (a set value plus the Floor) is taken off,
@@ -118,13 +125,15 @@ export class CarlRPGActor extends Actor {
       await this.update({ 'system.health.value': value });
       await ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ actor: this }),
-        content: game.i18n.format('CARL_RPG.Actor.Crawler.Header.DamageTaken', {
-          name: this.name,
-          amount,
-          dr,
-          boxes: net,
-          value,
-        }),
+        content: withNote(
+          game.i18n.format('CARL_RPG.Actor.Crawler.Header.DamageTaken', {
+            name: this.name,
+            amount,
+            dr,
+            boxes: net,
+            value,
+          })
+        ),
       });
       if (net > 0) await hurtWhileDying(this);
       if (net > 0) runActorEvents(this, 'takesDamage', { amount: net });
@@ -140,13 +149,15 @@ export class CarlRPGActor extends Actor {
 
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this }),
-      content: game.i18n.format('CARL_RPG.Actor.Crawler.Header.DamageTaken', {
-        name: this.name,
-        amount,
-        dr,
-        boxes,
-        value,
-      }),
+      content: withNote(
+        game.i18n.format('CARL_RPG.Actor.Crawler.Header.DamageTaken', {
+          name: this.name,
+          amount,
+          dr,
+          boxes,
+          value,
+        })
+      ),
     });
     if (boxes > 0) await hurtWhileDying(this);
     if (boxes > 0) runActorEvents(this, 'takesDamage', { amount: boxes });

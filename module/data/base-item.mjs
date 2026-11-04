@@ -137,6 +137,14 @@ export default class CarlRPGItemBase extends foundry.abstract
       blank: true,
       initial: '',
     });
+    // What kind of damage it is (an id from the GM's list, see helpers/damage-types.mjs;
+    // blank for none) and whether it ignores Damage Resistance.
+    schema.damageType = new fields.StringField({
+      required: true,
+      blank: true,
+      initial: '',
+    });
+    schema.armorPiercing = new fields.BooleanField({ initial: false });
 
     // Tags: plain text labels that rules can ask for (see helpers/tags.mjs).
     schema.tags = new fields.ArrayField(

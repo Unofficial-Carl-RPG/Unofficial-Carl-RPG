@@ -1,5 +1,6 @@
 import { resolveListing, restockListing } from '../helpers/store.mjs';
 import { skillStatLabel } from '../helpers/creation.mjs';
+import { damageTypeOptions } from '../helpers/damage-types.mjs';
 import { describeBadges, itemCardHeader, skillBadges } from '../helpers/item-badges.mjs';
 import {
   buildEventRows,
@@ -396,6 +397,8 @@ export class CarlRPGItemSheet extends ItemSheetBase {
     // Quantity always goes in the header, for every kind of item that has one
     // (gear, plain items and loot boxes).
     context.headerQuantity = 'quantity' in this.item.system;
+    // The damage types, for the item's damage type menu.
+    context.damageTypeOptions = damageTypeOptions();
     // The gold value: the GM always sees and sets it; a crawler sees it (read only)
     // only when an effect grants sight of values (effectModifiers.seeValues).
     context.isGM = game.user.isGM;
@@ -555,6 +558,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
             isFormula: ['damageAdd', 'damageReplace'].includes(change.type),
             isNumber: ['dieStep', 'manaCost', 'rollBonus'].includes(change.type),
             isTarget: change.type === 'rollTarget',
+            isDamageType: change.type === 'damageType',
             invalid: changeProblem(change),
           })),
           effects: context.upgradeEffects.map((effect) => ({

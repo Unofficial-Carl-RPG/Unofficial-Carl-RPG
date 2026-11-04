@@ -126,6 +126,24 @@
         "critFail": "Critical Fail"
       }
     },
+    "Damage": {
+      "Type": "Damage type",
+      "NoType": "None",
+      "ArmorPiercing": "Armor-piercing",
+      "TypesName": "Damage types",
+      "TypesHint": "Comma-separated. Items can deal one of these; effects can resist, double or stop them.",
+      "Section": "Damage types",
+      "AddMod": "Add damage type",
+      "RemoveMod": "Remove",
+      "Modes": {
+        "resist": "Resist (half)",
+        "immune": "Immune (none)",
+        "vulnerable": "Vulnerable (double)"
+      },
+      "Immune": "{name} is immune to {type} damage.",
+      "Resisted": "{name} resists {type} damage (half).",
+      "Vulnerable": "{name} is vulnerable to {type} damage (double)."
+    },
     "Hotlist": {
       "OnlyName": "Hotlist-only spells",
       "OnlyHint": "Players can only cast spells that are on their hotlist.",
@@ -1233,7 +1251,9 @@
         "dieStep": "Dice: step the size",
         "manaCost": "Mana cost: change",
         "rollBonus": "Roll: add a bonus",
-        "rollTarget": "Roll against"
+        "rollTarget": "Roll against",
+        "armorPiercing": "Armor-piercing",
+        "damageType": "Damage type"
       },
       "PetChanges": {
         "statBonus": "Stat: add a bonus",
@@ -1259,6 +1279,8 @@
         "manaCost": "Mana cost {value}",
         "rollBonus": "{value} to the roll",
         "rollTarget": "Rolls against {target}",
+        "armorPiercing": "Ignores Damage Resistance",
+        "damageType": "Deals {type} damage",
         "unlocks": "Unlocks {name}",
         "statBonus": "{value} {stat}",
         "sizeUp": "Grows {count} size(s)",
