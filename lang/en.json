@@ -925,6 +925,12 @@
         "Gear": "Starting gear",
         "GearHint": "Items a new crawler can choose from.",
         "GearPicks": "Items a crawler may pick",
+        "LaterFloors": "Later-floor starts",
+        "LaterFloorsHint": "A crawler made on one of these floors starts at this level and gold, and picks race and class at the end.",
+        "Floor": "Floor",
+        "Level": "Level",
+        "Gold": "Gold",
+        "AddFloor": "Add floor",
         "Save": "Save",
         "Saved": "Character creation defaults saved.",
         "Drop": {

@@ -1,6 +1,7 @@
 import { CarlRPGDialog } from '../helpers/dialog.mjs';
 import {
   applyCreation,
+  offerOrigins,
   getCreationDefaults,
   loadBackgrounds,
   loadSpecies,
@@ -656,6 +657,7 @@ export class CarlRPGCreationWizard extends HandlebarsApplicationMixin(
       }
       await applyCreation(this.actor, this.draft);
       await this.close();
+      await offerOrigins(this.actor);
     } catch (err) {
       console.error('carl-rpg | character creation failed', err);
       ui.notifications.error(

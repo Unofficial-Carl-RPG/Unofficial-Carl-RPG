@@ -11,6 +11,7 @@
  */
 import { sourceItems } from './sources.mjs';
 import { itemHasTag } from './tags.mjs';
+import { chooseOrigin } from './origins.mjs';
 
 const NS = 'carl-rpg';
 export const CREATION_SETTING = 'creationDefaults';
@@ -74,6 +75,15 @@ export function registerCreationSetting() {
         min: 0,
         initial: 2,
       }),
+      // Later-floor starts: a crawler made while the world is on one of these floors
+      // starts at this level and gold (see laterStart).
+      laterFloors: new fields.ArrayField(
+        new fields.SchemaField({
+          floor: new fields.NumberField({ required: true, nullable: false, integer: true, min: 1, initial: 2 }),
+          level: new fields.NumberField({ required: true, nullable: false, integer: true, min: 1, initial: 1 }),
+          gold: new fields.NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }),
+        })
+      ),
     }),
   });
   // Off by default: when on, character creation has an optional Species step for
@@ -90,6 +100,17 @@ export function registerCreationSetting() {
 /** The current creation defaults. */
 export function getCreationDefaults() {
   return game.settings.get(NS, CREATION_SETTING);
+}
+
+/**
+ * The later-floor start for a floor: the row the GM set for it, or null (a normal
+ * start). Only the world's exact floor counts.
+ * @param {object} defaults  The creation defaults
+ * @param {number} floor
+ * @returns {{floor: number, level: number, gold: number}|null}
+ */
+export function laterStart(defaults, floor) {
+  return (defaults?.laterFloors ?? []).find((row) => row.floor === floor) ?? null;
 }
 
 /** Whether the GM lets new crawlers start as a species (an optional wizard step). */
@@ -254,6 +275,7 @@ export async function planSkills(state) {
 export async function applyCreation(actor, state) {
   const planned = await planSkills(state);
   const weapon = state.weapon ? await fromUuid(state.weapon) : null;
+  const later = laterStart(getCreationDefaults(), CONFIG.CARL_RPG.getFloor());
 
   // The crawler itself. Mana starts full: it equals the enhanced Intelligence,
   // which is the chosen value (nothing else adds to it yet).
@@ -269,6 +291,11 @@ export async function applyCreation(actor, state) {
   };
   for (const [key, value] of Object.entries(state.stats)) {
     update[`system.abilities.${key}.value`] = value;
+  }
+  // Starting on a later floor: the level (which gives the stat points) and the gold.
+  if (later) {
+    update['system.attributes.level.value'] = later.level;
+    update['system.gold'] = later.gold;
   }
   for (const [key, text] of Object.entries(state.background)) {
     update[`system.background.${key}`] = text;
@@ -311,4 +338,15 @@ export async function applyCreation(actor, state) {
       name: Handlebars.escapeExpression(state.name),
     })}</div>`,
   });
+  return { later };
+}
+
+/**
+ * After creation, a crawler made on the origin floor or later picks their race and
+ * class straight away (earlier floors do it when they get there).
+ */
+export async function offerOrigins(actor) {
+  if (CONFIG.CARL_RPG.getFloor() >= CONFIG.CARL_RPG.originFloor) {
+    await chooseOrigin(actor);
+  }
 }

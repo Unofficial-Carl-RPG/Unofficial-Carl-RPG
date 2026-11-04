@@ -64,6 +64,29 @@
     <div class='drop-box' data-list='gear'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Creation.Menu.Drop.gear'}}</div>
   </section>
 
+  <section class='gm-section'>
+    <h4>{{localize 'CARL_RPG.Creation.Menu.LaterFloors'}}</h4>
+    <p class='hint'>{{localize 'CARL_RPG.Creation.Menu.LaterFloorsHint'}}</p>
+    {{#each laterRows as |row|}}
+      <div class='event-row'>
+        <label class='event-option'>
+          {{localize 'CARL_RPG.Creation.Menu.Floor'}}
+          <input type='number' class='event-value later-field' data-field='floor' data-index='{{row.index}}' value='{{row.floor}}' min='1' step='1' />
+        </label>
+        <label class='event-option'>
+          {{localize 'CARL_RPG.Creation.Menu.Level'}}
+          <input type='number' class='event-value later-field' data-field='level' data-index='{{row.index}}' value='{{row.level}}' min='1' step='1' />
+        </label>
+        <label class='event-option'>
+          {{localize 'CARL_RPG.Creation.Menu.Gold'}}
+          <input type='number' class='event-value later-field' data-field='gold' data-index='{{row.index}}' value='{{row.gold}}' min='0' step='1' />
+        </label>
+        <a class='item-control' data-action='removeEntry' data-list='laterFloors' data-index='{{row.index}}'><i class='fas fa-trash'></i></a>
+      </div>
+    {{/each}}
+    <button type='button' data-action='addFloor'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Creation.Menu.AddFloor'}}</button>
+  </section>
+
   <footer class='creation-buttons'>
     <button type='button' data-action='save'><i class='fas fa-save'></i> {{localize 'CARL_RPG.Creation.Menu.Save'}}</button>
     <button type='button' data-action='cancel'>{{localize 'Cancel'}}</button>

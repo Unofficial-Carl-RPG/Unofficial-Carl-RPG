@@ -29,6 +29,7 @@ export class CarlRPGCreationSettings extends HandlebarsApplicationMixin(
     },
     actions: {
       removeEntry: CarlRPGCreationSettings._onRemoveEntry,
+      addFloor: CarlRPGCreationSettings._onAddFloor,
       save: CarlRPGCreationSettings._onSave,
       cancel: CarlRPGCreationSettings._onCancel,
     },
@@ -77,6 +78,7 @@ export class CarlRPGCreationSettings extends HandlebarsApplicationMixin(
         index,
       }))
     );
+    context.laterRows = this.#data.laterFloors.map((row, index) => ({ ...row, index }));
     context.gearRows = await Promise.all(
       this.#data.gear.map(async (uuid, index) => ({
         ...(await name(uuid)),
@@ -112,6 +114,15 @@ export class CarlRPGCreationSettings extends HandlebarsApplicationMixin(
         if (entry) {
           entry.rank = Math.max(0, Math.floor(Number(input.value)) || 0);
         }
+      });
+    }
+    for (const input of el.querySelectorAll('.later-field')) {
+      input.addEventListener('change', () => {
+        const row = this.#data.laterFloors[Number(input.dataset.index)];
+        if (!row) return;
+        const min = input.dataset.field === 'gold' ? 0 : 1;
+        row[input.dataset.field] = Math.max(min, Math.floor(Number(input.value)) || min);
+        this.render();
       });
     }
     // Drop boxes: one per list.
@@ -157,6 +168,14 @@ export class CarlRPGCreationSettings extends HandlebarsApplicationMixin(
   static _onRemoveEntry(event, target) {
     const { list, index } = target.dataset;
     this.#data[list].splice(Number(index), 1);
+    this.render();
+  }
+
+  /** Add a later-floor row, on the next floor that has none. */
+  static _onAddFloor() {
+    const rows = this.#data.laterFloors;
+    const floor = rows.reduce((max, row) => Math.max(max, row.floor), 1) + 1;
+    rows.push({ floor, level: 1, gold: 0 });
     this.render();
   }
 
