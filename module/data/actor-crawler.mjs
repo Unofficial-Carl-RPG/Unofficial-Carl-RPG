@@ -1,3 +1,4 @@
+import { healthStatOf, statCapOf } from '../helpers/build-mods.mjs';
 import CarlRPGActorBase from './base-actor.mjs';
 
 export default class CarlRPGCrawler extends CarlRPGActorBase {
@@ -154,7 +155,10 @@ export default class CarlRPGCrawler extends CarlRPGActorBase {
     // Active effects add to the Enhanced value through `bonuses`.
     for (const key in this.abilities) {
       const bonus = this.bonuses[key] ?? 0;
-      this.abilities[key].enhanced = this.abilities[key].value + bonus;
+      // (An effect can cap a score; see helpers/build-mods.mjs.)
+      const boosted = this.abilities[key].value + bonus;
+      const capped = statCapOf(this.parent, key);
+      this.abilities[key].enhanced = capped === null ? boosted : Math.min(boosted, capped);
 
       this.abilities[key].mod = CONFIG.CARL_RPG.getStatModifier(this.abilities[key].enhanced);
 
@@ -171,6 +175,7 @@ export default class CarlRPGCrawler extends CarlRPGActorBase {
     // Evade: the Dexterity modifier plus what effects add.
     this.evade = { total: (this.abilities.dex?.mod ?? 0) + this.bonuses.evade };
     this.move.total = this.move.base + this.bonuses.move;
+    this.move.stepTotal = this.move.step + (this.bonuses.step ?? 0);
 
     // Level up points: earned from the level, spent on stats, and whether they
     // can be spent yet (only once the floor reaches the spend floor).
@@ -206,7 +211,10 @@ export default class CarlRPGCrawler extends CarlRPGActorBase {
     // crawler's CON modifier in damage, so the bar always has 10 points.
     this.health.max = 10;
     this.health.value = Math.min(Math.max(this.health.value, 0), this.health.max);
-    this.health.perBox = this.abilities.con?.mod ?? 1;
+    // (An effect can make a box worth another stat's modifier.)
+    const healthStat = healthStatOf(this.parent) ?? 'con';
+    this.health.perBox =
+      this.abilities[healthStat]?.mod ?? this.abilities.con?.mod ?? 1;
     this.health.capacity = this.health.perBox * this.health.max;
   }
 

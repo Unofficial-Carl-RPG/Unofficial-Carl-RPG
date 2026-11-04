@@ -443,7 +443,7 @@
             </div>
             <div class='defense-cell'>
               <input type='text' name='system.move.step' value='{{system.move.step}}' data-dtype='Number' />
-              <label>{{localize 'CARL_RPG.Actor.Crawler.Combat.Step'}}</label>
+              <label>{{localize 'CARL_RPG.Actor.Crawler.Combat.Step'}}{{#if system.bonuses.step}} ({{system.move.stepTotal}}){{/if}}</label>
             </div>
           </div>
         </div>

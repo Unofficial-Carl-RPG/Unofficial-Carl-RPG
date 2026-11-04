@@ -560,6 +560,28 @@ CARL_RPG.effectModifiers = {
   sortValue: { label: 'CARL_RPG.Effect.Mods.sortValue', key: 'system.bonuses.sortValue' },
   // Grants (any value above 0): skill and spell ranks can go up to 20, not 15.
   skillCap: { label: 'CARL_RPG.Effect.Mods.skillCap', key: 'system.bonuses.skillCap' },
+  // Added to a crawler's Step.
+  step: { label: 'CARL_RPG.Effect.Mods.step', key: 'system.bonuses.step' },
+};
+
+// Race and class build benefits for each stat (see helpers/build-mods.mjs): above 0 is
+// advantage on that stat's checks and skills; the other is added to the roll of every
+// skill that uses the stat.
+for (const stat of ['str', 'int', 'con', 'dex', 'cha']) {
+  const Stat = stat.charAt(0).toUpperCase() + stat.slice(1);
+  for (const kind of ['adv', 'skill']) {
+    CARL_RPG.effectModifiers[`${kind}${Stat}`] = {
+      label: `CARL_RPG.Effect.Mods.${kind}${Stat}`,
+      key: `system.bonuses.${kind}${Stat}`,
+    };
+  }
+}
+
+/** The build benefits an effect holds that need something picked (see helpers/build-mods.mjs). */
+CARL_RPG.buildKinds = {
+  checkDie: 'CARL_RPG.Build.Kinds.checkDie',
+  healthStat: 'CARL_RPG.Build.Kinds.healthStat',
+  statCap: 'CARL_RPG.Build.Kinds.statCap',
 };
 
 /** Creature sizes, smallest to largest (shared by crawlers and mobs). */

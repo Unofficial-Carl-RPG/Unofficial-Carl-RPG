@@ -33,6 +33,8 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
       removeModifier: this._removeModifier,
       addDamageMod: this._addDamageMod,
       removeDamageMod: this._removeDamageMod,
+      addBuildMod: this._addBuildMod,
+      removeBuildMod: this._removeBuildMod,
       approveEvents: this._approveEvents,
       // The events editor's buttons are shared (helpers/event-editor.mjs).
       ...EVENT_EDITOR_ACTIONS,
@@ -80,6 +82,13 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
     context.damageTypeOptions = typeMenu;
     context.damageModeOptions = CONFIG.CARL_RPG.damageModes;
     context.damageMods = (flags.damageMods ?? []).map((row, index) => ({ index, ...row }));
+    // Build benefits that need something picked: a check die, health stat, stat cap.
+    context.buildKindOptions = CONFIG.CARL_RPG.buildKinds;
+    context.buildTargetOptions = {
+      evade: 'CARL_RPG.Check.Targets.evade',
+      ...CONFIG.CARL_RPG.abilities,
+    };
+    context.buildMods = (flags.buildMods ?? []).map((row, index) => ({ index, ...row }));
     context.enrichedDescription =
       await foundry.applications.ux.TextEditor.implementation.enrichHTML(
         effect.description ?? '',
@@ -168,6 +177,12 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
     )) {
       el.addEventListener('change', () => this.#saveModifiers());
     }
+    // And the build benefit rows.
+    for (const el of this.element.querySelectorAll(
+      '.build-mod-row select, .build-mod-row input'
+    )) {
+      el.addEventListener('change', () => this.#saveBuildMods());
+    }
     // So do the damage type rows; they are saved as a whole list.
     for (const el of this.element.querySelectorAll('.damage-mod-row select')) {
       el.addEventListener('change', () => this.#saveDamageMods());
@@ -194,6 +209,34 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
       };
     });
     await this.document.update({ changes });
+  }
+
+  /** Save the build benefit rows as the effect's `buildMods` flag. */
+  async #saveBuildMods() {
+    const rows = this.element.querySelectorAll('.build-mod-row');
+    const buildMods = Array.from(rows).map((row) => ({
+      kind: row.querySelector('.build-mod-kind').value,
+      target: row.querySelector('.build-mod-target').value,
+      value: row.querySelector('.build-mod-value').value.trim(),
+    }));
+    await this.document.update({ [`flags.${NS}.buildMods`]: buildMods });
+  }
+
+  /** Add a build benefit row (a 1d4 check die against Evade to start with). */
+  static async _addBuildMod(event, target) {
+    event.preventDefault();
+    const buildMods = foundry.utils.deepClone(this.document.getFlag(NS, 'buildMods') ?? []);
+    buildMods.push({ kind: 'checkDie', target: 'evade', value: '1d4' });
+    await this.document.update({ [`flags.${NS}.buildMods`]: buildMods });
+  }
+
+  /** Remove a build benefit row. */
+  static async _removeBuildMod(event, target) {
+    event.preventDefault();
+    const index = Number(target.closest('[data-index]')?.dataset.index);
+    const buildMods = foundry.utils.deepClone(this.document.getFlag(NS, 'buildMods') ?? []);
+    buildMods.splice(index, 1);
+    await this.document.update({ [`flags.${NS}.buildMods`]: buildMods });
   }
 
   /** Save the damage type rows as the effect's `damageMods` flag. */

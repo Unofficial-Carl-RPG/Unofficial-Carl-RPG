@@ -2,6 +2,7 @@ import { CarlRPGDialog } from '../helpers/dialog.mjs';
 import { CarlRPGActiveEffect } from './active-effect.mjs';
 import { checkRequirements, runEvents } from '../helpers/events.mjs';
 import { castBlockedByHotlist } from '../helpers/hotlist-rule.mjs';
+import { applyBenefits, rollBenefits } from '../helpers/build-mods.mjs';
 import { grantLoot } from '../helpers/loot.mjs';
 import { addModifier } from '../data/action.mjs';
 import { costOf, usesCost } from '../data/costs.mjs';
@@ -834,6 +835,15 @@ export class CarlRPGItem extends Item {
     if (toCreate.length) await actor.createEmbeddedDocuments('Item', toCreate);
   }
 
+  /** The stat this item's roll uses by default (null if it uses none). */
+  async #defaultRollStat() {
+    return this.usesSkillAction
+      ? ((await this.rollingSkill())?.system.stat ?? 'str')
+      : this.system.stat && this.system.formula.includes(`@${this.system.stat}.mod`)
+        ? this.system.stat
+        : statOfFormula(this.system.formula);
+  }
+
   /**
    * Handle clickable rolls. The item's description is always posted to chat.
    * Items that have a roll formula (skills, gear) also roll it, with the
@@ -888,24 +898,26 @@ export class CarlRPGItem extends Item {
     // A click on a rolling item opens the roll pop-up (extra bonus, a different
     // stat, advantage or disadvantage); hold Shift to skip it. Rolls an event or
     // macro makes (no click) don't ask, and neither do a mob's (it never rolls).
+    const rolls = !!this.system.formula && this.actor?.type !== 'mob';
+    const defaultStat = rolls ? await this.#defaultRollStat() : null;
     let rollOptions = {};
-    if (
-      event &&
-      !event.shiftKey &&
-      depth === 0 &&
-      this.system.formula &&
-      this.actor?.type !== 'mob'
-    ) {
-      const stat = this.usesSkillAction
-        ? ((await this.rollingSkill())?.system.stat ?? 'str')
-        : this.system.stat && this.system.formula.includes(`@${this.system.stat}.mod`)
-          ? this.system.stat
-          : statOfFormula(this.system.formula);
-      const chosen = await promptRoll({ title: this.name, stat, tip: shortTextOf(this) });
+    if (event && !event.shiftKey && depth === 0 && rolls) {
+      const chosen = await promptRoll({ title: this.name, stat: defaultStat, tip: shortTextOf(this) });
       if (!chosen) return null;
       // A mistyped bonus is caught now, before any action or mana is spent.
       if (buildFormula(this.system.formula, chosen) === null) return null;
       rollOptions = chosen;
+    }
+    // The actor's build (advantage, bonuses for a stat's skills) applies to every roll,
+    // pop-up or not (see helpers/build-mods.mjs).
+    if (rolls && this.actor) {
+      rollOptions = applyBenefits(
+        rollOptions,
+        rollBenefits(this.actor, {
+          stat: rollOptions.stat || defaultStat,
+          skill: this.type === 'skill' || this.usesSkillAction,
+        })
+      );
     }
 
     // Targets are picked before anything is spent or rolled (see helpers/targeting.mjs).

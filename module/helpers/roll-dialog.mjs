@@ -141,7 +141,7 @@ export function optionsNote(options = {}) {
  * @param {{bonus?: string, stat?: string|null, mode?: string}} [options]
  * @returns {string[]}
  */
-export function optionsParts({ bonus = '', stat = null, mode = 'normal' } = {}) {
+export function optionsParts({ bonus = '', stat = null, mode = 'normal', auto = [] } = {}) {
   const parts = [];
   if (mode === 'advantage') parts.push(t('CARL_RPG.RollDialog.Advantage'));
   if (mode === 'disadvantage') parts.push(t('CARL_RPG.RollDialog.Disadvantage'));
@@ -151,5 +151,6 @@ export function optionsParts({ bonus = '', stat = null, mode = 'normal' } = {}) 
       t('CARL_RPG.RollDialog.StatNote', { stat: t(CONFIG.CARL_RPG.abilities[stat]) })
     );
   }
+  parts.push(...auto);
   return parts;
 }

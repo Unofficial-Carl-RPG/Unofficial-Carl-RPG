@@ -14,6 +14,7 @@ import {
   optionsNote,
   statOfFormula,
 } from '../helpers/roll-dialog.mjs';
+import { applyBenefits, rollBenefits } from '../helpers/build-mods.mjs';
 import { buildEventRows, EVENT_EDITOR_ACTIONS, eventOptions } from '../helpers/event-editor.mjs';
 import { changeProblem, describeUpgrades, effectKey } from '../helpers/upgrades.mjs';
 import { degreeOf, naturalD20 } from '../helpers/attacks.mjs';
@@ -1163,6 +1164,12 @@ export class CarlRPGActorSheet extends ActorSheetBase {
           })) ?? null;
         if (!options) return null;
       }
+      // The build's advantage and check dice for this stat (see helpers/build-mods.mjs).
+      const rollStat = options.stat || statOfFormula(dataset.roll);
+      options = applyBenefits(
+        options,
+        rollBenefits(this.actor, { stat: rollStat, target: rollStat })
+      );
       const formula = buildFormula(dataset.roll, options);
       if (formula === null) return null;
       const chosen = optionsNote(options);

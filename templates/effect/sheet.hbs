@@ -133,6 +133,32 @@
     {{/if}}
   </div>
 
+  {{! Build benefits that need something picked }}
+  <div class='effect-modifiers'>
+    <h3>{{localize 'CARL_RPG.Build.Section'}}</h3>
+    {{#each buildMods as |mod|}}
+      <div class='modifier-row build-mod-row' data-index='{{mod.index}}'>
+        <select class='build-mod-kind'>
+          {{selectOptions @root.buildKindOptions selected=mod.kind localize=true}}
+        </select>
+        <select class='build-mod-target'>
+          {{selectOptions @root.buildTargetOptions selected=mod.target localize=true}}
+        </select>
+        <input class='build-mod-value' type='text' value='{{mod.value}}' placeholder='{{localize "CARL_RPG.Build.Value"}}' />
+        {{#if @root.editable}}
+          <a class='item-control' data-action='removeBuildMod' data-tooltip='{{localize "CARL_RPG.Build.Remove"}}'>
+            <i class='fas fa-trash'></i>
+          </a>
+        {{/if}}
+      </div>
+    {{/each}}
+    {{#if editable}}
+      <a class='item-control add-modifier' data-action='addBuildMod'>
+        <i class='fas fa-plus'></i> {{localize 'CARL_RPG.Build.Add'}}
+      </a>
+    {{/if}}
+  </div>
+
   {{! What the effect does to damage types }}
   <div class='effect-modifiers'>
     <h3>{{localize 'CARL_RPG.Damage.Section'}}</h3>

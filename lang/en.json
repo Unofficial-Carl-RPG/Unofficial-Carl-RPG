@@ -126,6 +126,18 @@
         "critFail": "Critical Fail"
       }
     },
+    "Build": {
+      "Section": "Build benefits",
+      "Add": "Add build benefit",
+      "Remove": "Remove",
+      "Value": "Die or number",
+      "Cancelled": "Advantage and disadvantage cancel",
+      "Kinds": {
+        "checkDie": "Check die",
+        "healthStat": "Health stat",
+        "statCap": "Stat cap"
+      }
+    },
     "Damage": {
       "Type": "Damage type",
       "NoType": "None",
@@ -738,7 +750,18 @@
         "actions": "Actions per round",
         "seeValues": "Can see item values",
         "sortValue": "Can sort by value",
-        "skillCap": "Skill cap 20"
+        "skillCap": "Skill cap 20",
+        "step": "Step",
+        "advStr": "Advantage: Strength",
+        "advInt": "Advantage: Intelligence",
+        "advCon": "Advantage: Constitution",
+        "advDex": "Advantage: Dexterity",
+        "advCha": "Advantage: Charisma",
+        "skillStr": "Strength skills roll bonus",
+        "skillInt": "Intelligence skills roll bonus",
+        "skillCon": "Constitution skills roll bonus",
+        "skillDex": "Dexterity skills roll bonus",
+        "skillCha": "Charisma skills roll bonus"
       }
     },
     "Recap": {

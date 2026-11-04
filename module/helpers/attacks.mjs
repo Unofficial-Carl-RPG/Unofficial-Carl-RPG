@@ -39,6 +39,7 @@ import { effectiveOf } from './upgrades.mjs';
 import { damageTypeLabel } from './damage-types.mjs';
 import { offerAiFavor } from './ai-favor.mjs';
 import { promptRoll, buildFormula, optionsNote } from './roll-dialog.mjs';
+import { applyBenefits, rollBenefits } from './build-mods.mjs';
 import { badgeRowHtml } from './item-badges.mjs';
 
 /**
@@ -531,6 +532,12 @@ async function resolveMobTarget(message, index, skip, shift = false) {
       });
       if (!options) return;
     }
+    // The crawler's build: advantage on that stat's checks, and check dice (see helpers/build-mods.mjs).
+    const defendsWith = attack.targetKey in CONFIG.CARL_RPG.abilities ? attack.targetKey : null;
+    options = applyBenefits(
+      options,
+      rollBenefits(actor, { stat: defendsWith, target: attack.targetKey })
+    );
     const formula = buildFormula('1d20 + @mod', options);
     if (formula === null) return;
     const chosen = optionsNote(options);
