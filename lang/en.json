@@ -23,12 +23,14 @@
       "Rank": "Rank",
       "Mana": "Mana",
       "UsesLeft": "{n} left",
+      "AmmoLeft": "{name} {n}",
       "KeyName": "Quick bar item {n}"
     },
     "ChangeLog": {
       "Title": "Changes",
       "Mana": "Spent {spent} mana, {left} left",
       "Use": "Used one use, {left} left",
+      "Ammo": "Spent {spent} {name}, {left} left",
       "Actions": "Spent {spent} actions, {left} left",
       "Event": "Event: {name}"
     },
@@ -1120,6 +1122,7 @@
       "RollsWith": "Rolls with",
       "Interrupt": "Interrupt",
       "Junk": "Misc Junk",
+      "Ammo": "Ammo",
       "AlsoGrants": "Also grants"
     },
     "Pets": {
@@ -1415,6 +1418,7 @@
       "Mana": "Mana",
       "Junk": "Misc Junk",
       "Uses": "This item's uses",
+      "Ammo": "Ammunition",
       "Hint": "Spent each time it is used. An amount is a number or formula, like 1 + @int.mod. Add a most to let the user pick an amount. Uses come from the Uses settings.",
       "AmountPlaceholder": "Amount",
       "MaxPlaceholder": "Most (optional)",
@@ -1425,7 +1429,26 @@
         "No": "Cancel"
       },
       "JunkSpent": "Spent {spent} Misc Junk.",
-      "JunkSpentPartial": "Spent {spent} of {cost} Misc Junk."
+      "JunkSpentPartial": "Spent {spent} of {cost} Misc Junk.",
+      "AmmoDrop": "Drop an item",
+      "AmmoDropHint": "Drop an inventory item to spend it, or type a tag.",
+      "AmmoClear": "Clear",
+      "AmmoWrongDrop": "Only an inventory item can be ammunition.",
+      "TagPlaceholder": "Or a tag",
+      "AmmoLeftTip": "{n} {name} left",
+      "ChooseAmmo": {
+        "Title": "Choose ammunition",
+        "Content": "{item} needs {cost}. Which should it use?",
+        "Option": "{name} ({have})"
+      },
+      "NotEnoughAmmo": {
+        "Title": "Not enough ammunition",
+        "Content": "{item} needs {cost} {ammo}, but {name} only has {have}. Use it anyway and spend what is left?",
+        "Yes": "Use anyway",
+        "No": "Cancel"
+      },
+      "AmmoSpent": "Spent {spent} {name}.",
+      "AmmoSpentPartial": "Spent {spent} of {cost} {name}."
     },
     "Check": {
       "NumberLabel": "Attack number",

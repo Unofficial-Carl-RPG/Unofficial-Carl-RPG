@@ -71,6 +71,9 @@ function slotButton(item, index) {
     detail.push(`${t('CARL_RPG.QuickBar.Mana')} ${item.costLabels?.().mana || 0}`);
   }
   if (isLimited(item)) detail.push(t('CARL_RPG.QuickBar.UsesLeft', { n: usesLeft(item) }));
+  for (const ammo of item.ammoSummary ?? []) {
+    if (ammo.owned) detail.push(t('CARL_RPG.QuickBar.AmmoLeft', { name: ammo.name, n: ammo.left }));
+  }
   const info = document.createElement('small');
   info.textContent = detail.join(' · ');
   // A weapon shows the rank of the skill it rolls with, as soon as that skill is found.

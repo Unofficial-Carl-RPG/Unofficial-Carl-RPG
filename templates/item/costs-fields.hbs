@@ -2,12 +2,22 @@
 <div class='resource costs-fields'>
   <label class='resource-label'>{{localize 'CARL_RPG.Costs.Title'}}</label>
   {{#each system.costs as |cost index|}}
-    <div class='cost-row'>
+    <div class='cost-row{{#if (eq cost.resource 'ammo')}} ammo-row{{/if}}'>
       <select name='system.costs.{{index}}.resource'{{#unless @root.editable}} disabled{{/unless}}>
         <option value='mana' {{#if (eq cost.resource 'mana')}}selected{{/if}}>{{localize 'CARL_RPG.Costs.Mana'}}</option>
         <option value='junk' {{#if (eq cost.resource 'junk')}}selected{{/if}}>{{localize 'CARL_RPG.Costs.Junk'}}</option>
         <option value='uses' {{#if (eq cost.resource 'uses')}}selected{{/if}}>{{localize 'CARL_RPG.Costs.Uses'}}</option>
+        <option value='ammo' {{#if (eq cost.resource 'ammo')}}selected{{/if}}>{{localize 'CARL_RPG.Costs.Ammo'}}</option>
       </select>
+      {{#if (eq cost.resource 'ammo')}}
+        <div class='drop-target ammo-drop' data-accept='ammo' data-index='{{index}}' data-tooltip='{{localize "CARL_RPG.Costs.AmmoDropHint"}}'>
+          {{#if cost.name}}{{cost.name}}{{#if @root.editable}} <a class='item-control' data-action='clearAmmo' data-index='{{index}}' data-tooltip='{{localize "CARL_RPG.Costs.AmmoClear"}}'><i class='fas fa-xmark'></i></a>{{/if}}{{else}}{{localize 'CARL_RPG.Costs.AmmoDrop'}}{{/if}}
+        </div>
+        {{! The dropped item's name and Identifier ride along so saving the form keeps them }}
+        <input type='hidden' name='system.costs.{{index}}.name' value='{{cost.name}}' />
+        <input type='hidden' name='system.costs.{{index}}.identifier' value='{{cost.identifier}}' />
+        <input type='text' class='ammo-tag' name='system.costs.{{index}}.tag' value='{{cost.tag}}' placeholder='{{localize "CARL_RPG.Costs.TagPlaceholder"}}'{{#unless @root.editable}} disabled{{/unless}} />
+      {{/if}}
       <input type='text' class='{{#if (lookup @root.costBadAmount index)}}bad-formula{{/if}}' name='system.costs.{{index}}.amount' value='{{cost.amount}}' placeholder='{{localize "CARL_RPG.Costs.AmountPlaceholder"}}'{{#unless @root.editable}} disabled{{/unless}} />
       <input type='text' class='{{#if (lookup @root.costBadMax index)}}bad-formula{{/if}}' name='system.costs.{{index}}.max' value='{{cost.max}}' placeholder='{{localize "CARL_RPG.Costs.MaxPlaceholder"}}'{{#unless @root.editable}} disabled{{/unless}} />
       {{#if @root.editable}}

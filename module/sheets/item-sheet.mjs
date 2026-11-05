@@ -81,6 +81,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       removeEmbeddedSkill: this._removeEmbeddedSkill,
       addCost: this._addCost,
       removeCost: this._removeCost,
+      clearAmmo: this._clearAmmo,
       removeReward: this._removeReward,
       removeListing: this._removeListing,
       openStore: this._openStore,

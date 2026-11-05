@@ -130,7 +130,7 @@
 
 ## permissions
 - Limited: opens a locked sheet showing only Notes (biography); name/portrait
-- Observer: can roll from the sheet; automatic changes (mana, actions, uses, AI Favor) done through the GM client relay; cannot unlock/edit; items on actors are read-only for Observers; sees mob Evade/DR
+- Observer: can roll from the sheet; automatic changes (mana, actions, uses, ammunition Quantity going down, AI Favor) done through the GM client relay; cannot unlock/edit; items on actors are read-only for Observers; sees mob Evade/DR
 - Owner: edit mode, everything incl. gold, hotlist, notes, quests
 - GM: all
 

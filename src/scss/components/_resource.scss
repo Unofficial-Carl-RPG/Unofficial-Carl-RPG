@@ -137,6 +137,27 @@
   }
 }
 
+// An Ammunition row: the dropped item and the tag take a second line.
+.cost-row.ammo-row {
+  flex-wrap: wrap;
+
+  .ammo-drop {
+    order: 10;
+    flex: 1 1 55%;
+    min-width: 0;
+    padding: 2px 8px;
+    border: 1px dashed var(--dcc-gold);
+    border-radius: 3px;
+    opacity: 0.85;
+  }
+
+  .ammo-tag {
+    order: 10;
+    flex: 1 1 30%;
+    width: auto;
+  }
+}
+
 // A cost or targeting amount that is not a valid number or formula.
 .cost-row input.bad-formula,
 .targeting-group input.bad-formula {

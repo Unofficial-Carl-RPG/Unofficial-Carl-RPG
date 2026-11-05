@@ -1312,6 +1312,14 @@ prose-mirror,
   }
 }
 
+// The ammunition a weapon has left, after its name in the lists.
+.ammo-left {
+  margin-left: 6px;
+  color: var(--dcc-gold);
+  font-size: 0.8em;
+  white-space: nowrap;
+}
+
 // An effect that counts rounds shows how many are left.
 .effect-rounds {
   margin-left: 6px;

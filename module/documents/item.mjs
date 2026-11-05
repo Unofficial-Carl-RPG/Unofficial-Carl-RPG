@@ -29,7 +29,7 @@ import {
 } from '../helpers/roll-dialog.mjs';
 import { chooseTargets } from '../helpers/targeting.mjs';
 import { dyingEffectOf } from '../helpers/dying.mjs';
-import { logMana } from '../helpers/change-log.mjs';
+import { logAmmo, logMana } from '../helpers/change-log.mjs';
 import {
   classRoleOf,
   comboOf,
@@ -40,6 +40,16 @@ import {
 } from '../helpers/origins.mjs';
 import { actsAsClass } from '../helpers/class-combo.mjs';
 import { planEquip } from '../helpers/gear-slots.mjs';
+import {
+  ammoAmountLabel,
+  ammoHave,
+  ammoKey,
+  ammoName,
+  ammoRows,
+  ammoSpan,
+  ammoStacks,
+  largestStack,
+} from '../helpers/ammo.mjs';
 
 /** What identifies an achievement: its identifier, or its name if it has none. */
 const achievementKey = (item) => item.system.identifier?.trim() || item.name;
@@ -960,8 +970,8 @@ export class CarlRPGItem extends Item {
   /**
    * The roll data cost and targeting formulas read: the user's stats (@str.mod ...),
    * @lvl, this item's @rank, the @floor, and @cost, what is being paid (@cost is the
-   * total, @cost.mana, @cost.junk and @cost.uses each resource).
-   * @param {{mana?: number, junk?: number, uses?: number}} [paid]
+   * total, @cost.mana, @cost.junk, @cost.uses and @cost.ammo each resource).
+   * @param {{mana?: number, junk?: number, uses?: number, ammo?: number}} [paid]
    */
   costData(paid = {}) {
     const data = this.actor?.getRollData?.() ?? {};
@@ -997,6 +1007,55 @@ export class CarlRPGItem extends Item {
       junk: costLabel(costs, 'junk', data, effective.junkDelta ?? 0),
       uses: isLimited(this) ? costLabel(costs, 'uses', data, effective.usesDelta ?? 0) : '',
     };
+  }
+
+  /**
+   * What the Ammunition costs ask of the user, one entry for each: the amount (least and
+   * most) and what is spent (see helpers/ammo.mjs). Only a crawler spends ammunition:
+   * pets and mobs have no inventory.
+   * @returns {object[]}
+   */
+  ammoSpans() {
+    if (this.actor?.type !== 'crawler') return [];
+    const data = this.costData();
+    return ammoRows(this.system.costs).map(({ row, index }) => ({
+      key: ammoKey(index),
+      row,
+      name: ammoName(row),
+      ...ammoSpan(row, data),
+    }));
+  }
+
+  /**
+   * What each Ammunition cost spends and how much of it the crawler has (`left` is null
+   * and `owned` false when the item isn't on a crawler), for lists, badges and the quick bar.
+   * @returns {{name: string, need: string, left: number|null, owned: boolean}[]}
+   */
+  get ammoSummary() {
+    const rows = ammoRows(this.system?.costs);
+    if (!rows.length || this.type === 'mobAbility') return [];
+    const data = this.costData();
+    const items = this.actor?.type === 'crawler' ? this.actor.itemTypes.item : null;
+    return rows.map(({ row }) => ({
+      name: ammoName(row) || game.i18n.localize('CARL_RPG.Costs.Ammo'),
+      need: ammoAmountLabel(row, data),
+      left: items ? ammoStacks(row, items).reduce((sum, s) => sum + s.qty, 0) : null,
+      owned: !!items,
+    }));
+  }
+
+  /** The Ammunition costs with a range the user can afford more than the least of: they pick an amount. */
+  #ammoChoices(spans) {
+    return spans
+      .map((span) => ({ span, ...capSpan(span, ammoHave(span.row, this.actor.itemTypes.item)) }))
+      .filter((choice) => choice.ranged)
+      .map(({ span, min, max }) => ({
+        resource: 'ammo',
+        key: span.key,
+        label: span.name || game.i18n.localize('CARL_RPG.Costs.Ammo'),
+        min,
+        max,
+      }));
   }
 
   /** The costs with a range the user can afford more than the least of: they pick an amount. */
@@ -1070,8 +1129,10 @@ export class CarlRPGItem extends Item {
     const rolls = !!this.system.formula && this.actor?.type !== 'mob';
     const defaultStat = rolls ? await this.#defaultRollStat() : null;
     let rollOptions = {};
+    const ammo = this.ammoSpans();
     const paid = Object.fromEntries(COST_RESOURCES.map((resource) => [resource, spans[resource].min]));
-    const asks = this.#costChoices(spans);
+    for (const a of ammo) paid[a.key] = a.min;
+    const asks = [...this.#costChoices(spans), ...this.#ammoChoices(ammo)];
     const rollPopup = !!event && !event.shiftKey && depth === 0 && rolls;
     if (rollPopup || (asks.length && !event?.shiftKey)) {
       const chosen = await promptRoll({
@@ -1089,6 +1150,8 @@ export class CarlRPGItem extends Item {
         rollOptions = chosen;
       }
     }
+    // All the ammunition being spent together (what @cost.ammo reads).
+    paid.ammo = ammo.reduce((sum, a) => sum + (paid[a.key] ?? 0), 0);
     // The actor's build (advantage, bonuses for a stat's skills) applies to every roll,
     // pop-up or not (see helpers/build-mods.mjs).
     if (rolls && this.actor) {
@@ -1120,8 +1183,12 @@ export class CarlRPGItem extends Item {
       await ChatMessage.create({ whisper: ChatMessage.getWhisperRecipients('GM'), content: message });
       return null;
     }
+    // Ammunition is asked about first (nothing is spent yet), so cancelling spends nothing.
+    const ammoPlan = await this.#planAmmo(ammo, paid);
+    if (ammoPlan === false) return null;
     const mana = await this.#payCosts(paid);
     if (mana === false) return null;
+    const ammoNotes = await this.#spendAmmo(ammoPlan);
     // Both checks passed: now the action is actually spent (quietly: it isn't
     // mentioned on the chat card, only the mana is).
     await this.#spendAction(claim);
@@ -1135,7 +1202,7 @@ export class CarlRPGItem extends Item {
     await spendUse(this, paid.uses);
     const rolling = await this.#useRollingSkill();
     const result = await this._rollCore(event, {
-      costs: mana.notes,
+      costs: [...mana.notes, ...ammoNotes],
       options: rollOptions,
     });
     // A mistyped bonus: nothing was rolled, and nothing further happens.
@@ -1233,6 +1300,95 @@ export class CarlRPGItem extends Item {
     } catch (err) {
       console.warn('carl-rpg | could not spend an action', err);
     }
+  }
+
+  /**
+   * Work out which inventory items the Ammunition costs spend, asking first (nothing is
+   * spent here, so cancelling spends nothing): when several kinds have enough, which one
+   * to use; when none has enough, whether to use it anyway and spend what is left of the
+   * largest stack.
+   * @returns {Promise<{id: string|null, name: string, cost: number, spend: number}[]|false>}  false if cancelled
+   */
+  async #planAmmo(spans, paid) {
+    const actor = this.parent;
+    const plan = [];
+    if (!spans.length || actor?.type !== 'crawler') return plan;
+    const esc = Handlebars.escapeExpression;
+    const reserved = {};
+    for (const span of spans) {
+      const cost = paid[span.key] ?? 0;
+      if (cost < 1) continue;
+      const label = span.name || game.i18n.localize('CARL_RPG.Costs.Ammo');
+      const stacks = ammoStacks(span.row, actor.itemTypes.item, reserved);
+      const enough = stacks.filter((s) => s.qty >= cost);
+      let pick = enough[0] ?? null;
+      let spend = cost;
+      if (enough.length > 1) {
+        const choice = await CarlRPGDialog.wait({
+          window: { title: game.i18n.localize('CARL_RPG.Costs.ChooseAmmo.Title') },
+          content: `<p>${game.i18n.format('CARL_RPG.Costs.ChooseAmmo.Content', {
+            item: esc(this.name),
+            cost,
+          })}</p>`,
+          buttons: [
+            ...enough.map((s) => ({
+              action: s.id,
+              label: game.i18n.format('CARL_RPG.Costs.ChooseAmmo.Option', {
+                name: esc(s.name),
+                have: s.qty,
+              }),
+            })),
+            { action: 'cancel', label: game.i18n.localize('Cancel') },
+          ],
+          rejectClose: false,
+        });
+        if (!choice || choice === 'cancel') return false;
+        pick = enough.find((s) => s.id === choice) ?? null;
+      } else if (!enough.length) {
+        pick = largestStack(stacks);
+        spend = pick?.qty ?? 0;
+        const go = await CarlRPGDialog.confirm({
+          window: { title: game.i18n.localize('CARL_RPG.Costs.NotEnoughAmmo.Title') },
+          content: `<p>${game.i18n.format('CARL_RPG.Costs.NotEnoughAmmo.Content', {
+            item: esc(this.name),
+            cost,
+            ammo: esc(label),
+            name: esc(actor.name),
+            have: spend,
+          })}</p>`,
+          yes: { label: game.i18n.localize('CARL_RPG.Costs.NotEnoughAmmo.Yes') },
+          no: { label: game.i18n.localize('CARL_RPG.Costs.NotEnoughAmmo.No') },
+          rejectClose: false,
+        });
+        if (!go) return false;
+      }
+      if (pick && spend > 0) reserved[pick.id] = (reserved[pick.id] ?? 0) + spend;
+      plan.push({ id: pick?.id ?? null, name: pick?.name ?? label, cost, spend });
+    }
+    return plan;
+  }
+
+  /**
+   * Spend the ammunition worked out by #planAmmo (an Observer's change goes through the
+   * GM's client).
+   * @returns {Promise<string[]>}  one line for each cost
+   */
+  async #spendAmmo(plan) {
+    const actor = this.parent;
+    const notes = [];
+    for (const entry of plan) {
+      const stack = entry.id ? actor.items.get(entry.id) : null;
+      if (stack && entry.spend > 0) {
+        const left = Math.max(0, stack.system.quantity - entry.spend);
+        await updateWithRelay(stack, { 'system.quantity': left });
+        logAmmo(actor, entry.spend, entry.name, left);
+      }
+      const key = entry.spend < entry.cost ? 'CARL_RPG.Costs.AmmoSpentPartial' : 'CARL_RPG.Costs.AmmoSpent';
+      notes.push(
+        game.i18n.format(key, { spent: entry.spend, cost: entry.cost, name: entry.name })
+      );
+    }
+    return notes;
   }
 
   /**

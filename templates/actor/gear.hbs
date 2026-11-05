@@ -39,7 +39,7 @@
               />
             </a>
           </div>
-          <div>{{item.name}}{{#if item.usesPips.length}} <span class='uses-pips' data-tooltip='{{localize "CARL_RPG.Uses.Tooltip"}}'>{{#each item.usesPips}}<i class='fas fa-circle uses-pip {{#unless this}}spent{{/unless}}'></i>{{/each}}</span>{{/if}}</div>
+          <div>{{item.name}}{{#if item.usesPips.length}} <span class='uses-pips' data-tooltip='{{localize "CARL_RPG.Uses.Tooltip"}}'>{{#each item.usesPips}}<i class='fas fa-circle uses-pip {{#unless this}}spent{{/unless}}'></i>{{/each}}</span>{{/if}}{{#each item.ammoSummary}}{{#if owned}} <span class='ammo-left' data-tooltip='{{localize "CARL_RPG.Costs.AmmoLeftTip" name=name n=left}}'>{{name}} {{left}}</span>{{/if}}{{/each}}</div>
         </div>
         <div class='item-prop item-equipped'>
           <a

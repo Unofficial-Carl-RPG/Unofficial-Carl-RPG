@@ -14,11 +14,11 @@
 - filterSort: helpers/item-filter.mjs: filter bar above every item list on actor sheets: search (names; toggle adds descriptions), type chips (computed: skills/spells Attack|Passive|Utility, gear slot/Equipped/Weapon|Armor/Consumable, effects Buff|Debuff|Passive + Active, mob abilities Attack|Other), tag menu with All/Any, Clear. Sort: name, type, rank, mana cost, uses, slot (equipped first), manual, Value (only with sortValue). Per-person per-list, stored in the browser. Stays usable while sheet locked.
 - rowDescriptions: each row has a chevron; description collapsed by default (per person per item, localStorage); expand/collapse all in list heading; shows enriched description, upgrades with unlocked marked, key numbers line. Clicking the picture or a use button rolls; clicking the name toggles.
 - tooltip: helpers/item-tooltip.mjs itemTooltipHtml: name, badges, then Short Description (or full). Used on sheet lists, hotlist, quick bar, shop listings, store window, quests, loot boxes, achievements, mob loot, granted skills, target prompt and roll pop-up.
-- badges: helpers/item-badges.mjs describeBadges/badgeRowHtml: stat, type, damage at current rank, mana cost, range, targets/area, weapon skill + stat, DR for armor, quantity/uses. Mob ability numbers hidden from players.
+- badges: helpers/item-badges.mjs describeBadges/badgeRowHtml: stat, type, damage at current rank, mana cost, range, targets/area, weapon skill + stat, DR for armor, ammunition (name, amount, how many left), quantity/uses. Mob ability numbers hidden from players.
 
 ## quickBar
 - file: helpers/quick-bar.mjs
-- what: bar above the hotbar for the controlled crawler (hidden when none; hides the hotbar while shown): every hotlist slot (min 10, empty slots too, same size), shows rank (weapon shows its rolled skill's rank), mana cost, uses. Click uses; Shift skips the pop-up. Keys 1-9 use slots 1-9 and 0 slot 10 via Foundry keybindings quickBar<n> (rebindable); slots past 10 click-only. Re-renders on controlToken, updateActor, updateItem, createItem, deleteItem, canvasReady.
+- what: bar above the hotbar for the controlled crawler (hidden when none; hides the hotbar while shown): every hotlist slot (min 10, empty slots too, same size), shows rank (weapon shows its rolled skill's rank), mana cost, uses, ammunition left. Click uses; Shift skips the pop-up. Keys 1-9 use slots 1-9 and 0 slot 10 via Foundry keybindings quickBar<n> (rebindable); slots past 10 click-only. Re-renders on controlToken, updateActor, updateItem, createItem, deleteItem, canvasReady.
 - hotlist: crawler tab: one box per slot (system.hotlist.size), pick skill, spell, gear or inventory item from the dropdown; click rolls
 
 ## chat

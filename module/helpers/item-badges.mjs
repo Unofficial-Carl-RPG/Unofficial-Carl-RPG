@@ -95,6 +95,12 @@ export function describeBadges(item) {
   if (junk) badges.push(`${loc('CARL_RPG.Badges.Junk')} ${junk}`);
   if (sys.interrupt) badges.push(loc('CARL_RPG.Badges.Interrupt'));
 
+  // Ammunition: what a use spends and, on a crawler, how much is left.
+  for (const ammo of item.ammoSummary ?? []) {
+    const left = ammo.left === null ? '' : ` (${ammo.left})`;
+    badges.push(`${loc('CARL_RPG.Badges.Ammo')} ${ammo.name} ${ammo.need}${left}`.replace(/\s+/g, ' ').trim());
+  }
+
   // Quantity and uses, wherever the item has them.
   if (sys.quantity !== undefined && sys.quantity > 1) {
     badges.push(`${loc('CARL_RPG.Badges.Quantity')} ${sys.quantity}`);

@@ -16,10 +16,11 @@
   - targeting: {mode none|count|self|area, count formula, range string(ft|Melee|Touch|Unlimited), filter enemies|allies|any, shape circle|cone|ray|rect, size formula, lasting bool, lasts int rounds (0 until GM removes), areas formula, limit formula (0 = all), kind ''|fire|difficult|poison}
   - requirements: [{type mana|stat|gold|actions|classTag, stat, value, tag}] must hold or the item cannot be used (warns)
   - events: [event] see events section
-  - costs: [{resource mana|junk|uses, amount formula, max formula|''}] ranged when max set
+  - costs: [{resource mana|junk|uses|ammo, amount formula, max formula|'', name, identifier, tag}] ranged when max set. name/identifier/tag only matter for ammo rows (see ammunition below)
+- ammunition: a costs row with resource ammo spends a crawler's inventory items (type item only, never gear) each use. Item dropped on the row (name + Identifier saved) matches by Identifier when both have one else by name (sameItem rule); the row's tag matches any item with that tag; either matches. Fixed amount or a range (the roll pop-up asks, capped at the largest matching stack). Several ammo rows allowed, each paid on its own. Pets, mobs and unowned items spend none. Logic in helpers/ammo.mjs (pure), asking/spending in CarlRPGItem #planAmmo/#spendAmmo; ammoSpans(), ammoSummary (name, need, left, owned) feed badges, quick bar and the Gear/Inventory row counts. Ammo costs have no upgrade changes.
   - uses: {max (0 = unlimited), spent, recharge usesRecharge id, every (N for rounds), waited}
   - eventsTrusted: bool, GM-saved marker
-- amounts: targeting.count/size/areas/limit and costs.amount/max are 'amounts': number or arithmetic over roll data, no dice. Operators + - * / % ** (), functions floor ceil round abs min max, tokens @path (object path uses .total). Roll data: actor stats (@str.mod ...), @lvl, @rank, @floor, @cost, @cost.mana, @cost.junk, @cost.uses, @cost.total. Implemented in helpers/amounts.mjs (never rolls).
+- amounts: targeting.count/size/areas/limit and costs.amount/max are 'amounts': number or arithmetic over roll data, no dice. Operators + - * / % ** (), functions floor ceil round abs min max, tokens @path (object path uses .total). Roll data: actor stats (@str.mod ...), @lvl, @rank, @floor, @cost, @cost.mana, @cost.junk, @cost.uses, @cost.ammo, @cost.total (total includes ammo). Implemented in helpers/amounts.mjs (never rolls).
 
 ## sheetTabs
 - note: item-sheet.mjs _configureRenderOptions: every sheet has header, tabs, description (a Limited viewer gets only those). Then the parts below. Every type EXCEPT background also gets 'events' (events + requirements). Attribute parts are templates/item/attribute-parts/<type>.hbs.

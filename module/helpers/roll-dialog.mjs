@@ -43,8 +43,9 @@ export function statOfFormula(formula) {
  *   it doesn't use one (then the stat menu isn't shown)
  * @param {boolean} [config.rolls]    False for an item that doesn't roll: only the
  *   cost amounts are asked
- * @param {{resource: string, min: number, max: number}[]} [config.costs]  The
- *   costs the roller picks an amount for
+ * @param {{resource: string, min: number, max: number, key?: string, label?: string}[]} [config.costs]
+ *   The costs the roller picks an amount for (`key` is what the answer is filed under, `label`
+ *   what the amount is called, for ammunition)
  * @returns {Promise<{bonus: string, stat: string|null, mode: 'normal'|'advantage'|'disadvantage',
  *   costs: Object<string, number>}|null>}
  */
@@ -70,12 +71,14 @@ export async function promptRoll({ title, stat = null, tip = '', costs = [], rol
       (cost, index) => `<div class="form-group">
         <label>${esc(
           t('CARL_RPG.RollDialog.Pay', {
-            resource: t(`CARL_RPG.Costs.${cost.resource === 'junk' ? 'Junk' : cost.resource === 'uses' ? 'Uses' : 'Mana'}`),
+            resource:
+              cost.label ??
+              t(`CARL_RPG.Costs.${cost.resource === 'junk' ? 'Junk' : cost.resource === 'uses' ? 'Uses' : 'Mana'}`),
             min: cost.min,
             max: cost.max,
           })
         )}</label>
-        <input type="number" name="cost_${cost.resource}" value="${cost.min}" min="${cost.min}" max="${cost.max}" step="1"${
+        <input type="number" name="cost_${cost.key ?? cost.resource}" value="${cost.min}" min="${cost.min}" max="${cost.max}" step="1"${
           !rolls && index === 0 ? ' autofocus' : ''
         }>
       </div>`
@@ -122,8 +125,9 @@ export async function promptRoll({ title, stat = null, tip = '', costs = [], rol
   // Each amount is held to its range (a blank or mistyped one pays the least).
   const paid = {};
   for (const cost of costs) {
-    const typed = Math.floor(Number(result[`cost_${cost.resource}`]));
-    paid[cost.resource] = Number.isFinite(typed)
+    const id = cost.key ?? cost.resource;
+    const typed = Math.floor(Number(result[`cost_${id}`]));
+    paid[id] = Number.isFinite(typed)
       ? Math.min(cost.max, Math.max(cost.min, typed))
       : cost.min;
   }

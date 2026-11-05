@@ -36,6 +36,12 @@ const ALLOWED = {
       doc.system.uses?.max > 0 &&
       value === doc.system.uses.spent + 1 &&
       value <= doc.system.uses.max,
+    // Spending ammunition: an inventory item's Quantity going down (never up).
+    'system.quantity': (doc, value) =>
+      doc.type === 'item' &&
+      Number.isInteger(value) &&
+      value >= 0 &&
+      value < doc.system.quantity,
   },
   Combatant: {
     [`flags.${NS}.actionsSpent`]: (doc, value) =>

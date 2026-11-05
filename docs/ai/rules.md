@@ -13,7 +13,7 @@
   - 8 chooseTargets(item, costData) for non-mob depth 0 (mode count/area; self = no prompt)
   - 9 claim an action in combat (passive skills and depth>0 free; none left -> confirm 'use anyway')
   - 10 weapon whose skill is gone cannot roll (whispers GM)
-  - 11 pay Mana/Junk (short -> confirm; 'anyway' spends all remaining, never below 0)
+  - 11 ammunition planned first (asks, spends nothing): several matching stacks with enough -> pick one; none with enough -> 'use anyway' spends what is left of the largest stack; cancel stops the use. Then pay Mana/Junk (short -> confirm; 'anyway' spends all remaining, never below 0), then the planned ammunition is spent (item Quantity goes down, stays at 0; Observer via the GM relay)
   - 12 spend the action; Interrupt in react phase sets combatant flag interruptUsed
   - 13 spend uses
   - 14 _rollCore: card with item header (image, name, badges), short description (full expander), reached upgrades; roll posted; AI Favor reroll offered (not on nat 20/1, not to non-crawlers)
@@ -81,6 +81,7 @@
 
 - leveling: GM Level Up button (or players if setting playersCanLevel) raises level by 1 -> 3 stat points per level above 1, banked until floor>=3, then Spend Points dialog: +1 per stat, no cap. Fires Hooks 'carlrpg.levelUp'(actor, newLevel) and levelUp events.
 - advancement: skill/spell marked Can Advance: one d20 that must beat current rank; success +1. Rank <=4 any time; rank >=5 shows end-of-floor reminder and allows ONE try per floor (item flag advanceFloor = floor of last try). Capped at skillCap (15, or 20 via skillCap build row). AI Favor is not offered on advancement. Advancement rolls are not logged in recap.
+- ammunition: cost rows with resource ammo; see items-effects.md. Spent after Mana/Junk, note lines on the card, change-log line per row, @cost.ammo and @cost.total read it
 - uses: system.uses.max>0 limits uses; costs row 'uses' spends; recharge: round (each round end), rounds (every N rounds, cooldown counted by tickCooldowns, or combat end), combat, floor (floorChange), short|long|full rest (longer rests also restore shorter)
 
 ## upgrades

@@ -1,8 +1,9 @@
 
 /*
  * Costs: what an item spends when it is used. Each cost is a resource and an amount:
- * the user's Mana, the user's Misc Junk, or uses of the item itself (the item's Uses
- * settings say how many it has and when they come back).
+ * the user's Mana, the user's Misc Junk, uses of the item itself (the item's Uses
+ * settings say how many it has and when they come back), or Ammunition: inventory items
+ * used up on the user (see helpers/ammo.mjs).
  *
  * An amount is a number or a formula over roll data (see helpers/amounts.mjs), so a
  * cost can follow a stat: `@int.mod + 1`. A cost can also be a range: `amount` is the
@@ -13,6 +14,9 @@ import { evalAmount } from '../helpers/amounts.mjs';
 
 export const COST_RESOURCES = ['mana', 'junk', 'uses'];
 
+/** What a cost row can be. Ammunition rows are each paid on their own, so they aren't a resource above. */
+export const COST_ROW_KINDS = [...COST_RESOURCES, 'ammo'];
+
 /** The `costs` field for an item's data model. */
 export function costsSchema() {
   const fields = foundry.data.fields;
@@ -21,13 +25,18 @@ export function costsSchema() {
       resource: new fields.StringField({
         required: true,
         blank: false,
-        choices: COST_RESOURCES,
+        choices: COST_ROW_KINDS,
         initial: 'mana',
       }),
       // The amount, or the least of a range: a number or a formula.
       amount: new fields.StringField({ required: true, blank: false, initial: '1' }),
       // The most of a range (blank: the cost is just `amount`).
       max: new fields.StringField({ required: true, blank: true, initial: '' }),
+      // Ammunition rows: the item dropped on it (its name and Identifier), and/or a tag
+      // any inventory item may carry.
+      name: new fields.StringField({ required: true, blank: true, initial: '' }),
+      identifier: new fields.StringField({ required: true, blank: true, initial: '' }),
+      tag: new fields.StringField({ required: true, blank: true, initial: '' }),
     })
   );
 }
@@ -105,13 +114,15 @@ export function costLabel(costs, resource, data = {}, delta = 0) {
 
 /**
  * The roll data `@cost` reads: what is being paid, for each resource, and in all.
- * @param {{mana?: number, junk?: number, uses?: number}} [paid]
+ * @param {{mana?: number, junk?: number, uses?: number, ammo?: number}} [paid]  (`ammo` is all the
+ *   ammunition together)
  */
 export function costPaidData(paid = {}) {
   const mana = paid.mana ?? 0;
   const junk = paid.junk ?? 0;
   const uses = paid.uses ?? 0;
-  return { mana, junk, uses, total: mana + junk + uses };
+  const ammo = paid.ammo ?? 0;
+  return { mana, junk, uses, ammo, total: mana + junk + uses + ammo };
 }
 
 /** The total amount of one resource in a list of costs (the least it can come to). */

@@ -70,6 +70,9 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
 
   /** A drop box was dropped on: store the dropped document's UUID. */
   async _onDropTarget(zone, data) {
+    // The item an Ammunition cost spends (see ItemSheetCosts).
+    if (zone.dataset.accept === 'ammo') return this._onDropAmmo(zone, data);
+
     // A quest's reward achievement, or an achievement's reward box (below, by field).
     if (zone.dataset.accept === 'achievement') {
       const dropped = data.type === 'Item' && data.uuid ? await fromUuid(data.uuid) : null;

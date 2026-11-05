@@ -49,6 +49,8 @@ async function postAlone(actorId) {
 export const logMana = (actor, spent, left) =>
   add(actor, t('CARL_RPG.ChangeLog.Mana', { spent, left }));
 export const logUse = (actor, left) => add(actor, t('CARL_RPG.ChangeLog.Use', { left }));
+export const logAmmo = (actor, spent, name, left) =>
+  add(actor, t('CARL_RPG.ChangeLog.Ammo', { spent, name, left }));
 export const logActions = (actor, spent, left) =>
   add(actor, t('CARL_RPG.ChangeLog.Actions', { spent, left }));
 export const logEvent = (actor, name) => add(actor, t('CARL_RPG.ChangeLog.Event', { name }));
