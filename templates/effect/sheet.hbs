@@ -136,15 +136,48 @@
   {{! Build benefits that need something picked }}
   <div class='effect-modifiers'>
     <h3>{{localize 'CARL_RPG.Build.Section'}}</h3>
+    {{#if skillTagNames.length}}
+      <datalist id='carl-skill-tags'>
+        {{#each skillTagNames as |name|}}<option value='{{name}}'></option>{{/each}}
+      </datalist>
+    {{/if}}
     {{#each buildMods as |mod|}}
       <div class='modifier-row build-mod-row' data-index='{{mod.index}}'>
         <select class='build-mod-kind'>
           {{selectOptions @root.buildKindOptions selected=mod.kind localize=true}}
         </select>
-        <select class='build-mod-target'>
-          {{selectOptions @root.buildTargetOptions selected=mod.target localize=true}}
-        </select>
-        <input class='build-mod-value' type='text' value='{{mod.value}}' placeholder='{{localize "CARL_RPG.Build.Value"}}' />
+        {{#if mod.isSkillCap}}
+          {{! Skill cap: which skills and spells it covers }}
+          <select class='build-mod-target'>
+            {{selectOptions @root.skillCapScopeOptions selected=mod.target localize=true}}
+          </select>
+          {{#if mod.scopeSkill}}
+            <input type='hidden' class='build-mod-value' value='{{mod.value}}' />
+            <input type='hidden' class='build-mod-name' value='{{mod.name}}' />
+            {{#if mod.value}}
+              <div class='build-drop' data-build-index='{{mod.index}}'>
+                <span class='drop-name'>{{#if mod.name}}{{mod.name}}{{else}}{{mod.value}}{{/if}}</span>
+                {{#if @root.editable}}
+                  <a class='item-control' data-action='clearBuildSkill'><i class='fas fa-xmark'></i></a>
+                {{/if}}
+              </div>
+            {{else}}
+              {{#if @root.editable}}
+                <div class='build-drop' data-build-index='{{mod.index}}'>
+                  <span class='drop-hint'>{{localize 'CARL_RPG.Build.DropSkill'}}</span>
+                </div>
+              {{/if}}
+            {{/if}}
+          {{/if}}
+          {{#if mod.scopeTag}}
+            <input class='build-mod-value build-tag' type='text' list='carl-skill-tags' value='{{mod.value}}' placeholder='{{localize "CARL_RPG.Tags.Placeholder"}}' />
+          {{/if}}
+        {{else}}
+          <select class='build-mod-target'>
+            {{selectOptions @root.buildTargetOptions selected=mod.target localize=true}}
+          </select>
+          <input class='build-mod-value' type='text' value='{{mod.value}}' placeholder='{{localize "CARL_RPG.Build.Value"}}' />
+        {{/if}}
         {{#if @root.editable}}
           <a class='item-control' data-action='removeBuildMod' data-tooltip='{{localize "CARL_RPG.Build.Remove"}}'>
             <i class='fas fa-trash'></i>

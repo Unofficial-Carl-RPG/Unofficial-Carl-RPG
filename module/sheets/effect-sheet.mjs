@@ -6,7 +6,9 @@ import {
   saveEventField,
 } from '../helpers/event-editor.mjs';
 
+import { cleanBuildRow } from '../helpers/build-mods.mjs';
 import { damageTypeOptions } from '../helpers/damage-types.mjs';
+import { knownTags } from '../helpers/tags.mjs';
 
 const { HandlebarsApplicationMixin, DocumentSheetV2 } =
   foundry.applications.api;
@@ -35,6 +37,7 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
       removeDamageMod: this._removeDamageMod,
       addBuildMod: this._addBuildMod,
       removeBuildMod: this._removeBuildMod,
+      clearBuildSkill: this._clearBuildSkill,
       approveEvents: this._approveEvents,
       // The events editor's buttons are shared (helpers/event-editor.mjs).
       ...EVENT_EDITOR_ACTIONS,
@@ -82,13 +85,25 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
     context.damageTypeOptions = typeMenu;
     context.damageModeOptions = CONFIG.CARL_RPG.damageModes;
     context.damageMods = (flags.damageMods ?? []).map((row, index) => ({ index, ...row }));
-    // Build benefits that need something picked: a check die, health stat, stat cap.
+    // Build benefits that need something picked: a check die, health stat, stat cap,
+    // or which skills a Skill cap covers (all, one by Identifier, or by tag).
     context.buildKindOptions = CONFIG.CARL_RPG.buildKinds;
     context.buildTargetOptions = {
       evade: 'CARL_RPG.Check.Targets.evade',
       ...CONFIG.CARL_RPG.abilities,
     };
-    context.buildMods = (flags.buildMods ?? []).map((row, index) => ({ index, ...row }));
+    context.skillCapScopeOptions = CONFIG.CARL_RPG.skillCapScopes;
+    context.buildMods = (flags.buildMods ?? []).map((row, index) => ({
+      index,
+      ...row,
+      isSkillCap: row.kind === 'skillCap',
+      scopeSkill: row.kind === 'skillCap' && row.target === 'skill',
+      scopeTag: row.kind === 'skillCap' && row.target === 'tag',
+    }));
+    // Skill tags to suggest, looked up only when a row needs them.
+    context.skillTagNames = context.buildMods.some((row) => row.scopeTag)
+      ? await knownTags('skill')
+      : [];
     context.enrichedDescription =
       await foundry.applications.ux.TextEditor.implementation.enrichHTML(
         effect.description ?? '',
@@ -158,6 +173,38 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
       dropSelector: '.drop-target',
       callbacks: { drop: (event) => this.#onDrop(event) },
     }).bind(this.element);
+
+    // The skill picked for a Skill cap build benefit is dropped on its row's box.
+    // The boxes come and go as the sheet redraws, so the sheet itself listens.
+    this.element.addEventListener('dragover', (event) => {
+      if (event.target.closest?.('.build-drop')) event.preventDefault();
+    });
+    this.element.addEventListener('drop', (event) => {
+      const zone = event.target.closest?.('.build-drop');
+      if (zone) this.#onDropSkill(event, zone);
+    });
+  }
+
+  /** A skill or spell was dropped on a Skill cap row: the row covers it by Identifier. */
+  async #onDropSkill(event, zone) {
+    event.preventDefault();
+    if (!this.isEditable) return;
+    const data = foundry.applications.ux.TextEditor.implementation.getDragEventData(event);
+    const item = data.type === 'Item' && data.uuid ? await fromUuid(data.uuid) : null;
+    if (!['skill', 'spell'].includes(item?.type)) {
+      ui.notifications.warn(game.i18n.localize('CARL_RPG.Build.DropWrong'));
+      return;
+    }
+    const identifier = item.system.identifier?.trim();
+    if (!identifier) {
+      ui.notifications.warn(game.i18n.localize('CARL_RPG.Build.NoIdentifier'));
+      return;
+    }
+    const buildMods = foundry.utils.deepClone(this.document.getFlag(NS, 'buildMods') ?? []);
+    const row = buildMods[Number(zone.dataset.buildIndex)];
+    if (row?.kind !== 'skillCap') return;
+    Object.assign(row, { target: 'skill', value: identifier, name: item.name });
+    await this.document.update({ [`flags.${NS}.buildMods`]: buildMods });
   }
 
   async #onDrop(event) {
@@ -214,11 +261,28 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
   /** Save the build benefit rows as the effect's `buildMods` flag. */
   async #saveBuildMods() {
     const rows = this.element.querySelectorAll('.build-mod-row');
-    const buildMods = Array.from(rows).map((row) => ({
-      kind: row.querySelector('.build-mod-kind').value,
-      target: row.querySelector('.build-mod-target').value,
-      value: row.querySelector('.build-mod-value').value.trim(),
-    }));
+    const before = this.document.getFlag(NS, 'buildMods') ?? [];
+    const buildMods = Array.from(rows).map((row, index) =>
+      cleanBuildRow(
+        {
+          kind: row.querySelector('.build-mod-kind').value,
+          target: row.querySelector('.build-mod-target').value,
+          value: row.querySelector('.build-mod-value')?.value ?? '',
+          name: row.querySelector('.build-mod-name')?.value ?? '',
+        },
+        before[index]
+      )
+    );
+    await this.document.update({ [`flags.${NS}.buildMods`]: buildMods });
+  }
+
+  /** Forget the skill a Skill cap row covers. */
+  static async _clearBuildSkill(event, target) {
+    event.preventDefault();
+    const index = Number(target.closest('[data-index]')?.dataset.index);
+    const buildMods = foundry.utils.deepClone(this.document.getFlag(NS, 'buildMods') ?? []);
+    if (!buildMods[index]) return;
+    buildMods[index] = { kind: 'skillCap', target: 'skill', value: '' };
     await this.document.update({ [`flags.${NS}.buildMods`]: buildMods });
   }
 

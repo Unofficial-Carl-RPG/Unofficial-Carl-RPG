@@ -646,7 +646,8 @@ nav.tabs {
 // Drop boxes on the Events tab (an item, macro, effect or actor), and the
 // plain "drop an item here" boxes on the other tabs (shown only when editable).
 .drop-target,
-.drop-box {
+.drop-box,
+.build-drop {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -674,6 +675,19 @@ nav.tabs {
 .drop-box {
   justify-content: center;
   margin: 8px 0 0;
+}
+
+// The skill picked for a Skill cap build benefit, and its tag box, in the effect sheet's row.
+.build-mod-row {
+  .build-drop {
+    flex: 1;
+    margin: 0;
+  }
+
+  .build-tag {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 // ---- Loot boxes ---------------------------------------------------------

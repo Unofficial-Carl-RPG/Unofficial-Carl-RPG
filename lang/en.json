@@ -135,8 +135,17 @@
       "Kinds": {
         "checkDie": "Check die",
         "healthStat": "Health stat",
-        "statCap": "Stat cap"
-      }
+        "statCap": "Stat cap",
+        "skillCap": "Skill cap 20"
+      },
+      "Scopes": {
+        "all": "All skills and spells",
+        "skill": "One skill or spell",
+        "tag": "With a tag"
+      },
+      "DropSkill": "Drop a skill or spell",
+      "DropWrong": "Drop a skill or spell.",
+      "NoIdentifier": "That skill or spell has no Identifier."
     },
     "Damage": {
       "Type": "Damage type",
@@ -757,7 +766,6 @@
         "actions": "Actions per round",
         "seeValues": "Can see item values",
         "sortValue": "Can sort by value",
-        "skillCap": "Skill cap 20",
         "step": "Step",
         "classCombo": "Race also acts as Class",
         "advStr": "Advantage: Strength",

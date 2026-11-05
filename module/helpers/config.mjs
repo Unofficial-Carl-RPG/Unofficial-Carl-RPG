@@ -562,8 +562,6 @@ CARL_RPG.effectModifiers = {
   // Grants (any value above 0): the crawler sees item values, and can sort by them.
   seeValues: { label: 'CARL_RPG.Effect.Mods.seeValues', key: 'system.bonuses.seeValues' },
   sortValue: { label: 'CARL_RPG.Effect.Mods.sortValue', key: 'system.bonuses.sortValue' },
-  // Grants (any value above 0): skill and spell ranks can go up to 20, not 15.
-  skillCap: { label: 'CARL_RPG.Effect.Mods.skillCap', key: 'system.bonuses.skillCap' },
   // Added to a crawler's Step.
   step: { label: 'CARL_RPG.Effect.Mods.step', key: 'system.bonuses.step' },
   // Grants (any value above 0), on a race's effect: the race also acts as the crawler's
@@ -589,6 +587,14 @@ CARL_RPG.buildKinds = {
   checkDie: 'CARL_RPG.Build.Kinds.checkDie',
   healthStat: 'CARL_RPG.Build.Kinds.healthStat',
   statCap: 'CARL_RPG.Build.Kinds.statCap',
+  skillCap: 'CARL_RPG.Build.Kinds.skillCap',
+};
+
+/** Which skills and spells a Skill cap build benefit covers (see helpers/skill-cap.mjs). */
+CARL_RPG.skillCapScopes = {
+  all: 'CARL_RPG.Build.Scopes.all',
+  skill: 'CARL_RPG.Build.Scopes.skill',
+  tag: 'CARL_RPG.Build.Scopes.tag',
 };
 
 /** Creature sizes, smallest to largest (shared by crawlers and mobs). */

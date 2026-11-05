@@ -15,6 +15,9 @@
  *  - healthStat  `target` is the stat whose modifier a health box is worth, instead
  *                of Constitution (the last one wins)
  *  - statCap     `value` is the most `target` can enhance up to (the lowest wins)
+ *  - skillCap    raises the rank cap of skills and spells from 15 to 20 (see skill-cap.mjs);
+ *                `target` is the scope: `all`, `skill` (`value` is its Identifier, `name`
+ *                its name for display) or `tag` (`value` is the tag)
  * Only effects that are on count.
  */
 const NS = 'carl-rpg';
@@ -37,6 +40,32 @@ export function buildModsOf(actor) {
 
 /** Whether text is one die ("d6", "1d4"). */
 export const validDie = (text) => /^\d*d\d+$/i.test(String(text ?? '').trim());
+
+/**
+ * A build benefit row tidied for saving. A Skill cap row's target is its scope (all,
+ * skill or tag), its value the Identifier or the tag, and `name` the dropped skill's
+ * name. Any other row's target is Evade or a stat. Changing a row's kind or scope
+ * clears what no longer fits.
+ * @param {{kind: string, target?: string, value?: string, name?: string}} row
+ * @param {object|null} [before]  The row as it was saved
+ */
+export function cleanBuildRow(row, before = null) {
+  const { kind } = row;
+  const text = String(row.value ?? '').trim();
+  if (kind === 'skillCap') {
+    const scope = row.target in CONFIG.CARL_RPG.skillCapScopes ? row.target : 'all';
+    const same = before?.kind === 'skillCap' && before.target === scope;
+    const value = scope === 'all' || !same ? '' : text;
+    const name = scope === 'skill' && value ? String(row.name ?? '').trim() : '';
+    return { kind, target: scope, value, ...(name ? { name } : {}) };
+  }
+  const own = row.target === 'evade' || row.target in CONFIG.CARL_RPG.abilities;
+  return {
+    kind,
+    target: own ? row.target : 'evade',
+    value: own && before?.kind !== 'skillCap' ? text : '',
+  };
+}
 
 /** The stat a health box is worth the modifier of, or null for Constitution. */
 export function healthStatOf(actor) {

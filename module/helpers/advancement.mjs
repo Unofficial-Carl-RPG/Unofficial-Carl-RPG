@@ -50,7 +50,7 @@ export async function attemptAdvance(item) {
   const rank = item.system.rank;
   const floor = getFloor();
   // At the skill rank cap there is nothing to roll for; no try is used up.
-  const cap = skillCapOf(actor);
+  const cap = skillCapOf(actor, item);
   if (rank >= cap) {
     ui.notifications.warn(t('CARL_RPG.Advance.AtCap', { name: esc(item.name), cap }));
     return null;

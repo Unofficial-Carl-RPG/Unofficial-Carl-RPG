@@ -481,7 +481,7 @@ const HANDLERS = {
     }
     const ranks = await rollAmount(action.amount || '1');
     if (ranks < 1) return;
-    const cap = skillCapOf(actor);
+    const cap = skillCapOf(actor, doc);
     const identifier = doc.system?.identifier?.trim();
     const existing = actor.items.find(
       (i) => i.type === 'skill' && (identifier ? i.system.identifier?.trim() === identifier : i.name === doc.name)
