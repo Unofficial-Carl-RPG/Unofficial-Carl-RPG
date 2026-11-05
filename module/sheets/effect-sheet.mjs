@@ -6,7 +6,7 @@ import {
   saveEventField,
 } from '../helpers/event-editor.mjs';
 
-import { cleanBuildRow } from '../helpers/build-mods.mjs';
+import { cleanBuildRow, hasAmount, isScopedKind } from '../helpers/build-mods.mjs';
 import { damageTypeOptions } from '../helpers/damage-types.mjs';
 import { knownTags } from '../helpers/tags.mjs';
 
@@ -96,9 +96,10 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
     context.buildMods = (flags.buildMods ?? []).map((row, index) => ({
       index,
       ...row,
-      isSkillCap: row.kind === 'skillCap',
-      scopeSkill: row.kind === 'skillCap' && row.target === 'skill',
-      scopeTag: row.kind === 'skillCap' && row.target === 'tag',
+      isScoped: isScopedKind(row.kind),
+      hasAmount: hasAmount(row.kind),
+      scopeSkill: isScopedKind(row.kind) && row.target === 'skill',
+      scopeTag: isScopedKind(row.kind) && row.target === 'tag',
     }));
     // Skill tags to suggest, looked up only when a row needs them.
     context.skillTagNames = context.buildMods.some((row) => row.scopeTag)
@@ -202,7 +203,7 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
     }
     const buildMods = foundry.utils.deepClone(this.document.getFlag(NS, 'buildMods') ?? []);
     const row = buildMods[Number(zone.dataset.buildIndex)];
-    if (row?.kind !== 'skillCap') return;
+    if (!isScopedKind(row?.kind)) return;
     Object.assign(row, { target: 'skill', value: identifier, name: item.name });
     await this.document.update({ [`flags.${NS}.buildMods`]: buildMods });
   }
@@ -269,6 +270,7 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
           target: row.querySelector('.build-mod-target').value,
           value: row.querySelector('.build-mod-value')?.value ?? '',
           name: row.querySelector('.build-mod-name')?.value ?? '',
+          amount: row.querySelector('.build-mod-amount')?.value,
         },
         before[index]
       )
@@ -282,7 +284,13 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
     const index = Number(target.closest('[data-index]')?.dataset.index);
     const buildMods = foundry.utils.deepClone(this.document.getFlag(NS, 'buildMods') ?? []);
     if (!buildMods[index]) return;
-    buildMods[index] = { kind: 'skillCap', target: 'skill', value: '' };
+    const { kind, amount } = buildMods[index];
+    buildMods[index] = {
+      kind,
+      target: 'skill',
+      value: '',
+      ...(hasAmount(kind) ? { amount: amount ?? 1 } : {}),
+    };
     await this.document.update({ [`flags.${NS}.buildMods`]: buildMods });
   }
 

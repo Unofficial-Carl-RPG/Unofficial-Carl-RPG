@@ -18,6 +18,9 @@
  *  - skillCap    raises the rank cap of skills and spells from 15 to 20 (see skill-cap.mjs);
  *                `target` is the scope: `all`, `skill` (`value` is its Identifier, `name`
  *                its name for display) or `tag` (`value` is the tag)
+ *  - rankDamageBonus, rankDamageStep   move the dice of the @rankDamage scalar (see
+ *                rank-damage.mjs): `target` and `value` are the scope like Skill cap's,
+ *                `amount` a whole number (negative allowed); rows add together
  * Only effects that are on count.
  */
 const NS = 'carl-rpg';
@@ -38,11 +41,22 @@ export function buildModsOf(actor) {
   return rows;
 }
 
+/** The build benefit kinds that cover skills and spells by a scope (all, one skill or a tag). */
+export const isScopedKind = (kind) =>
+  ['skillCap', 'rankDamageBonus', 'rankDamageStep'].includes(kind);
+
+/** The kinds that also hold a whole number, `amount`. */
+export const hasAmount = (kind) => kind === 'rankDamageBonus' || kind === 'rankDamageStep';
+
+/** A row's amount: a whole number, 1 when it has none yet. */
+const amountOf = (n) => (n == null ? 1 : Math.trunc(Number(n)) || 0);
+
 /** Whether text is one die ("d6", "1d4"). */
 export const validDie = (text) => /^\d*d\d+$/i.test(String(text ?? '').trim());
 
 /**
- * A build benefit row tidied for saving. A Skill cap row's target is its scope (all,
+ * A build benefit row tidied for saving. A Skill cap, Rank damage bonus or Rank damage
+ * step row's target is its scope (all,
  * skill or tag), its value the Identifier or the tag, and `name` the dropped skill's
  * name. Any other row's target is Evade or a stat. Changing a row's kind or scope
  * clears what no longer fits.
@@ -52,18 +66,24 @@ export const validDie = (text) => /^\d*d\d+$/i.test(String(text ?? '').trim());
 export function cleanBuildRow(row, before = null) {
   const { kind } = row;
   const text = String(row.value ?? '').trim();
-  if (kind === 'skillCap') {
+  if (isScopedKind(kind)) {
     const scope = row.target in CONFIG.CARL_RPG.skillCapScopes ? row.target : 'all';
-    const same = before?.kind === 'skillCap' && before.target === scope;
+    const same = isScopedKind(before?.kind) && before.target === scope;
     const value = scope === 'all' || !same ? '' : text;
     const name = scope === 'skill' && value ? String(row.name ?? '').trim() : '';
-    return { kind, target: scope, value, ...(name ? { name } : {}) };
+    return {
+      kind,
+      target: scope,
+      value,
+      ...(name ? { name } : {}),
+      ...(hasAmount(kind) ? { amount: amountOf(row.amount) } : {}),
+    };
   }
   const own = row.target === 'evade' || row.target in CONFIG.CARL_RPG.abilities;
   return {
     kind,
     target: own ? row.target : 'evade',
-    value: own && before?.kind !== 'skillCap' ? text : '',
+    value: own && !isScopedKind(before?.kind) ? text : '',
   };
 }
 

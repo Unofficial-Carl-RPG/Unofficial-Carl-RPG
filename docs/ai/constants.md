@@ -104,7 +104,7 @@
 - defaultRanks: 5, 10, 15, 20
 - rankStep: 5
 - dieLadder: 4, 6, 8, 10, 12, 20
-- changes: damageAdd, damageReplace, dieStep, manaCost, junkCost, usesCost, rollBonus, rollTarget, armorPiercing, damageType
+- changes: damageAdd, damageReplace, dieStep, manaCost, junkCost, usesCost, rollBonus, rollTarget, armorPiercing, damageType, rankDamageBonus, rankDamageStep
 
 ## petUpgrades
 - defaultLevel: 15
@@ -115,6 +115,10 @@
 - default: 15
 - boosted: 20
 - scopes: all, skill, tag
+
+## rankDamage
+- table: rows {from, formula} in config rankDamage; rank 1 = 1, 2-3 = 1d2, 4-5 = 1d4, 6-7 = 1d6, 8-9 = 1d8, 10-11 = 1d10, 12-13 = 1d12, 14-15 = 1d8 + 1d6, 16-17 = 2d8, 18-19 = 1d10 + 1d8, 20+ = 2d10; rank 0 = nothing
+- ladder: the same rows are what a row step moves along
 
 - maxEventDepth: 5
 
@@ -135,6 +139,6 @@
 - general: no banner
 
 - soundCues: boss, natural, dying, achievement, loot
-- buildKinds: checkDie, healthStat, statCap, skillCap
+- buildKinds: checkDie, healthStat, statCap, skillCap, rankDamageBonus, rankDamageStep
 - effectModifierKeys: str, int, con, dex, cha, dr, evade, move, surprise, mana, hotlist, actions, seeValues, sortValue, step, classCombo, advStr..advCha, skillStr..skillCha
 - itemRequirementTypes: mana, stat, gold, actions, classTag

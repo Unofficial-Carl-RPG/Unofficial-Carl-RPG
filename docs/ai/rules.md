@@ -42,6 +42,12 @@
 - noTargets: unopposed check still shows result; damage applies to whatever the GM has targeted when clicked
 - crit: doubles damage dice before stats/buffs
 
+## rankDamage
+- token: @rankDamage in a damage formula = the dice for the rank (table in constants.md). Skill, spell and mobAbility read their own rank (a pet's skills: the floor); gear/item that roll with a skill read that skill's rank for both their own and the skill's damage. Anything else, rank 0 or no item = 0. File helpers/rank-damage.mjs.
+- when: expanded to plain dice right before the damage Roll: attacks.mjs resolveCheck and resolveMobCheck (expandRankDamage(effectiveOf(item).damage, item)); a weapon's joined weapon+skill damage is expanded in item.mjs #useRollingSkill with the skill. effective.damage and the sheets keep the raw token (like @str.mod).
+- moves: rank bonus (added to the rank, then the table is read) then row step (rows along the table; below the first row = nothing, past the last = 2d10). Sources: skill/spell upgrade changes rankDamageBonus / rankDamageStep (effective.rankBonus / rankStep, not applied to the stored damage) plus the owner's effect buildMods rows of the same kinds whose scope (all|skill|tag, as skillCap) covers the item; all add up. Rank 0 ignores them.
+- dice: a natural 20 doubles the dice but not the flat 1 of rank 1; dieStep upgrades do not change the rank dice; a multi-term result is wrapped in parentheses after - * /; @rankDamageX and @rankDamage.x are not the token.
+
 ## mobAttacks
 - numberToBeat: item.system.check.number + mob floor
 - vsCrawler: card row pending; crawler owner clicks Roll (pop-up; AI Favor reroll offered) = d20 + defenseModifier (Evade total | stat mod | Size Class) vs number; or skips (counts as standard Success for the attack). A player's result is relayed to the GM client (mobCheckRelay).
@@ -88,7 +94,7 @@
 - holders: skill, spell (by rank), pet (by level)
 - rule: every upgrade with rank <= current rank applies, in rank order then listed order; worked out at use/prepare time from current rank, never written (lower the rank and they vanish)
 - shape: {id, rank, description, changes[{type, value, stat}], grants[uuids, pets], unlocksEffects[identifier|name], events[]}
-- changes: damageAdd (dice/number), damageReplace, dieStep (+/- along dieLadder), manaCost/junkCost/usesCost (move both ends of a ranged cost, floor 0, adds a cost where none), rollBonus, rollTarget (checkTargets id), armorPiercing, damageType
+- changes: damageAdd (dice/number), damageReplace, dieStep (+/- along dieLadder), manaCost/junkCost/usesCost (move both ends of a ranged cost, floor 0, adds a cost where none), rollBonus, rollTarget (checkTargets id), armorPiercing, damageType, rankDamageBonus/rankDamageStep (whole numbers, see rankDamage)
 - ui: sheet description lists all upgrades (locked dimmed), chat card lists only unlocked, Attributes tab shows effective values at current rank. Default new ranks 5,10,15,20 (rank editable, any number).
 
 ## targeting

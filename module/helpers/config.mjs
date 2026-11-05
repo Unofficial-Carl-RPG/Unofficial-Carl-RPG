@@ -281,9 +281,30 @@ CARL_RPG.upgrades = {
     rollTarget: 'CARL_RPG.Upgrades.Changes.rollTarget',
     armorPiercing: 'CARL_RPG.Upgrades.Changes.armorPiercing',
     damageType: 'CARL_RPG.Upgrades.Changes.damageType',
+    rankDamageBonus: 'CARL_RPG.Upgrades.Changes.rankDamageBonus',
+    rankDamageStep: 'CARL_RPG.Upgrades.Changes.rankDamageStep',
   },
   spellOnly: [],
 };
+
+/**
+ * The dice `@rankDamage` becomes in a damage formula, by rank (see helpers/rank-damage.mjs).
+ * Each row starts at `from` and runs to the next row's start (rank 1 is a flat +1, 2-3 is
+ * 1d2, ... 20 is 2d10). The rows are also the ladder a "row step" moves along.
+ */
+CARL_RPG.rankDamage = [
+  { from: 1, formula: '1' },
+  { from: 2, formula: '1d2' },
+  { from: 4, formula: '1d4' },
+  { from: 6, formula: '1d6' },
+  { from: 8, formula: '1d8' },
+  { from: 10, formula: '1d10' },
+  { from: 12, formula: '1d12' },
+  { from: 14, formula: '1d8 + 1d6' },
+  { from: 16, formula: '2d8' },
+  { from: 18, formula: '1d10 + 1d8' },
+  { from: 20, formula: '2d10' },
+];
 
 /** The damage types a new world starts with (the GM edits the list in the settings). */
 CARL_RPG.defaultDamageTypes =
@@ -589,6 +610,8 @@ CARL_RPG.buildKinds = {
   healthStat: 'CARL_RPG.Build.Kinds.healthStat',
   statCap: 'CARL_RPG.Build.Kinds.statCap',
   skillCap: 'CARL_RPG.Build.Kinds.skillCap',
+  rankDamageBonus: 'CARL_RPG.Build.Kinds.rankDamageBonus',
+  rankDamageStep: 'CARL_RPG.Build.Kinds.rankDamageStep',
 };
 
 /** Which skills and spells a Skill cap build benefit covers (see helpers/skill-cap.mjs). */

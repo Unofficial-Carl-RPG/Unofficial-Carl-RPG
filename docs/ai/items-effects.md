@@ -10,7 +10,7 @@
   - tags: [string] case-insensitive; classes also have categories which count as tags
   - interrupt: bool; using it in the react phase marks the combatant's interruptUsed flag (bolt icon on tracker)
   - check: {target checkTargets id init unopposed, number int (mob checks)}
-  - damage: number or dice formula e.g. '1d6+@str.mod'; blank = no damage
+  - damage: number or dice formula e.g. '1d6+@str.mod'; blank = no damage; @rankDamage = the dice for the rank (see rules rankDamage)
   - damageType: id from the world damage type list or ''
   - armorPiercing: bool; damage ignores DR
   - targeting: {mode none|count|self|area, count formula, range string(ft|Melee|Touch|Unlimited), filter enemies|allies|any, shape circle|cone|ray|rect, size formula, lasting bool, lasts int rounds (0 until GM removes), areas formula, limit formula (0 = all), kind ''|fire|difficult|poison}
@@ -136,7 +136,7 @@
 - lastsUntil: ''|short|long|full|combat
 - rounds / roundsLeft: duration in rounds, counted down when Cleanup starts; effect then switched off with chat note; count starts when switched on
 - tier: deity tier section this effect belongs to
-- buildMods: [{kind checkDie|healthStat|statCap|skillCap, target, value, name?}]
+- buildMods: [{kind checkDie|healthStat|statCap|skillCap|rankDamageBonus|rankDamageStep, target, value, name?, amount? (rankDamage kinds only)}]
 - damageMods: [{type damage-type id, mode resist(half)|immune(none)|vulnerable(double)}]
 - dead / dying: markers for the Dead (permanent) and Dying effects
 
@@ -147,6 +147,7 @@
 - healthStat: target stat whose modifier a health box is worth instead of CON (last wins)
 - statCap: highest enhanced value for target stat (lowest wins)
 - skillCap: raise rank cap 15 -> 20; target scope all|skill (value = identifier)|tag (value = tag); highest matching row wins
+- rankDamageBonus|rankDamageStep: same scope as skillCap (helpers/build-mods.mjs isScopedKind) plus amount (whole number, negative ok, new rows start at 1); bonus is added to the rank @rankDamage reads, step moves rows along its table; every covering row of every effect that is on adds up (see rules rankDamage)
 
 - locks: An effect named in a skill/spell/pet upgrade's unlocksEffects is suppressed until that rank/level (lockedUntilRank).
 - statusEffects: Dying (rounds left), Dead (permanent, skull overlay), Minor Injury (-2 all stats), Major Injury (-5)

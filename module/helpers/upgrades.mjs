@@ -27,6 +27,8 @@ import { damageTypes } from './damage-types.mjs';
  *  - rollTarget     roll against something else (a key of CONFIG.CARL_RPG.checkTargets)
  *  - armorPiercing  the damage ignores Damage Resistance (no value)
  *  - damageType     the damage becomes this type (an id from the GM's damage types)
+ *  - rankDamageBonus  add to the rank that @rankDamage is read at (see rank-damage.mjs)
+ *  - rankDamageStep   move @rankDamage that many rows along its table
  */
 
 const t = (key, data) =>
@@ -101,6 +103,8 @@ export function changeProblem(change) {
     case 'junkCost':
     case 'usesCost':
     case 'rollBonus':
+    case 'rankDamageBonus':
+    case 'rankDamageStep':
       return !Number.isFinite(Number(value)) || value === '';
     case 'rollTarget':
       return !(value in CONFIG.CARL_RPG.checkTargets);
@@ -132,6 +136,7 @@ export function changeProblem(change) {
  * @param {object} system  The item's system data (uses its rank, damage, check,
  *                         manaCost and upgrades)
  * @returns {{damage: string, manaCost: number, rollBonus: number,
+ *   rankBonus: number, rankStep: number,
  *   target: string, damageType: string, armorPiercing: boolean, unlocked: string[]}}
  *   `unlocked` is the ids of the upgrades that have been reached.
  */
@@ -144,6 +149,9 @@ export function computeEffective(system) {
   let junkDelta = 0;
   let usesDelta = 0;
   let rollBonus = 0;
+  // What the upgrades move @rankDamage by (see rank-damage.mjs).
+  let rankBonus = 0;
+  let rankStep = 0;
   let target = system.check?.target ?? 'unopposed';
   let damageType = system.damageType ?? '';
   let armorPiercing = !!system.armorPiercing;
@@ -185,6 +193,12 @@ export function computeEffective(system) {
         case 'damageType':
           damageType = value;
           break;
+        case 'rankDamageBonus':
+          rankBonus += Math.trunc(Number(value));
+          break;
+        case 'rankDamageStep':
+          rankStep += Math.trunc(Number(value));
+          break;
       }
     }
   }
@@ -195,6 +209,8 @@ export function computeEffective(system) {
     junkDelta,
     usesDelta,
     rollBonus,
+    rankBonus,
+    rankStep,
     target,
     damageType,
     armorPiercing,
@@ -263,6 +279,8 @@ export function effectiveOf(item) {
       junkDelta: 0,
       usesDelta: 0,
       rollBonus: 0,
+      rankBonus: 0,
+      rankStep: 0,
       target: system.check?.target ?? 'unopposed',
       damageType: system.damageType ?? '',
       armorPiercing: !!system.armorPiercing,
@@ -372,6 +390,12 @@ export function summarizeChanges(upgrade, effectNames = [], grantNames = []) {
         break;
       case 'armorPiercing':
         parts.push(t('CARL_RPG.Upgrades.Summary.armorPiercing'));
+        break;
+      case 'rankDamageBonus':
+        parts.push(t('CARL_RPG.Upgrades.Summary.rankDamageBonus', { value: signed(n) }));
+        break;
+      case 'rankDamageStep':
+        parts.push(t('CARL_RPG.Upgrades.Summary.rankDamageStep', { value: signed(n) }));
         break;
       case 'damageType':
         parts.push(

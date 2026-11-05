@@ -146,7 +146,7 @@
         <select class='build-mod-kind'>
           {{selectOptions @root.buildKindOptions selected=mod.kind localize=true}}
         </select>
-        {{#if mod.isSkillCap}}
+        {{#if mod.isScoped}}
           {{! Skill cap: which skills and spells it covers }}
           <select class='build-mod-target'>
             {{selectOptions @root.skillCapScopeOptions selected=mod.target localize=true}}
@@ -171,6 +171,9 @@
           {{/if}}
           {{#if mod.scopeTag}}
             <input class='build-mod-value build-tag' type='text' list='carl-skill-tags' value='{{mod.value}}' placeholder='{{localize "CARL_RPG.Tags.Placeholder"}}' />
+          {{/if}}
+          {{#if mod.hasAmount}}
+            <input class='build-mod-amount' type='number' step='1' value='{{mod.amount}}' data-tooltip='{{localize "CARL_RPG.Build.Amount"}}' />
           {{/if}}
         {{else}}
           <select class='build-mod-target'>

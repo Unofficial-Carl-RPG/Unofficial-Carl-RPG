@@ -133,12 +133,15 @@
       "Add": "Add build benefit",
       "Remove": "Remove",
       "Value": "Die or number",
+      "Amount": "Whole number, can be negative",
       "Cancelled": "Advantage and disadvantage cancel",
       "Kinds": {
         "checkDie": "Check die",
         "healthStat": "Health stat",
         "statCap": "Stat cap",
-        "skillCap": "Skill cap 20"
+        "skillCap": "Skill cap 20",
+        "rankDamageBonus": "Rank damage: rank bonus",
+        "rankDamageStep": "Rank damage: row step"
       },
       "Scopes": {
         "all": "All skills and spells",
@@ -1316,7 +1319,9 @@
         "rollBonus": "Roll: add a bonus",
         "rollTarget": "Roll against",
         "armorPiercing": "Armor-piercing",
-        "damageType": "Damage type"
+        "damageType": "Damage type",
+        "rankDamageBonus": "Rank damage: rank bonus",
+        "rankDamageStep": "Rank damage: row step"
       },
       "PetChanges": {
         "statBonus": "Stat: add a bonus",
@@ -1346,6 +1351,8 @@
         "rollTarget": "Rolls against {target}",
         "armorPiercing": "Ignores Damage Resistance",
         "damageType": "Deals {type} damage",
+        "rankDamageBonus": "{value} rank for rank damage",
+        "rankDamageStep": "Rank damage {value} row(s)",
         "unlocks": "Unlocks {name}",
         "statBonus": "{value} {stat}",
         "sizeUp": "Grows {count} size(s)",
@@ -1473,7 +1480,7 @@
       "Working": "Making a change for a player..."
     },
     "Attack": {
-      "DamageHint": "A number or dice formula, e.g. 1d6+@str.mod. Leave blank for no damage.",
+      "DamageHint": "A number or dice formula, e.g. 1d6+@str.mod. @rankDamage adds the dice for the rank. Blank is no damage.",
       "BadDamage": "{name}'s damage isn't a valid number or dice formula.",
       "Damage": "Damage: {damage}",
       "Evade": "Evade {evade}",

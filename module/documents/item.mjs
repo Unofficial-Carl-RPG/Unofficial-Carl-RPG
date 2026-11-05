@@ -16,6 +16,7 @@ import {
 import { getFloor } from '../helpers/floor.mjs';
 import { resolveCheck } from '../helpers/attacks.mjs';
 import { describeUpgrades, effectiveOf } from '../helpers/upgrades.mjs';
+import { expandRankDamage } from '../helpers/rank-damage.mjs';
 import { badgeRowHtml, itemCardHeader, shortTextOf } from '../helpers/item-badges.mjs';
 import { offerAiFavor } from '../helpers/ai-favor.mjs';
 import { isLimited, spendUse, usesLeft } from '../helpers/uses.mjs';
@@ -831,7 +832,11 @@ export class CarlRPGItem extends Item {
       sys.action?.modifier
     );
     const skillDamage = (skill.system.effective?.damage ?? '').trim();
-    sys.damage = [String(saved.damage ?? '').trim(), skillDamage].filter(Boolean).join(' + ');
+    // @rankDamage in the weapon's damage or in the skill's reads the skill's rank.
+    sys.damage = expandRankDamage(
+      [String(saved.damage ?? '').trim(), skillDamage].filter(Boolean).join(' + '),
+      skill
+    );
     return {
       skill,
       restore: () => {

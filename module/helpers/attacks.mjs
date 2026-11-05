@@ -36,6 +36,7 @@
 import { getFloor } from './floor.mjs';
 import { applyQueuedEffect, runEvents } from './events.mjs';
 import { effectiveOf } from './upgrades.mjs';
+import { expandRankDamage } from './rank-damage.mjs';
 import { damageTypeLabel } from './damage-types.mjs';
 import { offerAiFavor } from './ai-favor.mjs';
 import { promptRoll, buildFormula, optionsNote } from './roll-dialog.mjs';
@@ -187,7 +188,10 @@ export async function resolveCheck(item, roll) {
   let damage = null;
   if (damaging) {
     try {
-      damageRoll = new Roll(effectiveOf(item).damage, owner?.getRollData() ?? {});
+      damageRoll = new Roll(
+        expandRankDamage(effectiveOf(item).damage, item),
+        owner?.getRollData() ?? {}
+      );
       if (crit) damageRoll = damageRoll.alter(2, 0);
       await damageRoll.evaluate();
       damage = Math.max(0, Math.floor(damageRoll.total));
@@ -355,7 +359,7 @@ async function resolveMobCheck(item) {
   if (damaging) {
     try {
       damageRoll = await new Roll(
-        effectiveOf(item).damage,
+        expandRankDamage(effectiveOf(item).damage, item),
         owner?.getRollData() ?? {}
       ).evaluate();
       damage = Math.max(0, Math.floor(damageRoll.total));
