@@ -83,18 +83,20 @@ export default class CarlRPGItemBase extends foundry.abstract
     // use), up to a number of targets, the user only, or an area.
     schema.targeting = new fields.SchemaField({
       mode: new fields.StringField({ required: true, blank: false, initial: 'none', choices: ['none', 'count', 'self', 'area'] }),
-      count: new fields.NumberField({ required: true, nullable: false, integer: true, min: 1, initial: 1 }),
+      // How many (targets, areas, tokens): a number or a formula over roll data and
+      // `@cost` (see helpers/amounts.mjs).
+      count: new fields.StringField({ required: true, blank: false, initial: '1' }),
       range: new fields.StringField({ required: true, blank: true, initial: '' }),
       filter: new fields.StringField({ required: true, blank: false, initial: 'any', choices: ['enemies', 'allies', 'any'] }),
       shape: new fields.StringField({ required: true, blank: false, initial: 'circle', choices: ['circle', 'cone', 'ray', 'rect'] }),
-      size: new fields.NumberField({ required: true, nullable: false, min: 0, initial: 10 }),
+      size: new fields.StringField({ required: true, blank: false, initial: '10' }),
       // A lasting area stays on the map; it lasts this many rounds (0: until the GM removes it).
       lasting: new fields.BooleanField({ initial: false }),
       lasts: new fields.NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }),
       // How many areas one use places (each is placed in turn).
-      areas: new fields.NumberField({ required: true, nullable: false, integer: true, min: 1, initial: 1 }),
+      areas: new fields.StringField({ required: true, blank: false, initial: '1' }),
       // The most tokens an area targets (0: all of them).
-      limit: new fields.NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }),
+      limit: new fields.StringField({ required: true, blank: false, initial: '0' }),
       kind: new fields.StringField({ required: true, blank: true, initial: '', choices: ['', 'fire', 'difficult', 'poison'] }),
     });
     // A short version for chat cards and tooltips (blank means use the full text).
@@ -244,6 +246,13 @@ export default class CarlRPGItemBase extends foundry.abstract
       };
     }
     migrateCosts(source);
+    // Targets, areas, the area limit and the area size used to be numbers; they are
+    // text now (a number or a formula).
+    for (const key of ['count', 'size', 'areas', 'limit']) {
+      if (typeof source.targeting?.[key] === 'number') {
+        source.targeting[key] = String(source.targeting[key]);
+      }
+    }
     return super.migrateData(source);
   }
 }

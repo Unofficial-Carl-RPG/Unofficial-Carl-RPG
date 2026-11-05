@@ -249,7 +249,7 @@ function embedNumbers(doc) {
   if (doc.type === 'skill') {
     rows.push([loc('Stat'), String(doc.system.stat ?? '').toUpperCase()], [loc('Rank'), doc.system.rank ?? 0]);
   }
-  if (doc.type === 'spell') rows.push([loc('Mana'), doc.system.manaCost ?? 0]);
+  if (doc.type === 'spell') rows.push([loc('Mana'), doc.costLabels?.().mana || 0]);
   if (doc.type === 'gear') rows.push([loc('DR'), doc.system.dr ?? 0]);
   if (doc.system?.damage) rows.push([loc('Damage'), doc.system.damage]);
   if (isGM() && doc.system?.value !== undefined) rows.push([loc('Value'), doc.system.value]);

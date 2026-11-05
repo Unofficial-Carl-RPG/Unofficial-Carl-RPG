@@ -486,6 +486,11 @@ export class CarlRPGActorSheet extends ActorSheetBase {
         .map((i) => [i.id, true])
     );
 
+    // What each spell costs in Mana, as text (it can be a range or follow a stat).
+    context.spellMana = Object.fromEntries(
+      this.actor.items.filter((i) => i.type === 'spell').map((i) => [i.id, i.costLabels().mana || 0])
+    );
+
     // The Size menu shows each size with its Size Class number, like "Medium (4)".
     context.sizeOptions = CONFIG.CARL_RPG.sizeOptions();
 

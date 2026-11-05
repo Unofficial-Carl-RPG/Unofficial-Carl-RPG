@@ -23,6 +23,7 @@ import { ItemSheetEmbeddedSkills } from './item-sheet-skills.mjs';
 import { ItemSheetEvents } from './item-sheet-events.mjs';
 import { ItemSheetTags } from './item-sheet-tags.mjs';
 import { ItemSheetCosts } from './item-sheet-costs.mjs';
+import { validAmount } from '../helpers/amounts.mjs';
 import { ItemSheetUpgrades } from './item-sheet-upgrades.mjs';
 import { ItemSheetStoreQuestLoot } from './item-sheet-store-quest-loot.mjs';
 import { ItemSheetDrops } from './item-sheet-drops.mjs';
@@ -588,8 +589,8 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       context.effective = {
         damage: effective?.damage ?? '',
         damageChanged: (effective?.damage ?? '') !== (system.damage ?? ''),
-        manaCost: effective?.manaCost ?? 0,
-        manaChanged: isSpell && (effective?.manaCost ?? 0) !== (system.manaCost ?? 0),
+        manaCost: this.item.costLabels().mana || 0,
+        manaChanged: isSpell && (effective?.manaDelta ?? 0) !== 0,
         targetChanged: (effective?.target ?? '') !== (system.check?.target ?? ''),
         target: cfg.checkTargets[effective?.target],
         rollBonus: effective?.rollBonus ?? 0,
@@ -656,6 +657,18 @@ export class CarlRPGItemSheet extends ItemSheetBase {
         })
       );
     }
+
+    // Costs and targeting amounts are numbers or formulas; ones that can't be read are flagged.
+    context.costBadAmount = (this.item.system.costs ?? []).map((c) => !validAmount(c.amount));
+    context.costBadMax = (this.item.system.costs ?? []).map(
+      (c) => !!String(c.max ?? '').trim() && !validAmount(c.max)
+    );
+    context.badTargeting = Object.fromEntries(
+      ['count', 'size', 'areas', 'limit'].map((key) => [
+        key,
+        !validAmount(this.item.system.targeting?.[key]),
+      ])
+    );
 
     return context;
   }

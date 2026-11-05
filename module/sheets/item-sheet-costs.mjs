@@ -7,7 +7,7 @@ export const ItemSheetCosts = (Base) => class ItemSheetCosts extends Base {
   static async _addCost() {
     if (!this.item.isOwner) return;
     const costs = this.item.toObject().system.costs ?? [];
-    await this.item.update({ 'system.costs': [...costs, { resource: 'mana', amount: 1 }] });
+    await this.item.update({ 'system.costs': [...costs, { resource: 'mana', amount: '1', max: '' }] });
   }
 
   /** Remove the cost row of the clicked button. */

@@ -384,3 +384,16 @@ test('a new crawler starts with a Move of 20 and a Step of 10, 2 actions, and ma
   assert.equal(crawler.system.actions.max, 3);
   assert.equal(crawler.system.mana.max, 8); // Int 6 plus 2 from effects
 });
+
+test('mana cost changes add up to a delta, whatever the costs are (formulas, ranges)', () => {
+  const system = {
+    rank: 5,
+    costs: [{ resource: 'mana', amount: '@int.mod', max: '@int.mod + 2' }],
+    upgrades: [
+      { id: 'a', rank: 5, changes: [{ type: 'manaCost', value: '-1' }] },
+      { id: 'b', rank: 5, changes: [{ type: 'manaCost', value: '3' }] },
+    ],
+  };
+  assert.equal(computeEffective(system).manaDelta, 2);
+  assert.equal(computeEffective({ rank: 1, costs: [], upgrades: [] }).manaDelta, 0);
+});

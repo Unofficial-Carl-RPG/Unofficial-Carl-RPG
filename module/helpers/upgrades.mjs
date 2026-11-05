@@ -133,6 +133,9 @@ export function changeProblem(change) {
 export function computeEffective(system) {
   let damage = String(system.damage ?? '');
   let manaCost = manaCostOf(system.costs, system.manaCost);
+  // What the upgrades add to the Mana cost in all (a cost that is a formula or a range
+  // can't be worked out here, so it is shifted when it is used: see costSpans).
+  let manaDelta = 0;
   let rollBonus = 0;
   let target = system.check?.target ?? 'unopposed';
   let damageType = system.damageType ?? '';
@@ -155,6 +158,7 @@ export function computeEffective(system) {
           break;
         case 'manaCost':
           manaCost = Math.max(0, manaCost + Math.trunc(Number(value)));
+          manaDelta += Math.trunc(Number(value));
           break;
         case 'rollBonus':
           rollBonus += Math.trunc(Number(value));
@@ -174,6 +178,7 @@ export function computeEffective(system) {
   return {
     damage,
     manaCost,
+    manaDelta,
     rollBonus,
     target,
     damageType,
@@ -239,6 +244,7 @@ export function effectiveOf(item) {
     system.effective ?? {
       damage: String(system.damage ?? ''),
       manaCost: manaCostOf(system.costs, system.manaCost),
+      manaDelta: 0,
       rollBonus: 0,
       target: system.check?.target ?? 'unopposed',
       damageType: system.damageType ?? '',

@@ -1,3 +1,4 @@
+
 /**
  * The roll pop-up.
  *
@@ -9,6 +10,9 @@
  *  - change which stat the roll uses (when the roll uses one), and
  *  - roll with advantage (two d20, keep the highest) or disadvantage (two d20,
  *    keep the lowest).
+ *
+ * An item with a ranged cost (see data/costs.mjs) also asks how much to pay, in the same
+ * pop-up; an item that doesn't roll gets the pop-up with just those amounts.
  *
  * `promptRoll` asks; `buildFormula` turns the answers into the formula that is
  * rolled; `optionsNote` says what was chosen, for the chat card.
@@ -37,9 +41,14 @@ export function statOfFormula(formula) {
  * @param {string} config.title       The pop-up's title (what is being rolled)
  * @param {string|null} [config.stat] The stat the roll uses by default, or null if
  *   it doesn't use one (then the stat menu isn't shown)
- * @returns {Promise<{bonus: string, stat: string|null, mode: 'normal'|'advantage'|'disadvantage'}|null>}
+ * @param {boolean} [config.rolls]    False for an item that doesn't roll: only the
+ *   cost amounts are asked
+ * @param {{resource: string, min: number, max: number}[]} [config.costs]  The
+ *   costs the roller picks an amount for
+ * @returns {Promise<{bonus: string, stat: string|null, mode: 'normal'|'advantage'|'disadvantage',
+ *   costs: Object<string, number>}|null>}
  */
-export async function promptRoll({ title, stat = null, tip = '' }) {
+export async function promptRoll({ title, stat = null, tip = '', costs = [], rolls = true }) {
   const abilities = CONFIG.CARL_RPG.abilities;
   const statMenu = stat
     ? `<div class="form-group">
@@ -56,13 +65,29 @@ export async function promptRoll({ title, stat = null, tip = '' }) {
       </div>`
     : '';
 
-  const content = `<div class="carl-roll-dialog">
-    ${tip ? `<p class="roll-tip">${esc(tip)}</p>` : ''}
-    <div class="form-group">
+  const costFields = costs
+    .map(
+      (cost, index) => `<div class="form-group">
+        <label>${esc(
+          t('CARL_RPG.RollDialog.Pay', {
+            resource: t(`CARL_RPG.Costs.${cost.resource === 'junk' ? 'Junk' : cost.resource === 'uses' ? 'Uses' : 'Mana'}`),
+            min: cost.min,
+            max: cost.max,
+          })
+        )}</label>
+        <input type="number" name="cost_${cost.resource}" value="${cost.min}" min="${cost.min}" max="${cost.max}" step="1"${
+          !rolls && index === 0 ? ' autofocus' : ''
+        }>
+      </div>`
+    )
+    .join('');
+
+  const rollFields = rolls
+    ? `<div class="form-group">
       <label>${esc(t('CARL_RPG.RollDialog.Bonus'))}</label>
       <input type="text" name="bonus" placeholder="${esc(
         t('CARL_RPG.RollDialog.BonusPlaceholder')
-      )}" autofocus>
+      )}"${costs.length ? '' : ' autofocus'}>
     </div>
     ${statMenu}
     <div class="form-group">
@@ -72,25 +97,41 @@ export async function promptRoll({ title, stat = null, tip = '' }) {
         <option value="advantage">${esc(t('CARL_RPG.RollDialog.Advantage'))}</option>
         <option value="disadvantage">${esc(t('CARL_RPG.RollDialog.Disadvantage'))}</option>
       </select>
-    </div>
+    </div>`
+    : '';
+
+  const content = `<div class="carl-roll-dialog">
+    ${tip ? `<p class="roll-tip">${esc(tip)}</p>` : ''}
+    ${costFields}
+    ${rollFields}
   </div>`;
 
   const result = await CarlRPGDialog.prompt({
     window: { title },
     content,
     ok: {
-      label: t('CARL_RPG.RollDialog.Roll'),
-      icon: 'fa-solid fa-dice-d20',
+      label: rolls ? t('CARL_RPG.RollDialog.Roll') : t('CARL_RPG.RollDialog.Use'),
+      icon: rolls ? 'fa-solid fa-dice-d20' : 'fa-solid fa-wand-sparkles',
       callback: (event, button) =>
         new foundry.applications.ux.FormDataExtended(button.form).object,
     },
     rejectClose: false,
   });
   if (!result) return null;
+
+  // Each amount is held to its range (a blank or mistyped one pays the least).
+  const paid = {};
+  for (const cost of costs) {
+    const typed = Math.floor(Number(result[`cost_${cost.resource}`]));
+    paid[cost.resource] = Number.isFinite(typed)
+      ? Math.min(cost.max, Math.max(cost.min, typed))
+      : cost.min;
+  }
   return {
     bonus: String(result.bonus ?? '').trim(),
     stat: result.stat || null,
     mode: result.mode || 'normal',
+    costs: paid,
   };
 }
 

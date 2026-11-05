@@ -62,7 +62,7 @@
             {{/if}}
           </div>
         {{/unless}}
-        <div class='item-prop'>{{item.system.effective.manaCost}}</div>
+        <div class='item-prop'>{{lookup @root.spellMana item.id}}</div>
         <div class='item-controls'>
           <a
             class='item-control item-edit'

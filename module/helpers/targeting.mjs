@@ -5,9 +5,14 @@
  *
  * The prompt stays open while the player clicks tokens on the map, and shows how
  * many are picked against the limit. Range is checked against the controlled token.
+ *
+ * The number of targets, the number of areas, an area's size and the number it can hold
+ * are each a number or a formula over the user's roll data and what was paid (@cost);
+ * see helpers/amounts.mjs.
  */
 import { CarlRPGDialog } from './dialog.mjs';
 import { applyQueuedEffect } from './events.mjs';
+import { wholeAmount } from './amounts.mjs';
 
 const t = (key, data) => (data ? game.i18n.format(key, data) : game.i18n.localize(key));
 
@@ -58,13 +63,14 @@ function listHtml(cfg, src, limit) {
  * Ask the player to pick the tokens an item affects. Only items that target a
  * number of tokens ask; the rest go straight on.
  * @param {CarlRPGItem} item
+ * @param {object} [data]  The roll data the formulas read (item.costData(paid))
  * @returns {Promise<boolean>} false if the player cancelled
  */
-export async function chooseTargets(item) {
+export async function chooseTargets(item, data = item.costData?.() ?? {}) {
   const cfg = item.system.targeting;
-  if (cfg?.mode === 'area') return chooseArea(item);
+  if (cfg?.mode === 'area') return chooseArea(item, data);
   if (cfg?.mode !== 'count') return true;
-  const limit = Math.max(1, Number(cfg.count) || 1);
+  const limit = wholeAmount(cfg.count, data, { min: 1, fallback: 1 });
   const src = sourceToken();
   const root = { el: null, dialog: null };
 
@@ -137,18 +143,22 @@ export async function chooseTargets(item) {
  * cleared again. Escape cancels the rest. Players who can't create templates get a
  * warning; the GM places it.
  * @param {CarlRPGItem} item
+ * @param {object} [data]  The roll data the formulas read
  * @returns {Promise<boolean>} false if cancelled or not allowed
  */
-export async function chooseArea(item) {
-  const total = Math.max(1, Number(item.system.targeting.areas) || 1);
+export async function chooseArea(item, data = item.costData?.() ?? {}) {
+  const cfg = item.system.targeting;
+  const total = wholeAmount(cfg.areas, data, { min: 1, fallback: 1 });
+  const size = wholeAmount(cfg.size, data, { min: 0, fallback: 0 });
+  const limit = wholeAmount(cfg.limit, data, { min: 0, fallback: 0 });
   for (let n = 1; n <= total; n++) {
-    if (!(await placeOneArea(item, n, total))) return false;
+    if (!(await placeOneArea(item, n, total, { size, limit }))) return false;
   }
   return true;
 }
 
 /** Place one area with the template tool (see chooseArea). */
-function placeOneArea(item, n, total) {
+function placeOneArea(item, n, total, { size, limit }) {
   const cfg = item.system.targeting;
   if (!game.user.can('TEMPLATE_CREATE')) {
     ui.notifications.warn(t('CARL_RPG.Targeting.NoTemplatePermission'));
@@ -172,13 +182,11 @@ function placeOneArea(item, n, total) {
     const onCreate = async (doc, options, userId) => {
       if (userId !== game.user.id) return;
       // The item's size sets how far the area reaches; the player places its origin.
-      const size = Number(cfg.size) || 0;
       if (size > 0) await doc.update({ distance: size });
       const area = doc.object ?? canvas.templates.get(doc.id);
       const inside = canvas.tokens.placeables.filter(
         (tok) => tok.visible && matchesFilter(tok, cfg.filter) && area?.testPoint(tok.center)
       );
-      const limit = Number(cfg.limit) || 0;
       const picked = limit > 0 ? inside.slice(0, limit) : inside;
       const ids = new Set([...game.user.targets.map((tk) => tk.id), ...picked.map((tok) => tok.id)]);
       await game.user.updateTokenTargets([...ids]);
@@ -193,7 +201,7 @@ function placeOneArea(item, n, total) {
             kind: cfg.kind || '',
             itemUuid: item.uuid,
             filter: cfg.filter,
-            limit: cfg.limit,
+            limit,
           },
         });
       } else {

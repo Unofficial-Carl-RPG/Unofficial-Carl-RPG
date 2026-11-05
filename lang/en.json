@@ -225,6 +225,7 @@
       "ModeArea": "Area",
       "Hint": "Chosen before the item is used.",
       "Count": "Number of targets",
+      "FormulaHint": "A number or formula, like 1 + @int.mod. @cost is what was spent (@cost.mana, @cost.junk, @cost.uses).",
       "Range": "Range (feet)",
       "RangeHint": "A number of feet, or melee, touch or unlimited.",
       "Filter": "Affects",
@@ -1016,6 +1017,8 @@
       "Advantage": "Advantage",
       "Disadvantage": "Disadvantage",
       "Roll": "Roll",
+      "Use": "Use",
+      "Pay": "{resource} to spend ({min}-{max})",
       "Invalid": "\"{bonus}\" isn't a valid bonus. Use a number or dice formula such as +2, -1 or 1d4.",
       "BonusNote": "{bonus} bonus",
       "StatNote": "using {stat}"
@@ -1393,7 +1396,9 @@
       "Mana": "Mana",
       "Junk": "Misc Junk",
       "Uses": "This item's uses",
-      "Hint": "Spent each time it is used. Uses come from the Uses settings.",
+      "Hint": "Spent each time it is used. An amount is a number or formula, like 1 + @int.mod. Add a most to let the user pick an amount. Uses come from the Uses settings.",
+      "AmountPlaceholder": "Amount",
+      "MaxPlaceholder": "Most (optional)",
       "NotEnoughJunk": {
         "Title": "Not enough Misc Junk",
         "Content": "{item} costs {cost} Misc Junk, but {name} only has {have}. Use it anyway and spend what is left?",

@@ -132,9 +132,16 @@
   }
 
   input {
-    flex: 0 0 70px;
-    width: 70px;
+    flex: 0 0 84px;
+    width: 84px;
   }
+}
+
+// A cost or targeting amount that is not a valid number or formula.
+.cost-row input.bad-formula,
+.targeting-group input.bad-formula {
+  border-color: var(--dcc-danger-bright);
+  color: var(--dcc-danger-bright);
 }
 
 // Personal tab: room between its sections.

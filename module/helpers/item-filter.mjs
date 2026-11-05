@@ -126,7 +126,7 @@ function compareRows(sort, a, b) {
     case 'value':
       return (a.item.system.value ?? 0) - (b.item.system.value ?? 0) || byName;
     case 'mana':
-      return (a.item.system.manaCost ?? 0) - (b.item.system.manaCost ?? 0) || byName;
+      return (a.item.costSpans?.().mana.min ?? 0) - (b.item.costSpans?.().mana.min ?? 0) || byName;
     case 'uses': {
       const x = usesLeft(a.item);
       const y = usesLeft(b.item);

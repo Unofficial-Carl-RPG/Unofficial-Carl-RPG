@@ -5,12 +5,20 @@ import { castBlockedByHotlist } from '../helpers/hotlist-rule.mjs';
 import { applyBenefits, rollBenefits } from '../helpers/build-mods.mjs';
 import { grantLoot } from '../helpers/loot.mjs';
 import { addModifier } from '../data/action.mjs';
-import { costOf, usesCost } from '../data/costs.mjs';
+import {
+  COST_RESOURCES,
+  capSpan,
+  costLabel,
+  costPaidData,
+  costSpan,
+  shiftSpan,
+} from '../data/costs.mjs';
+import { getFloor } from '../helpers/floor.mjs';
 import { resolveCheck } from '../helpers/attacks.mjs';
 import { describeUpgrades, effectiveOf } from '../helpers/upgrades.mjs';
 import { badgeRowHtml, itemCardHeader, shortTextOf } from '../helpers/item-badges.mjs';
 import { offerAiFavor } from '../helpers/ai-favor.mjs';
-import { spendUse, usesLeft } from '../helpers/uses.mjs';
+import { isLimited, spendUse, usesLeft } from '../helpers/uses.mjs';
 import { declareInsteadOfUsing } from '../helpers/declarations.mjs';
 import { updateWithRelay } from '../helpers/relay.mjs';
 import {
@@ -850,6 +858,58 @@ export class CarlRPGItem extends Item {
   }
 
   /**
+   * The roll data cost and targeting formulas read: the user's stats (@str.mod ...),
+   * @lvl, this item's @rank, the @floor, and @cost, what is being paid (@cost is the
+   * total, @cost.mana, @cost.junk and @cost.uses each resource).
+   * @param {{mana?: number, junk?: number, uses?: number}} [paid]
+   */
+  costData(paid = {}) {
+    const data = this.actor?.getRollData?.() ?? {};
+    return { ...data, rank: this.system.rank ?? 0, floor: getFloor(), cost: costPaidData(paid) };
+  }
+
+  /**
+   * What using this item asks for in each resource: the least and most it can cost
+   * (see data/costs.mjs). A mob spends no Mana or Junk.
+   * @returns {{mana: object, junk: object, uses: object}}
+   */
+  costSpans() {
+    const none = { min: 0, max: 0, known: true, ranged: false };
+    const data = this.costData();
+    const costs = this.system.costs;
+    const mob = this.actor?.type === 'mob';
+    return {
+      // (An upgrade can change what a skill or spell costs in Mana.)
+      mana: mob ? none : shiftSpan(costSpan(costs, 'mana', data), effectiveOf(this).manaDelta ?? 0),
+      junk: mob ? none : costSpan(costs, 'junk', data),
+      uses: isLimited(this) ? costSpan(costs, 'uses', data) : none,
+    };
+  }
+
+  /** What each resource costs as text: "2", "1-3", or the formula itself when it can't be worked out yet. */
+  costLabels() {
+    const data = this.costData();
+    const costs = this.system.costs;
+    return {
+      mana: costLabel(costs, 'mana', data, effectiveOf(this).manaDelta ?? 0),
+      junk: costLabel(costs, 'junk', data),
+      uses: isLimited(this) ? costLabel(costs, 'uses', data) : '',
+    };
+  }
+
+  /** The costs with a range the user can afford more than the least of: they pick an amount. */
+  #costChoices(spans) {
+    const have = {
+      mana: this.actor?.system?.mana?.value ?? 0,
+      junk: this.actor?.system?.junk ?? 0,
+      uses: usesLeft(this),
+    };
+    return COST_RESOURCES.map((resource) => ({ resource, ...capSpan(spans[resource], have[resource]) }))
+      .filter((cost) => cost.ranged)
+      .map(({ resource, min, max }) => ({ resource, min, max }));
+  }
+
+  /**
    * Handle clickable rolls. The item's description is always posted to chat.
    * Items that have a roll formula (skills, gear) also roll it, with the
    * description shown alongside the roll. Items without one (spells, plain
@@ -887,7 +947,8 @@ export class CarlRPGItem extends Item {
     // The item can be blocked from being used (not enough mana, ...).
     if (!checkRequirements(this)) return null;
     // An item with a limit on its uses needs one left (see helpers/uses.mjs).
-    const usesNeeded = usesCost(this);
+    const spans = this.costSpans();
+    const usesNeeded = spans.uses.min;
     if (usesNeeded && usesLeft(this) < usesNeeded) {
       ui.notifications.warn(
         game.i18n.format('CARL_RPG.Uses.NoneLeft', {
@@ -900,18 +961,31 @@ export class CarlRPGItem extends Item {
       return null;
     }
 
-    // A click on a rolling item opens the roll pop-up (extra bonus, a different
-    // stat, advantage or disadvantage); hold Shift to skip it. Rolls an event or
-    // macro makes (no click) don't ask, and neither do a mob's (it never rolls).
+    // A click opens the roll pop-up (extra bonus, a different stat, advantage or
+    // disadvantage, and how much to pay for a cost with a range); hold Shift to skip
+    // it and pay the least. Rolls an event or macro makes (no click) don't ask about the
+    // roll, and neither do a mob's (it never rolls), but a cost with a range still asks.
     const rolls = !!this.system.formula && this.actor?.type !== 'mob';
     const defaultStat = rolls ? await this.#defaultRollStat() : null;
     let rollOptions = {};
-    if (event && !event.shiftKey && depth === 0 && rolls) {
-      const chosen = await promptRoll({ title: this.name, stat: defaultStat, tip: shortTextOf(this) });
+    const paid = Object.fromEntries(COST_RESOURCES.map((resource) => [resource, spans[resource].min]));
+    const asks = this.#costChoices(spans);
+    const rollPopup = !!event && !event.shiftKey && depth === 0 && rolls;
+    if (rollPopup || (asks.length && !event?.shiftKey)) {
+      const chosen = await promptRoll({
+        title: this.name,
+        stat: rollPopup ? defaultStat : null,
+        tip: shortTextOf(this),
+        costs: asks,
+        rolls: rollPopup,
+      });
       if (!chosen) return null;
-      // A mistyped bonus is caught now, before any action or mana is spent.
-      if (buildFormula(this.system.formula, chosen) === null) return null;
-      rollOptions = chosen;
+      Object.assign(paid, chosen.costs);
+      if (rollPopup) {
+        // A mistyped bonus is caught now, before any action or mana is spent.
+        if (buildFormula(this.system.formula, chosen) === null) return null;
+        rollOptions = chosen;
+      }
     }
     // The actor's build (advantage, bonuses for a stat's skills) applies to every roll,
     // pop-up or not (see helpers/build-mods.mjs).
@@ -925,8 +999,11 @@ export class CarlRPGItem extends Item {
       );
     }
 
-    // Targets are picked before anything is spent or rolled (see helpers/targeting.mjs).
-    if (depth === 0 && this.actor?.type !== 'mob' && !(await chooseTargets(this))) return null;
+    // Targets are picked before anything is spent or rolled, once the amounts to pay are
+    // known (a target count can follow them; see helpers/targeting.mjs).
+    if (depth === 0 && this.actor?.type !== 'mob' && !(await chooseTargets(this, this.costData(paid)))) {
+      return null;
+    }
 
     // In combat, using it takes an action (asking first if there are none left).
     const claim = await this.#claimAction(depth, declared);
@@ -941,7 +1018,7 @@ export class CarlRPGItem extends Item {
       await ChatMessage.create({ whisper: ChatMessage.getWhisperRecipients('GM'), content: message });
       return null;
     }
-    const mana = await this.#payCosts();
+    const mana = await this.#payCosts(paid);
     if (mana === false) return null;
     // Both checks passed: now the action is actually spent (quietly: it isn't
     // mentioned on the chat card, only the mana is).
@@ -953,7 +1030,7 @@ export class CarlRPGItem extends Item {
         await updateWithRelay(claim.combatant, { 'flags.carl-rpg.interruptUsed': true });
       }
     }
-    await spendUse(this, usesNeeded);
+    await spendUse(this, paid.uses);
     const rolling = await this.#useRollingSkill();
     const result = await this._rollCore(event, {
       costs: mana.notes,
@@ -1057,20 +1134,20 @@ export class CarlRPGItem extends Item {
   }
 
   /**
-   * What the item spends from its user when used: Mana and Misc Junk costs (uses are
+   * What the item spends from its user when used: the Mana and Misc Junk amounts picked (uses are
    * spent separately). If the user doesn't have enough of one, a pop-up asks whether
    * to use it anyway; using it anyway spends all they have left (it never goes below
    * 0). Cancelling stops the use and spends nothing.
    * @returns {Promise<{notes: string[]}|false>}  one line for each cost; false if it was cancelled
    */
-  async #payCosts() {
+  async #payCosts(paid) {
     const actor = this.parent;
     // (Crawlers and pets have mana; only crawlers have junk. Mobs spend nothing.)
     if (!(actor instanceof Actor) || actor.type === 'mob') return { notes: [] };
 
     const wanted = [];
     // (An upgrade can change what a skill or spell costs in Mana.)
-    const mana = effectiveOf(this).manaCost;
+    const mana = paid.mana;
     if (mana && actor.system.mana) {
       wanted.push({
         path: 'system.mana.value',
@@ -1081,7 +1158,7 @@ export class CarlRPGItem extends Item {
         log: logMana,
       });
     }
-    const junk = costOf(this.system.costs, 'junk');
+    const junk = paid.junk;
     if (junk && actor.type === 'crawler') {
       wanted.push({
         path: 'system.junk',

@@ -55,7 +55,7 @@ export function crawlerSummaryText(actor) {
   heading(loc('Spells'));
   for (const spell of items('spell')) {
     lines.push(
-      `${spell.name} ${loc('Rank')} ${spell.system.rank ?? 0}, ${spell.system.manaCost ?? 0} ${loc('Mana')}`
+      `${spell.name} ${loc('Rank')} ${spell.system.rank ?? 0}, ${spell.costLabels?.().mana || 0} ${loc('Mana')}`
     );
   }
 

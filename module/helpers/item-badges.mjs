@@ -42,6 +42,7 @@ export function describeBadges(item) {
   // Skills and spells: the stat, the type, the damage, mana and targets.
   if (['skill', 'spell'].includes(item.type)) {
     const eff = sys.effective ?? {};
+    const labels = costLabelsOf(item);
     if (sys.stat) badges.push(loc(CONFIG.CARL_RPG.abilities[sys.stat] ?? sys.stat));
     let kind = 'CARL_RPG.Badges.Utility';
     if (sys.passive) kind = 'CARL_RPG.Badges.Passive';
@@ -49,7 +50,7 @@ export function describeBadges(item) {
     badges.push(loc(kind));
     if (eff.damage) badges.push(`${loc('CARL_RPG.Badges.Damage')} ${eff.damage}`);
     if (item.type === 'spell') {
-      badges.push(`${loc('CARL_RPG.Badges.Mana')} ${eff.manaCost ?? sys.manaCost ?? 0}`);
+      badges.push(`${loc('CARL_RPG.Badges.Mana')} ${labels.mana || 0}`);
     }
     const target = eff.target ?? sys.check?.target;
     if (target && CONFIG.CARL_RPG.checkTargets[target]) {
@@ -83,11 +84,11 @@ export function describeBadges(item) {
 
   // What using it costs, other than a spell's Mana (shown above), and Interrupts.
   if (item.type !== 'spell') {
-    const mana = item.type === 'skill' ? (sys.effective?.manaCost ?? manaCostOf(sys.costs)) : manaCostOf(sys.costs);
-    if (mana > 0) badges.push(`${loc('CARL_RPG.Badges.Mana')} ${mana}`);
+    const mana = costLabelsOf(item).mana;
+    if (mana) badges.push(`${loc('CARL_RPG.Badges.Mana')} ${mana}`);
   }
-  const junk = costOf(sys.costs, 'junk');
-  if (junk > 0) badges.push(`${loc('CARL_RPG.Badges.Junk')} ${junk}`);
+  const junk = costLabelsOf(item).junk;
+  if (junk) badges.push(`${loc('CARL_RPG.Badges.Junk')} ${junk}`);
   if (sys.interrupt) badges.push(loc('CARL_RPG.Badges.Interrupt'));
 
   // Quantity and uses, wherever the item has them.
@@ -100,6 +101,14 @@ export function describeBadges(item) {
   }
 
   return badges;
+}
+
+/** What an item costs in each resource, as text (a stand-in for anything that isn't an item document). */
+function costLabelsOf(item) {
+  if (item.costLabels) return item.costLabels();
+  const sys = item.system;
+  const text = (n) => (n > 0 ? String(n) : '');
+  return { mana: text(manaCostOf(sys.costs)), junk: text(costOf(sys.costs, 'junk')), uses: '' };
 }
 
 /**

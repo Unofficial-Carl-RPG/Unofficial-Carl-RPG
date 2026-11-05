@@ -68,7 +68,7 @@ function slotButton(item, index) {
     detail.push(`${t('CARL_RPG.QuickBar.Rank')} ${item.system.rank ?? 0}`);
   }
   if (item.type === 'spell') {
-    detail.push(`${t('CARL_RPG.QuickBar.Mana')} ${item.system.manaCost ?? 0}`);
+    detail.push(`${t('CARL_RPG.QuickBar.Mana')} ${item.costLabels?.().mana || 0}`);
   }
   if (isLimited(item)) detail.push(t('CARL_RPG.QuickBar.UsesLeft', { n: usesLeft(item) }));
   const info = document.createElement('small');
