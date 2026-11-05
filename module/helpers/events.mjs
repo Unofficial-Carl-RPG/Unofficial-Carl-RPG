@@ -384,9 +384,11 @@ const HANDLERS = {
         });
       }
     }
-    let effect = actor.effects.find((e) =>
+    // Stacking buffs can share a name: use one an upgrade has unlocked.
+    const found = actor.effects.filter((e) =>
       CarlRPGActiveEffect.matches(e, template)
     );
+    let effect = found.find((e) => e.lockedUntilRank === null) ?? found[0];
     if (!effect) {
       // The actor doesn't have it yet: add it from the source, then apply.
       const data = template.toObject();

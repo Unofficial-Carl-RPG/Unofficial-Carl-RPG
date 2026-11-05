@@ -85,6 +85,34 @@
     </div>
   {{/if}}
 
+  {{#if isBuff}}
+    <div class='grid grid-2col'>
+      <div class='resource'>
+        <label
+          class='resource-label'
+          for='flags.carl-rpg.stackBuff'
+          data-tooltip='{{localize "CARL_RPG.Effect.StackBuffTip"}}'
+        >{{localize 'CARL_RPG.Effect.StackBuff'}}</label>
+        <input
+          type='checkbox'
+          name='flags.carl-rpg.stackBuff'
+          {{checked flags.stackBuff}}
+        />
+      </div>
+      {{#if flags.stackBuff}}
+        <div class='resource'>
+          <label class='resource-label' for='flags.carl-rpg.stackAs'>{{localize 'CARL_RPG.Effect.StackAs'}}</label>
+          <input
+            type='text'
+            name='flags.carl-rpg.stackAs'
+            value='{{flags.stackAs}}'
+            placeholder='{{effect.name}}'
+          />
+        </div>
+      {{/if}}
+    </div>
+  {{/if}}
+
   <div class='resource effect-options'>
     <label>
       <input

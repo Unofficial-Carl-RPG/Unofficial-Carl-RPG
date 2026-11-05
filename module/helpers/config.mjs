@@ -551,6 +551,7 @@ CARL_RPG.lootTiers = {
  * Effect types. All effects are the same kind of document; this is set in
  * the effect's details.
  *  - buff: toggled on and off; at most CARL_RPG.maxActiveBuffs active at once
+ *    (buffs ticked Stacks share one slot with their group, see helpers/buff-slots.mjs)
  *  - debuff: toggled on and off, no limit; only stacks if marked stackable
  *  - passive: toggled on and off, never counts toward any limit
  */

@@ -1,5 +1,6 @@
 import { CarlRPGDialog } from '../helpers/dialog.mjs';
 import { effectKey, lockedRankFor } from '../helpers/upgrades.mjs';
+import { groupNameOf, slotMates, usedBuffSlots } from '../helpers/buff-slots.mjs';
 
 const NS = 'carl-rpg';
 
@@ -12,6 +13,8 @@ const NS = 'carl-rpg';
  *  stackable     debuffs only: applying it again adds a stack
  *  maxStacks     optional cap on stacks (blank = no limit)
  *  stacks        current stacks of a stackable debuff
+ *  stackBuff     buffs only: shares one buff slot with its group and switches on and off with it
+ *  stackAs       the group's name (blank = this effect's identifier, else its name)
  *  permanent     keep this effect on the actor when the item that gave it is removed
  *  equipLinked   only on while the gear that gave it is equipped
  *  sourceItems   ids of the actor's items that gave this effect
@@ -41,6 +44,25 @@ export class CarlRPGActiveEffect extends ActiveEffect {
 
   get stacks() {
     return Math.max(1, Number(this.getFlag(NS, 'stacks')) || 1);
+  }
+
+  /**
+   * The group this buff shares a buff slot with, or null when it doesn't stack.
+   * Buffs of one group switch on and off together and use a single slot.
+   */
+  get slotGroup() {
+    return groupNameOf(
+      this.kind,
+      !!this.getFlag(NS, 'stackBuff'),
+      this.getFlag(NS, 'stackAs'),
+      effectKey(this)
+    );
+  }
+
+  /** The other effects on the actor that share this buff's slot. */
+  get slotMates() {
+    const actor = this.actor;
+    return actor ? slotMates(actor.effects, this) : [];
   }
 
   get permanent() {
@@ -216,41 +238,62 @@ export class CarlRPGActiveEffect extends ActiveEffect {
     }
 
     if (!active) {
-      if (!this.disabled) {
-        await this.update({
-          disabled: true,
-          [`flags.${NS}.stacks`]: 1,
-        });
+      // A stacking buff switches off together with the rest of its group.
+      const off = [this, ...this.slotMates].filter((e) => !e.disabled);
+      if (off.length) {
+        await actor.updateEmbeddedDocuments(
+          'ActiveEffect',
+          off.map((e) => ({ _id: e.id, disabled: true, [`flags.${NS}.stacks`]: 1 }))
+        );
       }
       return false;
     }
 
+    // Group members that come on with this buff (the ones an upgrade has unlocked).
+    const mates = this.slotMates.filter(
+      (e) => e.disabled && e.lockedUntilRank === null
+    );
+
     // Turning on a stackable debuff that is already on adds a stack instead.
+    // A stacking buff that is already on just brings the rest of its group along.
     if (!this.disabled) {
       if (this.stackable) await this.changeStacks(1);
+      else if (mates.length) await this.#switchOn(mates);
       return true;
     }
 
     if (this.kind === 'buff') {
-      const activeBuffs = actor.effects.filter(
-        (e) =>
-          e !== this && e.kind === 'buff' && !e.disabled && !e.equipControlled
-      );
-      if (activeBuffs.length >= CONFIG.CARL_RPG.maxActiveBuffs) {
-        return this.#swapForBuff(activeBuffs);
+      // A group that is already on has its slot; otherwise this needs a free one.
+      const groupOn = this.slotMates.some((e) => !e.disabled);
+      const activeBuffs = usedBuffSlots(actor.effects, this);
+      if (!groupOn && activeBuffs.length >= CONFIG.CARL_RPG.maxActiveBuffs) {
+        return this.#swapForBuff(activeBuffs, mates);
       }
     }
 
-    await this.update({ disabled: false, [`flags.${NS}.stacks`]: 1 });
+    await this.#switchOn([this, ...mates]);
     return true;
+  }
+
+  /** Switch these effects on (each starts with one stack). */
+  async #switchOn(effects) {
+    await this.actor.updateEmbeddedDocuments(
+      'ActiveEffect',
+      effects.map((e) => ({
+        _id: e.id,
+        disabled: false,
+        [`flags.${NS}.stacks`]: 1,
+      }))
+    );
   }
 
   /**
    * All buff slots are in use: ask which active buff to swap out for this one.
-   * @param {CarlRPGActiveEffect[]} activeBuffs
+   * @param {CarlRPGActiveEffect[]} activeBuffs  One per slot in use
+   * @param {CarlRPGActiveEffect[]} turnOn  Group members that come on with this one
    * @returns {Promise<boolean>}
    */
-  async #swapForBuff(activeBuffs) {
+  async #swapForBuff(activeBuffs, turnOn) {
     const esc = Handlebars.escapeExpression;
     const choice = await CarlRPGDialog.wait({
       window: { title: game.i18n.localize('CARL_RPG.Effect.Swap.Title') },
@@ -271,9 +314,18 @@ export class CarlRPGActiveEffect extends ActiveEffect {
     });
     if (!choice || choice === 'cancel') return false;
 
+    // Swapping out a group of stacking buffs switches off the whole group.
+    const dropped = this.actor.effects.get(choice);
+    const off = dropped
+      ? [dropped, ...dropped.slotMates].filter((e) => !e.disabled)
+      : [];
     await this.actor.updateEmbeddedDocuments('ActiveEffect', [
-      { _id: choice, disabled: true },
-      { _id: this.id, disabled: false, [`flags.${NS}.stacks`]: 1 },
+      ...off.map((e) => ({ _id: e.id, disabled: true })),
+      ...[this, ...turnOn].map((e) => ({
+        _id: e.id,
+        disabled: false,
+        [`flags.${NS}.stacks`]: 1,
+      })),
     ]);
     return true;
   }

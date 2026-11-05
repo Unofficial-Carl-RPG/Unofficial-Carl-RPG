@@ -41,6 +41,9 @@
               {{#if effect.stackable}}
                 <i class='fas fa-layer-group' data-tooltip='{{localize "CARL_RPG.Effect.Stackable"}}'></i>
               {{/if}}
+              {{#if effect.stacksSlot}}
+                <i class='fas fa-link' data-tooltip='{{localize "CARL_RPG.Effect.StackedTip"}}'></i>
+              {{/if}}
               {{#if effect.equipLinked}}
                 <i class='fas fa-shield-halved' data-tooltip='{{localize "CARL_RPG.Effect.EquipLinked"}}'></i>
               {{/if}}

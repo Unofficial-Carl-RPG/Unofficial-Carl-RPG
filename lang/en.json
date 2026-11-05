@@ -733,6 +733,10 @@
         "passive": "Passive"
       },
       "Stackable": "Stackable",
+      "StackBuff": "Stacks with group",
+      "StackBuffTip": "Shares one buff slot and switches on with the buffs in its group",
+      "StackAs": "Group",
+      "StackedTip": "Stacks: shares one buff slot with its group",
       "MaxStacks": "Max stacks",
       "NoLimit": "no limit",
       "Rounds": "Lasts (rounds)",

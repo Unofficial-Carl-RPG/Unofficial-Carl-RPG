@@ -768,6 +768,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
           img: effect.img,
           kind: CONFIG.CARL_RPG.effectKinds[effect.kind],
           stackable: effect.stackable,
+          stacksSlot: !!effect.slotGroup,
           permanent: effect.permanent,
           equipLinked: effect.equipLinked,
           tier: effect.getFlag('carl-rpg', 'tier') ?? 0,

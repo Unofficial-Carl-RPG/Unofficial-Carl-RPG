@@ -47,6 +47,9 @@
                   &times;{{effect.stacks}}{{#if effect.maxStacks}}/{{effect.maxStacks}}{{/if}}
                 </span>
               {{/if}}
+              {{#if effect.stacksSlot}}
+                <i class='fas fa-link' data-tooltip='{{localize "CARL_RPG.Effect.StackedTip"}}'></i>
+              {{/if}}
               {{#if effect.equipControlled}}
                 <i class='fas fa-shield-halved' data-tooltip='{{localize "CARL_RPG.Effect.EquipControlledTip"}}'></i>
               {{/if}}

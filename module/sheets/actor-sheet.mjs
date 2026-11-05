@@ -1104,6 +1104,9 @@ export class CarlRPGActorSheet extends ActorSheetBase {
       kind: effect.kind,
       active: !effect.disabled,
       stackable: effect.stackable,
+      // Buffs that stack share one slot (see helpers/buff-slots.mjs).
+      stacksSlot: !!effect.slotGroup,
+      slot: effect.slotGroup ? `group:${effect.slotGroup}` : effect.id,
       stacks: effect.stacks,
       maxStacks: effect.maxStacks,
       equipControlled: effect.equipControlled,
@@ -1129,7 +1132,9 @@ export class CarlRPGActorSheet extends ActorSheetBase {
         isBuff: kind === 'buff',
         limit: CONFIG.CARL_RPG.maxActiveBuffs,
         // Equipment-controlled effects don't use up buff slots.
-        activeCount: effects.filter((e) => e.active && !e.equipControlled).length,
+        activeCount: new Set(
+          effects.filter((e) => e.active && !e.equipControlled).map((e) => e.slot)
+        ).size,
       };
     });
   }

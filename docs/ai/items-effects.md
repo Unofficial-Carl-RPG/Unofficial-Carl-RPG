@@ -126,6 +126,7 @@
 
 ## flags
 - kind: buff|debuff|passive. Max 3 active buffs (activating a 4th prompts a swap). Debuffs unlimited. Passive never counted.
+- stackBuff: buff only, bool ('Stacks with group'). Joins a buff slot group; stackAs: the group name (blank = the effect's identifier, else its name, case-insensitive). Buffs of one group share ONE slot and switch on/off together: setActive on any member switches the whole group (members an upgrade has not unlocked are skipped; one that unlocks later joins on the next switch-on); a group already on needs no free slot; swapping a group out switches off all its members. Slot counting is helpers/buff-slots.mjs (pure: groupNameOf, slotMates, usedBuffSlots), used by CarlRPGActiveEffect.setActive (getters slotGroup, slotMates) and the Effects tab count. Grant (item.mjs #grantEffects) copies a stacking template as its own effect even when another template of the same item has the same identifier/name. Events toggleEffect picks an unlocked match when several share a name. Use a different Group name rather than a shared identifier when upgrades must unlock effects separately: unlocks are keyed by identifier/name (effectKey). Link icon on the Effects tab and the item's effect list.
 - identifier: matches 'same effect' (else name)
 - stackable: debuff only; reapplying adds a stack; numeric changes multiply by stacks
 - maxStacks: optional

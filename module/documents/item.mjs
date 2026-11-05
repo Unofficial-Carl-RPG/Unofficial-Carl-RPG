@@ -656,7 +656,8 @@ export class CarlRPGItem extends Item {
           template
         )
       );
-      if (queued) continue;
+      // (A stacking buff from the same item is its own effect, so it isn't skipped.)
+      if (queued && !template.slotGroup) continue;
 
       const data = template.toObject();
       delete data._id;

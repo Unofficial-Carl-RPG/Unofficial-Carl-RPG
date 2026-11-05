@@ -63,6 +63,7 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
     context.kind = effect.kind;
     context.kinds = CONFIG.CARL_RPG.effectKinds;
     context.isDebuff = effect.kind === 'debuff';
+    context.isBuff = effect.kind === 'buff';
     // How long it lasts: until a short, long or full rest, or until removed.
     context.durations = CONFIG.CARL_RPG.effectDurations;
     context.lastsUntil = flags.lastsUntil ?? '';
