@@ -31,12 +31,14 @@ import { chooseTargets } from '../helpers/targeting.mjs';
 import { dyingEffectOf } from '../helpers/dying.mjs';
 import { logMana } from '../helpers/change-log.mjs';
 import {
-  classOf,
+  classRoleOf,
+  comboOf,
   evaluatePrerequisites,
   raceOf,
   sameItem,
   subclassFloor,
 } from '../helpers/origins.mjs';
+import { actsAsClass } from '../helpers/class-combo.mjs';
 
 /** What identifies an achievement: its identifier, or its name if it has none. */
 const achievementKey = (item) => item.system.identifier?.trim() || item.name;
@@ -266,6 +268,28 @@ export class CarlRPGItem extends Item {
       const actor = this.parent;
       const results = await evaluatePrerequisites(this, actor);
       const unmet = results.filter((r) => !r.met).map((r) => r.text);
+      // A Race and Class combo already is the crawler's class, so players can't take
+      // another. The GM can, after a prompt, and the class then takes over the Class box.
+      const heldCombo = this.type === 'class' ? comboOf(actor) : null;
+      if (heldCombo) {
+        if (!user.isGM) {
+          ui.notifications.warn(
+            game.i18n.format('CARL_RPG.Origin.Combo.NoClass', { race: heldCombo.name })
+          );
+          return false;
+        }
+        const proceed = await CarlRPGDialog.confirm({
+          window: { title: game.i18n.localize('CARL_RPG.Origin.Combo.Title') },
+          content: `<p>${game.i18n.format('CARL_RPG.Origin.Combo.ClassOverride', {
+            name: Handlebars.escapeExpression(actor.name),
+            race: Handlebars.escapeExpression(heldCombo.name),
+            newClass: Handlebars.escapeExpression(this.name),
+          })}</p>`,
+          rejectClose: false,
+        });
+        if (!proceed) return false;
+      }
+
       if (!user.isGM) {
         if (actor.system.floor < CONFIG.CARL_RPG.originFloor) {
           ui.notifications.warn(
@@ -304,8 +328,26 @@ export class CarlRPGItem extends Item {
           rejectClose: false,
         });
         if (!replace) return false;
-        await existing.delete();
       }
+
+      // A Race and Class combo takes the class's place: ask before replacing the class
+      // they have. Both prompts come first, so declining either changes nothing.
+      const heldClass =
+        this.type === 'race' && actsAsClass(this) ? actor.itemTypes.class[0] : null;
+      if (heldClass) {
+        const replaceClass = await CarlRPGDialog.confirm({
+          window: { title: game.i18n.localize('CARL_RPG.Origin.Replace.Title') },
+          content: `<p>${game.i18n.format('CARL_RPG.Origin.Combo.ReplaceClass', {
+            name: Handlebars.escapeExpression(actor.name),
+            race: Handlebars.escapeExpression(this.name),
+            old: Handlebars.escapeExpression(heldClass.name),
+          })}</p>`,
+          rejectClose: false,
+        });
+        if (!replaceClass) return false;
+      }
+      await existing?.delete();
+      await heldClass?.delete();
     }
 
     // Subclasses: a crawler can hold several, each from a class it has, from the
@@ -325,7 +367,7 @@ export class CarlRPGItem extends Item {
         );
         return false;
       }
-      const parent = classOf(actor);
+      const parent = classRoleOf(actor);
       const linked = this.system.classUuid
         ? await fromUuid(this.system.classUuid)
         : null;
@@ -507,6 +549,8 @@ export class CarlRPGItem extends Item {
       const update = { [field]: this.name };
       // A species also sets the crawler's size.
       if (this.type === 'species') update['system.size'] = this.system.size;
+      // A Race and Class combo is also the crawler's class.
+      if (actsAsClass(this)) update['system.className'] = this.name;
       await actor.update(update);
     }
 
@@ -520,7 +564,7 @@ export class CarlRPGItem extends Item {
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor }),
       content: `<div class="carl-origin-card">${game.i18n.format(
-        `CARL_RPG.Origin.Chosen.${this.type}`,
+        `CARL_RPG.Origin.Chosen.${actsAsClass(this) ? 'combo' : this.type}`,
         { name: esc(actor.name), origin: esc(this.name) }
       )}${note}</div>`,
     });
@@ -592,6 +636,14 @@ export class CarlRPGItem extends Item {
         this.parent.type === 'crawler'
       ) {
         const field = ['race', 'species'].includes(this.type) ? 'race' : 'className';
+        // A Race and Class combo was also their class: it leaves the Class box too.
+        if (
+          field === 'race' &&
+          actsAsClass(this) &&
+          this.parent.system.className === this.name
+        ) {
+          this.parent.update({ 'system.className': '' });
+        }
         if (this.parent.system[field] === this.name) {
           this.parent.update({ [`system.${field}`]: '' });
         }

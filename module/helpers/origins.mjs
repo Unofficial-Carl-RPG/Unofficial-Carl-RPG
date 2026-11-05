@@ -14,10 +14,14 @@
  *
  * Taking one adds it to the crawler like any item (see CarlRPGItem), so its
  * granted skills and effects come along.
+ *
+ * A race can also be a class (a Race and Class combo, see helpers/class-combo.mjs):
+ * the crawler then needs no class item.
  */
 import { sourceItems } from './sources.mjs';
 import { CarlRPGDialog } from './dialog.mjs';
 import { classHasTag } from './tags.mjs';
+import { actsAsClass } from './class-combo.mjs';
 
 const t = (key, data) =>
   data ? game.i18n.format(key, data) : game.i18n.localize(key);
@@ -27,6 +31,16 @@ const esc = (text) => Handlebars.escapeExpression(text);
 export const raceOf = (actor) => actor.itemTypes.race?.[0] ?? null;
 /** The crawler's class item, if they have one. */
 export const classOf = (actor) => actor.itemTypes.class?.[0] ?? null;
+/** The crawler's race, if it also acts as their class (a Race and Class combo). */
+export const comboOf = (actor) => {
+  const race = raceOf(actor);
+  return actsAsClass(race) ? race : null;
+};
+/**
+ * What fills the crawler's class role: their class item, else a combo race. The Class
+ * box, subclasses and the Choose Class button all go by this.
+ */
+export const classRoleOf = (actor) => classOf(actor) ?? comboOf(actor);
 /** The crawler's subclasses, oldest first. */
 export const subclassesOf = (actor) =>
   [...(actor.itemTypes.subclass ?? [])].sort(
@@ -162,6 +176,10 @@ function originRow(item, results, met, isGM) {
   const tagChips = (item.system.categories ?? [])
     .map((tag) => `<span class="origin-tag">${esc(tag)}</span>`)
     .join('');
+  // A race that is also a class says so.
+  const comboChip = actsAsClass(item)
+    ? `<span class="origin-tag">${esc(t('CARL_RPG.Origin.ComboTag'))}</span>`
+    : '';
   // The GM can see which options are hidden from crawlers.
   const hiddenChip =
     item.system.hidden && isGM
@@ -180,6 +198,7 @@ function originRow(item, results, met, isGM) {
         } />
         ${earthIcon}
         <strong>${esc(item.name)}</strong>
+        ${comboChip}
         ${tagChips}
         ${hiddenChip}
         ${!met && isGM ? `<span class="override">${t('CARL_RPG.Origin.Override')}</span>` : ''}
@@ -277,7 +296,7 @@ export async function chooseOrigin(actor) {
     return false;
   }
 
-  const type = !raceOf(actor) ? 'race' : !classOf(actor) ? 'class' : null;
+  const type = !raceOf(actor) ? 'race' : !classRoleOf(actor) ? 'class' : null;
   if (!type) {
     ui.notifications.info(t('CARL_RPG.Origin.AllChosen'));
     return false;
@@ -296,7 +315,7 @@ export async function chooseOrigin(actor) {
   const picked = await askOrigin(actor, type, options);
   if (!picked || !(await addOrigin(actor, picked))) return false;
 
-  if (type === 'race' && !classOf(actor)) await chooseOrigin(actor);
+  if (type === 'race' && !classRoleOf(actor)) await chooseOrigin(actor);
   return true;
 }
 
@@ -314,7 +333,7 @@ export async function chooseSubclass(actor) {
     ui.notifications.warn(t('CARL_RPG.Origin.SubclassTooEarly', { floor: need }));
     return false;
   }
-  const parent = classOf(actor);
+  const parent = classRoleOf(actor);
   if (!parent) {
     ui.notifications.warn(t('CARL_RPG.Origin.NeedClass'));
     return false;

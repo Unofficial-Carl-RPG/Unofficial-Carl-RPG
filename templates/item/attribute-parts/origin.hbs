@@ -26,6 +26,13 @@
     <p class='hint'>{{localize 'CARL_RPG.Origin.HiddenHint'}}</p>
   </div>
 
+  {{#unless isClass}}
+    {{! A plain race: how to make it a Race and Class combo }}
+    <div class='resource'>
+      <p class='hint'>{{localize 'CARL_RPG.Origin.ComboHint'}}</p>
+    </div>
+  {{/unless}}
+
   {{#if isSubclass}}
     {{! The class this subclass belongs to: a class item dropped on the box }}
     <div class='resource'>

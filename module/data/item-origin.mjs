@@ -54,6 +54,8 @@ export class CarlRPGOrigin extends CarlRPGItemBase {
     // Earlier versions had a list of race categories: keep Earth-Based if set.
     if (Array.isArray(source.categories) && source.earthBased === undefined) {
       source.earthBased = source.categories.includes('earthBased');
+      // (Those old values aren't class categories, which a race can have now.)
+      source.categories = source.categories.filter((c) => !['earthBased', 'alien'].includes(c));
     }
     return super.migrateData(source);
   }
@@ -61,6 +63,19 @@ export class CarlRPGOrigin extends CarlRPGItemBase {
 
 export class CarlRPGRace extends CarlRPGOrigin {
   static LOCALIZATION_PREFIXES = ['CARL_RPG.Item.base', 'CARL_RPG.Item.Race'];
+
+  static defineSchema() {
+    const fields = foundry.data.fields;
+    const schema = super.defineSchema();
+
+    // Class categories, used while the race also acts as a class (see
+    // helpers/class-combo.mjs). Like a class's, they count as tags.
+    schema.categories = new fields.ArrayField(
+      new fields.StringField({ required: true, blank: false })
+    );
+
+    return schema;
+  }
 }
 
 export class CarlRPGClass extends CarlRPGOrigin {

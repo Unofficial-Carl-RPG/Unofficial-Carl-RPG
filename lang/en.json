@@ -759,6 +759,7 @@
         "sortValue": "Can sort by value",
         "skillCap": "Skill cap 20",
         "step": "Step",
+        "classCombo": "Race also acts as Class",
         "advStr": "Advantage: Strength",
         "advInt": "Advantage: Intelligence",
         "advCon": "Advantage: Constitution",
@@ -1537,7 +1538,7 @@
       "ChooseRace": "Choose Race",
       "ChooseSubclass": "Choose Subclass",
       "ClassLink": "Belongs to class",
-      "ClassLinkHint": "Drop the class this subclass belongs to.",
+      "ClassLinkHint": "Drop the class (or Race and Class combo) it belongs to.",
       "HiddenLabel": "Hidden",
       "HiddenHint": "Crawlers don't see it until they meet its requirements or the GM reveals it.",
       "HiddenTag": "Hidden",
@@ -1547,6 +1548,14 @@
       "SubclassTooEarly": "A subclass can be chosen from floor {floor}.",
       "NeedClass": "A crawler needs a class before a subclass.",
       "ChooseClass": "Choose Class",
+      "ComboTag": "Race + Class",
+      "ComboHint": "Also a class? Add an effect with Race also acts as Class.",
+      "Combo": {
+        "Title": "Race and Class",
+        "NoClass": "{race} is also your class, so you can't take another.",
+        "ClassOverride": "{name} has {race}, which is also their class. Add the class {newClass} anyway? It takes over the Class box.",
+        "ReplaceClass": "{race} is also a class. Replace {name}'s class {old} with it?"
+      },
       "Choose": "Choose",
       "Override": "(override)",
       "TooEarly": "A race and class can be chosen from floor {floor}.",
@@ -1577,7 +1586,8 @@
         "race": "{name} chose the race {origin}!",
         "subclass": "{name} took the subclass {origin}!",
         "class": "{name} chose the class {origin}!",
-        "species": "{name} is a {origin}!"
+        "species": "{name} is a {origin}!",
+        "combo": "{name} chose {origin}, a race and class in one!"
       },
       "Subclass": {
         "AlreadyHas": "{name} already has the subclass {subclass}.",
@@ -1591,13 +1601,13 @@
       "Drop": {
         "skill": "Drop a skill here",
         "race": "Drop a race here",
-        "class": "Drop a class here",
+        "class": "Drop a class or combo here",
         "achievement": "Drop an achievement here",
         "skillGrant": "Drop a skill here to grant it",
         "Wrong": {
           "skill": "Drop a skill here.",
           "race": "Drop a race here.",
-          "class": "Drop a class here.",
+          "class": "Drop a class or combo here.",
           "achievement": "Drop an achievement here."
         }
       }

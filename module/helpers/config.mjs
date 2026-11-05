@@ -566,6 +566,9 @@ CARL_RPG.effectModifiers = {
   skillCap: { label: 'CARL_RPG.Effect.Mods.skillCap', key: 'system.bonuses.skillCap' },
   // Added to a crawler's Step.
   step: { label: 'CARL_RPG.Effect.Mods.step', key: 'system.bonuses.step' },
+  // Grants (any value above 0), on a race's effect: the race also acts as the crawler's
+  // class (a Race and Class combo, see helpers/class-combo.mjs).
+  classCombo: { label: 'CARL_RPG.Effect.Mods.classCombo', key: 'system.bonuses.classCombo' },
 };
 
 // Race and class build benefits for each stat (see helpers/build-mods.mjs): above 0 is

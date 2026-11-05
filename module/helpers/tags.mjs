@@ -12,6 +12,7 @@
  * as well.
  */
 import { purposeTypes, sourceItems } from './sources.mjs';
+import { actsAsClass } from './class-combo.mjs';
 
 /** The form of a tag used for comparing. */
 export const tagKey = (tag) => String(tag ?? '').trim().toLowerCase();
@@ -32,10 +33,15 @@ export const itemTags = (item) => [
 /** Whether an item has a tag (as a regular tag or as a category). */
 export const itemHasTag = (item, tag) => listHasTag(itemTags(item), tag);
 
-/** Whether a crawler's class (or any of its subclasses) has a tag. */
+/**
+ * Whether a crawler's class (or its Race and Class combo, if it has no class item)
+ * or any of its subclasses has a tag.
+ */
 export const classHasTag = (actor, tag) =>
-  itemHasTag(actor?.itemTypes?.class?.[0], tag) ||
-  (actor?.itemTypes?.subclass ?? []).some((sub) => itemHasTag(sub, tag));
+  itemHasTag(
+    actor?.itemTypes?.class?.[0] ?? (actor?.itemTypes?.race ?? []).find(actsAsClass),
+    tag
+  ) || (actor?.itemTypes?.subclass ?? []).some((sub) => itemHasTag(sub, tag));
 
 /**
  * A copy of a tag list with a tag added (nothing changes if it is already

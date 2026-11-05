@@ -24,6 +24,7 @@ import { ItemSheetEvents } from './item-sheet-events.mjs';
 import { ItemSheetTags } from './item-sheet-tags.mjs';
 import { ItemSheetCosts } from './item-sheet-costs.mjs';
 import { validAmount } from '../helpers/amounts.mjs';
+import { actsAsClass } from '../helpers/class-combo.mjs';
 import { ItemSheetUpgrades } from './item-sheet-upgrades.mjs';
 import { ItemSheetStoreQuestLoot } from './item-sheet-store-quest-loot.mjs';
 import { ItemSheetDrops } from './item-sheet-drops.mjs';
@@ -426,7 +427,10 @@ export class CarlRPGItemSheet extends ItemSheetBase {
         : '';
       // Classes: categories (the suggested ones to tick, plus custom ones) and
       // the regular tags, which are a separate list.
-      if (!isRace) {
+      // A Race and Class combo (see helpers/class-combo.mjs) has a class's categories
+      // and tags too.
+      context.isCombo = this.item.type === 'race' && actsAsClass(this.item);
+      if (!isRace || context.isCombo) {
         const categories = system.categories ?? [];
         context.isClass = true;
         context.tagOptions = cfg.classCategories.map((name) => ({

@@ -1,4 +1,5 @@
 import { damageTypes } from '../helpers/damage-types.mjs';
+import { actsAsClass } from '../helpers/class-combo.mjs';
 /**
  * Item sheet: the Events tab and an item's Requirements.
  */
@@ -80,10 +81,10 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
       return true;
     }
 
-    // A subclass's class: a class item dropped on the box.
+    // A subclass's class: a class item (or a Race and Class combo) dropped on the box.
     if (zone.dataset.accept === 'classLink') {
       const dropped = data.type === 'Item' && data.uuid ? await fromUuid(data.uuid) : null;
-      if (dropped?.type !== 'class') {
+      if (dropped?.type !== 'class' && !actsAsClass(dropped)) {
         ui.notifications.warn(game.i18n.localize('CARL_RPG.Origin.Drop.Wrong.class'));
         return false;
       }

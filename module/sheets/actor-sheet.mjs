@@ -1,7 +1,7 @@
 import { hasLoot } from '../helpers/mob-loot.mjs';
 import { canLevelUp } from '../helpers/level-up.mjs';
 import {
-  classOf,
+  classRoleOf,
   latestSubclassOf,
   raceOf,
 } from '../helpers/origins.mjs';
@@ -527,7 +527,7 @@ export class CarlRPGActorSheet extends ActorSheetBase {
       context.identityCount = columns;
       context.identityGrid = columns > 1 ? `grid-${columns}col` : '';
       context.resourceGrid = 'grid-4col';
-      context.classEarthBased = !!classOf(this.actor)?.system.earthBased;
+      context.classEarthBased = !!classRoleOf(this.actor)?.system.earthBased;
     }
     if (this.actor.type === 'mob') {
       // The reward box shows as set or empty; its name is looked up when it is given.
@@ -567,7 +567,7 @@ export class CarlRPGActorSheet extends ActorSheetBase {
     ) {
       context.originAction = 'chooseOrigin';
       if (!raceOf(this.actor)) context.originPrompt = 'CARL_RPG.Origin.ChooseRace';
-      else if (!classOf(this.actor)) {
+      else if (!classRoleOf(this.actor)) {
         context.originPrompt = 'CARL_RPG.Origin.ChooseClass';
       } else if (game.settings.get('carl-rpg', 'subclassFloor') <= this.actor.system.floor) {
         // Subclasses can be added from the Subclass floor on, several allowed.
