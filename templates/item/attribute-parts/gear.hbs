@@ -15,6 +15,14 @@
       {{selectOptions config.gearSlots selected=system.slot localize=true}}
     </select>
   </div>
+  {{#if (eq system.slot 'hands')}}
+    <div class='resource'>
+      <label class='resource-label' data-tooltip='{{localize "CARL_RPG.Item.Gear.TwoHandedHint"}}'>
+        <input type='checkbox' name='system.twoHanded' {{#if system.twoHanded}}checked{{/if}}{{#unless @root.editable}} disabled{{/unless}} />
+        {{localize 'CARL_RPG.Item.Gear.FIELDS.twoHanded.label'}}
+      </label>
+    </div>
+  {{/if}}
   <div class='resource'>
     <label class='resource-label' for='system.dr'>{{localize 'CARL_RPG.Item.Gear.FIELDS.dr.label'}}</label>
     <input type='number' name='system.dr' value='{{system.dr}}' min='0' step='1' data-dtype='Number' />

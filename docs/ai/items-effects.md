@@ -50,9 +50,9 @@
 - extra: Mana cost is just a costs row; derived manaCost = least Mana cost. Hotlist-only rule can block casting.
 
 ## gear
-- fields: slot (gearSlots), equipped bool, dr int>=0, quantity int>=1, skills [skill UUIDs it grants], rollSkill (one of skills; '' = first) , action{type none|stat|skill|custom, stat, modifier, formula}, formula derived
+- fields: slot (gearSlots), twoHanded bool (Hands slot only; cleared when the slot changes; derived isTwoHanded = slot hands && twoHanded), equipped bool, dr int>=0, quantity int>=1, skills [skill UUIDs it grants], rollSkill (one of skills; '' = first) , action{type none|stat|skill|custom, stat, modifier, formula}, formula derived
 - rules:
-  - Armor stat = sum of dr of all equipped gear. Equip/unequip via toggleEquipped(); full slot prompts a swap.
+  - Armor stat = sum of dr of all equipped gear. Equip/unequip via toggleEquipped(); no room in the slot prompts a swap (planEquip in helpers/gear-slots.mjs: Hands has 2 places, two-handed gear takes both, so equipping it may swap out two items at once; equipping anything while holding a two-handed item swaps that out). Editing equipped gear so it no longer fits (Two-Handed ticked, moved to a full slot) unequips it with a notice and runs its unequipped events (item.mjs #keepGearFitting). Gear list Slot column and badges read 'Held (2H)'. Gear only: plain items have no equipped state.
   - Skills it lists are added to the crawler when the gear is ADDED (equipped or not), kept on unequip, removed on removal unless raised or shared (see skillGrants).
   - A weapon rolls with skill rollSkill (owner can switch per copy from a menu on the gear row). Roll uses that skill's stat and rank; damage = weapon damage + skill damage/unlocked upgrades; the skill's own events also run. Missing skill: equipping adds it at rank 0 and whispers GM; rolling is blocked if the skill is gone.
   - action.type: none = posts description only (still fires used events), stat = 1d20 + @stat.mod + modifier, skill = 1d20 built from the skill when used, custom = formula.

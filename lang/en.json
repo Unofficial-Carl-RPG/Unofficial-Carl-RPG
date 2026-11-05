@@ -681,23 +681,27 @@
           "rollFormula": {"label": "Roll Formula"},
           "quantity": {"label": "Quantity"},
           "slot": {"label": "Slot"},
+          "twoHanded": {"label": "Two-Handed"},
           "dr": {"label": "Damage Resistance"},
           "equipped": {"label": "Equipped"}
         },
         "DRShort": "DR",
         "DRHint": "Added to the crawler's Armor while equipped.",
+        "TwoHandedHint": "Uses both hands.",
         "Equip": {
           "Equip": "Equip",
           "Unequip": "Unequip",
-          "Title": "{slot} slot is full",
-          "Full": "The {slot} slot can only hold {limit} equipped item(s). Which one should be swapped out for {item}?",
-          "Swap": "Swap with {name}"
+          "Title": "No room in {slot}",
+          "Full": "{item} needs more room in the {slot} slot. What should come off?",
+          "Swap": "Swap with {name}",
+          "NoRoom": "{name} no longer fits in {slot}. Equip it again to choose what to swap."
         },
         "Slots": {
           "head": "Head",
           "torso": "Torso",
           "arms": "Arms",
           "hands": "Held",
+          "handsTwo": "Held (2H)",
           "legs": "Legs",
           "feet": "Feet",
           "accessory": "Accessory"

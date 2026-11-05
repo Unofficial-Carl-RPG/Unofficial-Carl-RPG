@@ -39,6 +39,7 @@ import {
   subclassFloor,
 } from '../helpers/origins.mjs';
 import { actsAsClass } from '../helpers/class-combo.mjs';
+import { planEquip } from '../helpers/gear-slots.mjs';
 
 /** What identifies an achievement: its identifier, or its name if it has none. */
 const achievementKey = (item) => item.system.identifier?.trim() || item.name;
@@ -62,8 +63,9 @@ export class CarlRPGItem extends Item {
 
   /**
    * Equip or unequip this gear. Each slot holds a limited number of equipped
-   * items (CONFIG.CARL_RPG.gearSlotLimits); if the slot is full a prompt asks
-   * which equipped gear to swap out, and cancelling leaves everything as it was.
+   * items (CONFIG.CARL_RPG.gearSlotLimits) and two-handed gear takes every hand;
+   * if there isn't room a prompt asks which equipped gear to swap out, and
+   * cancelling leaves everything as it was.
    *
    * @param {boolean} [equipped]  The new state (defaults to toggling)
    * @returns {Promise<boolean>}  Whether the gear is equipped afterwards
@@ -86,7 +88,8 @@ export class CarlRPGItem extends Item {
     const inSlot = this.parent.itemTypes.gear.filter(
       (g) => g !== this && g.system.equipped && g.system.slot === slot
     );
-    if (inSlot.length < limit) {
+    const plan = planEquip(this, inSlot, limit);
+    if (plan.fits) {
       await this.update({ 'system.equipped': true });
       await this.syncEquipEffects();
       await runEvents(this, 'equipped');
@@ -102,14 +105,19 @@ export class CarlRPGItem extends Item {
       },
       content: `<p>${game.i18n.format('CARL_RPG.Item.Gear.Equip.Full', {
         slot: slotName,
-        limit,
         item: Handlebars.escapeExpression(this.name),
       })}</p>`,
       buttons: [
-        ...inSlot.map((g) => ({
-          action: g.id,
+        ...plan.options.map((ids) => ({
+          action: ids.join(','),
           label: game.i18n.format('CARL_RPG.Item.Gear.Equip.Swap', {
-            name: Handlebars.escapeExpression(g.name),
+            name: game.i18n
+              .getListFormatter()
+              .format(
+                ids.map((id) =>
+                  Handlebars.escapeExpression(inSlot.find((g) => g.id === id).name)
+                )
+              ),
           }),
         })),
         { action: 'cancel', label: game.i18n.localize('Cancel') },
@@ -118,13 +126,14 @@ export class CarlRPGItem extends Item {
     });
     if (!choice || choice === 'cancel') return false;
 
+    const removed = choice.split(',').map((id) => this.parent.items.get(id));
     await this.parent.updateEmbeddedDocuments('Item', [
-      { _id: choice, 'system.equipped': false },
+      ...removed.map((g) => ({ _id: g.id, 'system.equipped': false })),
       { _id: this.id, 'system.equipped': true },
     ]);
-    await this.parent.items.get(choice)?.syncEquipEffects();
+    for (const g of removed) await g.syncEquipEffects();
     await this.syncEquipEffects();
-    await runEvents(this.parent.items.get(choice), 'unequipped');
+    for (const g of removed) await runEvents(g, 'unequipped');
     await runEvents(this, 'equipped');
     return true;
   }
@@ -171,6 +180,10 @@ export class CarlRPGItem extends Item {
         if (this.system.equipped) {
           await this.#grantEmbeddedSkills();
           await this.#grantRollingSkill();
+        } else if (options?.carlAutoUnequip) {
+          // Unequipped because an edit left it without room (see #keepGearFitting).
+          await this.syncEquipEffects();
+          await runEvents(this, 'unequipped');
         }
       } catch (err) {
         console.error('carl-rpg | changing the skills of equipped gear failed', err);
@@ -491,6 +504,41 @@ export class CarlRPGItem extends Item {
     ) {
       foundry.utils.setProperty(changes, 'system.eventsTrusted', user.isGM);
     }
+    if (this.type === 'gear' && system && !options?.carlMigration) {
+      this.#keepGearFitting(changes, options);
+    }
+  }
+
+  /**
+   * Two-Handed only means something in the Hands slot, so moving gear to another
+   * slot clears it. Equipped gear that no longer fits after an edit (Two-Handed
+   * ticked, or moved into a full slot) is unequipped, with a notice.
+   */
+  #keepGearFitting(changes, options) {
+    const system = changes.system;
+    if (system.slot && system.slot !== 'hands' && this.system.twoHanded && !('twoHanded' in system)) {
+      foundry.utils.setProperty(changes, 'system.twoHanded', false);
+    }
+    const actor = this.parent;
+    if (!(actor instanceof Actor) || !this.system.equipped || 'equipped' in system) return;
+    if (!('slot' in system || 'twoHanded' in system)) return;
+
+    const slot = system.slot ?? this.system.slot;
+    const next = { id: this.id, system: { slot, twoHanded: system.twoHanded ?? this.system.twoHanded } };
+    const limit = CONFIG.CARL_RPG.gearSlotLimits[slot] ?? 1;
+    const held = actor.itemTypes.gear.filter(
+      (g) => g !== this && g.system.equipped && g.system.slot === slot
+    );
+    if (planEquip(next, held, limit).fits) return;
+
+    foundry.utils.setProperty(changes, 'system.equipped', false);
+    if (options) options.carlAutoUnequip = true;
+    ui.notifications.warn(
+      game.i18n.format('CARL_RPG.Item.Gear.Equip.NoRoom', {
+        name: this.name,
+        slot: game.i18n.localize(CONFIG.CARL_RPG.gearSlots[slot] ?? slot),
+      })
+    );
   }
 
   /**

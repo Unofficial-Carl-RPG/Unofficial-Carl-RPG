@@ -1,5 +1,6 @@
 import CarlRPGItemBase from './base-item.mjs';
 import { actionFormula, actionSchema, migrateAction } from './action.mjs';
+import { isTwoHanded } from '../helpers/gear-slots.mjs';
 
 export default class CarlRPGGear extends CarlRPGItemBase {
   static LOCALIZATION_PREFIXES = [
@@ -36,6 +37,14 @@ export default class CarlRPGGear extends CarlRPGItemBase {
       initial: 'hands',
     });
 
+    // Whether this gear needs both hands (only counts in the Hands slot, see
+    // helpers/gear-slots.mjs).
+    schema.twoHanded = new fields.BooleanField({
+      required: true,
+      nullable: false,
+      initial: false,
+    });
+
     // Damage Resistance this gear gives while it is equipped. The Damage
     // Resistance of everything a crawler has equipped adds up to their Armor
     // value (see CarlRPGCrawler#prepareDerivedData).
@@ -67,5 +76,7 @@ export default class CarlRPGGear extends CarlRPGItemBase {
 
   prepareDerivedData() {
     this.formula = actionFormula(this.action);
+    // Derived: two-handed only counts in the Hands slot.
+    this.isTwoHanded = isTwoHanded(this);
   }
 }

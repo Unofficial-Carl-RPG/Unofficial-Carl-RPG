@@ -22,13 +22,14 @@ CARL_RPG.gearSlots = {
 
 /**
  * How many pieces of gear can be equipped in each slot at once (from the
- * character sheet: one each for the body slots, up to 10 accessories).
+ * character sheet: one each for the body slots, two hands, up to 10
+ * accessories). Two-handed gear takes every hand (see helpers/gear-slots.mjs).
  */
 CARL_RPG.gearSlotLimits = {
   head: 1,
   torso: 1,
   arms: 1,
-  hands: 1,
+  hands: 2,
   legs: 1,
   feet: 1,
   accessory: 10,

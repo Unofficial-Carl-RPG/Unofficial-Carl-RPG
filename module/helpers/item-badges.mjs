@@ -1,5 +1,7 @@
 import { costOf, manaCostOf } from '../data/costs.mjs';
 
+import { isTwoHanded } from './gear-slots.mjs';
+
 /**
  * The small badges that summarise an item's main attributes, worked out from its
  * fields so nobody has to type them into the description. Shown at the top of the
@@ -72,7 +74,9 @@ export function describeBadges(item) {
   // Gear: the slot and the Damage Resistance it gives.
   if (item.type === 'gear') {
     if (sys.slot && CONFIG.CARL_RPG.gearSlots[sys.slot]) {
-      badges.push(loc(CONFIG.CARL_RPG.gearSlots[sys.slot]));
+      badges.push(
+        loc(isTwoHanded(sys) ? 'CARL_RPG.Item.Gear.Slots.handsTwo' : CONFIG.CARL_RPG.gearSlots[sys.slot])
+      );
     }
     if (sys.dr > 0) badges.push(`${loc('CARL_RPG.Badges.DR')} ${sys.dr}`);
   }

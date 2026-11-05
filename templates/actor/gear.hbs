@@ -50,7 +50,7 @@
             <i class='fas {{#if item.system.equipped}}fa-check-square{{else}}fa-square{{/if}}'></i>
           </a>
         </div>
-        <div class='item-prop'>{{localize (lookup @root.config.gearSlots item.system.slot)}}</div>
+        <div class='item-prop'>{{#if item.system.isTwoHanded}}{{localize 'CARL_RPG.Item.Gear.Slots.handsTwo'}}{{else}}{{localize (lookup @root.config.gearSlots item.system.slot)}}{{/if}}</div>
         <div class='item-prop item-dr'>{{item.system.dr}}</div>
         <div class='item-prop item-skill'>
           {{#with (lookup @root.rollChoices item._id) as |choices|}}{{#if choices}}

@@ -8,11 +8,11 @@
 - head: 1
 - torso: 1
 - arms: 1
-- hands: 1
+- hands: 2
 - legs: 1
 - feet: 1
 - accessory: 10
-- note: value = max equipped per slot; hands slot is labelled Held in UI; equipping into a full slot prompts which to swap
+- note: value = max equipped per slot; hands slot is labelled Held in UI and has 2 places (two-handed gear takes both); equipping without room prompts what to swap out (helpers/gear-slots.mjs planEquip)
 
 ## levelUp
 - pointsPerLevel: 3
