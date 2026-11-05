@@ -192,6 +192,17 @@
               {{localize 'CARL_RPG.Events.SkipIfHas'}}
             </label>
           {{/if}}
+          {{#if action.isAddToken}}
+            <label class='event-option'>
+              <input type='checkbox' data-path='{{action.path}}.hidden' {{checked action.hidden}} />
+              {{localize 'CARL_RPG.Events.TokenHidden'}}
+            </label>
+            <label class='event-option'>
+              <input type='checkbox' data-path='{{action.path}}.joinCombat' {{checked action.joinCombat}} />
+              {{localize 'CARL_RPG.Events.TokenJoinCombat'}}
+            </label>
+            <p class='event-option'><i class='fas fa-bullseye'></i> {{localize 'CARL_RPG.Events.TokenNextTo'}}</p>
+          {{/if}}
           {{#if action.isRemoveItem}}
             <label class='event-option'>
               <input type='checkbox' data-path='{{action.path}}.selfItem' {{checked action.selfItem}} />

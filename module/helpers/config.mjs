@@ -445,6 +445,7 @@ CARL_RPG.eventActions = {
   toggleEffect: 'CARL_RPG.Events.Actions.toggleEffect',
   applyEffect: 'CARL_RPG.Events.Actions.applyEffect',
   addItem: 'CARL_RPG.Events.Actions.addItem',
+  addToken: 'CARL_RPG.Events.Actions.addToken',
   awardAchievement: 'CARL_RPG.Events.Actions.awardAchievement',
   revive: 'CARL_RPG.Events.Actions.revive',
   grantSkill: 'CARL_RPG.Events.Actions.grantSkill',

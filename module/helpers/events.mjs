@@ -43,6 +43,7 @@ import { skillCapOf } from './skill-cap.mjs';
 import { getFloorRules } from './floor.mjs';
 import { logEvent } from './change-log.mjs';
 import { revive } from './dying.mjs';
+import { findAnchor, canPlaceDirectly, placeTokens } from './summon.mjs';
 
 const NS = 'carl-rpg';
 
@@ -169,10 +170,10 @@ function groupActors(group, owner, ctx) {
 async function resolveTargets(action, owner, ctx = {}) {
   let actors;
   // A floor rule with no target affects every crawler.
-  if (ctx.world && !action.targetGroup && !action.targetActor && !['applyEffect', 'macro'].includes(action.type)) {
+  if (ctx.world && !action.targetGroup && !action.targetActor && !['applyEffect', 'macro', 'addToken'].includes(action.type)) {
     actors = groupActors('crawlers', owner, ctx);
   } else if (action.type === 'applyEffect') actors = [ctx.target].filter(Boolean);
-  else if (action.type === 'macro') actors = [owner];
+  else if (action.type === 'macro' || action.type === 'addToken') actors = [owner];
   else if (action.targetGroup) actors = groupActors(action.targetGroup, owner, ctx);
   else if (action.targetActor) {
     const doc = await fromUuid(action.targetActor);
@@ -438,6 +439,20 @@ const HANDLERS = {
     const data = game.items.fromCompendium(doc);
     if (stackable) data.system.quantity = quantity;
     await actor.createEmbeddedDocuments('Item', [data]);
+  },
+
+  /**
+   * Place tokens of an actor next to the anchor token (see performAddToken). The
+   * anchor travels in the context, so a request relayed to the GM brings its own.
+   */
+  async addToken({ action, ctx }) {
+    const source = action.uuid ? await fromUuid(action.uuid) : null;
+    if (!source || source.documentName !== 'Actor') return warn('CARL_RPG.Events.Warn.ActorMissing');
+    const anchor = ctx.anchorUuid ? await fromUuid(ctx.anchorUuid) : null;
+    if (anchor?.documentName !== 'Token' || !anchor.parent) return warn('CARL_RPG.Events.Warn.NoAnchor');
+    const count = await rollAmount(action.amount || '1');
+    if (count < 1) return;
+    await placeTokens({ source, anchor, count, hidden: !!action.hidden, joinCombat: !!action.joinCombat });
   },
 
   /** Give the target an achievement, once. A new one pays its loot box (see items). */
@@ -805,6 +820,7 @@ async function performAction(item, event, index, ctx) {
   const action = event.actions[index];
   if (action.type === 'applyEffect') return queueEffect(item, event, index, ctx);
   if (action.ask && !ctx.world && !(await askFirst(item, action, ctx))) return;
+  if (action.type === 'addToken') return performAddToken(item, event, index, ctx);
 
   // The targeted tokens belong to whoever triggered this, so they are worked out
   // here and travel with the request if it goes to the GM.
@@ -819,6 +835,26 @@ async function performAction(item, event, index, ctx) {
   }
   for (const target of mine) await executeAction(item, event, index, ctx, target);
   if (forGM.length) await relayToGM(item, event, index, ctx, forGM);
+}
+
+/**
+ * "Add a token to the scene": it goes next to the first token this user has
+ * targeted, else the owner's token. It is done here when the user may create
+ * tokens (and owns the actor and the combat it joins), otherwise on the GM's
+ * client, which needs the events to be approved like other actions that do more
+ * than the user may.
+ */
+async function performAddToken(item, event, index, ctx) {
+  const action = event.actions[index];
+  const source = action.uuid ? await fromUuid(action.uuid) : null;
+  if (!source || source.documentName !== 'Actor') return warn('CARL_RPG.Events.Warn.ActorMissing');
+  const anchor = findAnchor(ctx.actor);
+  if (!anchor) return warn('CARL_RPG.Events.Warn.NoAnchor');
+  const full = { ...ctx, anchorUuid: anchor.uuid };
+  if (canPlaceDirectly(source, anchor, !!action.joinCombat)) {
+    return HANDLERS.addToken({ item, event, action, actor: ctx.actor, ctx: full });
+  }
+  await relayToGM(item, event, index, full, []);
 }
 
 /** Carry out a stored action on this client, on one actor. */
@@ -851,6 +887,8 @@ async function relayToGM(item, event, index, ctx, targets) {
           depth: ctx.depth ?? 0,
           trigger: ctx.trigger,
           phase: ctx.phase,
+          // Where "add a token" places it: next to this token.
+          anchorUuid: ctx.anchorUuid ?? '',
           // Who the action is for: the hit target, or the targeted tokens (both depend
           // on who did this, so the GM's client can't work them out itself).
           targetUuids:
@@ -897,6 +935,7 @@ async function handleRelay(message, relay) {
       depth: relay.depth ?? 0,
       trigger: relay.trigger,
       phase: relay.phase,
+      anchorUuid: relay.anchorUuid,
       target: action.type === 'applyEffect' ? (given[0] ?? null) : undefined,
       targeted: given,
     };

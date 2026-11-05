@@ -45,6 +45,9 @@ export function eventsField() {
             runOn: requiredString('user'),
             selfItem: new fields.BooleanField({ initial: false }),
             skipIfHas: new fields.BooleanField({ initial: true }),
+            // "Add a token to the scene": place it hidden, and join the combat on that scene.
+            hidden: new fields.BooleanField({ initial: false }),
+            joinCombat: new fields.BooleanField({ initial: true }),
             ignoreDR: new fields.BooleanField({ initial: false }),
             // Ask the player first, and skip the action if they say no.
             ask: new fields.BooleanField({ initial: false }),

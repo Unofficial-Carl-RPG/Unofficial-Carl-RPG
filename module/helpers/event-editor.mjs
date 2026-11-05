@@ -68,6 +68,8 @@ export function newAction(extra = {}) {
     runOn: 'user',
     selfItem: false,
     skipIfHas: true,
+    hidden: false,
+    joinCombat: true,
     ignoreDR: false,
     ask: false,
     text: '',
@@ -232,9 +234,11 @@ export async function buildEventRows(events, base) {
                 ? 'effect'
                 : a.type === 'rollTable'
                   ? 'table'
-                  : 'item';
+                  : a.type === 'addToken'
+                    ? 'actor'
+                    : 'item';
           const needsDrop =
-            ['useItem', 'macro', 'toggleEffect', 'applyEffect', 'addItem', 'awardAchievement', 'grantSkill', 'rollTable'].includes(
+            ['useItem', 'macro', 'toggleEffect', 'applyEffect', 'addItem', 'addToken', 'awardAchievement', 'grantSkill', 'rollTable'].includes(
               a.type
             ) ||
             (a.type === 'removeItem' && !a.selfItem);
@@ -250,6 +254,7 @@ export async function buildEventRows(events, base) {
             isToggleEffect: effectish,
             fixedTarget: a.type === 'applyEffect',
             isAddItem: a.type === 'addItem',
+            isAddToken: a.type === 'addToken',
             isRemoveItem: a.type === 'removeItem',
             isMana: a.type === 'mana',
             isHealth: a.type === 'health',
@@ -260,6 +265,7 @@ export async function buildEventRows(events, base) {
             isRunEvent: a.type === 'runEvent',
             showAmount: [
               'addItem',
+              'addToken',
               'removeItem',
               'mana',
               'health',
@@ -270,13 +276,13 @@ export async function buildEventRows(events, base) {
             ].includes(a.type),
             // Who it affects: not for a macro (it runs once), the hit target, or
             // another event (which has its own actions).
-            canChooseTarget: !['macro', 'applyEffect', 'runEvent'].includes(a.type),
+            canChooseTarget: !['macro', 'applyEffect', 'runEvent', 'addToken'].includes(a.type),
             showSpecificActor:
-              !a.targetGroup && !['macro', 'applyEffect', 'runEvent'].includes(a.type),
+              !a.targetGroup && !['macro', 'applyEffect', 'runEvent', 'addToken'].includes(a.type),
             needsDrop,
             docAccept: accept,
             docName: doc?.name,
-            dropHint: `CARL_RPG.Events.Drop.${accept}`,
+            dropHint: a.type === 'addToken' ? 'CARL_RPG.Events.Drop.tokenActor' : `CARL_RPG.Events.Drop.${accept}`,
             docMissing: !!a.uuid && !doc,
             targetName: target?.name ?? (a.targetActor ? a.targetActor : ''),
             targetMissing: !!a.targetActor && !target,

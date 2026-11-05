@@ -110,6 +110,9 @@ export async function summarizeAction(a, otherEvents = {}) {
     case 'addItem':
       text = t(`${S}addItem`, { amount, name: await nameOf(a.uuid) });
       break;
+    case 'addToken':
+      text = t(`${S}${a.hidden ? 'addTokenHidden' : 'addToken'}`, { amount, name: await nameOf(a.uuid) });
+      break;
     case 'awardAchievement':
       text = t(`${S}awardAchievement`, { name: await nameOf(a.uuid) });
       break;
@@ -151,7 +154,7 @@ export async function summarizeAction(a, otherEvents = {}) {
     default:
       text = a.type;
   }
-  if (a.targetGroup && a.type !== 'applyEffect') {
+  if (a.targetGroup && !['applyEffect', 'addToken'].includes(a.type)) {
     text += ` (${t(CONFIG.CARL_RPG.eventTargetGroups[a.targetGroup])})`;
   }
   return text;
