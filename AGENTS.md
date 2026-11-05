@@ -2,15 +2,24 @@
 
 FoundryVTT v13 system for the Dungeon Crawler Carl TTRPG. Package id `carl-rpg`, branch `carl-rpg`.
 
-Read `docs/ai-reference.json` first. It is a machine-oriented map of every built feature.
-Top-level keys: `project`, `architecture`, `constants`, `actors`, `items`, `effects`, `events`,
-`rules`, `systems`, `ui`, `settings`, `api`, `flags`, `visibility`, `tests`, `workflow`, `quirks`.
+Read `docs/ai/README.md` first. It is the index of a machine-oriented reference of every built
+feature, split into small files. Load only the file that answers your question:
 
-The code is the source of truth. If you change behaviour that the reference covers, update the
-matching section and keep the file valid JSON:
-`node -e "JSON.parse(require('fs').readFileSync('docs/ai-reference.json','utf8'))"`
+- `architecture.md`: layout, entry point, classes, data model map, GM-client relays
+- `constants.md`: enums and numbers from `config.mjs`
+- `actors.md`: crawler, mob, pet, mount, loot pile
+- `items-effects.md`: every item type, effect flags and modifiers
+- `events.md`: triggers, conditions, actions, trust
+- `rules.md`: use flow, checks, damage, combat, dying, rests, upgrades, targeting
+- `systems.md`: creation, origins, loot, stores, quests, Dungeon Info, recap, journals
+- `ui.md`: style rules, filters, tooltips, quick bar, chat cards
+- `settings-api-flags.md`: settings, globals, hooks, commands, flags, visibility
+- `workflow-tests-quirks.md`: edit/verify/git rules, tests, known bugs
 
-Hard rules (full list under `workflow`):
+The code is the source of truth. If you change behaviour a file covers, update that file in the
+same commit.
+
+Hard rules (full list in `workflow-tests-quirks.md`):
 
 - Never edit `build/`. Compiled `css/` is untracked output of `npm run build`.
 - Every dialog uses `CarlRPGDialog` (`module/helpers/dialog.mjs`), never `DialogV2`.
