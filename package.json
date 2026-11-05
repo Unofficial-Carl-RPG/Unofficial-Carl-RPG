@@ -1,6 +1,6 @@
 {
   "name": "carl-rpg",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "CSS compiler for the Carl RPG system",
   "scripts": {
     "build": "sass src/scss/carl-rpg.scss css/carl-rpg.css --style=expanded --no-source-map",

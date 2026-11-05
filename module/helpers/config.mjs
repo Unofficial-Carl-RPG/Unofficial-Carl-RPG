@@ -308,7 +308,7 @@ CARL_RPG.rankDamage = [
 
 /** The damage types a new world starts with (the GM edits the list in the settings). */
 CARL_RPG.defaultDamageTypes =
-  'Physical, Fire, Cold, Lightning, Poison, Acid, Necrotic, Psychic';
+  'Physical, Slashing, Piercing, Bludgeoning, Fire, Cold, Lightning, Poison, Acid, Necrotic, Psychic';
 
 /** How an effect can treat a damage type (see helpers/damage-types.mjs). */
 CARL_RPG.damageModes = {

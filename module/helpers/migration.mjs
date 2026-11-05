@@ -17,6 +17,7 @@
  * skills, starting Dying, handing a pet its skills).
  */
 import { migrateClassTags } from './tags.mjs';
+import { addPhysicalSubtypes } from './damage-types.mjs';
 
 const NS = 'carl-rpg';
 export const MIGRATION_SETTING = 'migratedVersion';
@@ -33,6 +34,8 @@ const BATCH = 50;
 export const STEPS = [
   // Class tags were first stored as regular tags: they are categories now.
   { version: '0.1.0', run: () => migrateClassTags() },
+  // Slashing, Piercing and Bludgeoning joined the starter damage types.
+  { version: '0.1.1', run: () => addPhysicalSubtypes() },
 ];
 
 const t = (key, data) =>

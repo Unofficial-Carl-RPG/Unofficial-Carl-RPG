@@ -54,8 +54,8 @@ test('a world runs the steps newer than where it was, up to the system\'s versio
   STEPS.push(...extra);
   try {
     const versions = (stored, current) => pendingSteps(stored, current).map((s) => s.version);
-    assert.deepEqual(versions('', '0.3.0'), ['0.1.0', '0.2.0', '0.3.0']);
-    assert.deepEqual(versions('0.1.0', '0.3.0'), ['0.2.0', '0.3.0']);
+    assert.deepEqual(versions('', '0.3.0'), ['0.1.0', '0.1.1', '0.2.0', '0.3.0']);
+    assert.deepEqual(versions('0.1.0', '0.3.0'), ['0.1.1', '0.2.0', '0.3.0']);
     assert.deepEqual(versions('0.2.0', '0.2.5'), []); // 0.3.0 is not reached yet
     assert.deepEqual(versions('0.3.0', '0.3.0'), []);
     assert.deepEqual(versions('', '0.0.9'), []);

@@ -26,6 +26,9 @@ export function registerDamageTypes() {
   });
 }
 
+/** Types added to the starter list after some worlds had already saved their own. */
+export const ADDED_DAMAGE_TYPES = ['Slashing', 'Piercing', 'Bludgeoning'];
+
 /** The id an item stores for a damage type name ("Cold Iron" is "cold-iron"). */
 export const damageTypeId = (label) =>
   String(label ?? '')
@@ -116,4 +119,30 @@ export function damageTypeNote(multiplier, name, type) {
     name,
     type: damageTypeLabel(type),
   });
+}
+
+/**
+ * A comma-separated list of damage types with any of these names that it lacks added
+ * at the end. A list that has them all comes back as it was.
+ * @param {string} raw
+ * @param {string[]} names
+ */
+export function withDamageTypes(raw, names) {
+  const text = String(raw ?? '');
+  const have = new Set(text.split(',').map(damageTypeId).filter(Boolean));
+  const add = names.filter((name) => !have.has(damageTypeId(name)));
+  if (!add.length) return raw;
+  const base = text.replace(/[,\s]+$/, '');
+  return base ? `${base}, ${add.join(', ')}` : add.join(', ');
+}
+
+/**
+ * Migration step: add Slashing, Piercing and Bludgeoning to a world's saved list of
+ * damage types (a world that never saved one already gets them from the default).
+ */
+export async function addPhysicalSubtypes() {
+  const raw = game.settings.get(NS, DAMAGE_TYPES_SETTING);
+  if (typeof raw !== 'string') return;
+  const next = withDamageTypes(raw, ADDED_DAMAGE_TYPES);
+  if (next !== raw) await game.settings.set(NS, DAMAGE_TYPES_SETTING, next);
 }
