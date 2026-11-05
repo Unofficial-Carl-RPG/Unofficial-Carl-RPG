@@ -397,3 +397,25 @@ test('mana cost changes add up to a delta, whatever the costs are (formulas, ran
   assert.equal(computeEffective(system).manaDelta, 2);
   assert.equal(computeEffective({ rank: 1, costs: [], upgrades: [] }).manaDelta, 0);
 });
+
+test('upgrades also change the Misc Junk and uses costs, and unusable values are skipped', () => {
+  const system = {
+    rank: 10,
+    costs: [{ resource: 'junk', amount: '2' }],
+    upgrades: [
+      {
+        id: 'a',
+        rank: 5,
+        changes: [
+          { type: 'junkCost', value: '-1' },
+          { type: 'usesCost', value: '1' },
+        ],
+      },
+      { id: 'b', rank: 10, changes: [{ type: 'junkCost', value: '-2' }, { type: 'usesCost', value: 'x' }] },
+    ],
+  };
+  const eff = computeEffective(system);
+  assert.equal(eff.junkDelta, -3);
+  assert.equal(eff.usesDelta, 1);
+  assert.equal(eff.manaDelta, 0);
+});

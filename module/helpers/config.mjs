@@ -274,12 +274,14 @@ CARL_RPG.upgrades = {
     damageReplace: 'CARL_RPG.Upgrades.Changes.damageReplace',
     dieStep: 'CARL_RPG.Upgrades.Changes.dieStep',
     manaCost: 'CARL_RPG.Upgrades.Changes.manaCost',
+    junkCost: 'CARL_RPG.Upgrades.Changes.junkCost',
+    usesCost: 'CARL_RPG.Upgrades.Changes.usesCost',
     rollBonus: 'CARL_RPG.Upgrades.Changes.rollBonus',
     rollTarget: 'CARL_RPG.Upgrades.Changes.rollTarget',
     armorPiercing: 'CARL_RPG.Upgrades.Changes.armorPiercing',
     damageType: 'CARL_RPG.Upgrades.Changes.damageType',
   },
-  spellOnly: ['manaCost'],
+  spellOnly: [],
 };
 
 /** The damage types a new world starts with (the GM edits the list in the settings). */

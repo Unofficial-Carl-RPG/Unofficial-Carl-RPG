@@ -52,6 +52,8 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
           damageReplace: '',
           dieStep: '1',
           manaCost: '-1',
+          junkCost: '-1',
+          usesCost: '-1',
           rollBonus: '1',
           rollTarget: 'evade',
           damageType: damageTypes()[0]?.id ?? '',

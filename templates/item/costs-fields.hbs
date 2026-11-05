@@ -18,6 +18,12 @@
   {{#if effective.manaChanged}}
     <p class='upgrade-now'><i class='fas fa-arrow-up'></i> {{localize 'CARL_RPG.Upgrades.NowMana' value=effective.manaCost}}</p>
   {{/if}}
+  {{#if effective.junkChanged}}
+    <p class='upgrade-now'><i class='fas fa-arrow-up'></i> {{localize 'CARL_RPG.Upgrades.NowJunk' value=effective.junkCost}}</p>
+  {{/if}}
+  {{#if effective.usesChanged}}
+    <p class='upgrade-now'><i class='fas fa-arrow-up'></i> {{localize 'CARL_RPG.Upgrades.NowUses' value=effective.usesCost}}</p>
+  {{/if}}
   {{#if @root.editable}}
     <a class='item-control' data-action='addCost'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Costs.Add'}}</a>
   {{/if}}

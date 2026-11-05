@@ -878,11 +878,12 @@ export class CarlRPGItem extends Item {
     const data = this.costData();
     const costs = this.system.costs;
     const mob = this.actor?.type === 'mob';
+    const effective = effectiveOf(this);
     return {
       // (An upgrade can change what a skill or spell costs in Mana.)
-      mana: mob ? none : shiftSpan(costSpan(costs, 'mana', data), effectiveOf(this).manaDelta ?? 0),
-      junk: mob ? none : costSpan(costs, 'junk', data),
-      uses: isLimited(this) ? costSpan(costs, 'uses', data) : none,
+      mana: mob ? none : shiftSpan(costSpan(costs, 'mana', data), effective.manaDelta ?? 0),
+      junk: mob ? none : shiftSpan(costSpan(costs, 'junk', data), effective.junkDelta ?? 0),
+      uses: isLimited(this) ? shiftSpan(costSpan(costs, 'uses', data), effective.usesDelta ?? 0) : none,
     };
   }
 
@@ -890,10 +891,11 @@ export class CarlRPGItem extends Item {
   costLabels() {
     const data = this.costData();
     const costs = this.system.costs;
+    const effective = effectiveOf(this);
     return {
-      mana: costLabel(costs, 'mana', data, effectiveOf(this).manaDelta ?? 0),
-      junk: costLabel(costs, 'junk', data),
-      uses: isLimited(this) ? costLabel(costs, 'uses', data) : '',
+      mana: costLabel(costs, 'mana', data, effective.manaDelta ?? 0),
+      junk: costLabel(costs, 'junk', data, effective.junkDelta ?? 0),
+      uses: isLimited(this) ? costLabel(costs, 'uses', data, effective.usesDelta ?? 0) : '',
     };
   }
 

@@ -19,7 +19,10 @@ import { damageTypes } from './damage-types.mjs';
  *  - damageReplace  replace the damage formula
  *  - dieStep        move every die in the damage up (or, if negative, down) the
  *                   dice sizes in CONFIG.CARL_RPG.upgrades.dieLadder
- *  - manaCost       change the mana cost (a spell; it never goes below 0)
+ *  - manaCost       change the Mana cost (it never goes below 0)
+ *  - junkCost       change the Misc Junk cost
+ *  - usesCost       change how many of its own uses it spends
+ *                   (each cost change moves both ends of a range)
  *  - rollBonus      add a number to the d20 roll
  *  - rollTarget     roll against something else (a key of CONFIG.CARL_RPG.checkTargets)
  *  - armorPiercing  the damage ignores Damage Resistance (no value)
@@ -95,6 +98,8 @@ export function changeProblem(change) {
       return !validFormula(value);
     case 'dieStep':
     case 'manaCost':
+    case 'junkCost':
+    case 'usesCost':
     case 'rollBonus':
       return !Number.isFinite(Number(value)) || value === '';
     case 'rollTarget':
@@ -136,6 +141,8 @@ export function computeEffective(system) {
   // What the upgrades add to the Mana cost in all (a cost that is a formula or a range
   // can't be worked out here, so it is shifted when it is used: see costSpans).
   let manaDelta = 0;
+  let junkDelta = 0;
+  let usesDelta = 0;
   let rollBonus = 0;
   let target = system.check?.target ?? 'unopposed';
   let damageType = system.damageType ?? '';
@@ -160,6 +167,12 @@ export function computeEffective(system) {
           manaCost = Math.max(0, manaCost + Math.trunc(Number(value)));
           manaDelta += Math.trunc(Number(value));
           break;
+        case 'junkCost':
+          junkDelta += Math.trunc(Number(value));
+          break;
+        case 'usesCost':
+          usesDelta += Math.trunc(Number(value));
+          break;
         case 'rollBonus':
           rollBonus += Math.trunc(Number(value));
           break;
@@ -179,6 +192,8 @@ export function computeEffective(system) {
     damage,
     manaCost,
     manaDelta,
+    junkDelta,
+    usesDelta,
     rollBonus,
     target,
     damageType,
@@ -245,6 +260,8 @@ export function effectiveOf(item) {
       damage: String(system.damage ?? ''),
       manaCost: manaCostOf(system.costs, system.manaCost),
       manaDelta: 0,
+      junkDelta: 0,
+      usesDelta: 0,
       rollBonus: 0,
       target: system.check?.target ?? 'unopposed',
       damageType: system.damageType ?? '',
@@ -336,6 +353,12 @@ export function summarizeChanges(upgrade, effectNames = [], grantNames = []) {
         break;
       case 'manaCost':
         parts.push(t('CARL_RPG.Upgrades.Summary.manaCost', { value: signed(n) }));
+        break;
+      case 'junkCost':
+        parts.push(t('CARL_RPG.Upgrades.Summary.junkCost', { value: signed(n) }));
+        break;
+      case 'usesCost':
+        parts.push(t('CARL_RPG.Upgrades.Summary.usesCost', { value: signed(n) }));
         break;
       case 'rollBonus':
         parts.push(t('CARL_RPG.Upgrades.Summary.rollBonus', { value: signed(n) }));
