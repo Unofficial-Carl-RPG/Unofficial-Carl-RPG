@@ -7,6 +7,7 @@ import {
   runFloorRules,
   isPhaseExecutor,
   checkRequirements,
+  eventData,
 } from '../module/helpers/events.mjs';
 import { castBlockedByHotlist, HOTLIST_ONLY_SETTING } from '../module/helpers/hotlist-rule.mjs';
 import { usesLeft, isLimited, spendUse, restoreUses, tickCooldowns, RECHARGE_BY_REST } from '../module/helpers/uses.mjs';
@@ -186,6 +187,102 @@ test('conditions can be negated, and an event can need all of them or any', asyn
 });
 
 /* -------------------------------------------- */
+/*  Formulas and roll data                      */
+/* -------------------------------------------- */
+
+const DATA = { int: { mod: 3 }, str: { mod: -2 }, lvl: 2 };
+
+/** Whether an event with these conditions fires, for a crawler whose roll data is DATA. */
+async function firesWith(conditions, ctx = {}, actor = {}, itemSystem = {}) {
+  const item = skillWith([favor({ conditions })], itemSystem);
+  const crawler = await crawlerWith(item, actor);
+  crawler.getRollData = () => DATA;
+  await runEvents(item, 'used', ctx);
+  return ran(crawler) === 1;
+}
+
+/** The AI Favor an action with this amount gives (0 when it does nothing). */
+async function giveAmount(amount, ctx = {}) {
+  const item = skillWith([favor({ actions: [{ type: 'aiFavor', mode: 'award', amount }] })]);
+  const crawler = await crawlerWith(item);
+  crawler.getRollData = () => DATA;
+  await runEvents(item, 'used', ctx);
+  return ran(crawler);
+}
+
+test('a condition can ask for a formula over roll data', async () => {
+  assert.equal(await firesWith([{ type: 'rollMin', value: '@int.mod + 10' }], { roll: roll(13) }), true);
+  assert.equal(await firesWith([{ type: 'rollMin', value: '@int.mod + 10' }], { roll: roll(12) }), false);
+  // What the trigger brings: the roll's own numbers.
+  assert.equal(await firesWith([{ type: 'rollMax', value: '@roll.natural + 5' }], { roll: roll(15, 10) }), true);
+  assert.equal(await firesWith([{ type: 'rollMax', value: '@roll.natural + 5' }], { roll: roll(16, 10) }), false);
+  // The item's rank and the floor.
+  assert.equal(await firesWith([{ type: 'mana', value: '@rank' }], {}, { abilities: { int: 9 }, system: { mana: { value: 4 } } }, { rank: 4 }), true);
+  assert.equal(await firesWith([{ type: 'mana', value: '@rank' }], {}, { abilities: { int: 9 }, system: { mana: { value: 3 } } }, { rank: 4 }), false);
+  world.settings.floor = 3;
+  assert.equal(await firesWith([{ type: 'floorExact', value: '@floor' }]), true);
+  assert.equal(await firesWith([{ type: 'floor', value: '@floor * 2' }]), false);
+  // The target that was hit.
+  const target = { getRollData: () => ({ lvl: 5 }) };
+  assert.equal(await firesWith([{ type: 'rollMin', value: '@target.lvl' }], { roll: roll(5), target }), true);
+  assert.equal(await firesWith([{ type: 'rollMin', value: '@target.lvl' }], { roll: roll(4), target }), false);
+});
+
+test('a condition that can\'t be worked out never passes', async () => {
+  assert.equal(await firesWith([{ type: 'rollMin', value: '@wis.mod' }], { roll: roll(99) }), false);
+  assert.equal(await firesWith([{ type: 'rollMin', value: '' }], { roll: roll(99) }), false);
+  assert.equal(await firesWith([{ type: 'rollMin', value: '1d6' }], { roll: roll(99) }), false);
+  // (Numbers saved before formulas were allowed still work.)
+  assert.equal(await firesWith([{ type: 'rollMin', value: 15 }], { roll: roll(15) }), true);
+});
+
+test('an action amount can read roll data and what the trigger brings', async () => {
+  assert.equal(await giveAmount('@lvl + 1'), 3);
+  assert.equal(await giveAmount('3 + @str.mod'), 1);
+  assert.equal(await giveAmount('@roll.total', { roll: roll(7) }), 7);
+  assert.equal(await giveAmount('@lvl + @cost.mana', { paid: { mana: 2 } }), 4);
+  assert.equal(await giveAmount('@cost', { paid: { mana: 2, junk: 1 } }), 3);
+  assert.equal(await giveAmount('@trigger.amount', { amount: 4 }), 4);
+  assert.equal(await giveAmount('@target.lvl', { target: { getRollData: () => ({ lvl: 6 }) } }), 6);
+  assert.equal(await giveAmount('@floor'), 1);
+});
+
+test('an amount with data that isn\'t there counts as 0 and warns', async () => {
+  assert.equal(await giveAmount('@nope + 2'), 0);
+  assert.equal(world.warnings.length, 1);
+  assert.equal(await giveAmount('@roll.total'), 0); // no roll for this trigger
+});
+
+test('eventData: the owner, the item, the target and the trigger', async () => {
+  const item = skillWith([], { rank: 4 });
+  const crawler = await crawlerWith(item);
+  crawler.getRollData = () => DATA;
+  const data = eventData(item, {
+    actor: crawler,
+    roll: roll(15, 12),
+    paid: { mana: 2, junk: 1 },
+    amount: 4,
+    target: { getRollData: () => ({ lvl: 6 }) },
+  });
+  assert.equal(data.lvl, 2);
+  assert.equal(data.rank, 4);
+  assert.equal(data.item.rank, 4);
+  assert.equal(data.floor, 1);
+  assert.deepEqual(data.roll, { total: 15, natural: 12 });
+  assert.equal(data.cost.total, 3);
+  assert.equal(data.cost.mana, 2);
+  assert.equal(data.trigger.amount, 4);
+  assert.equal(data.target.lvl, 6);
+  // A request handed to the GM brings its numbers along, and only those.
+  const relayed = eventData(item, {
+    actor: crawler,
+    triggerData: { roll: { total: 9, natural: 2 }, lvl: 99, str: 'x' },
+  });
+  assert.deepEqual(relayed.roll, { total: 9, natural: 2 });
+  assert.equal(relayed.lvl, 2);
+});
+
+/* -------------------------------------------- */
 /*  Requirements                                */
 /* -------------------------------------------- */
 
@@ -198,6 +295,24 @@ test('requirements block use and say why', async () => {
   assert.equal(checkRequirements(item), true);
   crawler.system.gold = 9;
   assert.equal(checkRequirements(item), false);
+});
+
+test('a requirement can ask for a formula over roll data', async () => {
+  const item = skillWith([], { requirements: [{ type: 'mana', value: '@int.mod * 2' }] });
+  const crawler = await crawlerWith(item, { system: { mana: { value: 5 } } });
+  crawler.getRollData = () => DATA;
+  assert.equal(checkRequirements(item), false); // needs 6
+  crawler.system.mana.value = 6;
+  assert.equal(checkRequirements(item), true);
+});
+
+test('a requirement that can\'t be worked out blocks use and says so', async () => {
+  const item = skillWith([], { requirements: [{ type: 'gold', value: '@nope' }] });
+  const crawler = await crawlerWith(item, { system: { gold: 99 } });
+  crawler.getRollData = () => DATA;
+  assert.equal(checkRequirements(item), false);
+  assert.equal(world.warnings.length, 1);
+  assert.match(world.warnings[0], /badFormula/);
 });
 
 /* -------------------------------------------- */

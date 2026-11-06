@@ -71,7 +71,7 @@
             </select>
           {{/if}}
           {{#if cond.showValue}}
-            <input type='number' class='event-value' data-path='{{cond.path}}.value' value='{{cond.value}}' step='1' />
+            <input type='text' class='event-value' data-path='{{cond.path}}.value' value='{{cond.value}}' data-tooltip='{{localize "CARL_RPG.Events.ValueHint"}}' />
           {{/if}}
           {{#if cond.showTag}}
             <input type='text' class='event-amount tag-field' list='carl-tags-events' data-path='{{cond.path}}.tag' value='{{cond.tag}}' placeholder='{{localize "CARL_RPG.Tags.Placeholder"}}' />

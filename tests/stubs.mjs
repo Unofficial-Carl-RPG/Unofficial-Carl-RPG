@@ -5,6 +5,7 @@
  * utilities. Anything else under `foundry.*` is an inert placeholder.
  */
 import { CARL_RPG } from '../module/helpers/config.mjs';
+import { evalAmount } from '../module/helpers/amounts.mjs';
 
 const NS = 'carl-rpg';
 
@@ -142,7 +143,7 @@ class Roll {
     return /^[\d\s+\-*/().d@a-z]+$/i.test(String(formula));
   }
   async evaluate() {
-    this.total = Number(this.formula);
+    this.total = evalAmount(this.formula) ?? Number(this.formula);
     return this;
   }
 }

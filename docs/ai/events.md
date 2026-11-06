@@ -10,8 +10,17 @@
 
 ## shape
 - event: {id, name, enabled, trigger, phase ('any'|combat phase id; only for phaseStart/phaseEnd), match 'all'|'any', conditions[], actions[]}
-- condition: {type, negate (NOT), stat, value, phase, degree, uuid, tag, text}
+- condition: {type, negate (NOT), stat, value (string: a number or formula, see formulas), phase, degree, uuid, tag, text}
 - action: {type, mode, uuid, amount (string number|dice), targetActor (actor dropped on the action), runOn user|gm, selfItem, skipIfHas (default true), hidden, joinCombat, ignoreDR, ask (confirm first, skip if declined), text, targetGroup}
+
+## formulas
+- where: every number an event reads is a number or formula over roll data: action amount (dice allowed, rolled when run), condition value and requirement value (no dice; worked out by helpers/amounts.mjs evalAmount, so 'roll min' etc. are stable)
+- valueConditions: stat, mana, rollMin, rollMax, lootGold, floor, floorExact, health, chance, targetSize. A formula that cannot be worked out (missing data, blank, dice) makes the condition false; a requirement then blocks use with Needs.badFormula; an action amount counts as 0 with Warn.BadFormula
+- data (events.mjs eventData(item, ctx)): the owner's actor roll data (@str.mod, @lvl ...; the OWNER of the event, not the actor an action is aimed at), @floor, @rank (item rank, 0 if none), @item.* (item.system; @item.stacks for effects), @target.* (roll data of the target hit/missed), plus the trigger's: @roll.total, @roll.natural (first die), @cost (total paid; @cost.mana .junk .uses .ammo), @trigger.amount|level|rank|actionsLeft (takesDamage damage, levelUp new level, advanced new rank, actionSpent actions left)
+- passed: item.mjs runEvents for used/hit/miss pass paid (what the use paid); attacks.mjs hit events from the card pass no paid
+- fillData (amounts.mjs): puts @paths into a dice formula (objects use .total, negatives bracketed) before Roll rolls it; any unresolved name -> warn, amount 0
+- storage: condition.value and requirement.value are StringFields (old numbers cast to text on load); effect flags and floor rules are schema-less, so they can still hold numbers, evalAmount reads both
+- relay: relayToGM sends triggerData (only roll, cost, trigger objects are read back) and hitUuid; the GM's client rebuilds ctx.target and ctx.triggerData. A forged relay can only change those numbers, never the stored formula
 
 ## triggers
 - used: after an item's roll and check resolved; ctx: roll, degrees

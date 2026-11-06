@@ -14,7 +14,7 @@
   - damageType: id from the world damage type list or ''
   - armorPiercing: bool; damage ignores DR
   - targeting: {mode none|count|self|area, count formula, range string(ft|Melee|Touch|Unlimited), filter enemies|allies|any, shape circle|cone|ray|rect, size formula, lasting bool, lasts int rounds (0 until GM removes), areas formula, limit formula (0 = all), kind ''|fire|difficult|poison}
-  - requirements: [{type mana|stat|gold|actions|classTag, stat, value, tag}] must hold or the item cannot be used (warns)
+  - requirements: [{type mana|stat|gold|actions|classTag, stat, value (number or formula, see events.md formulas), tag}] must hold or the item cannot be used (warns)
   - events: [event] see events section
   - costs: [{resource mana|junk|uses|ammo, amount formula, max formula|'', name, identifier, tag}] ranged when max set. name/identifier/tag only matter for ammo rows (see ammunition below)
 - ammunition: a costs row with resource ammo spends a crawler's inventory items (type item only, never gear) each use. Item dropped on the row (name + Identifier saved) matches by Identifier when both have one else by name (sameItem rule); the row's tag matches any item with that tag; either matches. Fixed amount or a range (the roll pop-up asks, capped at the largest matching stack). Several ammo rows allowed, each paid on its own. Pets, mobs and unowned items spend none. Logic in helpers/ammo.mjs (pure), asking/spending in CarlRPGItem #planAmmo/#spendAmmo; ammoSpans(), ammoSummary (name, need, left, owned) feed badges, quick bar and the Gear/Inventory row counts. Ammo costs have no upgrade changes.

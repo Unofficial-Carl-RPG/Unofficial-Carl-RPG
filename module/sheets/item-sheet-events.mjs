@@ -148,7 +148,7 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
   /** @this CarlRPGItemSheet */
   static async _addRequirement() {
     await this._updateEvents((system) => {
-      system.requirements.push({ type: 'mana', stat: 'str', value: 1 });
+      system.requirements.push({ type: 'mana', stat: 'str', value: '1' });
     });
   }
 

@@ -7,8 +7,6 @@ export function eventsField() {
   const fields = foundry.data.fields;
   const requiredString = (initial = '') =>
     new fields.StringField({ required: true, blank: true, initial });
-  const number = (initial = 0) =>
-    new fields.NumberField({ required: true, nullable: false, initial });
   return new fields.ArrayField(
       new fields.SchemaField({
         id: requiredString(),
@@ -25,7 +23,8 @@ export function eventsField() {
             // True for "NOT": the condition has to be false.
             negate: new fields.BooleanField({ initial: false }),
             stat: requiredString('str'),
-            value: number(1),
+            // A number or a formula over roll data (see helpers/events.mjs eventData).
+            value: requiredString('1'),
             phase: requiredString('any'),
             // For the "the attack's result is" condition (see helpers/attacks.mjs).
             degree: requiredString('success'),
@@ -160,14 +159,13 @@ export default class CarlRPGItemBase extends foundry.abstract
     // the item to be used at all; events run when their trigger fires.
     const requiredString = (initial = '') =>
       new fields.StringField({ required: true, blank: true, initial });
-    const number = (initial = 0) =>
-      new fields.NumberField({ required: true, nullable: false, initial });
 
     schema.requirements = new fields.ArrayField(
       new fields.SchemaField({
         type: requiredString('mana'),
         stat: requiredString('str'),
-        value: number(1),
+        // A number or a formula over roll data.
+        value: requiredString('1'),
         tag: requiredString(),
       })
     );

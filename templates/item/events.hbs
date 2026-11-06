@@ -21,7 +21,7 @@
         </select>
       {{/if}}
       {{#unless req.showTag}}
-        <input type='number' class='event-value' data-path='{{req.path}}.value' value='{{req.value}}' step='1' min='0' />
+        <input type='text' class='event-value' data-path='{{req.path}}.value' value='{{req.value}}' data-tooltip='{{localize "CARL_RPG.Events.ValueHint"}}' />
       {{/unless}}
       {{#if req.showTag}}
         <input type='text' class='event-amount tag-field' list='carl-tags-events' data-path='{{req.path}}.tag' value='{{req.tag}}' placeholder='{{localize "CARL_RPG.Tags.Placeholder"}}' />

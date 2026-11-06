@@ -1734,7 +1734,8 @@
       "AnyPhase": "Any phase",
       "NotTrusted": "Last saved by a player, so limited to what they could do. A GM must save these events to allow GM-client macros and changes to other actors.",
       "AmountPlaceholder": "1",
-      "AmountHint": "A number or dice formula (for example 2 or 1d4)",
+      "AmountHint": "A number or dice formula; can use roll data (for example 1d4 + @int.mod)",
+      "ValueHint": "A number or formula (for example 3 or @int.mod + 1)",
       "SkipIfHas": "Skip if they already have it",
       "ThisItem": "This item (instead of another)",
       "IgnoreDR": "Ignore damage reduction",
@@ -1822,7 +1823,8 @@
         "stat": "Needs {stat} {value} (has {have}).",
         "gold": "Needs {value} gold (has {have}).",
         "actions": "Needs {value} action(s) left (has {have}).",
-        "classTag": "Needs a class with the tag {tag}."
+        "classTag": "Needs a class with the tag {tag}.",
+        "badFormula": "Can't work out the requirement \"{formula}\"."
       },
       "Actions": {
         "useItem": "Use an item",
@@ -2008,6 +2010,7 @@
         "NoGM": "A GM needs to be connected to carry out this event.",
         "TooDeep": "{name}: events triggered too many other events, so this one was stopped.",
         "ActionFailed": "An event action on {name} failed. See the console for details.",
+        "BadFormula": "An event formula ({formula}) uses data that isn't there, so it counts as 0.",
         "TableMissing": "An event couldn't find its roll table.",
         "ActorMissing": "An event couldn't find the actor whose token it places.",
         "NoAnchor": "An event needs a targeted token, or its owner on a scene, to place a token next to.",

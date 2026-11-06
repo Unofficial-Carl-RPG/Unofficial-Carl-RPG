@@ -44,6 +44,8 @@ import { getFloorRules } from './floor.mjs';
 import { logEvent } from './change-log.mjs';
 import { revive } from './dying.mjs';
 import { findAnchor, canPlaceDirectly, placeTokens } from './summon.mjs';
+import { evalAmount, fillData } from './amounts.mjs';
+import { costPaidData } from '../data/costs.mjs';
 
 const NS = 'carl-rpg';
 
@@ -54,11 +56,20 @@ const t = (key, data) =>
 const warn = (key, data) => ui.notifications.warn(t(key, data));
 const esc = (text) => foundry.utils.escapeHTML(String(text ?? ''));
 
-/** Roll an amount (a number or dice formula) to a whole number, 0 or more. */
-async function rollAmount(formula, rollData = {}) {
+/**
+ * Roll an amount (a number or dice formula, which can read roll data such as
+ * `@int.mod`, see eventData) to a whole number, 0 or more. A name with no data
+ * behind it counts as 0, with a warning.
+ */
+async function rollAmount(formula, data = {}) {
   const text = String(formula ?? '').trim();
   if (!text) return 0;
-  const roll = await new Roll(text, rollData).evaluate();
+  const filled = fillData(text, data);
+  if (filled.missing.length) {
+    warn('CARL_RPG.Events.Warn.BadFormula', { formula: text });
+    return 0;
+  }
+  const roll = await new Roll(filled.text).evaluate();
   return Math.max(0, Math.floor(roll.total));
 }
 
@@ -72,6 +83,62 @@ function statValue(actor, key) {
 /** The first d20 result of a roll, for natural 20 / natural 1 conditions. */
 function firstDie(roll) {
   return roll?.dice?.[0]?.results?.[0]?.result;
+}
+
+/** The roll data of an actor (nothing for none). */
+function rollDataOf(actor) {
+  return actor?.getRollData?.() ?? actor?.system?.getRollData?.() ?? {};
+}
+
+/** The numbers a trigger can bring along, read as `@trigger.amount` and so on. */
+const TRIGGER_NUMBERS = ['amount', 'level', 'rank', 'actionsLeft'];
+
+/**
+ * What a formula can read that depends on how the event came about: `@roll.total` and
+ * `@roll.natural` (the first die), `@cost` (what the use paid: the total, and
+ * `@cost.mana`, `.junk`, `.uses`, `.ammo`) and `@trigger.*` (the damage taken, the new
+ * level or rank, the actions left). It is plain data, so it can travel with a request
+ * handed to the GM's client.
+ */
+function triggerData(ctx = {}) {
+  if (ctx.triggerData) {
+    const { roll, cost, trigger } = ctx.triggerData;
+    return Object.fromEntries(
+      Object.entries({ roll, cost, trigger }).filter(([, v]) => v && typeof v === 'object')
+    );
+  }
+  const out = {};
+  if (ctx.roll) {
+    out.roll = { total: Number(ctx.roll.total) || 0, natural: firstDie(ctx.roll) ?? 0 };
+  }
+  if (ctx.paid) out.cost = costPaidData(ctx.paid);
+  const trigger = {};
+  for (const key of TRIGGER_NUMBERS) {
+    if (Number.isFinite(ctx[key])) trigger[key] = ctx[key];
+  }
+  if (Object.keys(trigger).length) out.trigger = trigger;
+  return out;
+}
+
+/**
+ * The roll data an event's formulas (amounts, and the numbers conditions and
+ * requirements ask for) are worked out from: the owner's (@str.mod, @lvl ...), the
+ * @floor, the @rank of the item, @item (its own data), @target (the target that was
+ * hit or missed) and what the trigger brings (see triggerData).
+ * @param {Item|ActiveEffect|Actor|null} item  The holder of the event
+ * @param {object} [ctx]
+ */
+export function eventData(item, ctx = {}) {
+  const owner = ctx.actor ?? (item ? ownerOf(item) : null);
+  const data = { ...rollDataOf(owner), floor: CONFIG.CARL_RPG.getFloor() };
+  if (item) {
+    data.rank = item.system?.rank ?? 0;
+    data.item = { ...(item.system ?? {}) };
+    const stacks = item.getFlag?.(NS, 'stacks');
+    if (stacks !== undefined) data.item.stacks = stacks;
+  }
+  if (ctx.target) data.target = rollDataOf(ctx.target);
+  return Object.assign(data, triggerData(ctx));
 }
 
 /**
@@ -194,7 +261,15 @@ export function checkRequirements(item) {
   if (!actor) return true;
 
   const problems = [];
-  for (const req of item.system.requirements ?? []) {
+  const data = eventData(item, { actor });
+  for (const raw of item.system.requirements ?? []) {
+    // How much it asks for is a number or a formula over roll data.
+    const need = raw.type === 'classTag' ? 0 : evalAmount(raw.value, data);
+    if (need === null) {
+      problems.push(t('CARL_RPG.Events.Needs.badFormula', { formula: raw.value }));
+      continue;
+    }
+    const req = { ...raw, value: need };
     switch (req.type) {
       case 'mana': {
         const have = actor.system.mana?.value ?? 0;
@@ -261,13 +336,33 @@ export function checkRequirements(item) {
 
 const REST_ORDER = ['short', 'long', 'full'];
 
-async function checkCondition(condition, ctx) {
+/** The conditions that compare against a number (or a formula over roll data). */
+const VALUE_CONDITIONS = new Set([
+  'stat',
+  'mana',
+  'rollMin',
+  'rollMax',
+  'lootGold',
+  'floor',
+  'floorExact',
+  'health',
+  'chance',
+  'targetSize',
+]);
+
+async function checkCondition(condition, ctx, item) {
   const { actor, roll, loot } = ctx;
+  // The number it asks for; a formula that can't be worked out never passes.
+  let value = 0;
+  if (VALUE_CONDITIONS.has(condition.type)) {
+    value = evalAmount(condition.value, eventData(item, ctx));
+    if (value === null) return false;
+  }
   switch (condition.type) {
     case 'stat':
-      return statValue(actor, condition.stat) >= condition.value;
+      return statValue(actor, condition.stat) >= value;
     case 'mana':
-      return (actor?.system?.mana?.value ?? 0) >= condition.value;
+      return (actor?.system?.mana?.value ?? 0) >= value;
     case 'phase': {
       const combat = game.combat;
       if (!combat?.started) return false;
@@ -276,9 +371,9 @@ async function checkCondition(condition, ctx) {
       );
     }
     case 'rollMin':
-      return roll ? roll.total >= condition.value : false;
+      return roll ? roll.total >= value : false;
     case 'rollMax':
-      return roll ? roll.total <= condition.value : false;
+      return roll ? roll.total <= value : false;
     case 'nat20':
       return firstDie(roll) === 20;
     case 'nat1':
@@ -300,7 +395,7 @@ async function checkCondition(condition, ctx) {
       );
     }
     case 'lootGold':
-      return loot ? loot.gold >= condition.value : false;
+      return loot ? loot.gold >= value : false;
     case 'classTag':
       return actor ? classHasTag(actor, condition.tag) : false;
     case 'effect': {
@@ -314,15 +409,15 @@ async function checkCondition(condition, ctx) {
     case 'inCombat':
       return !!combatantOf(actor);
     case 'floor':
-      return CONFIG.CARL_RPG.getFloor() >= condition.value;
+      return CONFIG.CARL_RPG.getFloor() >= value;
     case 'floorExact':
-      return CONFIG.CARL_RPG.getFloor() === condition.value;
+      return CONFIG.CARL_RPG.getFloor() === value;
     case 'health':
-      return (actor?.system?.health?.value ?? Infinity) <= condition.value;
+      return (actor?.system?.health?.value ?? Infinity) <= value;
     case 'chance':
-      return Math.random() * 100 < condition.value;
+      return Math.random() * 100 < value;
     case 'targetSize':
-      return ctx.target ? sizeClass(ctx.target) >= condition.value : false;
+      return ctx.target ? sizeClass(ctx.target) >= value : false;
     case 'targetKind':
       return isKind(ctx.target, condition.text);
     case 'restKind':
@@ -336,11 +431,11 @@ async function checkCondition(condition, ctx) {
 }
 
 /** Whether an event's conditions are met (all of them, or any if it says so). */
-async function conditionsMet(event, ctx) {
+async function conditionsMet(event, ctx, item) {
   if (!event.conditions.length) return true;
   const results = [];
   for (const condition of event.conditions) {
-    const result = await checkCondition(condition, ctx);
+    const result = await checkCondition(condition, ctx, item);
     results.push(condition.negate ? !result : result);
   }
   return event.match === 'any' ? results.some(Boolean) : results.every(Boolean);
@@ -416,12 +511,12 @@ const HANDLERS = {
   },
 
   /** Add an item to the target. */
-  async addItem({ action, actor }) {
+  async addItem({ item, action, actor, ctx }) {
     const doc = await fromUuid(action.uuid);
     if (!doc || doc.documentName !== 'Item') {
       return warn('CARL_RPG.Events.Warn.ItemMissing');
     }
-    const quantity = await rollAmount(action.amount || '1');
+    const quantity = await rollAmount(action.amount || '1', eventData(item, ctx));
     if (quantity < 1) return;
 
     const identifier = doc.system?.identifier?.trim();
@@ -447,12 +542,12 @@ const HANDLERS = {
    * Place tokens of an actor next to the anchor token (see performAddToken). The
    * anchor travels in the context, so a request relayed to the GM brings its own.
    */
-  async addToken({ action, ctx }) {
+  async addToken({ item, action, ctx }) {
     const source = action.uuid ? await fromUuid(action.uuid) : null;
     if (!source || source.documentName !== 'Actor') return warn('CARL_RPG.Events.Warn.ActorMissing');
     const anchor = ctx.anchorUuid ? await fromUuid(ctx.anchorUuid) : null;
     if (anchor?.documentName !== 'Token' || !anchor.parent) return warn('CARL_RPG.Events.Warn.NoAnchor');
-    const count = await rollAmount(action.amount || '1');
+    const count = await rollAmount(action.amount || '1', eventData(item, ctx));
     if (count < 1) return;
     await placeTokens({ source, anchor, count, hidden: !!action.hidden, joinCombat: !!action.joinCombat });
   },
@@ -476,12 +571,12 @@ const HANDLERS = {
  * Permanent: nothing takes it back. It stops at the skill rank cap (see
  * skill-cap.mjs). The owner and the GM get a whisper.
  */
-  async grantSkill({ action, actor }) {
+  async grantSkill({ item, action, actor, ctx }) {
     const doc = await fromUuid(action.uuid);
     if (!doc || doc.documentName !== 'Item' || doc.type !== 'skill') {
       return warn('CARL_RPG.Events.Warn.ItemMissing');
     }
-    const ranks = await rollAmount(action.amount || '1');
+    const ranks = await rollAmount(action.amount || '1', eventData(item, ctx));
     if (ranks < 1) return;
     const cap = skillCapOf(actor, doc);
     const identifier = doc.system?.identifier?.trim();
@@ -513,7 +608,7 @@ const HANDLERS = {
   },
 
   /** Remove an item from the target (this item, or another by identifier). */
-  async removeItem({ item, action, actor }) {
+  async removeItem({ item, action, actor, ctx }) {
     const target = action.selfItem
       ? item
       : await findOwnedItem(actor, action.uuid);
@@ -526,16 +621,16 @@ const HANDLERS = {
       await target.delete();
       return;
     }
-    const left = target.system.quantity - (await rollAmount(reduceBy));
+    const left = target.system.quantity - (await rollAmount(reduceBy, eventData(item, ctx)));
     if (left <= 0) await target.delete();
     else await target.update({ 'system.quantity': left });
   },
 
   /** Spend or restore mana. */
-  async mana({ action, actor }) {
+  async mana({ item, action, actor, ctx }) {
     // (Crawlers and pets have mana.)
     if (actor.type === 'mob') return;
-    const amount = await rollAmount(action.amount);
+    const amount = await rollAmount(action.amount, eventData(item, ctx));
     const { value, maxTotal } = actor.system.mana;
     if (action.mode === 'restore') {
       await actor.update({
@@ -553,8 +648,8 @@ const HANDLERS = {
   },
 
   /** Damage (through DR and the CON modifier) or heal health boxes. */
-  async health({ action, actor }) {
-    const amount = await rollAmount(action.amount);
+  async health({ item, action, actor, ctx }) {
+    const amount = await rollAmount(action.amount, eventData(item, ctx));
     if (action.mode === 'heal') {
       const { value, max } = actor.system.health;
       await actor.update({
@@ -585,10 +680,10 @@ const HANDLERS = {
   },
 
   /** Spend or give back actions (in combat). */
-  async actions({ action, actor }) {
+  async actions({ item, action, actor, ctx }) {
     const combatant = combatantOf(actor);
     if (!combatant) return;
-    const amount = await rollAmount(action.amount);
+    const amount = await rollAmount(action.amount, eventData(item, ctx));
     const spent = combatant.getFlag(NS, 'actionsSpent') ?? 0;
     const next =
       action.mode === 'restore'
@@ -598,17 +693,17 @@ const HANDLERS = {
   },
 
   /** Add or take away gold (a crawler's). */
-  async gold({ action, actor }) {
-    const amount = await rollAmount(action.amount);
+  async gold({ item, action, actor, ctx }) {
+    const amount = await rollAmount(action.amount, eventData(item, ctx));
     if (actor.type !== 'crawler' || amount < 1) return;
     if (action.mode === 'remove') await actor.spendGold(amount);
     else await actor.addGold(amount);
   },
 
   /** Award or spend AI Favor (a crawler's; it never goes below 0). */
-  async aiFavor({ action, actor }) {
+  async aiFavor({ item, action, actor, ctx }) {
     if (actor.type !== 'crawler') return;
-    const amount = await rollAmount(action.amount);
+    const amount = await rollAmount(action.amount, eventData(item, ctx));
     const have = Math.trunc(actor.system.aiFavor ?? 0);
     const next = action.mode === 'spend' ? Math.max(0, have - amount) : have + amount;
     if (next !== have) await actor.update({ 'system.aiFavor': next });
@@ -665,7 +760,7 @@ async function runEventList(item, actor, events, trigger, ctx) {
   for (const event of events) {
     if (!event.enabled || event.trigger !== trigger) continue;
     if (withPhase && event.phase !== 'any' && event.phase !== ctx.phase) continue;
-    if (!(await conditionsMet(event, full))) continue;
+    if (!(await conditionsMet(event, full, item))) continue;
     if (depth >= CONFIG.CARL_RPG.maxEventDepth) {
       warn('CARL_RPG.Events.Warn.TooDeep', { name: item.name });
       return;
@@ -730,7 +825,7 @@ export async function runFloorRules(trigger, ctx = {}) {
   for (const rule of getFloorRules()) {
     if (!rule.enabled || rule.trigger !== trigger) continue;
     const full = { ...ctx, actor: null, trigger, depth: 0, world: true };
-    if (!(await conditionsMet(rule, full))) continue;
+    if (!(await conditionsMet(rule, full, source))) continue;
     await runActions(source, rule, full);
   }
 }
@@ -889,6 +984,10 @@ async function relayToGM(item, event, index, ctx, targets) {
           depth: ctx.depth ?? 0,
           trigger: ctx.trigger,
           phase: ctx.phase,
+          // What formulas read that depends on who did this (the roll, what was paid...),
+          // and the target that was hit.
+          triggerData: triggerData(ctx),
+          hitUuid: ctx.target?.uuid ?? '',
           // Where "add a token" places it: next to this token.
           anchorUuid: ctx.anchorUuid ?? '',
           // Who the action is for: the hit target, or the targeted tokens (both depend
@@ -932,14 +1031,17 @@ async function handleRelay(message, relay) {
       const actor = doc?.documentName === 'Actor' ? doc : (doc?.actor ?? null);
       if (actor) given.push(actor);
     }
+    const hit = relay.hitUuid ? await fromUuid(relay.hitUuid) : null;
+    const hitActor = hit?.documentName === 'Actor' ? hit : (hit?.actor ?? null);
     const ctx = {
       actor: owner,
       depth: relay.depth ?? 0,
       trigger: relay.trigger,
       phase: relay.phase,
       anchorUuid: relay.anchorUuid,
-      target: action.type === 'applyEffect' ? (given[0] ?? null) : undefined,
+      target: action.type === 'applyEffect' ? (given[0] ?? null) : (hitActor ?? undefined),
       targeted: given,
+      triggerData: relay.triggerData,
     };
     const targets = await resolveTargets(action, owner, ctx);
     for (const target of targets) {

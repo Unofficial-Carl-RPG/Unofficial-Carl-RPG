@@ -47,7 +47,7 @@ export function newCondition(extra = {}) {
     type: 'mana',
     negate: false,
     stat: 'str',
-    value: 1,
+    value: '1',
     phase: 'any',
     degree: 'success',
     uuid: '',
@@ -99,7 +99,7 @@ export const EVENT_TEMPLATES = {
     newEvent('takesDamage', {
       name: t('CARL_RPG.Events.Templates.bossLine'),
       conditions: [
-        newCondition({ type: 'health', value: 5 }),
+        newCondition({ type: 'health', value: '5' }),
         newCondition({ type: 'effect', uuid: '', negate: true }),
       ],
       actions: [
@@ -111,7 +111,7 @@ export const EVENT_TEMPLATES = {
     newEvent('takesDamage', {
       name: t('CARL_RPG.Events.Templates.bossSwap'),
       conditions: [
-        newCondition({ type: 'health', value: 5 }),
+        newCondition({ type: 'health', value: '5' }),
         newCondition({ type: 'effect', uuid: '', negate: true }),
       ],
       actions: [

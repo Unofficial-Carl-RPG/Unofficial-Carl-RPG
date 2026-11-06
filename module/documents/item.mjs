@@ -1225,14 +1225,15 @@ export class CarlRPGItem extends Item {
     // Summaries of the events that fire for this roll (shown on the attack card).
     const fired = [];
     // The rolled skill's own events run too.
-    if (rolling) await runEvents(rolling.skill, 'used', { roll, depth, degrees: attack?.degrees });
+    if (rolling) await runEvents(rolling.skill, 'used', { roll, paid, depth, degrees: attack?.degrees });
     // (`degrees` are the degrees of success, for the "the roll's result is"
     // condition.)
-    await runEvents(this, 'used', { roll, depth, degrees: attack?.degrees, collect: fired });
+    await runEvents(this, 'used', { roll, paid, depth, degrees: attack?.degrees, collect: fired });
     // Each target that was hit runs the "an attack hits a target" events.
     for (const hit of attack?.hits ?? []) {
       await runEvents(this, 'hit', {
         roll,
+        paid,
         depth,
         target: hit.actor,
         degree: hit.degree,
@@ -1244,6 +1245,7 @@ export class CarlRPGItem extends Item {
     for (const miss of attack?.misses ?? []) {
       await runEvents(this, 'miss', {
         roll,
+        paid,
         depth,
         target: miss.actor,
         collect: fired,

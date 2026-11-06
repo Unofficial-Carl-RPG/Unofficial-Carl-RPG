@@ -175,6 +175,27 @@ function run(node, data) {
 }
 
 /**
+ * Put roll data into a formula that may have dice in it (`1d6 + @int.mod`): each `@path`
+ * becomes its number (a path that ends on an object uses its `total`, a negative number
+ * goes in brackets). The dice are left for Foundry's Roll to roll.
+ * @param {string} text
+ * @param {object} [data]
+ * @returns {{text: string, missing: string[]}}  `missing` lists the names with no number behind them
+ */
+export function fillData(text, data = {}) {
+  const missing = [];
+  const filled = String(text ?? '').replace(/@([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)/g, (match, path) => {
+    const value = lookup(data ?? {}, path);
+    if (value === undefined) {
+      missing.push(match);
+      return match;
+    }
+    return value < 0 ? '(' + value + ')' : String(value);
+  });
+  return { text: filled, missing };
+}
+
+/**
  * Whether the text is a well formed amount (a blank is not). Roll data isn't needed:
  * this only checks the formula can be read, so a mistyped one can be flagged on a sheet.
  * @param {string} text

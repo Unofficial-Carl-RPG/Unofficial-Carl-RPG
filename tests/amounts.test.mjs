@@ -2,7 +2,7 @@
 import './stubs.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { evalAmount, validAmount, wholeAmount } from '../module/helpers/amounts.mjs';
+import { evalAmount, fillData, validAmount, wholeAmount } from '../module/helpers/amounts.mjs';
 import { costLabel, costPaidData, costSpan, capSpan, shiftSpan } from '../module/data/costs.mjs';
 
 const data = { int: { mod: 3 }, str: { mod: 1 }, lvl: 4, cost: costPaidData({ mana: 2, junk: 1 }) };
@@ -39,6 +39,15 @@ test('amounts: missing data and division by zero give null, never a wrong number
   assert.equal(evalAmount('@wis.mod + 1', data), null);
   assert.equal(evalAmount('@int.mod + 1', {}), null);
   assert.equal(evalAmount('1 / 0', data), null);
+});
+
+test('fillData puts roll data into a formula and leaves the dice', () => {
+  assert.deepEqual(fillData('1d6 + @int.mod', data), { text: '1d6 + 3', missing: [] });
+  assert.equal(fillData('2d4 * @cost', data).text, '2d4 * 3');
+  assert.equal(fillData('5 + @cost.mana', data).text, '5 + 2');
+  assert.equal(fillData('3 - @neg', { neg: -2 }).text, '3 - (-2)');
+  assert.deepEqual(fillData('@wis.mod + @int.mod', data), { text: '@wis.mod + 3', missing: ['@wis.mod'] });
+  assert.equal(fillData('1d6', data).text, '1d6');
 });
 
 test('whole amounts round down and keep to their limits', () => {

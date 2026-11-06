@@ -46,24 +46,24 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 197).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 205).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 197 pass)
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 205 pass)
 - stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node
 
 ## files
 - action.test.mjs: item Action formulas
 - ammo.test.mjs: ammunition matching, stacks, amounts
-- amounts.test.mjs: amount evaluator
+- amounts.test.mjs: amount evaluator, fillData
 - buff-slots.test.mjs: stacking buff groups and slot counting
 - build-mods.test.mjs: build benefits, caps, health stat
 - class-combo.test.mjs: Race+Class combos
 - combat.test.mjs: degrees, damage, phases, declarations
 - costs.test.mjs: cost spans/labels
 - damage-types.test.mjs: damage types and modes
-- events.test.mjs: triggers, conditions, actions, trust, add-token, approval
+- events.test.mjs: triggers, conditions, formulas over roll data, actions, trust, add-token, approval
 - gear-slots.test.mjs: slot room, two-handed gear, what comes off when equipping
 - later-floor.test.mjs: later-floor starts
 - migration.test.mjs / migration-guards.test.mjs: load-time migration and migrateData guards
