@@ -104,8 +104,10 @@
 - defaultRanks: 5, 10, 15, 20
 - rankStep: 5
 - dieLadder: 4, 6, 8, 10, 12, 20
-- changes: damageAdd, damageReplace, dieStep, manaCost, junkCost, usesCost, rollBonus, rollTarget, armorPiercing, damageType, rankDamageBonus, rankDamageStep, deAddDice, deBaseByRank, deTotalMultiplier, deHealthMax, deSameSize, deSizeMax, deCooldownHours, deCooldownRound, deCooldownNone, deStunOption, rmRank, rmDice, rmDR
+- changes: damageAdd, damageReplace, dieStep, manaCost, junkCost, usesCost, rollBonus, rollTarget, armorPiercing, damageType, rankDamageBonus, rankDamageStep, areaShape, areaShapeExtra, areaSizeAdd, areaSizeReplace, splashAdd, deAddDice, deBaseByRank, deTotalMultiplier, deHealthMax, deSameSize, deSizeMax, deCooldownHours, deCooldownRound, deCooldownNone, deStunOption, rmRank, rmDice, rmDR
 - change rows also carry when (string, default ''): the 'Only when' condition of a Roll Modifier change
+- change rows also carry size (string, default '') and keep (bool): an areaShapeExtra change's own size amount and whether the area's own shape is placed too
+- areaOnly: areaShape, areaShapeExtra, areaSizeAdd, areaSizeReplace (offered on Area targeting); splashOnly: splashAdd (offered on Count or Area targeting)
 - damageEffectOnly: the de* changes above; the Upgrades tab offers them only on a skill that is a Damage Effect
 - rollModOnly: rmRank, rmDice, rmDR; offered only on a skill that is a Roll Modifier
 

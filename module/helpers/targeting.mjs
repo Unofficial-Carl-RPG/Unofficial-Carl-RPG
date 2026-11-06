@@ -13,7 +13,8 @@
 import { CarlRPGDialog } from './dialog.mjs';
 import { applyQueuedEffect } from './events.mjs';
 import { rangeInfo, wholeAmount } from './amounts.mjs';
-import { clearSplash, noteArea, splashBand } from './splash.mjs';
+import { clearSplash, noteArea, splashAround, splashBand } from './splash.mjs';
+import { areaSteps, lastsRounds, splashReach } from './area-plan.mjs';
 import { effectiveOf } from './upgrades.mjs';
 
 const t = (key, data) => (data ? game.i18n.format(key, data) : game.i18n.localize(key));
@@ -130,7 +131,38 @@ export async function chooseTargets(item, data = item.costData?.() ?? {}, { shap
   } finally {
     Hooks.off('targetToken', onTarget);
   }
-  return choice === 'ok' && game.user.targets.size > 0;
+  const ok = choice === 'ok' && game.user.targets.size > 0;
+  if (ok) await addCountSplash(item, cfg, data);
+  return ok;
+}
+
+/**
+ * Splash for a Count item: the tokens (passing the item's filter, visible) within the splash
+ * distance of any chosen target are targeted too and noted as splash, so the attack reads them
+ * like an area's splash (see helpers/splash.mjs). A token that was chosen is never splash.
+ * @param {CarlRPGItem} item
+ * @param {object} cfg  The item's targeting
+ * @param {object} data  The roll data the amounts read
+ */
+async function addCountSplash(item, cfg, data) {
+  const reach = splashReach(cfg, effectiveOf(item), data);
+  if (!(reach > 0)) return;
+  const picked = [...game.user.targets];
+  const candidates = canvas.tokens.placeables.filter((tok) => tok.visible && matchesFilter(tok, cfg.filter));
+  const ids = splashAround(
+    picked.map((tok) => ({ x: tok.center.x, y: tok.center.y })),
+    reach * (canvas.dimensions?.distancePixels ?? 1),
+    candidates.map((tok) => ({ id: tok.id, x: tok.center.x, y: tok.center.y })),
+    picked.map((tok) => tok.id)
+  );
+  const band = candidates.filter((tok) => ids.includes(tok.id));
+  if (!band.length) return;
+  noteArea(
+    item.uuid,
+    picked.map((tok) => tok.document.uuid),
+    band.map((tok) => tok.document.uuid)
+  );
+  await game.user.updateTokenTargets([...new Set([...picked.map((tok) => tok.id), ...band.map((tok) => tok.id)])]);
 }
 
 /**
@@ -146,27 +178,35 @@ export async function chooseTargets(item, data = item.costData?.() ?? {}, { shap
  */
 export async function chooseArea(item, data = item.costData?.() ?? {}, chosenShape = null) {
   const cfg = item.system.targeting;
-  // What upgrades make of the area's shape and size (see helpers/upgrades.mjs).
+  // What upgrades make of the area's shape, size and splash (see helpers/upgrades.mjs).
   const effective = effectiveOf(item);
-  const shape = Object.hasOwn(CONFIG.CARL_RPG.areaShapes, chosenShape)
-    ? chosenShape
-    : (effective.areaShape ?? cfg.shape);
   const total = wholeAmount(cfg.areas, data, { min: 1, fallback: 1 });
-  const size = Math.max(
-    0,
-    wholeAmount(effective.areaSize ?? cfg.size, data, { min: 0, fallback: 0 }) + (effective.areaSizeDelta ?? 0)
-  );
+  // What one area puts down: the shape picked (a shape an upgrade added may have a size of its
+  // own and keep the base area too), see helpers/area-plan.mjs.
+  const steps = areaSteps(cfg, effective, chosenShape, data);
   const limit = wholeAmount(cfg.limit, data, { min: 0, fallback: 0 });
   const range = rangeInfo(cfg.range, data).feet;
-  const splash = wholeAmount(cfg.splash, data, { min: 0, fallback: 0 });
+  const splash = splashReach(cfg, effective, data);
+  const rounds = lastsRounds(cfg, data);
   for (let n = 1; n <= total; n++) {
-    if (!(await placeOneArea(item, n, total, { size, limit, range, splash, shape }))) return false;
+    for (const [i, step] of steps.entries()) {
+      const placed = await placeOneArea(item, n, total, {
+        size: step.size,
+        shape: step.shape,
+        limit,
+        range,
+        splash,
+        rounds,
+        again: i > 0,
+      });
+      if (!placed) return false;
+    }
   }
   return true;
 }
 
 /** Place one area with the template tool (see chooseArea). */
-function placeOneArea(item, n, total, { size, limit, range, splash, shape }) {
+function placeOneArea(item, n, total, { size, limit, range, splash, shape, rounds = 0, again = false }) {
   const cfg = item.system.targeting;
   if (!game.user.can('TEMPLATE_CREATE')) {
     ui.notifications.warn(t('CARL_RPG.Targeting.NoTemplatePermission'));
@@ -226,7 +266,6 @@ function placeOneArea(item, n, total, { size, limit, range, splash, shape }) {
       await game.user.updateTokenTargets([...ids]);
       await areaCard(item, picked, t('CARL_RPG.Targeting.AreaCard', { name: item.name }), band);
       if (cfg.lasting) {
-        const rounds = Math.max(0, Number(cfg.lasts) || 0);
         await doc.update({
           fillColor: AREA_COLORS[cfg.kind] ?? doc.fillColor,
           'flags.carl-rpg.area': {
@@ -245,7 +284,15 @@ function placeOneArea(item, n, total, { size, limit, range, splash, shape }) {
     };
     Hooks.on('createMeasuredTemplate', onCreate);
     document.addEventListener('keydown', onKey, true);
-    ui.notifications.info(t('CARL_RPG.Targeting.PlaceAreaN', { n, m: total }));
+    ui.notifications.info(
+      again
+        ? t('CARL_RPG.Targeting.PlaceAreaAlso', {
+            shape: t(CONFIG.CARL_RPG.areaShapes[shape]).toLowerCase(),
+            n,
+            m: total,
+          })
+        : t('CARL_RPG.Targeting.PlaceAreaN', { n, m: total })
+    );
     canvas.templates.activate({ tool: shape });
   });
 }

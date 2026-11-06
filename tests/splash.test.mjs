@@ -6,6 +6,7 @@ import {
   distanceToShape,
   noteArea,
   setSplash,
+  splashAround,
   splashBand,
   takeSplash,
 } from '../module/helpers/splash.mjs';
@@ -74,5 +75,43 @@ test('splash: a new target prompt forgets the last one; a declared use sets it b
   setSplash('Item.a', ['t5']);
   assert.deepEqual(takeSplash('Item.a'), ['t5']);
   setSplash('Item.a', []);
+  assert.deepEqual(takeSplash('Item.a'), []);
+});
+
+/* -------------------------------------------- */
+/*  Splash around the chosen targets of a Count item  */
+
+const tokens = [
+  { id: 'near', x: 30, y: 0 },
+  { id: 'far', x: 200, y: 0 },
+  { id: 'second', x: 210, y: 40 },
+  { id: 'target', x: 0, y: 0 },
+];
+
+test('splash around: the tokens within reach of a chosen target', () => {
+  const ids = splashAround([{ x: 0, y: 0 }], 50, tokens, ['target']);
+  assert.deepEqual(ids, ['near']);
+});
+
+test('splash around: reach is measured from each chosen target', () => {
+  const ids = splashAround([{ x: 0, y: 0 }, { x: 200, y: 20 }], 50, tokens, ['target']);
+  assert.deepEqual(ids, ['near', 'far', 'second']);
+  // (exactly at reach counts)
+  assert.deepEqual(splashAround([{ x: 0, y: 0 }], 30, tokens, ['target']), ['near']);
+});
+
+test('splash around: nothing without reach or targets, and chosen tokens are never splash', () => {
+  assert.deepEqual(splashAround([{ x: 0, y: 0 }], 0, tokens), []);
+  assert.deepEqual(splashAround([], 50, tokens), []);
+  assert.deepEqual(splashAround([{ x: 0, y: 0 }], 50, tokens, new Set(['target', 'near'])), []);
+});
+
+test('splash around: the splash is noted like an area\'s, and a chosen token is not splash', () => {
+  clearSplash();
+  noteArea('Item.a', ['T1'], splashAround([{ x: 0, y: 0 }], 50, tokens, ['target']).map((id) => 'T-' + id));
+  assert.deepEqual(takeSplash('Item.a'), ['T-near']);
+  // (a token chosen in a later step is no longer splash)
+  noteArea('Item.a', ['T1'], ['T-near']);
+  noteArea('Item.a', ['T-near'], []);
   assert.deepEqual(takeSplash('Item.a'), []);
 });

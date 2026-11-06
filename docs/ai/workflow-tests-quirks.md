@@ -46,11 +46,11 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 291).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 315).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 291 pass)
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 315 pass)
 - stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node
 
 ## files
@@ -58,8 +58,9 @@
 - ammo.test.mjs: ammunition matching, stacks, amounts
 - amounts.test.mjs: amount evaluator, fillData, rangeInfo
 - skill-list.test.mjs: #tag entries in Roll Modifier and Damage Effect skill lists
-- area-upgrades.test.mjs: area shape/size upgrade changes (replace, extra shapes, size add/replace, bad values, no upgrades)
-- splash.test.mjs: distance to a circle/rectangle/polygon, the splash band, who is splash after several areas
+- area-upgrades.test.mjs: area shape/size upgrade changes (replace, extra shapes with their own size and keep, size add/replace, splashAdd, bad values, no upgrades)
+- area-plan.test.mjs: splash distance by rank (Bad Faith, Earworm, Fear, Shotgun, Heal Others burst), areaSteps (Fireball circle and 80 ft line that keeps the blast), lasting area rounds by rank (Confusing Fog)
+- splash.test.mjs: distance to a circle/rectangle/polygon, the splash band, who is splash after several areas, splash around the chosen targets of a Count item
 - buff-slots.test.mjs: stacking buff groups and slot counting
 - build-mods.test.mjs: build benefits, caps, health stat
 - class-combo.test.mjs: Race+Class combos
@@ -68,7 +69,7 @@
 - damage-effects.test.mjs: Damage Effect rules per rank, per-target filters, damage maths, who can choose what, cooldowns
 - damage-types.test.mjs: damage types and modes
 - typed-bonus.test.mjs: bonus dice with their own damage type: row types, even split of mixed types, damage parts, resist/immune/vulnerable per part, DR after the sum, untyped rows unchanged
-- events.test.mjs: triggers, conditions, formulas over roll data, actions, trust, add-token, approval
+- events.test.mjs: triggers, conditions, formulas over roll data, actions, trust, add-token, approval, target groups (targeted vs burst)
 - gear-slots.test.mjs: slot room, two-handed gear, what comes off when equipping
 - later-floor.test.mjs: later-floor starts
 - migration.test.mjs / migration-guards.test.mjs: load-time migration and migrateData guards

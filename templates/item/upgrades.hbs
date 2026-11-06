@@ -61,6 +61,13 @@
                 {{selectOptions @root.upgradeShapeOptions selected=change.value localize=true}}
               </select>
             {{/if}}
+            {{#if change.isExtra}}
+              <input type='text' class='event-amount' data-path='{{change.path}}.size' value='{{change.size}}' placeholder='{{localize "CARL_RPG.Upgrades.ShapeSizePlaceholder"}}' data-tooltip='{{localize "CARL_RPG.Upgrades.ShapeSizeHint"}}' />
+              <label class='event-option' data-tooltip='{{localize "CARL_RPG.Upgrades.ShapeKeepHint"}}'>
+                <input type='checkbox' data-path='{{change.path}}.keep' {{checked change.keep}} {{#unless @root.editable}}disabled{{/unless}} />
+                {{localize 'CARL_RPG.Upgrades.ShapeKeep'}}
+              </label>
+            {{/if}}
             {{#if change.isAmount}}
               <input type='text' class='event-amount' data-path='{{change.path}}.value' value='{{change.value}}' />
             {{/if}}

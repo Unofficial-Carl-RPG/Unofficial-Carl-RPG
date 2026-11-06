@@ -81,3 +81,37 @@ test('area upgrades: an item with no upgrades gives its own shape and size', () 
   const e = effectiveOf({ system: { targeting: { shape: 'ray', size: '30' }, damage: '1d4', check: {} } });
   assert.deepEqual([e.areaShape, e.areaShapes, e.areaSize, e.areaSizeDelta], ['ray', ['ray'], '30', 0]);
 });
+
+test('area upgrades: an added shape can carry a size of its own and keep the base', () => {
+  const upgrades = [
+    up(5, { type: 'areaShapeExtra', value: 'cone', size: '30', keep: false }),
+    up(10, { type: 'areaShapeExtra', value: 'ray', size: '80', keep: true }),
+    up(15, { type: 'areaShapeExtra', value: 'rect' }),
+  ];
+  const e = computeEffective(spell(15, upgrades));
+  assert.deepEqual(e.areaShapes, ['circle', 'cone', 'ray', 'rect']);
+  assert.deepEqual(e.areaExtras, {
+    cone: { size: '30', keep: false },
+    ray: { size: '80', keep: true },
+    rect: { size: '', keep: false },
+  });
+  // (lowering the rank undoes them)
+  assert.deepEqual(Object.keys(computeEffective(spell(9, upgrades)).areaExtras), ['cone']);
+});
+
+test('area upgrades: splash is added to by feet, and flagged when it cannot be read', () => {
+  const upgrades = [up(5, { type: 'splashAdd', value: '5' }), up(10, { type: 'splashAdd', value: '-2' })];
+  assert.equal(computeEffective(spell(4, upgrades)).splashDelta, 0);
+  assert.equal(computeEffective(spell(5, upgrades)).splashDelta, 5);
+  assert.equal(computeEffective(spell(10, upgrades)).splashDelta, 3);
+  assert.equal(changeProblem({ type: 'splashAdd', value: '5' }), false);
+  assert.equal(changeProblem({ type: 'splashAdd', value: 'wide' }), true);
+  assert.equal(changeProblem({ type: 'splashAdd', value: '' }), true);
+});
+
+test('area upgrades: an item with no upgrades has no extras and no splash change', () => {
+  const e = effectiveOf({ system: { targeting: { shape: 'ray', size: '30' }, damage: '1d4', check: {} } });
+  assert.deepEqual([e.areaExtras, e.splashDelta], [{}, 0]);
+  const none = computeEffective(spell(1, []));
+  assert.deepEqual([none.areaExtras, none.splashDelta], [{}, 0]);
+});

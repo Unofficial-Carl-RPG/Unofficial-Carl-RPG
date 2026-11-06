@@ -62,7 +62,8 @@
   </div>
   <div class='resource'>
     <label class='resource-label' for='system.targeting.lasts'>{{localize 'CARL_RPG.Targeting.Lasts'}}</label>
-    <input type='number' name='system.targeting.lasts' value='{{system.targeting.lasts}}' step='1' min='0' />
+    <input type='text' class='{{#if badTargeting.lasts}}bad-formula{{/if}}' name='system.targeting.lasts' value='{{system.targeting.lasts}}' />
+    <p class='hint'>{{localize 'CARL_RPG.Targeting.LastsHint'}}</p>
   </div>
   <div class='resource'>
     <label class='resource-label' for='system.targeting.kind'>{{localize 'CARL_RPG.Targeting.Kind'}}</label>
@@ -82,10 +83,16 @@
     <label class='resource-label' for='system.targeting.limit'>{{localize 'CARL_RPG.Targeting.Limit'}}</label>
     <input type='text' class='{{#if badTargeting.limit}}bad-formula{{/if}}' name='system.targeting.limit' value='{{system.targeting.limit}}' />
   </div>
+  {{/if}}
+  {{! Splash: beyond an area, or around each chosen target }}
+  {{#unless (eq system.targeting.mode 'self')}}{{#unless (eq system.targeting.mode 'none')}}
   <div class='resource'>
     <label class='resource-label' for='system.targeting.splash'>{{localize 'CARL_RPG.Targeting.Splash'}}</label>
     <input type='text' class='{{#if badTargeting.splash}}bad-formula{{/if}}' name='system.targeting.splash' value='{{system.targeting.splash}}' />
     <p class='hint'>{{localize 'CARL_RPG.Targeting.SplashHint'}}</p>
+    {{#if effective.splashChanged}}
+    <p class='upgrade-now'><i class='fas fa-arrow-up'></i> {{localize 'CARL_RPG.Upgrades.NowSplash' value=effective.splashNow}}</p>
+    {{/if}}
   </div>
   <div class='resource'>
     <label class='resource-label' for='system.targeting.splashDamage'>{{localize 'CARL_RPG.Targeting.SplashDamage'}}</label>
@@ -96,5 +103,5 @@
     <label class='resource-label' for='system.targeting.splashEffects'>{{localize 'CARL_RPG.Targeting.SplashEffects'}}</label>
     <input type='checkbox' name='system.targeting.splashEffects' {{checked system.targeting.splashEffects}} />
   </div>
-  {{/if}}
+  {{/unless}}{{/unless}}
 </div>

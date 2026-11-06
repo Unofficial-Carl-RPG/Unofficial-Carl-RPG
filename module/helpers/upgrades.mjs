@@ -29,9 +29,12 @@ import { validAmount } from './amounts.mjs';
  *  - armorPiercing  the damage ignores Damage Resistance (no value)
  *  - damageType     the damage becomes this type (an id from the GM's damage types)
  *  - areaShape      the area becomes this shape (a key of CONFIG.CARL_RPG.areaShapes); the last wins
- *  - areaShapeExtra the area can also be this shape: the roll pop-up offers the choice
+ *  - areaShapeExtra the area can also be this shape: the roll pop-up offers the choice. The change
+ *                   can carry a `size` of its own (an amount; blank uses the area's size) and
+ *                   `keep` (the area's own shape is placed as well, e.g. a line that keeps the blast)
  *  - areaSizeAdd    add feet to the area's size (negative ok)
  *  - areaSizeReplace the area's size becomes this amount (a number or formula); drops earlier additions
+ *  - splashAdd      add feet to the splash distance (an Area item's, or a Count item's around each target)
  *  - rankDamageBonus  add to the rank that @rankDamage is read at (see rank-damage.mjs)
  *  - rankDamageStep   move @rankDamage that many rows along its table
  *  - rmRank / rmDice / rmDR  a Roll Modifier's changes (see roll-mods.mjs); each has an
@@ -128,9 +131,15 @@ export function changeProblem(change) {
     case 'armorPiercing':
       return false;
     case 'areaShape':
-    case 'areaShapeExtra':
       return !Object.hasOwn(CONFIG.CARL_RPG.areaShapes, value);
+    case 'areaShapeExtra':
+      // (its own size is optional, but if there is one it has to be readable)
+      return (
+        !Object.hasOwn(CONFIG.CARL_RPG.areaShapes, value) ||
+        (String(change.size ?? '').trim() !== '' && !validAmount(change.size))
+      );
     case 'areaSizeAdd':
+    case 'splashAdd':
       return !Number.isFinite(Number(value)) || value === '';
     case 'areaSizeReplace':
       return value === '' || !validAmount(value);
@@ -185,9 +194,11 @@ export function changeProblem(change) {
  * @returns {{damage: string, manaCost: number, rollBonus: number,
  *   rankBonus: number, rankStep: number,
  *   target: string, damageType: string, armorPiercing: boolean, areaShape: string,
- *   areaShapes: string[], areaSize: string, areaSizeDelta: number, unlocked: string[]}}
+ *   areaShapes: string[], areaSize: string, areaSizeDelta: number, areaExtras: object, splashDelta: number, unlocked: string[]}}
  *   `areaShapes` is the shapes the area can have (the first is the one used without a choice),
- *   `areaSize` the size amount and `areaSizeDelta` the feet added to it.
+ *   `areaSize` the size amount and `areaSizeDelta` the feet added to it. `areaExtras` holds, by
+ *   shape, the own `size` and `keep` of the shapes upgrades added; `splashDelta` the feet they add
+ *   to the splash distance.
  *   `unlocked` is the ids of the upgrades that have been reached.
  */
 export function computeEffective(system) {
@@ -210,6 +221,10 @@ export function computeEffective(system) {
   const extraShapes = [];
   let areaSize = String(system.targeting?.size ?? '0');
   let areaSizeDelta = 0;
+  // The shapes an upgrade added may carry a size of their own and keep the base area.
+  const areaExtras = {};
+  // What upgrades add to the splash distance.
+  let splashDelta = 0;
 
   const reached = unlockedUpgrades(system);
   for (const upgrade of reached) {
@@ -253,9 +268,13 @@ export function computeEffective(system) {
           break;
         case 'areaShapeExtra':
           if (!extraShapes.includes(value)) extraShapes.push(value);
+          areaExtras[value] = { size: String(change.size ?? '').trim(), keep: !!change.keep };
           break;
         case 'areaSizeAdd':
           areaSizeDelta += Math.trunc(Number(value));
+          break;
+        case 'splashAdd':
+          splashDelta += Math.trunc(Number(value));
           break;
         case 'areaSizeReplace':
           areaSize = value;
@@ -286,6 +305,8 @@ export function computeEffective(system) {
     areaShapes: [areaShape, ...extraShapes.filter((shape) => shape !== areaShape)],
     areaSize,
     areaSizeDelta,
+    areaExtras,
+    splashDelta,
     unlocked: reached.map((u) => u.id),
   };
 }
@@ -360,6 +381,8 @@ export function effectiveOf(item) {
       areaShapes: [system.targeting?.shape ?? 'circle'],
       areaSize: String(system.targeting?.size ?? '0'),
       areaSizeDelta: 0,
+      areaExtras: {},
+      splashDelta: 0,
       unlocked: [],
     }
   );
@@ -468,15 +491,28 @@ export function summarizeChanges(upgrade, effectNames = [], grantNames = []) {
         parts.push(t('CARL_RPG.Upgrades.Summary.armorPiercing'));
         break;
       case 'areaShape':
-      case 'areaShapeExtra':
         parts.push(
-          t(`CARL_RPG.Upgrades.Summary.${change.type}`, {
+          t('CARL_RPG.Upgrades.Summary.areaShape', {
             shape: t(CONFIG.CARL_RPG.areaShapes[value]).toLowerCase(),
           })
         );
         break;
+      case 'areaShapeExtra': {
+        const own = String(change.size ?? '').trim();
+        parts.push(
+          t(`CARL_RPG.Upgrades.Summary.areaShapeExtra${own ? 'Size' : ''}`, {
+            shape: t(CONFIG.CARL_RPG.areaShapes[value]).toLowerCase(),
+            size: own,
+          })
+        );
+        if (change.keep) parts.push(t('CARL_RPG.Upgrades.Summary.areaShapeKeep'));
+        break;
+      }
       case 'areaSizeAdd':
         parts.push(t('CARL_RPG.Upgrades.Summary.areaSizeAdd', { value: signed(n) }));
+        break;
+      case 'splashAdd':
+        parts.push(t('CARL_RPG.Upgrades.Summary.splashAdd', { value: signed(n) }));
         break;
       case 'areaSizeReplace':
         parts.push(t('CARL_RPG.Upgrades.Summary.areaSizeReplace', { value }));

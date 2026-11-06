@@ -85,7 +85,8 @@
 - '': owner of the item/effect (or the actor dropped on the action)
 - allies: 
 - enemies: 
-- targeted: user's Foundry targets
+- targeted: user's Foundry targets (without the tokens only in the item's splash unless its splash applies effects)
+- burst: everything the use reached: the targeted tokens plus the tokens in the splash of a Count item's targets, or in and around a placed area, whether or not the item's splash applies effects; the same as targeted when there is no splash. Falls back to the user's Foundry targets; travels with a relayed request (ctx.burst, targetUuids). To heal a burst (Heal Others rank 15): put the heal actions on burst and add a splashAdd of 20 to the rank 15 upgrade.
 - pets: owner's pets
 - master: a pet's owner
 

@@ -297,6 +297,8 @@ CARL_RPG.upgrades = {
     areaShapeExtra: 'CARL_RPG.Upgrades.Changes.areaShapeExtra',
     areaSizeAdd: 'CARL_RPG.Upgrades.Changes.areaSizeAdd',
     areaSizeReplace: 'CARL_RPG.Upgrades.Changes.areaSizeReplace',
+    // The splash distance (only offered on an item that picks tokens or places an area).
+    splashAdd: 'CARL_RPG.Upgrades.Changes.splashAdd',
     // A Damage Effect's changes (see helpers/damage-effects.mjs).
     deAddDice: 'CARL_RPG.Upgrades.Changes.deAddDice',
     deBaseByRank: 'CARL_RPG.Upgrades.Changes.deBaseByRank',
@@ -316,6 +318,8 @@ CARL_RPG.upgrades = {
   spellOnly: [],
   // Only offered on an item whose targeting is an Area.
   areaOnly: ['areaShape', 'areaShapeExtra', 'areaSizeAdd', 'areaSizeReplace'],
+  // Only offered on an item whose targeting is Count or Area (both can have a splash).
+  splashOnly: ['splashAdd'],
   // Only offered on a skill that is a Damage Effect.
   damageEffectOnly: [
     'deAddDice',
@@ -587,6 +591,7 @@ CARL_RPG.eventTargetGroups = {
   allies: 'CARL_RPG.Events.TargetGroups.allies',
   enemies: 'CARL_RPG.Events.TargetGroups.enemies',
   targeted: 'CARL_RPG.Events.TargetGroups.targeted',
+  burst: 'CARL_RPG.Events.TargetGroups.burst',
   pets: 'CARL_RPG.Events.TargetGroups.pets',
   master: 'CARL_RPG.Events.TargetGroups.master',
 };

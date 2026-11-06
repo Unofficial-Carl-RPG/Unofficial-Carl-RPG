@@ -561,13 +561,20 @@ export class CarlRPGItemSheet extends ItemSheetBase {
         (system.upgrades ?? []).some((u) =>
           (u.changes ?? []).some((c) => cfg.upgrades.areaOnly.includes(c.type))
         );
+      // (A splash change is offered on an item that picks tokens or places an area, or that has one.)
+      const usesSplash =
+        ['count', 'area'].includes(system.targeting?.mode) ||
+        (system.upgrades ?? []).some((u) =>
+          (u.changes ?? []).some((c) => cfg.upgrades.splashOnly.includes(c.type))
+        );
       context.upgradeChangeOptions = Object.fromEntries(
         Object.entries(cfg.upgrades.changes).filter(
           ([key]) =>
             (isSpell || !cfg.upgrades.spellOnly.includes(key)) &&
             (isEffect || !cfg.upgrades.damageEffectOnly.includes(key)) &&
             (isMod || !cfg.upgrades.rollModOnly.includes(key)) &&
-            (usesArea || !cfg.upgrades.areaOnly.includes(key))
+            (usesArea || !cfg.upgrades.areaOnly.includes(key)) &&
+            (usesSplash || !cfg.upgrades.splashOnly.includes(key))
         )
       );
       context.upgradeTargetOptions = cfg.checkTargets;
@@ -607,6 +614,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
               'rankDamageBonus',
               'rankDamageStep',
               'areaSizeAdd',
+              'splashAdd',
               'deTotalMultiplier',
               'deHealthMax',
               'deSizeMax',
@@ -616,6 +624,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
             ].includes(change.type),
             isTarget: change.type === 'rollTarget',
             isShape: ['areaShape', 'areaShapeExtra'].includes(change.type),
+            isExtra: change.type === 'areaShapeExtra',
             isAmount: change.type === 'areaSizeReplace',
             isDamageType: change.type === 'damageType',
             // Bonus dice can name a damage type of their own (and a second).
@@ -671,6 +680,10 @@ export class CarlRPGItemSheet extends ItemSheetBase {
             }`
           : '',
         rank: system.effectiveRank ?? system.rank ?? 0,
+        splashChanged: (effective?.splashDelta ?? 0) !== 0,
+        splashNow: effective?.splashDelta
+          ? `${effective.splashDelta > 0 ? '+' : '-'}${Math.abs(effective.splashDelta)}`
+          : '',
         rankChanged: (system.rankBonus ?? 0) !== 0,
       };
       // A Damage Effect's cooldown, for the Attributes tab (hours left, or used this round).
@@ -753,7 +766,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       (c) => !!String(c.max ?? '').trim() && !validAmount(c.max)
     );
     context.badTargeting = Object.fromEntries(
-      ['count', 'size', 'areas', 'limit', 'splash'].map((key) => [
+      ['count', 'size', 'areas', 'limit', 'splash', 'lasts'].map((key) => [
         key,
         !validAmount(this.item.system.targeting?.[key]),
       ])

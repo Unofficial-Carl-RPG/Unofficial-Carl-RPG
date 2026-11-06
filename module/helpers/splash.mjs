@@ -6,6 +6,9 @@
  * (their own Evade or stat is checked as usual) but take the item's splash damage
  * formula instead of its damage. Pure rules here (no Foundry globals); the area
  * placement is in helpers/targeting.mjs and the damage in helpers/attacks.mjs.
+ *
+ * A Count item (one that picks tokens) has splash too: the tokens within the splash distance
+ * of any chosen target (splashAround), noted the same way as an area's.
  */
 
 /** Shortest distance from a point to the segment a-b. */
@@ -80,6 +83,25 @@ export function splashBand(shape, reach, points, skip = []) {
   const skipped = new Set(skip);
   return points
     .filter((p) => !skipped.has(p.id) && distanceToShape(shape, p) <= reach)
+    .map((p) => p.id);
+}
+
+/**
+ * Which of some points are within reach of any of some origins (the chosen targets of a
+ * Count item): the splash around each target. Distances are straight lines between centres.
+ * @param {{x: number, y: number}[]} origins  The chosen targets
+ * @param {number} reach  The splash distance, in the same units as the coordinates
+ * @param {{id: string, x: number, y: number}[]} points
+ * @param {Set<string>|string[]} [skip]  Ids that are never splash (the targets themselves)
+ * @returns {string[]}  The ids within reach
+ */
+export function splashAround(origins, reach, points, skip = []) {
+  if (!(reach > 0) || !origins.length) return [];
+  const skipped = new Set(skip);
+  return points
+    .filter(
+      (p) => !skipped.has(p.id) && origins.some((o) => Math.hypot(p.x - o.x, p.y - o.y) <= reach)
+    )
     .map((p) => p.id);
 }
 

@@ -90,13 +90,15 @@ export default class CarlRPGItemBase extends foundry.abstract
       shape: new fields.StringField({ required: true, blank: false, initial: 'circle', choices: ['circle', 'cone', 'ray', 'rect'] }),
       size: new fields.StringField({ required: true, blank: false, initial: '10' }),
       // A lasting area stays on the map; it lasts this many rounds (0: until the GM removes it).
+      // An amount like the size: a number or a formula over roll data (so it can follow the rank).
       lasting: new fields.BooleanField({ initial: false }),
-      lasts: new fields.NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }),
+      lasts: new fields.StringField({ required: true, blank: false, initial: '0' }),
       // How many areas one use places (each is placed in turn).
       areas: new fields.StringField({ required: true, blank: false, initial: '1' }),
       // The most tokens an area targets (0: all of them).
       limit: new fields.StringField({ required: true, blank: false, initial: '0' }),
-      // Splash: extra feet beyond the area (an amount). Tokens there are checked with the
+      // Splash: extra feet beyond the area, or around each chosen target of a Count item (an
+      // amount). Tokens there are checked with the
       // same roll and take the splash damage (dice, blank for none) instead of the damage.
       // Its effects (hit events) reach them only when splashEffects is ticked.
       splash: new fields.StringField({ required: true, blank: false, initial: '0' }),
@@ -252,7 +254,7 @@ export default class CarlRPGItemBase extends foundry.abstract
     migrateCosts(source);
     // Targets, areas, the area limit and the area size used to be numbers; they are
     // text now (a number or a formula).
-    for (const key of ['count', 'size', 'areas', 'limit']) {
+    for (const key of ['count', 'size', 'areas', 'limit', 'lasts']) {
       if (typeof source.targeting?.[key] === 'number') {
         source.targeting[key] = String(source.targeting[key]);
       }

@@ -200,7 +200,7 @@ function isKind(actor, kind) {
 }
 
 /** The actors in a group, from the point of view of the one whose event it is. */
-function groupActors(group, owner, ctx) {
+export function groupActors(group, owner, ctx) {
   // Floor rules have no owner: they only reach the crawlers.
   if (group === 'crawlers') return game.actors.filter((a) => a.type === 'crawler');
   if (!owner) return [];
@@ -220,6 +220,11 @@ function groupActors(group, owner, ctx) {
     case 'targeted':
       // (The targets of the user who triggered this; they travel with a relayed request.)
       return ctx.targeted ?? [...game.user.targets].map((tk) => tk.actor).filter(Boolean);
+    case 'burst':
+      // (Everything the use reached, splash or not: the chosen targets and the tokens within the
+      // splash distance of them, or the ones in and around the placed area. It travels with a
+      // relayed request like the targeted ones.)
+      return ctx.burst ?? [...game.user.targets].map((tk) => tk.actor).filter(Boolean);
     case 'pets':
       return owner.type === 'crawler'
         ? game.actors.filter((a) => a.type === 'pet' && a.system.owner === owner.id)
@@ -1006,7 +1011,7 @@ async function relayToGM(item, event, index, ctx, targets) {
           // Who the action is for: the hit target, or the targeted tokens (both depend
           // on who did this, so the GM's client can't work them out itself).
           targetUuids:
-            action.type === 'applyEffect' || action.targetGroup === 'targeted'
+            action.type === 'applyEffect' || ['targeted', 'burst'].includes(action.targetGroup)
               ? targets.map((a) => a.uuid)
               : [],
         },
@@ -1054,6 +1059,7 @@ async function handleRelay(message, relay) {
       anchorUuid: relay.anchorUuid,
       target: action.type === 'applyEffect' ? (given[0] ?? null) : (hitActor ?? undefined),
       targeted: given,
+      burst: given,
       triggerData: relay.triggerData,
     };
     const targets = await resolveTargets(action, owner, ctx);

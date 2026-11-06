@@ -67,6 +67,7 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
           areaShapeExtra: 'cone',
           areaSizeAdd: '5',
           areaSizeReplace: '10',
+          splashAdd: '5',
         };
         foundry.utils.setProperty(
           system,
@@ -77,6 +78,9 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
         foundry.utils.setProperty(system, path.replace(/\.type$/, '.when'), '');
         foundry.utils.setProperty(system, path.replace(/\.type$/, '.bonusType'), '');
         foundry.utils.setProperty(system, path.replace(/\.type$/, '.bonusAlso'), '');
+        // (nor an added shape's own size or keeping the base)
+        foundry.utils.setProperty(system, path.replace(/\.type$/, '.size'), '');
+        foundry.utils.setProperty(system, path.replace(/\.type$/, '.keep'), false);
       }
     });
   }

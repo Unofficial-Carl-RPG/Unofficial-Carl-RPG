@@ -8,6 +8,7 @@ import {
   isPhaseExecutor,
   checkRequirements,
   eventData,
+  groupActors,
 } from '../module/helpers/events.mjs';
 import { castBlockedByHotlist, HOTLIST_ONLY_SETTING } from '../module/helpers/hotlist-rule.mjs';
 import { usesLeft, isLimited, spendUse, restoreUses, tickCooldowns, RECHARGE_BY_REST } from '../module/helpers/uses.mjs';
@@ -530,4 +531,55 @@ test('effects that last until the end of the combat end with it', async () => {
   await endCombatEffects(crawler);
   assert.equal(combatLong.disabled, true);
   assert.equal(restLong.disabled, false);
+});
+
+/* -------------------------------------------- */
+/*  Target groups: the targeted tokens and their splash  */
+
+/** Run something with the user's Foundry targets set to some actors. */
+const withTargets = async (actors, fn) => {
+  const had = Object.hasOwn(game.user, 'targets');
+  const before = game.user.targets;
+  game.user.targets = actors.map((actor) => ({ actor }));
+  try {
+    return await fn();
+  } finally {
+    if (had) game.user.targets = before;
+    else delete game.user.targets;
+  }
+};
+
+test('target groups: burst is everyone the use reached, targeted can leave the splash out', async () => {
+  const owner = await makeCrawler({ system: { aiFavor: 0 } });
+  const hit = await makeCrawler({ system: { aiFavor: 0 } });
+  const near = await makeCrawler({ system: { aiFavor: 0 } });
+  await withTargets([hit, near], () => {
+    // (the item's splash does not apply effects: the targeted group is only who was chosen)
+    assert.deepEqual(groupActors('targeted', owner, { targeted: [hit] }), [hit]);
+    assert.deepEqual(groupActors('burst', owner, { targeted: [hit] }), [hit, near]);
+    // (otherwise both read the user's targets)
+    assert.deepEqual(groupActors('targeted', owner, {}), [hit, near]);
+    assert.deepEqual(groupActors('burst', owner, {}), [hit, near]);
+    // (a relayed request carries the burst it was worked out with)
+    assert.deepEqual(groupActors('burst', owner, { burst: [near] }), [near]);
+  });
+  await withTargets([], () => assert.deepEqual(groupActors('burst', owner, {}), []));
+});
+
+test('target groups: an action on the burst reaches the target and the tokens around it', async () => {
+  const bump = {
+    id: 'burst',
+    enabled: true,
+    trigger: 'used',
+    phase: 'any',
+    conditions: [],
+    match: 'all',
+    actions: [{ type: 'aiFavor', mode: 'award', amount: '1', targetGroup: 'burst' }],
+  };
+  const item = skillWith([bump]);
+  const owner = await crawlerWith(item);
+  const hit = await makeCrawler({ system: { aiFavor: 0 } });
+  const near = await makeCrawler({ system: { aiFavor: 0 } });
+  await withTargets([hit, near], () => runEvents(item, 'used', { roll: roll(15), targeted: [hit] }));
+  assert.deepEqual([ran(owner), ran(hit), ran(near)], [0, 1, 1]);
 });

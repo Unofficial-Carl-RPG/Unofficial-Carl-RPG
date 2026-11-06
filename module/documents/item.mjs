@@ -1199,7 +1199,15 @@ export class CarlRPGItem extends Item {
         rollMods: mods.map((mod) => ({ id: mod.id, name: mod.name })),
         surpriseOption,
         shapes: shapePopup
-          ? areaShapes.map((id) => ({ id, label: game.i18n.localize(CONFIG.CARL_RPG.areaShapes[id]) }))
+          ? areaShapes.map((id) => ({
+              id,
+              // (a shape an upgrade added that keeps the base area says so)
+              label:
+                game.i18n.localize(CONFIG.CARL_RPG.areaShapes[id]) +
+                (id !== areaShapes[0] && effectiveOf(this).areaExtras?.[id]?.keep
+                  ? ` + ${game.i18n.localize(CONFIG.CARL_RPG.areaShapes[areaShapes[0]])}`
+                  : ''),
+            }))
           : [],
       });
       if (!chosen) return null;
