@@ -7,7 +7,7 @@
   - shortDescription: html, used on chat cards and tooltips; blank -> full description. Embeds and previews always use full.
   - value: int gold value. GM-only visible unless an effect grants seeValues. Store listing price defaults to it; stores pay sellPercent of it.
   - identifier: string; matches 'same item' (duplicate checks, grants, effect matching) before falling back to name
-  - tags: [string] case-insensitive; classes also have categories which count as tags
+  - tags: [string] case-insensitive (a Roll Modifier or Damage Effect skills list can match them with #tag, see rules.md skillLists); classes also have categories which count as tags
   - interrupt: bool; using it in the react phase marks the combatant's interruptUsed flag (bolt icon on tracker)
   - check: {target checkTargets id init unopposed, number int (mob checks)}
   - damage: number or dice formula e.g. '1d6+@str.mod'; blank = no damage; @rankDamage = the dice for the rank (see rules rankDamage)

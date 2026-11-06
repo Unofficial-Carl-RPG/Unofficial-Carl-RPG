@@ -100,7 +100,7 @@
 
 ## damageEffects
 - file: helpers/damage-effects.mjs (pure rules + cooldown updates); pop-up in roll-dialog.mjs promptRoll({damageEffects}); chosen in item.mjs roll(); worked out in attacks.mjs resolveCheck(item, roll, {damageEffect})
-- what: a skill with system.damageEffect.enabled (passive, own rank and upgrades). system.damageEffect.skills lists the attack skills it works with (names or identifiers, comma separated, case-insensitive; the EFFECT holds the list). A weapon that rolls a skill uses that skill. Unarmed Combat is listed by no effect, so it shows no choice.
+- what: a skill with system.damageEffect.enabled (passive, own rank and upgrades). system.damageEffect.skills lists the attack skills it works with (names, identifiers or #tags, comma separated, case-insensitive; the EFFECT holds the list; see skillLists). A weapon that rolls a skill uses that skill, but its own tags count for a #tag entry. Unarmed Combat is listed by no effect, so it shows no choice.
 - choose: roll pop-up (click, depth 0, not a mob, not Shift) shows a Damage Effect menu: None (default) or one effect the actor owns that lists the skill and is off cooldown. At most one per roll. An effect with the stun option adds a tick 'instead of damage' (no damage is rolled; the item's other numbers stand).
 - rules (effectRules, folded from the upgrades reached at the effect's own rank; rank 1 is the base text so base changes sit in an upgrade at rank 1; later changes override scalars, addDice adds up):
   - deAddDice: extra dice/number rolled once (crit doubles the dice), added to base damage for each target it works against; @rankDamage reads the EFFECT's rank
@@ -117,7 +117,7 @@
 
 ## rollMods
 - file: helpers/roll-mods.mjs (pure rules, DR flag helpers); pop-up in roll-dialog.mjs promptRoll({rollMods, surpriseOption}); chosen and resolved in item.mjs roll(); dice worked out in attacks.mjs resolveCheck(item, roll, {modDice}); DR spent in documents/actor.mjs applyDamage
-- what: a skill with system.rollMod.enabled (passive, own rank and upgrades). system.rollMod.skills lists the skills it changes (names or identifiers, comma separated, case-insensitive); the word self lists its own use. A weapon that rolls a skill uses that skill. Derived system.rollModRules = modRules(system).
+- what: a skill with system.rollMod.enabled (passive, own rank and upgrades). system.rollMod.skills lists the skills it changes (names, identifiers or #tags, comma separated, case-insensitive; see skillLists); the word self lists its own use. A weapon that rolls a skill uses that skill, but its own tags count for a #tag entry. Derived system.rollModRules = modRules(system).
 - choose: roll pop-up (click, depth 0, not a mob, not Shift) shows a Roll Modifier menu: None (default) or one modifier the actor owns that lists the skill (never the skill itself). At most one per roll. A Surprise attack tick shows when any modifier in play (offered ones, the self one) has a row conditioned on surprise. Shift, events and macros skip the choice; a self modifier (the rolled skill lists self) still applies to its own use then.
 - rules (modRules, folded from the upgrades reached at the modifier's own rank; rank 1 is the base text; rows add up, never replace):
   - rmRank: the modifier's Rank is added to the d20 roll as extra bonus (card badge '<name> +<rank>'); not on an item that does not roll; rank 0 adds nothing
@@ -127,6 +127,12 @@
 - tempDR: actor flag flags.carl-rpg.tempDR = {modifierItemId: {amount, name}}. A modifier used again replaces its own entry; other modifiers add. applyDamage adds the total to DR and clears the flag. Also cleared at Cleanup (roundEnd) and when the combat ends (events.mjs). An Observer's use is relayed to the GM client (helpers/relay.mjs allows only entries of the actor's own modifiers within the amount their rules can give). Set with updateWithRelay; cleared with the '-=tempDR' key.
 - ui: Attributes tab ticks Roll Modifier and lists the skills; the Upgrades tab then offers rmRank/rmDice/rmDR and an 'Only when' menu on those rows (changing a row's kind resets its condition). No cooldown and no events of its own.
 - notes: the pop-up menu allows one chosen modifier plus the self one. A rank bonus is shown in the bonus badge too (the combined bonus).
+
+## skillLists
+- file: helpers/skill-list.mjs (pure; used by damage-effects.mjs and roll-mods.mjs)
+- entries: comma separated, any one matching is enough. A name or Identifier of the skill the roll uses; #tag = any skill with that tag; #a+#b (later # optional) = all those tags. Roll Modifiers also take the word self (skipped for other skills)
+- tags: the skill's system.tags plus the used item's (a javelin tagged thrown rolled with Ranged Attacks); both count together, so #thrown+#fire can be met across them. Case-insensitive; tags from the same data as helpers/tags.mjs
+- api: listEntries(text), entryTags(entry), listAccepts(entries, skill, item, {skip}); effectAccepts/modAccepts/availableEffects/availableMods take the used item as an extra last argument (CarlRPGItem.roll passes this)
 
 ## targeting
 - file: helpers/targeting.mjs

@@ -31,6 +31,7 @@
  * that was hit).
  */
 import { changeProblem, unlockedUpgrades } from './upgrades.mjs';
+import { listAccepts, listEntries } from './skill-list.mjs';
 
 /** Whether an item is a Damage Effect. */
 export const isDamageEffect = (item) =>
@@ -163,21 +164,18 @@ export function damageWithEffect({ total, diceSum, extra = 0, bonus = 0, rules, 
 
 /*  Which effects can be chosen                 */
 
-const norm = (text) => String(text ?? '').trim().toLowerCase();
-
-/** The attack skills an effect lists (lower case). */
+/** The entries of an effect's list (lower case): attack skill names and #tags (see skill-list.mjs). */
 export function acceptedSkills(effect) {
-  return String(effect?.system?.damageEffect?.skills ?? '')
-    .split(',')
-    .map(norm)
-    .filter(Boolean);
+  return listEntries(effect?.system?.damageEffect?.skills);
 }
 
-/** Whether an effect lists this attack skill (by name or identifier). */
-export function effectAccepts(effect, skill) {
+/**
+ * Whether an effect lists this attack skill: by name or identifier, or by a #tag the skill
+ * or the item being used carries.
+ */
+export function effectAccepts(effect, skill, item = null) {
   if (!skill) return false;
-  const keys = [norm(skill.name), norm(skill.system?.identifier)].filter(Boolean);
-  return acceptedSkills(effect).some((name) => keys.includes(name));
+  return listAccepts(acceptedSkills(effect), skill, item);
 }
 
 /** The cooldown an effect is still under: hours left, and whether a round one is running. */
@@ -201,12 +199,13 @@ export function isReady(effect) {
  * The effects an actor can choose for an attack skill: theirs, listing the skill, off cooldown.
  * @param {Actor|null} actor
  * @param {Item|null} skill  The attack skill (the one the roll uses)
+ * @param {Item|null} [used]  The item being used, when it is not the skill (its tags count)
  * @returns {Item[]}
  */
-export function availableEffects(actor, skill) {
+export function availableEffects(actor, skill, used = null) {
   if (!actor || !skill) return [];
   return actor.items.filter(
-    (item) => isDamageEffect(item) && effectAccepts(item, skill) && isReady(item)
+    (item) => isDamageEffect(item) && effectAccepts(item, skill, used) && isReady(item)
   );
 }
 

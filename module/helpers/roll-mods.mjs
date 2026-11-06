@@ -25,6 +25,7 @@
  * damage it takes uses it up; it also clears when a round or a combat ends.
  */
 import { changeProblem, unlockedUpgrades } from './upgrades.mjs';
+import { listAccepts, listEntries } from './skill-list.mjs';
 
 const NS = 'carl-rpg';
 
@@ -115,25 +116,21 @@ export function needsSurprise(mod) {
 
 /*  Which modifiers apply                       */
 
-const norm = (text) => String(text ?? '').trim().toLowerCase();
-
-/** The skills a modifier lists (lower case; `self` stays as the word). */
+/** The entries of a modifier's list (lower case): skill names, #tags and `self` (see skill-list.mjs). */
 export function listedSkills(mod) {
-  return String(mod?.system?.rollMod?.skills ?? '')
-    .split(',')
-    .map(norm)
-    .filter(Boolean);
+  return listEntries(mod?.system?.rollMod?.skills);
 }
 
 /** Whether a modifier lists itself: it applies whenever it is used. */
 export const appliesToSelf = (mod) => listedSkills(mod).includes(CONFIG.CARL_RPG.rollMods.self);
 
-/** Whether a modifier lists this skill (by name or identifier). */
-export function modAccepts(mod, skill) {
+/**
+ * Whether a modifier lists this skill: by name or identifier, or by a #tag the skill or the
+ * item being used carries. `self` never matches another skill.
+ */
+export function modAccepts(mod, skill, item = null) {
   if (!skill) return false;
-  const keys = [norm(skill.name), norm(skill.system?.identifier)].filter(Boolean);
-  const self = CONFIG.CARL_RPG.rollMods.self;
-  return listedSkills(mod).some((name) => name !== self && keys.includes(name));
+  return listAccepts(listedSkills(mod), skill, item, { skip: [CONFIG.CARL_RPG.rollMods.self] });
 }
 
 /**
@@ -141,12 +138,13 @@ export function modAccepts(mod, skill) {
  * itself, which a `self` modifier covers).
  * @param {Actor|null} actor
  * @param {Item|null} skill  The skill the roll uses
+ * @param {Item|null} [used]  The item being used, when it is not the skill (its tags count)
  * @returns {Item[]}
  */
-export function availableMods(actor, skill) {
+export function availableMods(actor, skill, used = null) {
   if (!actor || !skill) return [];
   return actor.items.filter(
-    (item) => isRollMod(item) && item.id !== skill.id && modAccepts(item, skill)
+    (item) => isRollMod(item) && item.id !== skill.id && modAccepts(item, skill, used)
   );
 }
 

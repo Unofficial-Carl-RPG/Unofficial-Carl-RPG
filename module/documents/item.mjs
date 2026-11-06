@@ -1161,14 +1161,15 @@ export class CarlRPGItem extends Item {
     const asks = [...this.#costChoices(spans), ...this.#ammoChoices(ammo)];
     const rollPopup = !!event && !event.shiftKey && depth === 0 && rolls;
     // The Damage Effects that can be chosen for this attack (see helpers/damage-effects.mjs):
-    // the crawler's own, listing the skill the roll uses, off cooldown. Shift skips the choice.
+    // the crawler's own, listing the skill the roll uses (by name or a #tag of the skill or
+    // this item), off cooldown. Shift skips the choice.
     const modSkill =
       this.actor?.type === 'mob' ? null : this.type === 'skill' ? this : await this.rollingSkill();
-    const effects = rollPopup && modSkill ? availableEffects(this.actor, modSkill) : [];
+    const effects = rollPopup && modSkill ? availableEffects(this.actor, modSkill, this) : [];
     // The Roll Modifiers that can be chosen (see helpers/roll-mods.mjs): the crawler's own,
     // listing the skill the roll uses. A skill that lists itself modifies its own use, pop-up
     // or not.
-    const mods = rollPopup && modSkill ? availableMods(this.actor, modSkill) : [];
+    const mods = rollPopup && modSkill ? availableMods(this.actor, modSkill, this) : [];
     const selfMod = selfModOf(modSkill);
     const surpriseOption = [...mods, selfMod].some((mod) => mod && needsSurprise(mod));
     let chosenEffect = null;

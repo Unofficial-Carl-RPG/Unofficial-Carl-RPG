@@ -1058,8 +1058,8 @@
     },
     "RollMod": {
       "Label": "Roll Modifier",
-      "Hint": "Changes the rolls of the skills listed. Write self to apply it to its own use.",
-      "SkillsPlaceholder": "Skills it applies to (names, comma separated)",
+      "Hint": "Changes the rolls of the skills listed. Write self to apply it to its own use, or #tag for every skill or item with that tag (#thrown). Join tags with + to need all of them.",
+      "SkillsPlaceholder": "Skills or #tags it applies to (comma separated)",
       "RankNote": "{name} +{value}",
       "DrNote": "{name}: +{value} DR until the next damage",
       "WhenHint": "Only when",
@@ -1085,8 +1085,8 @@
     },
     "DamageEffect": {
       "Label": "Damage Effect",
-      "Hint": "Chosen before rolling to hit with one of the attack skills listed.",
-      "SkillsPlaceholder": "Attack skills (names, comma separated)",
+      "Hint": "Chosen before rolling to hit with one of the attack skills listed. Write #tag for every skill or item with that tag (#melee). Join tags with + to need all of them.",
+      "SkillsPlaceholder": "Attack skills or #tags (comma separated)",
       "HoursLeft": "Cooldown: {hours} game hours left",
       "RoundLeft": "Cooldown: until the round ends",
       "Reset": "Reset"
