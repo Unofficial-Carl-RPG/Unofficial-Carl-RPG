@@ -79,7 +79,7 @@
 ## gmClientDelegation
 - why: Players cannot edit world settings, journals, other actors, or store stock.
 - mechanisms:
-  - helpers/relay.mjs updateWithRelay(doc, changes): Observer's automatic changes (mana, 1 AI Favor on reroll, item uses.spent+1, Damage Effect cooldown start, combatant actionsSpent) sent as whispered ChatMessage flag updateRelay; active GM client validates (requester >= Observer, whitelisted field, bounds) then applies and deletes the message
+  - helpers/relay.mjs updateWithRelay(doc, changes): Observer's automatic changes (mana, 1 AI Favor on reroll, item uses.spent+1, Damage Effect cooldown start, Roll Modifier DR flag tempDR, combatant actionsSpent) sent as whispered ChatMessage flag updateRelay; active GM client validates (requester >= Observer, whitelisted field, bounds) then applies and deletes the message
   - Whisper-flag relays (GM client acts, deletes message): eventRelay, libraryRelay, lootRequest/lootResponse, mobCheckRelay, pileRelay, storeBuy, storeOpen, storeSell
   - Socket 'system.carl-rpg': {type:'party'} (leader renames party/sets titles; GM client verifies leader), {type:'request'|'response'} (gm-docs: player asks GM client for compendium items they cannot open)
   - Event trust: system.eventsTrusted (items, pets) or flags.carl-rpg.eventsTrusted (effects) set true only when a GM saves. Untrusted events cannot change actors the user does not own or run GM-side macros until a GM approves (Dungeon Info > events to approve, or Approve button on the sheet).

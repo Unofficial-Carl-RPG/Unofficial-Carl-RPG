@@ -107,4 +107,19 @@
       {{/if}}
     {{/if}}
   </div>
+  {{! A Roll Modifier: changes the rolls of the skills it lists (Rank, damage dice, DR) }}
+  <div class='resource'>
+    <label class='resource-label' data-tooltip='{{localize "CARL_RPG.RollMod.Hint"}}'>
+      <input type='checkbox' name='system.rollMod.enabled' {{checked system.rollMod.enabled}}{{#unless @root.editable}} disabled{{/unless}} />
+      {{localize 'CARL_RPG.RollMod.Label'}}
+    </label>
+    {{#if system.rollMod.enabled}}
+      <input
+        type='text'
+        name='system.rollMod.skills'
+        value='{{system.rollMod.skills}}'
+        placeholder='{{localize "CARL_RPG.RollMod.SkillsPlaceholder"}}'
+      />
+    {{/if}}
+  </div>
 </section>

@@ -61,6 +61,11 @@
                 {{selectOptions @root.damageTypeOptions selected=change.value}}
               </select>
             {{/if}}
+            {{#if change.whenOptions}}
+              <select data-path='{{change.path}}.when' data-tooltip='{{localize "CARL_RPG.RollMod.WhenHint"}}'>
+                {{selectOptions change.whenOptions selected=change.when localize=true}}
+              </select>
+            {{/if}}
             {{#if change.invalid}}
               <i class='fas fa-triangle-exclamation upgrade-invalid' data-tooltip='{{localize "CARL_RPG.Upgrades.Invalid"}}'></i>
             {{/if}}

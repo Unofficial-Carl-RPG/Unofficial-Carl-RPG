@@ -48,8 +48,11 @@ export function statOfFormula(formula) {
  *   what the amount is called, for ammunition)
  * @param {{id: string, name: string, stun: boolean}[]} [config.damageEffects]  The Damage
  *   Effects that can be chosen (`stun`: the effect offers an "instead of damage" option)
+ * @param {{id: string, name: string}[]} [config.rollMods]  The Roll Modifiers that can be chosen
+ * @param {boolean} [config.surpriseOption]  Whether to offer the Surprise attack tick
  * @returns {Promise<{bonus: string, stat: string|null, mode: 'normal'|'advantage'|'disadvantage',
- *   costs: Object<string, number>, damageEffect: string, option: boolean}|null>}
+ *   costs: Object<string, number>, damageEffect: string, option: boolean, rollMod: string,
+ *   surprise: boolean}|null>}
  */
 export async function promptRoll({
   title,
@@ -58,6 +61,8 @@ export async function promptRoll({
   costs = [],
   rolls = true,
   damageEffects = [],
+  rollMods = [],
+  surpriseOption = false,
 }) {
   const abilities = CONFIG.CARL_RPG.abilities;
   const statMenu = stat
@@ -114,6 +119,24 @@ export async function promptRoll({
         .join('')}`
     : '';
 
+  // One Roll Modifier at most, and a tick for a Surprise attack when one of them cares.
+  const modFields =
+    (rollMods.length
+      ? `<div class="form-group">
+        <label>${esc(t('CARL_RPG.RollDialog.RollMod'))}</label>
+        <select name="rollMod">
+          <option value="">${esc(t('CARL_RPG.RollDialog.NoRollMod'))}</option>
+          ${rollMods.map((m) => `<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('')}
+        </select>
+      </div>`
+      : '') +
+    (surpriseOption
+      ? `<div class="form-group">
+        <label>${esc(t('CARL_RPG.RollDialog.Surprise'))}</label>
+        <input type="checkbox" name="surprise">
+      </div>`
+      : '');
+
   const rollFields = rolls
     ? `<div class="form-group">
       <label>${esc(t('CARL_RPG.RollDialog.Bonus'))}</label>
@@ -130,7 +153,8 @@ export async function promptRoll({
         <option value="disadvantage">${esc(t('CARL_RPG.RollDialog.Disadvantage'))}</option>
       </select>
     </div>
-    ${effectFields}`
+    ${effectFields}
+    ${modFields}`
     : '';
 
   const content = `<div class="carl-roll-dialog">
@@ -169,6 +193,8 @@ export async function promptRoll({
     costs: paid,
     damageEffect: effect?.id ?? '',
     option: !!(effect?.stun && result[`stun_${effect.id}`]),
+    rollMod: rollMods.find((m) => m.id === result.rollMod)?.id ?? '',
+    surprise: !!result.surprise,
   };
 }
 

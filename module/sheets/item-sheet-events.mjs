@@ -58,12 +58,15 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
           rollBonus: '1',
           rollTarget: 'evade',
           damageType: damageTypes()[0]?.id ?? '',
+          rmDR: '5',
         };
         foundry.utils.setProperty(
           system,
           path.replace(/\.type$/, '.value'),
           starts[value] ?? ''
         );
+        // (and no "Only when" condition, which not every kind of change has)
+        foundry.utils.setProperty(system, path.replace(/\.type$/, '.when'), '');
       }
     });
   }

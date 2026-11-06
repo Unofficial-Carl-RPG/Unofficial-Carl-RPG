@@ -3,6 +3,7 @@ import { adjustForType, damageTypeNote } from '../helpers/damage-types.mjs';
 import { runActorEvents } from '../helpers/events.mjs';
 import { defeatMob } from '../helpers/defeat.mjs';
 import { canDie, cancelDying, hurtWhileDying, startDying } from '../helpers/dying.mjs';
+import { clearTempDR, tempDRTotal } from '../helpers/roll-mods.mjs';
 
 export class CarlRPGActor extends Actor {
   /**
@@ -119,10 +120,12 @@ export class CarlRPGActor extends Actor {
     if (this.type === 'mob') {
       // Mobs: their Damage Resistance (a set value plus the Floor) is taken off,
       // and what is left comes off their health, a point for each box.
-      const dr = ignoreDR ? 0 : (this.system.drTotal ?? 0);
+      const dr = ignoreDR ? 0 : (this.system.drTotal ?? 0) + tempDRTotal(this);
       const net = Math.max(amount - dr, 0);
       const value = Math.max(this.system.health.value - net, 0);
       await this.update({ 'system.health.value': value });
+      // A Roll Modifier's DR bonus is used up by this damage.
+      await clearTempDR(this);
       await ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ actor: this }),
         content: withNote(
@@ -140,12 +143,14 @@ export class CarlRPGActor extends Actor {
       return { amount, dr, net, boxes: net, value };
     }
 
-    const dr = ignoreDR ? 0 : this.system.dr.total;
+    const dr = ignoreDR ? 0 : this.system.dr.total + tempDRTotal(this);
     const net = Math.max(amount - dr, 0);
     const roundFn = Math[CONFIG.CARL_RPG.damageRounding] ?? Math.ceil;
     const boxes = roundFn(net / this.system.health.perBox);
     const value = Math.max(this.system.health.value - boxes, 0);
     await this.update({ 'system.health.value': value });
+    // A Roll Modifier's DR bonus is used up by this damage.
+    await clearTempDR(this);
 
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this }),

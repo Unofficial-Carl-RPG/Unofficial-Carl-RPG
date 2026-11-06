@@ -1046,7 +1046,37 @@
       "StatNote": "using {stat}",
       "DamageEffect": "Damage Effect",
       "NoDamageEffect": "None",
-      "StunInstead": "{name}: instead of damage"
+      "StunInstead": "{name}: instead of damage",
+      "RollMod": "Roll Modifier",
+      "NoRollMod": "None",
+      "Surprise": "Surprise attack"
+    },
+    "RollMod": {
+      "Label": "Roll Modifier",
+      "Hint": "Changes the rolls of the skills listed. Write self to apply it to its own use.",
+      "SkillsPlaceholder": "Skills it applies to (names, comma separated)",
+      "RankNote": "{name} +{value}",
+      "DrNote": "{name}: +{value} DR until the next damage",
+      "WhenHint": "Only when",
+      "When": {
+        "any": "Always",
+        "disadvantage": "Rolled with Disadvantage",
+        "advantage": "Rolled with Advantage",
+        "surprise": "Surprise attack",
+        "hit": "Attack hits",
+        "amazing": "Amazing Success or better",
+        "crit": "Critical Hit",
+        "miss": "Attack misses"
+      },
+      "WhenSummary": {
+        "disadvantage": "only with Disadvantage",
+        "advantage": "only with Advantage",
+        "surprise": "only on a Surprise attack",
+        "hit": "only on a hit",
+        "amazing": "only on an Amazing Success or better",
+        "crit": "only on a Critical Hit",
+        "miss": "only on a miss"
+      }
     },
     "DamageEffect": {
       "Label": "Damage Effect",
@@ -1346,7 +1376,10 @@
         "deCooldownHours": "Effect: cooldown (game hours)",
         "deCooldownRound": "Effect: cooldown once per round",
         "deCooldownNone": "Effect: no cooldown",
-        "deStunOption": "Effect: offer instead-of-damage (1 on, 0 off)"
+        "deStunOption": "Effect: offer instead-of-damage (1 on, 0 off)",
+        "rmRank": "Modifier: add its Rank to the roll",
+        "rmDice": "Modifier: add to damage",
+        "rmDR": "Modifier: DR until the next damage"
       },
       "PetChanges": {
         "statBonus": "Stat: add a bonus",
@@ -1389,6 +1422,9 @@
         "deCooldownNone": "no cooldown",
         "deStunOption": "may be used instead of damage",
         "deStunOptionOff": "no longer used instead of damage",
+        "rmRank": "adds its Rank to the roll",
+        "rmDice": "{value} damage",
+        "rmDR": "+{value} DR until the next damage",
         "unlocks": "Unlocks {name}",
         "statBonus": "{value} {stat}",
         "sizeUp": "Grows {count} size(s)",

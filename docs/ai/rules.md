@@ -8,7 +8,7 @@
   - 3 hotlistOnlySpells setting: spell must be on hotlist (depth 0, GM exempt)
   - 4 checkRequirements(item): warns every unmet requirement
   - 5 uses: needs spans.uses.min uses left
-  - 6 roll pop-up (click only; Shift skips; not for events/macros/mobs): extra bonus (number|dice), stat change, advantage/disadvantage, Damage Effect (see damageEffects), amount to pay for ranged costs (capped at what user has; Shift pays least)
+  - 6 roll pop-up (click only; Shift skips; not for events/macros/mobs): extra bonus (number|dice), stat change, advantage/disadvantage, Damage Effect (see damageEffects), Roll Modifier menu + Surprise tick (see rollMods), amount to pay for ranged costs (capped at what user has; Shift pays least)
   - 7 build benefits (advantage, per-stat skill bonus) applied to every roll
   - 8 chooseTargets(item, costData) for non-mob depth 0 (mode count/area; self = no prompt)
   - 9 claim an action in combat (passive skills and depth>0 free; none left -> confirm 'use anyway')
@@ -17,7 +17,7 @@
   - 12 spend the action; Interrupt in react phase sets combatant flag interruptUsed
   - 13 spend uses
   - 14 _rollCore: card with item header (image, name, badges), short description (full expander), reached upgrades; roll posted; AI Favor reroll offered (not on nat 20/1, not to non-crawlers)
-  - 15 resolveCheck: degree vs each target (or Floor DC), damage roll, attack card with buttons; a chosen Damage Effect is worked out per target here
+  - 15 resolveCheck: degree vs each target (or Floor DC), damage roll, attack card with buttons; a chosen Damage Effect is worked out per target here; Roll Modifier dice are added per target by degree
   - 16 events: rolling skill's 'used', item 'used', per hit 'hit', per miss 'miss'; summaries collected into attack message flags.carl-rpg.attack.fired (GM-only line); a chosen Damage Effect that changed the attack then starts its cooldown and runs its own used events, and its hit events run for each hit target it worked against
 
 ## checks
@@ -34,8 +34,9 @@
 ## damage
 - applyDamage(amount, {ignoreDR, damageType}):
   - damage type: effects with damageMods halve (resist), zero (immune) or double (vulnerable)
-  - crawler/pet: net = max(amount - dr.total, 0); boxes = floor(net / health.perBox) (leftover below a box is lost); health.value -= boxes (min 0); posts a damage card
-  - mob: net = max(amount - drTotal, 0); health.value -= net
+  - crawler/pet: net = max(amount - (dr.total + held Roll Modifier DR), 0); boxes = floor(net / health.perBox) (leftover below a box is lost); health.value -= boxes (min 0); posts a damage card
+  - mob: net = max(amount - (drTotal + held Roll Modifier DR), 0); health.value -= net
+  - held Roll Modifier DR (flag tempDR) is added for this damage and then cleared, even when ignoreDR skips it; see rollMods
   - after: hurtWhileDying (boxes>0), runActorEvents takesDamage
   - health reaching 0 (GM client): crawler/Crawler-mob -> startDying; other mob -> defeatMob; >0 -> cancelDying
 - attackCardButtons: carl-apply-damage with multiplier x2 / x1 / x0.5 (GM), carl-undo-damage per target (restores exact boxes lost, clears Dying it caused, once), carl-apply-effect per target+effect (GM), carl-mob-roll (crawler rolls defense or skips)
@@ -94,7 +95,7 @@
 - holders: skill, spell (by rank), pet (by level)
 - rule: every upgrade with rank <= current rank applies, in rank order then listed order; worked out at use/prepare time from current rank, never written (lower the rank and they vanish)
 - shape: {id, rank, description, changes[{type, value, stat}], grants[uuids, pets], unlocksEffects[identifier|name], events[]}
-- changes: damageAdd (dice/number), damageReplace, dieStep (+/- along dieLadder), manaCost/junkCost/usesCost (move both ends of a ranged cost, floor 0, adds a cost where none), rollBonus, rollTarget (checkTargets id), armorPiercing, damageType, rankDamageBonus/rankDamageStep (whole numbers, see rankDamage); a Damage Effect's de* changes (see damageEffects)
+- changes: damageAdd (dice/number), damageReplace, dieStep (+/- along dieLadder), manaCost/junkCost/usesCost (move both ends of a ranged cost, floor 0, adds a cost where none), rollBonus, rollTarget (checkTargets id), armorPiercing, damageType, rankDamageBonus/rankDamageStep (whole numbers, see rankDamage); a Damage Effect's de* changes (see damageEffects); a Roll Modifier's rm* changes (see rollMods)
 - ui: sheet description lists all upgrades (locked dimmed), chat card lists only unlocked, Attributes tab shows effective values at current rank. Default new ranks 5,10,15,20 (rank editable, any number).
 
 ## damageEffects
@@ -113,6 +114,19 @@
 - debuffs: the effect's own events apply them (applyEffect 'hit' events run for each hit target the effect worked against; 'used' events once). The damageOption condition lets one event run only when the instead-of-damage tick was set. Popularity loss, throwing and Held are description text only.
 - cooldown: starts only if the effect changed the attack (it worked against a target that was hit; with no targets, only if it has no filters), not merely when chosen. hours: set to the rank's hours, drop by CONFIG.CARL_RPG.damageEffects.restHours on every rest the crawler takes (restActor, takeRest). round: cleared when Cleanup starts (roundEnd) and when the combat ends. Stale state is ignored (cooldownLeft caps hours at the current rank's cooldown, a round flag only counts while the cooldown is a round one). The owner resets it on the effect's Attributes tab. Observers can start one through the GM relay.
 - notes: an effect at rank 0 is still offered but does nothing (its rank 1 base is not reached). AI Favor 'only if no Damage Effect is used' is description text only.
+
+## rollMods
+- file: helpers/roll-mods.mjs (pure rules, DR flag helpers); pop-up in roll-dialog.mjs promptRoll({rollMods, surpriseOption}); chosen and resolved in item.mjs roll(); dice worked out in attacks.mjs resolveCheck(item, roll, {modDice}); DR spent in documents/actor.mjs applyDamage
+- what: a skill with system.rollMod.enabled (passive, own rank and upgrades). system.rollMod.skills lists the skills it changes (names or identifiers, comma separated, case-insensitive); the word self lists its own use. A weapon that rolls a skill uses that skill. Derived system.rollModRules = modRules(system).
+- choose: roll pop-up (click, depth 0, not a mob, not Shift) shows a Roll Modifier menu: None (default) or one modifier the actor owns that lists the skill (never the skill itself). At most one per roll. A Surprise attack tick shows when any modifier in play (offered ones, the self one) has a row conditioned on surprise. Shift, events and macros skip the choice; a self modifier (the rolled skill lists self) still applies to its own use then.
+- rules (modRules, folded from the upgrades reached at the modifier's own rank; rank 1 is the base text; rows add up, never replace):
+  - rmRank: the modifier's Rank is added to the d20 roll as extra bonus (card badge '<name> +<rank>'); not on an item that does not roll; rank 0 adds nothing
+  - rmDice: dice or number added to the damage of each target whose degree meets the row's condition; rolled once per row (natural 20 doubles it like the damage), @rankDamage reads the MODIFIER's rank; only when the rolled item has a damage formula; added after a chosen Damage Effect's multiplier (not multiplied by it); the card headline counts them as for a hit (or the unopposed result); the modifier's name is added to the card heading
+  - rmDR: DR for the next damage (see tempDR); set when the modifier is used (rolled or not), after costs and the action are paid
+- when (per row, optional; allowed ids in CONFIG.CARL_RPG.rollMods.allowed): '' always; disadvantage|advantage = the roll's final mode (after the build's advantage cancels a chosen disadvantage); surprise = the pop-up tick; hit|amazing|crit|miss = each target's degree (rmDice only; amazing = amazing or critHit, crit = critHit, miss = not a hit). rmRank and rmDR only offer the first four. A change whose condition its kind cannot use is skipped and the sheet warns.
+- tempDR: actor flag flags.carl-rpg.tempDR = {modifierItemId: {amount, name}}. A modifier used again replaces its own entry; other modifiers add. applyDamage adds the total to DR and clears the flag. Also cleared at Cleanup (roundEnd) and when the combat ends (events.mjs). An Observer's use is relayed to the GM client (helpers/relay.mjs allows only entries of the actor's own modifiers within the amount their rules can give). Set with updateWithRelay; cleared with the '-=tempDR' key.
+- ui: Attributes tab ticks Roll Modifier and lists the skills; the Upgrades tab then offers rmRank/rmDice/rmDR and an 'Only when' menu on those rows (changing a row's kind resets its condition). No cooldown and no events of its own.
+- notes: the pop-up menu allows one chosen modifier plus the self one. A rank bonus is shown in the bonus badge too (the combined bonus).
 
 ## targeting
 - file: helpers/targeting.mjs

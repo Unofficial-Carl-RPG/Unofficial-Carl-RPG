@@ -43,7 +43,7 @@ export const ItemSheetUpgrades = (Base) => class ItemSheetUpgrades extends Base 
   static async _addChange(event, target) {
     const ui = Number(target.dataset.ui);
     await this._updateEvents((system) => {
-      system.upgrades[ui].changes.push({ type: 'damageAdd', value: '', stat: 'str' });
+      system.upgrades[ui].changes.push({ type: 'damageAdd', value: '', stat: 'str', when: '' });
     });
   }
 

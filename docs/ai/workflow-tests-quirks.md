@@ -46,11 +46,11 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 227).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 241).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 227 pass)
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 241 pass)
 - stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node
 
 ## files
@@ -70,6 +70,7 @@
 - migration.test.mjs / migration-guards.test.mjs: load-time migration and migrateData guards
 - progression.test.mjs: level up, advancement, origins, upgrades, skill cap
 - rank-damage.test.mjs: @rankDamage table, rank bonus and row step, upgrade and effect sources, expansion, build row cleanup
+- roll-mods.test.mjs: Roll Modifier rules per rank, conditions, skill lists and self, rank bonus, damage dice, held DR
 - recap.test.mjs: recap counting
 - species.test.mjs: species
 - summon.test.mjs: token placement cells

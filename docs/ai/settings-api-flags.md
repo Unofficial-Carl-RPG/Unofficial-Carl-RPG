@@ -70,6 +70,7 @@
 - resolveCheck(item, roll) / degreeOf(natural, total, dc) / checkDC(item, target): helpers/attacks.mjs
 - evalAmount(text, data) / wholeAmount(...): helpers/amounts.mjs
 - computeEffective(system) / computePetUpgrades(system) / allEvents(item): helpers/upgrades.mjs
+- modRules(system) / resolveMods(mods, {mode, surprise}) / availableMods(actor, skill) / grantTempDR(actor, grants) / clearTempDR(actor): helpers/roll-mods.mjs
 - startDying / cancelDying / die / revive: helpers/dying.mjs
 - restActor(actor, kind) / takeRest(kind) / confirmRest: helpers/rests.mjs
 - levelUp(actor) / spendPoints(actor): helpers/level-up.mjs
@@ -90,6 +91,7 @@
 - revealed: [uuid] hidden races/classes/subclasses GM revealed
 - defeatedIn: combat id a mob was defeated in
 - loot results: saved Open-all roll results (see loot.mjs)
+- tempDR: {modifierItemId: {amount, name}}; DR a Roll Modifier holds for the next damage (cleared by applyDamage, Cleanup, combat end; see rules.md rollMods)
 
 ## item
 - grantedBy: [item ids] on skills an item added

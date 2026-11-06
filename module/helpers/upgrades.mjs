@@ -29,6 +29,8 @@ import { damageTypes } from './damage-types.mjs';
  *  - damageType     the damage becomes this type (an id from the GM's damage types)
  *  - rankDamageBonus  add to the rank that @rankDamage is read at (see rank-damage.mjs)
  *  - rankDamageStep   move @rankDamage that many rows along its table
+ *  - rmRank / rmDice / rmDR  a Roll Modifier's changes (see roll-mods.mjs); each has an
+ *                   optional `when` condition
  */
 
 const t = (key, data) =>
@@ -60,6 +62,10 @@ export function validFormula(text) {
   const formula = String(text ?? '').trim();
   return !!formula && Roll.validate(formula);
 }
+
+/** Whether a Roll Modifier change has a condition its kind of change can't use. */
+const whenProblem = (change) =>
+  !(CONFIG.CARL_RPG.rollMods.allowed[change.type] ?? []).includes(change.when ?? '');
 
 /** Join an addition onto a formula: "1d6" + "1d4" is "1d6 + 1d4", "-1" is "1d6 - 1". */
 function addToFormula(formula, extra) {
@@ -126,6 +132,15 @@ export function changeProblem(change) {
     case 'deCooldownRound':
     case 'deCooldownNone':
       return false;
+    // A Roll Modifier's changes (see roll-mods.mjs).
+    case 'rmRank':
+      return whenProblem(change);
+    case 'rmDice':
+      return !validFormula(value) || whenProblem(change);
+    case 'rmDR':
+      return (
+        !Number.isFinite(Number(value)) || value === '' || Number(value) < 0 || whenProblem(change)
+      );
     // A pet's changes.
     case 'statBonus':
       return (
@@ -443,6 +458,20 @@ export function summarizeChanges(upgrade, effectNames = [], grantNames = []) {
       case 'deStunOption':
         parts.push(t(n > 0 ? 'CARL_RPG.Upgrades.Summary.deStunOption' : 'CARL_RPG.Upgrades.Summary.deStunOptionOff'));
         break;
+      // A Roll Modifier's changes.
+      case 'rmRank':
+        parts.push(t('CARL_RPG.Upgrades.Summary.rmRank') + whenSuffix(change));
+        break;
+      case 'rmDice':
+        parts.push(
+          t('CARL_RPG.Upgrades.Summary.rmDice', {
+            value: /^[+-]/.test(value) ? value : `+${value}`,
+          }) + whenSuffix(change)
+        );
+        break;
+      case 'rmDR':
+        parts.push(t('CARL_RPG.Upgrades.Summary.rmDR', { value: n }) + whenSuffix(change));
+        break;
       // A pet's changes.
       case 'statBonus':
         parts.push(
@@ -483,6 +512,10 @@ export function summarizeChanges(upgrade, effectNames = [], grantNames = []) {
 }
 
 const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
+
+/** " (only with Disadvantage)" after a Roll Modifier change that has a condition. */
+const whenSuffix = (change) =>
+  change.when ? ` (${t(`CARL_RPG.RollMod.WhenSummary.${change.when}`)})` : '';
 
 /**
  * The upgrades of a skill or spell, for listing on its sheet or in chat: each

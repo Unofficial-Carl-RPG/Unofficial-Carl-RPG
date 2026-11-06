@@ -288,7 +288,12 @@ export function makeActor({
     testUserPermission: (user) => user.isGM || owners.includes(user.id),
     async update(data) {
       actor.updates.push(data);
-      for (const [k, v] of Object.entries(data)) setProperty(actor, k, v);
+      for (const [k, v] of Object.entries(data)) {
+        // (Foundry removes a key with "-=key".)
+        const removal = /^(.*)\.-=([^.]+)$/.exec(k);
+        if (removal) delete getProperty(actor, removal[1])?.[removal[2]];
+        else setProperty(actor, k, v);
+      }
     },
     async createEmbeddedDocuments(kind, docs) {
       if (kind !== 'ActiveEffect') throw new Error(`stub: cannot create ${kind}`);

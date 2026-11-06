@@ -46,6 +46,7 @@
 - fields: rank int>=0, advanceable bool (Can Advance), passive bool (uses no action, still rolls), stat (abilities), formula (derived), upgrades[], damageEffect{enabled, skills (comma list of attack skill names or identifiers it works with), cooldownHours int (hours left), cooldownRound bool (used this round)}
 - derived: formula = '1d20 + @<stat>.mod + <rank>' plus effective.rollBonus; effective = computeEffective(system); damageRules = effectRules(system) when damageEffect.enabled, else null. On a pet, rank = current floor.
 - damageEffect: a passive skill chosen before rolling to hit; see rules.md damageEffects. Attributes tab: tick Damage Effect, list the attack skills, cooldown state with Reset (owner). Its Upgrades tab then offers the de* changes.
+- rollMod: system.rollMod{enabled, skills} (comma list of skills it changes, or the word self for its own use). A passive skill chosen in the roll pop-up before rolling a listed skill; derived system.rollModRules. Attributes tab: tick Roll Modifier and list the skills; its Upgrades tab then offers the rm* changes (rmRank, rmDice, rmDR) with an 'Only when' menu. See rules.md rollMods.
 
 ## spell
 - model: extends skill

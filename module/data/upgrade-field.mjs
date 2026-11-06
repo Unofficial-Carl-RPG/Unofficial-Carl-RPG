@@ -4,7 +4,8 @@ import { eventsField } from './base-item.mjs';
  * The upgrades field, shared by skills, spells and pets (see helpers/upgrades.mjs).
  * Each upgrade is reached at a rank (a pet's level) and holds:
  *  - a description (blank shows a summary of its changes)
- *  - changes picked from a menu (`type`, a `value` and, for a stat bonus, a `stat`)
+ *  - changes picked from a menu (`type`, a `value` and, for a stat bonus, a `stat`; a Roll
+ *    Modifier's changes also have an optional `when` condition)
  *  - the skills and spells it gives (`grants`, a pet's upgrades only)
  *  - the effects it unlocks (`unlocksEffects`, by identifier or name)
  *  - the events it carries, which only run once it has been reached
@@ -29,6 +30,7 @@ export function upgradesField() {
           type: requiredString('damageAdd'),
           value: requiredString(),
           stat: requiredString('str'),
+          when: requiredString(''),
         })
       ),
       grants: new fields.ArrayField(

@@ -13,6 +13,7 @@ import {
   effectKey,
 } from '../helpers/upgrades.mjs';
 import { cooldownLeft, effectRules } from '../helpers/damage-effects.mjs';
+import { whenOptionsFor } from '../helpers/roll-mods.mjs';
 import {
   knownTags,
   listHasTag,
@@ -551,11 +552,14 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       context.rankIsFloor = this.item.parent?.type === 'pet';
       // (A Damage Effect's changes are only offered on a skill that is one.)
       const isEffect = !!system.damageEffect?.enabled;
+      // (A Roll Modifier's changes likewise.)
+      const isMod = !!system.rollMod?.enabled;
       context.upgradeChangeOptions = Object.fromEntries(
         Object.entries(cfg.upgrades.changes).filter(
           ([key]) =>
             (isSpell || !cfg.upgrades.spellOnly.includes(key)) &&
-            (isEffect || !cfg.upgrades.damageEffectOnly.includes(key))
+            (isEffect || !cfg.upgrades.damageEffectOnly.includes(key)) &&
+            (isMod || !cfg.upgrades.rollModOnly.includes(key))
         )
       );
       context.upgradeTargetOptions = cfg.checkTargets;
@@ -574,7 +578,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
             ...change,
             index: ci,
             path: `upgrades.${ui}.changes.${ci}`,
-            isFormula: ['damageAdd', 'damageReplace', 'deAddDice'].includes(change.type),
+            isFormula: ['damageAdd', 'damageReplace', 'deAddDice', 'rmDice'].includes(change.type),
             isNumber: [
               'dieStep',
               'manaCost',
@@ -588,9 +592,12 @@ export class CarlRPGItemSheet extends ItemSheetBase {
               'deSizeMax',
               'deCooldownHours',
               'deStunOption',
+              'rmDR',
             ].includes(change.type),
             isTarget: change.type === 'rollTarget',
             isDamageType: change.type === 'damageType',
+            // A Roll Modifier's changes can have an "Only when" condition.
+            whenOptions: whenOptionsFor(change.type),
             invalid: changeProblem(change),
           })),
           effects: context.upgradeEffects.map((effect) => ({

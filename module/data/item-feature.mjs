@@ -2,6 +2,7 @@ import CarlRPGItemBase from './base-item.mjs';
 import { upgradesField } from './upgrade-field.mjs';
 import { computeEffective } from '../helpers/upgrades.mjs';
 import { effectRules } from '../helpers/damage-effects.mjs';
+import { modRules } from '../helpers/roll-mods.mjs';
 
 export default class CarlRPGFeature extends CarlRPGItemBase {
   static LOCALIZATION_PREFIXES = [
@@ -62,6 +63,14 @@ export default class CarlRPGFeature extends CarlRPGItemBase {
       cooldownRound: new fields.BooleanField({ initial: false, nullable: false, required: true }),
     });
 
+    // A Roll Modifier: a passive skill chosen before rolling one of the skills listed here
+    // (or applied to its own use when it lists "self"); see helpers/roll-mods.mjs. What it
+    // does comes from its upgrades.
+    schema.rollMod = new fields.SchemaField({
+      enabled: new fields.BooleanField({ initial: false, nullable: false, required: true }),
+      skills: new fields.StringField({ required: true, blank: true, initial: '' }),
+    });
+
     return schema;
   }
 
@@ -89,6 +98,9 @@ export default class CarlRPGFeature extends CarlRPGItemBase {
 
     // What a Damage Effect does at its current rank (never stored).
     this.damageRules = this.damageEffect?.enabled ? effectRules(this) : null;
+
+    // What a Roll Modifier does at its current rank (never stored).
+    this.rollModRules = this.rollMod?.enabled ? modRules(this) : null;
 
     // An upgrade can add a bonus to the roll.
     const bonus = this.effective.rollBonus;

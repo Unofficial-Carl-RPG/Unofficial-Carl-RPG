@@ -49,6 +49,7 @@ import {
   hasFilters,
   healthPercentOf,
 } from './damage-effects.mjs';
+import { degreeMet } from './roll-mods.mjs';
 
 /**
  * The top of a check or attack card: a badge saying what kind of check it is and what
@@ -158,12 +159,13 @@ export function degreeOf(natural, total, dc) {
  * has any, and post the result card.
  * @param {Item} item
  * @param {Roll|null} roll  The roll (null if the item doesn't roll: any damage simply hits)
- * @param {{damageEffect?: {item: Item, option: boolean}|null}} [options]  The Damage Effect the
- *   roller chose (see helpers/damage-effects.mjs); its option trades the damage away
+ * @param {{damageEffect?: {item: Item, option: boolean}|null, modDice?: object[]}} [options]
+ *   The Damage Effect the roller chose (see helpers/damage-effects.mjs); its option trades the
+ *   damage away. modDice are the damage dice Roll Modifiers add (see helpers/roll-mods.mjs)
  * @returns {Promise<{degrees: string[], hits: Array<{actor: Actor, degree: string}>}|null>}
  *   null if there is nothing to resolve
  */
-export async function resolveCheck(item, roll, { damageEffect = null } = {}) {
+export async function resolveCheck(item, roll, { damageEffect = null, modDice = [] } = {}) {
   // Mobs never roll a d20: a crawler rolls against the mob's number instead.
   if (item.actor?.type === 'mob') return resolveMobCheck(item);
   // An item whose action is No Roll has no check or damage to resolve.
@@ -204,6 +206,8 @@ export async function resolveCheck(item, roll, { damageEffect = null } = {}) {
   let diceSum = 0;
   let extra = 0;
   let extraRoll = null;
+  // The dice Roll Modifiers add, once rolled.
+  const modRolled = [];
   if (damaging) {
     try {
       damageRoll = new Roll(
@@ -223,6 +227,16 @@ export async function resolveCheck(item, roll, { damageEffect = null } = {}) {
         await extraRoll.evaluate();
         extra = Math.max(0, Math.floor(extraRoll.total));
       }
+      // Each Roll Modifier row is rolled once (a natural 20 doubles it like the damage) and
+      // added to the targets its condition allows.
+      for (const entry of modDice) {
+        const formula = expandRankDamage(entry.formula, entry.item);
+        if (!formula) continue;
+        let modRoll = new Roll(formula, owner?.getRollData() ?? {});
+        if (crit) modRoll = modRoll.alter(2, 0);
+        await modRoll.evaluate();
+        modRolled.push({ ...entry, roll: modRoll, total: Math.max(0, Math.floor(modRoll.total)) });
+      }
     } catch (err) {
       ui.notifications.warn(t('CARL_RPG.Attack.BadDamage', { name: item.name }));
       return null;
@@ -231,7 +245,7 @@ export async function resolveCheck(item, roll, { damageEffect = null } = {}) {
   const floor = getFloor();
   const effectRank = effectItem?.system?.rank ?? 0;
   // With no filters the effect works against everyone, so the card's headline shows it.
-  const headline =
+  const baseHeadline =
     damaging && rules && !hasFilters(rules)
       ? damageWithEffect({ total: damage, diceSum, extra, rules, rank: effectRank, applies: true })
       : damage;
@@ -242,6 +256,12 @@ export async function resolveCheck(item, roll, { damageEffect = null } = {}) {
     type === 'unopposed' && roll
       ? degreeOf(natural, roll.total, unopposedDC)
       : null;
+
+  // What the Roll Modifiers' dice add for a degree of success. The headline counts them as for
+  // a hit (or the unopposed result), as there is no target yet to read a degree from.
+  const modTotalFor = (degree) =>
+    modRolled.reduce((sum, d) => sum + (degreeMet(d.when, degree) ? d.total : 0), 0);
+  const headline = damaging ? baseHeadline + modTotalFor(unopposedDegree ?? 'success') : baseHeadline;
 
   const rows = targets.map(({ doc, actor }) => {
     const dc = type === 'unopposed' ? unopposedDC : checkDC(item, actor);
@@ -274,7 +294,7 @@ export async function resolveCheck(item, roll, { damageEffect = null } = {}) {
             rules,
             rank: effectRank,
             applies,
-          })
+          }) + modTotalFor(degree)
         : null,
       effectApplied: applies,
       applied: false,
@@ -283,7 +303,8 @@ export async function resolveCheck(item, roll, { damageEffect = null } = {}) {
 
   // What an opposed check is against, in words: a stat or the Size Class.
   const targetLabel = t(CONFIG.CARL_RPG.checkTargets[targetKey] ?? '');
-  const usedEffect = effectItem ? ` (${effectItem.name})` : '';
+  const usedNames = [effectItem?.name, ...new Set(modRolled.map((d) => d.name))].filter(Boolean);
+  const usedEffect = usedNames.length ? ` (${usedNames.join(', ')})` : '';
   const heading =
     (damaging
       ? damageHeading(item, headline)
@@ -303,7 +324,9 @@ export async function resolveCheck(item, roll, { damageEffect = null } = {}) {
   };
   const message = await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: owner }),
-    rolls: damageRoll ? [damageRoll, ...(extraRoll ? [extraRoll] : [])] : [],
+    rolls: damageRoll
+      ? [damageRoll, ...(extraRoll ? [extraRoll] : []), ...modRolled.map((d) => d.roll)]
+      : [],
     content: checkHeadingHtml(heading, damaging),
     sound: damageRoll ? CONFIG.sounds.dice : undefined,
     flags: { [NS]: { attack: check } },

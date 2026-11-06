@@ -28,6 +28,18 @@ const ALLOWED = {
       Number.isInteger(value) &&
       value >= 0 &&
       value === Math.trunc(doc.system.aiFavor ?? 0) - 1,
+    // A Roll Modifier's DR bonus waiting for the next damage (see helpers/roll-mods.mjs): only
+    // entries for the actor's own modifiers, each within what that modifier can give.
+    [`flags.${NS}.tempDR`]: (doc, value) =>
+      !!value &&
+      typeof value === 'object' &&
+      Object.entries(value).every(([id, entry]) => {
+        const max = (doc.items?.get(id)?.system?.rollModRules?.dr ?? []).reduce(
+          (sum, row) => sum + row.amount,
+          0
+        );
+        return Number.isInteger(entry?.amount) && entry.amount >= 0 && entry.amount <= max;
+      }),
   },
   Item: {
     // Starting a Damage Effect's cooldown (hours as its upgrades set, or used this round).

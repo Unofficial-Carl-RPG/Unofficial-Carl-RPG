@@ -40,6 +40,7 @@ import { summarizeAction } from './event-summary.mjs';
 import { endCombatEffects, tickDurations } from './effect-duration.mjs';
 import { restoreUses, tickCooldowns } from './uses.mjs';
 import { clearRoundCooldowns } from './damage-effects.mjs';
+import { clearTempDR } from './roll-mods.mjs';
 import { skillCapOf } from './skill-cap.mjs';
 import { getFloorRules } from './floor.mjs';
 import { logEvent } from './change-log.mjs';
@@ -1164,6 +1165,7 @@ export function registerEvents() {
           await restoreUses(actor, ['round']);
           await tickCooldowns(actor);
           await clearRoundCooldowns(actor);
+          await clearTempDR(actor);
         });
         await runFloorRules('roundEnd', {});
       }
@@ -1177,6 +1179,7 @@ export function registerEvents() {
       await endCombatEffects(actor);
       await restoreUses(actor, ['round', 'rounds', 'combat']);
       await clearRoundCooldowns(actor);
+      await clearTempDR(actor);
     })
   );
 

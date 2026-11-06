@@ -295,6 +295,10 @@ CARL_RPG.upgrades = {
     deCooldownRound: 'CARL_RPG.Upgrades.Changes.deCooldownRound',
     deCooldownNone: 'CARL_RPG.Upgrades.Changes.deCooldownNone',
     deStunOption: 'CARL_RPG.Upgrades.Changes.deStunOption',
+    // A Roll Modifier's changes (see helpers/roll-mods.mjs).
+    rmRank: 'CARL_RPG.Upgrades.Changes.rmRank',
+    rmDice: 'CARL_RPG.Upgrades.Changes.rmDice',
+    rmDR: 'CARL_RPG.Upgrades.Changes.rmDR',
   },
   spellOnly: [],
   // Only offered on a skill that is a Damage Effect.
@@ -310,6 +314,34 @@ CARL_RPG.upgrades = {
     'deCooldownNone',
     'deStunOption',
   ],
+  // Only offered on a skill that is a Roll Modifier.
+  rollModOnly: ['rmRank', 'rmDice', 'rmDR'],
+};
+
+/**
+ * Roll Modifiers (see helpers/roll-mods.mjs): passive skills that change the rolls of the
+ * skills they list.
+ *  - self:    the word in a modifier's skill list that means its own use
+ *  - when:    the "Only when" conditions of a change (id to label key; '' is always)
+ *  - allowed: which conditions each change type may use (degree conditions are for damage dice)
+ */
+CARL_RPG.rollMods = {
+  self: 'self',
+  when: {
+    '': 'CARL_RPG.RollMod.When.any',
+    disadvantage: 'CARL_RPG.RollMod.When.disadvantage',
+    advantage: 'CARL_RPG.RollMod.When.advantage',
+    surprise: 'CARL_RPG.RollMod.When.surprise',
+    hit: 'CARL_RPG.RollMod.When.hit',
+    amazing: 'CARL_RPG.RollMod.When.amazing',
+    crit: 'CARL_RPG.RollMod.When.crit',
+    miss: 'CARL_RPG.RollMod.When.miss',
+  },
+  allowed: {
+    rmRank: ['', 'disadvantage', 'advantage', 'surprise'],
+    rmDR: ['', 'disadvantage', 'advantage', 'surprise'],
+    rmDice: ['', 'disadvantage', 'advantage', 'surprise', 'hit', 'amazing', 'crit', 'miss'],
+  },
 };
 
 /**

@@ -16,6 +16,16 @@ import {
 import { getFloor } from '../helpers/floor.mjs';
 import { resolveCheck } from '../helpers/attacks.mjs';
 import { availableEffects, startCooldown } from '../helpers/damage-effects.mjs';
+import {
+  addRankBonus,
+  availableMods,
+  drGrantsOf,
+  drNotes,
+  grantTempDR,
+  needsSurprise,
+  resolveMods,
+  selfModOf,
+} from '../helpers/roll-mods.mjs';
 import { describeUpgrades, effectiveOf } from '../helpers/upgrades.mjs';
 import { expandRankDamage } from '../helpers/rank-damage.mjs';
 import { badgeRowHtml, itemCardHeader, shortTextOf } from '../helpers/item-badges.mjs';
@@ -1143,12 +1153,19 @@ export class CarlRPGItem extends Item {
     const rollPopup = !!event && !event.shiftKey && depth === 0 && rolls;
     // The Damage Effects that can be chosen for this attack (see helpers/damage-effects.mjs):
     // the crawler's own, listing the skill the roll uses, off cooldown. Shift skips the choice.
-    const effects =
-      rollPopup && this.actor?.type !== 'mob'
-        ? availableEffects(this.actor, this.type === 'skill' ? this : await this.rollingSkill())
-        : [];
+    const modSkill =
+      this.actor?.type === 'mob' ? null : this.type === 'skill' ? this : await this.rollingSkill();
+    const effects = rollPopup && modSkill ? availableEffects(this.actor, modSkill) : [];
+    // The Roll Modifiers that can be chosen (see helpers/roll-mods.mjs): the crawler's own,
+    // listing the skill the roll uses. A skill that lists itself modifies its own use, pop-up
+    // or not.
+    const mods = rollPopup && modSkill ? availableMods(this.actor, modSkill) : [];
+    const selfMod = selfModOf(modSkill);
+    const surpriseOption = [...mods, selfMod].some((mod) => mod && needsSurprise(mod));
     let chosenEffect = null;
     let effectOption = false;
+    let chosenMod = null;
+    let surprise = false;
     if (rollPopup || (asks.length && !event?.shiftKey)) {
       const chosen = await promptRoll({
         title: this.name,
@@ -1161,6 +1178,8 @@ export class CarlRPGItem extends Item {
           name: effect.name,
           stun: !!effect.system.damageRules?.stunOption,
         })),
+        rollMods: mods.map((mod) => ({ id: mod.id, name: mod.name })),
+        surpriseOption,
       });
       if (!chosen) return null;
       Object.assign(paid, chosen.costs);
@@ -1170,6 +1189,8 @@ export class CarlRPGItem extends Item {
         rollOptions = chosen;
         chosenEffect = effects.find((effect) => effect.id === chosen.damageEffect) ?? null;
         effectOption = !!(chosenEffect && chosen.option);
+        chosenMod = mods.find((mod) => mod.id === chosen.rollMod) ?? null;
+        surprise = !!chosen.surprise;
       }
     }
     // All the ammunition being spent together (what @cost.ammo reads).
@@ -1185,6 +1206,13 @@ export class CarlRPGItem extends Item {
         })
       );
     }
+    // Roll Modifiers: the one chosen, and this skill itself when it modifies its own use. Their
+    // conditions read the final mode (after the build's advantage). The Rank is added to the roll.
+    const modResult = resolveMods([chosenMod, selfMod].filter(Boolean), {
+      mode: rollOptions.mode ?? 'normal',
+      surprise,
+    });
+    if (rolls) rollOptions = addRankBonus(rollOptions, modResult);
 
     // Targets are picked before anything is spent or rolled, once the amounts to pay are
     // known (a target count can follow them; see helpers/targeting.mjs).
@@ -1222,9 +1250,12 @@ export class CarlRPGItem extends Item {
       }
     }
     await spendUse(this, paid.uses);
+    // DR the modifiers give waits for the next damage this actor takes.
+    const drGrants = drGrantsOf(modResult);
+    await grantTempDR(this.actor, drGrants);
     const rolling = await this.#useRollingSkill();
     const result = await this._rollCore(event, {
-      costs: [...mana.notes, ...ammoNotes],
+      costs: [...mana.notes, ...ammoNotes, ...drNotes(drGrants)],
       options: rollOptions,
     });
     // A mistyped bonus: nothing was rolled, and nothing further happens.
@@ -1238,6 +1269,7 @@ export class CarlRPGItem extends Item {
     // helpers/attacks.mjs).
     const attack = await resolveCheck(this, roll, {
       damageEffect: chosenEffect ? { item: chosenEffect, option: effectOption } : null,
+      modDice: modResult.dice,
     });
     rolling?.restore();
     // Summaries of the events that fire for this roll (shown on the attack card).
