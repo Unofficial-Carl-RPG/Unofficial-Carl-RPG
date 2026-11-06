@@ -68,7 +68,7 @@
 - updateWithRelay(doc, changes): helpers/relay.mjs
 - runEvents(item, trigger, ctx) / runActorEvents(actor, trigger, ctx) / runFloorRules(trigger, ctx): helpers/events.mjs
 - resolveCheck(item, roll) / degreeOf(natural, total, dc) / checkDC(item, target): helpers/attacks.mjs
-- evalAmount(text, data) / wholeAmount(...): helpers/amounts.mjs
+- evalAmount(text, data) / wholeAmount(...) / rangeInfo(text, data): helpers/amounts.mjs
 - computeEffective(system) / computePetUpgrades(system) / allEvents(item): helpers/upgrades.mjs
 - modRules(system) / resolveMods(mods, {mode, surprise}) / availableMods(actor, skill) / grantTempDR(actor, grants) / clearTempDR(actor): helpers/roll-mods.mjs
 - startDying / cancelDying / die / revive: helpers/dying.mjs

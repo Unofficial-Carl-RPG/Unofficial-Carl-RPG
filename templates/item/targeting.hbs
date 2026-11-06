@@ -20,8 +20,8 @@
   {{#unless (eq system.targeting.mode 'self')}}{{#unless (eq system.targeting.mode 'none')}}
   <div class='resource'>
     <label class='resource-label' for='system.targeting.range'>{{localize 'CARL_RPG.Targeting.Range'}}</label>
-    <input type='text' name='system.targeting.range' value='{{system.targeting.range}}' placeholder='30' />
-    <p class='hint'>{{localize 'CARL_RPG.Targeting.RangeHint'}}</p>
+    <input type='text' class='{{#if badTargeting.range}}bad-formula{{/if}}' name='system.targeting.range' value='{{system.targeting.range}}' placeholder='30' />
+    <p class='hint'>{{localize 'CARL_RPG.Targeting.RangeHint'}}{{#if rangePreview}} {{rangePreview}}{{/if}}</p>
   </div>
   <div class='resource'>
     <label class='resource-label' for='system.targeting.filter'>{{localize 'CARL_RPG.Targeting.Filter'}}</label>

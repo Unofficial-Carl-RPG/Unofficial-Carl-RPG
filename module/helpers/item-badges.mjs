@@ -1,4 +1,5 @@
 import { costOf, manaCostOf } from '../data/costs.mjs';
+import { rangeInfo } from './amounts.mjs';
 
 import { isTwoHanded } from './gear-slots.mjs';
 
@@ -19,6 +20,30 @@ export function shortTextOf(item) {
   const text = new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
   const plain = text.replace(/\s+/g, ' ').trim();
   return plain.length > 160 ? `${plain.slice(0, 157)}...` : plain;
+}
+
+/**
+ * A range (see rangeInfo in helpers/amounts.mjs) as text: "30 ft", Melee, Touch,
+ * Unlimited, or the formula itself when it can't be worked out yet. Blank for no range.
+ * @param {{kind: string, feet: number, text: string}} info
+ * @returns {string}
+ */
+export function rangeText(info) {
+  const loc = (key, data) => (data ? game.i18n.format(key, data) : game.i18n.localize(key));
+  switch (info.kind) {
+    case 'melee':
+      return loc('CARL_RPG.Targeting.RangeMelee');
+    case 'touch':
+      return loc('CARL_RPG.Targeting.RangeTouch');
+    case 'unlimited':
+      return loc('CARL_RPG.Targeting.RangeUnlimited');
+    case 'feet':
+      return loc('CARL_RPG.Targeting.RangeFeet', { n: info.feet });
+    case 'none':
+      return '';
+    default:
+      return info.text;
+  }
 }
 
 /**
@@ -99,6 +124,13 @@ export function describeBadges(item) {
   for (const ammo of item.ammoSummary ?? []) {
     const left = ammo.left === null ? '' : ` (${ammo.left})`;
     badges.push(`${loc('CARL_RPG.Badges.Ammo')} ${ammo.name} ${ammo.need}${left}`.replace(/\s+/g, ' ').trim());
+  }
+
+  // How far it reaches, for an item that picks targets or places an area.
+  const targeting = sys.targeting;
+  if (['count', 'area'].includes(targeting?.mode) && String(targeting.range ?? '').trim()) {
+    const info = item.rangeInfo ? item.rangeInfo() : rangeInfo(targeting.range);
+    badges.push(`${loc('CARL_RPG.Badges.Range')} ${rangeText(info)}`);
   }
 
   // Quantity and uses, wherever the item has them.

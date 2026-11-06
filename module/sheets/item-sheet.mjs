@@ -1,7 +1,7 @@
 import { resolveListing, restockListing } from '../helpers/store.mjs';
 import { skillStatLabel } from '../helpers/creation.mjs';
 import { damageTypeOptions } from '../helpers/damage-types.mjs';
-import { describeBadges, itemCardHeader, skillBadges } from '../helpers/item-badges.mjs';
+import { describeBadges, itemCardHeader, rangeText, skillBadges } from '../helpers/item-badges.mjs';
 import {
   buildEventRows,
   eventOptions as buildEventOptions,
@@ -715,6 +715,13 @@ export class CarlRPGItemSheet extends ItemSheetBase {
         !validAmount(this.item.system.targeting?.[key]),
       ])
     );
+    // Range also takes melee, touch and unlimited; a formula shows what it comes to now.
+    const range = this.item.rangeInfo?.();
+    if (range) {
+      context.badTargeting.range = range.kind === 'invalid';
+      const formula = /[^\d.\s]/.test(range.text) && !/^(melee|touch|unlimited)$/i.test(range.text.trim());
+      context.rangePreview = formula && ['feet', 'unlimited'].includes(range.kind) ? `= ${rangeText(range)}` : '';
+    }
 
     return context;
   }

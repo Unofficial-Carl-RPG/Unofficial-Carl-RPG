@@ -40,6 +40,7 @@ import {
   statOfFormula,
 } from '../helpers/roll-dialog.mjs';
 import { chooseTargets } from '../helpers/targeting.mjs';
+import { rangeInfo } from '../helpers/amounts.mjs';
 import { dyingEffectOf } from '../helpers/dying.mjs';
 import { logAmmo, logMana } from '../helpers/change-log.mjs';
 import {
@@ -1012,6 +1013,14 @@ export class CarlRPGItem extends Item {
       junk: mob ? none : shiftSpan(costSpan(costs, 'junk', data), effective.junkDelta ?? 0),
       uses: isLimited(this) ? shiftSpan(costSpan(costs, 'uses', data), effective.usesDelta ?? 0) : none,
     };
+  }
+
+  /**
+   * What the item's Range comes to now (see rangeInfo in helpers/amounts.mjs): its formula
+   * read over the user's roll data, with nothing paid yet unless `paid` says so.
+   */
+  rangeInfo(paid = {}) {
+    return rangeInfo(this.system.targeting?.range, this.costData(paid));
   }
 
   /** What each resource costs as text: "2", "1-3", or the formula itself when it can't be worked out yet. */

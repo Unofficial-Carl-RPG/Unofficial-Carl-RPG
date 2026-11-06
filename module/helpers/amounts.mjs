@@ -220,6 +220,30 @@ export function evalAmount(text, data = {}) {
 }
 
 /**
+ * What an item's Range text means: a number of feet or a formula over roll data (like
+ * `10 + @str.mod * 5`), or the words melee, touch (5 feet) or unlimited. A blank range,
+ * or a number that works out to 0 or less, has no limit.
+ * @param {string|number} text
+ * @param {object} [data]  The roll data its `@` names come from
+ * @returns {{kind: string, feet: number, text: string}}  `kind` is none (blank), melee,
+ *   touch, unlimited, feet (`feet` is the distance), pending (a formula that can't be
+ *   worked out yet) or invalid (can't be read). `feet` is Infinity unless kind is melee,
+ *   touch or feet.
+ */
+export function rangeInfo(text, data = {}) {
+  const source = String(text ?? '').trim();
+  const word = source.toLowerCase();
+  if (!source) return { kind: 'none', feet: Infinity, text: source };
+  if (word === 'melee' || word === 'touch') return { kind: word, feet: 5, text: source };
+  if (word === 'unlimited') return { kind: 'unlimited', feet: Infinity, text: source };
+  if (!validAmount(source)) return { kind: 'invalid', feet: Infinity, text: source };
+  const value = evalAmount(source, data);
+  if (value === null) return { kind: 'pending', feet: Infinity, text: source };
+  if (value <= 0) return { kind: 'unlimited', feet: Infinity, text: source };
+  return { kind: 'feet', feet: Math.round(value * 100) / 100, text: source };
+}
+
+/**
  * A whole-number amount for a rule: worked out, rounded down and held to a least
  * (and optionally a most). A formula that can't be worked out gives the fallback.
  * @param {string|number} text

@@ -6,23 +6,15 @@
  * The prompt stays open while the player clicks tokens on the map, and shows how
  * many are picked against the limit. Range is checked against the controlled token.
  *
- * The number of targets, the number of areas, an area's size and the number it can hold
- * are each a number or a formula over the user's roll data and what was paid (@cost);
- * see helpers/amounts.mjs.
+ * The number of targets, the number of areas, an area's size, the number it can hold and
+ * the range are each a number or a formula over the user's roll data and what was paid
+ * (@cost); see helpers/amounts.mjs.
  */
 import { CarlRPGDialog } from './dialog.mjs';
 import { applyQueuedEffect } from './events.mjs';
-import { wholeAmount } from './amounts.mjs';
+import { rangeInfo, wholeAmount } from './amounts.mjs';
 
 const t = (key, data) => (data ? game.i18n.format(key, data) : game.i18n.localize(key));
-
-/** Feet a range allows: a number, melee or touch (5 feet), or unlimited. */
-function rangeFeet(range) {
-  const r = String(range ?? '').trim().toLowerCase();
-  if (r === 'melee' || r === 'touch') return 5;
-  const n = Number(r);
-  return Number.isFinite(n) && n > 0 ? n : Infinity;
-}
 
 /** Whether a token is an allowed target for a filter (enemies, allies or anyone). */
 function matchesFilter(token, filter) {
@@ -41,8 +33,7 @@ function distance(a, b) {
   return canvas.grid.measurePath([a.center, b.center]).distance;
 }
 
-function listHtml(cfg, src, limit) {
-  const range = rangeFeet(cfg.range);
+function listHtml(cfg, src, limit, range) {
   const picked = [...game.user.targets];
   const rows = picked
     .map((token) => {
@@ -71,12 +62,13 @@ export async function chooseTargets(item, data = item.costData?.() ?? {}) {
   if (cfg?.mode === 'area') return chooseArea(item, data);
   if (cfg?.mode !== 'count') return true;
   const limit = wholeAmount(cfg.count, data, { min: 1, fallback: 1 });
+  const range = rangeInfo(cfg.range, data).feet;
   const src = sourceToken();
   const root = { el: null, dialog: null };
 
   const refresh = () => {
     if (!root.el) return;
-    root.el.innerHTML = listHtml(cfg, src, limit);
+    root.el.innerHTML = listHtml(cfg, src, limit, range);
     const ok = root.dialog?.element.querySelector('button[data-action="ok"]');
     if (ok) ok.disabled = game.user.targets.size < 1;
   };
@@ -140,8 +132,9 @@ export async function chooseTargets(item, data = item.costData?.() ?? {}) {
 /**
  * Place the item's areas one after another (its "areas per use") with Foundry's own
  * template tool. The tokens picked in each are added to the targets, and the area is
- * cleared again. Escape cancels the rest. Players who can't create templates get a
- * warning; the GM places it.
+ * cleared again. Escape cancels the rest. An area placed farther from the user's token
+ * than the item's range gets a warning (it still goes ahead, as with targets). Players
+ * who can't create templates get a warning; the GM places it.
  * @param {CarlRPGItem} item
  * @param {object} [data]  The roll data the formulas read
  * @returns {Promise<boolean>} false if cancelled or not allowed
@@ -151,14 +144,15 @@ export async function chooseArea(item, data = item.costData?.() ?? {}) {
   const total = wholeAmount(cfg.areas, data, { min: 1, fallback: 1 });
   const size = wholeAmount(cfg.size, data, { min: 0, fallback: 0 });
   const limit = wholeAmount(cfg.limit, data, { min: 0, fallback: 0 });
+  const range = rangeInfo(cfg.range, data).feet;
   for (let n = 1; n <= total; n++) {
-    if (!(await placeOneArea(item, n, total, { size, limit }))) return false;
+    if (!(await placeOneArea(item, n, total, { size, limit, range }))) return false;
   }
   return true;
 }
 
 /** Place one area with the template tool (see chooseArea). */
-function placeOneArea(item, n, total, { size, limit }) {
+function placeOneArea(item, n, total, { size, limit, range }) {
   const cfg = item.system.targeting;
   if (!game.user.can('TEMPLATE_CREATE')) {
     ui.notifications.warn(t('CARL_RPG.Targeting.NoTemplatePermission'));
@@ -183,6 +177,10 @@ function placeOneArea(item, n, total, { size, limit }) {
       if (userId !== game.user.id) return;
       // The item's size sets how far the area reaches; the player places its origin.
       if (size > 0) await doc.update({ distance: size });
+      const src = Number.isFinite(range) ? sourceToken() : null;
+      if (src && canvas.grid.measurePath([src.center, { x: doc.x, y: doc.y }]).distance > range) {
+        ui.notifications.warn(t('CARL_RPG.Targeting.AreaOutOfRange', { name: item.name, m: range }));
+      }
       const area = doc.object ?? canvas.templates.get(doc.id);
       const inside = canvas.tokens.placeables.filter(
         (tok) => tok.visible && matchesFilter(tok, cfg.filter) && area?.testPoint(tok.center)

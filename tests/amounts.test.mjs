@@ -2,7 +2,7 @@
 import './stubs.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { evalAmount, fillData, validAmount, wholeAmount } from '../module/helpers/amounts.mjs';
+import { evalAmount, fillData, rangeInfo, validAmount, wholeAmount } from '../module/helpers/amounts.mjs';
 import { costLabel, costPaidData, costSpan, capSpan, shiftSpan } from '../module/data/costs.mjs';
 
 const data = { int: { mod: 3 }, str: { mod: 1 }, lvl: 4, cost: costPaidData({ mana: 2, junk: 1 }) };
@@ -85,6 +85,30 @@ test('cost spans: upgrades shift both ends, never below 0; the user\'s amount ca
   assert.equal(capSpan(span, 9).max, 3);
   // Having less than the least still leaves the least (the "use anyway" question handles it).
   assert.deepEqual(capSpan(span, 0), { min: 1, max: 1, known: true, ranged: false });
+});
+
+test('range: a number, a formula over roll data, or melee, touch and unlimited', () => {
+  assert.deepEqual(rangeInfo('30', data), { kind: 'feet', feet: 30, text: '30' });
+  assert.equal(rangeInfo(' 10 + @str.mod * 5 ', data).feet, 15);
+  assert.equal(rangeInfo('floor(@lvl / 3) * 10', data).feet, 10);
+  assert.equal(rangeInfo('@cost.mana * 15', data).feet, 30);
+  assert.equal(rangeInfo(15, data).feet, 15);
+  assert.equal(rangeInfo('Melee', data).feet, 5);
+  assert.equal(rangeInfo('TOUCH', data).kind, 'touch');
+  assert.equal(rangeInfo('unlimited', data).feet, Infinity);
+});
+
+test('range: blank, zero or less, unreadable and not yet known', () => {
+  assert.equal(rangeInfo('', data).kind, 'none');
+  assert.equal(rangeInfo(undefined, data).feet, Infinity);
+  assert.equal(rangeInfo('0', data).kind, 'unlimited');
+  assert.equal(rangeInfo('@str.mod - 5', data).kind, 'unlimited');
+  assert.equal(rangeInfo('1d6 * 5', data).kind, 'invalid');
+  assert.equal(rangeInfo('far away', data).kind, 'invalid');
+  // A formula that reads fine but needs data that isn't there yet.
+  const pending = rangeInfo('@nothing.here * 5', data);
+  assert.equal(pending.kind, 'pending');
+  assert.equal(pending.feet, Infinity);
 });
 
 test('cost labels: a number, a range, or the formulas when they cannot be worked out', () => {
