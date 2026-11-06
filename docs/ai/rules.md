@@ -8,7 +8,7 @@
   - 3 hotlistOnlySpells setting: spell must be on hotlist (depth 0, GM exempt)
   - 4 checkRequirements(item): warns every unmet requirement
   - 5 uses: needs spans.uses.min uses left
-  - 6 roll pop-up (click only; Shift skips; not for events/macros/mobs): extra bonus (number|dice), stat change, advantage/disadvantage, Damage Effect (see damageEffects), Roll Modifier menu + Surprise tick (see rollMods), amount to pay for ranged costs (capped at what user has; Shift pays least)
+  - 6 roll pop-up (click only; Shift skips; not for events/macros/mobs): extra bonus (number|dice), stat change, advantage/disadvantage, Damage Effect (see damageEffects), Roll Modifier menu + Surprise tick (see rollMods), amount to pay for ranged costs (capped at what user has; Shift pays least), Area shape menu when upgrades give an Area item more than one shape (also opens for an item that doesn't roll; Shift uses the first)
   - 7 build benefits (advantage, per-stat skill bonus) applied to every roll
   - 8 chooseTargets(item, costData) for non-mob depth 0 (mode count/area; self = no prompt)
   - 9 claim an action in combat (passive skills and depth>0 free; none left -> confirm 'use anyway')
@@ -95,7 +95,7 @@
 - holders: skill, spell (by rank), pet (by level)
 - rule: every upgrade with rank <= current rank (the effective rank, see items-effects skillRankBonus) applies, in rank order then listed order; worked out at use/prepare time from current rank, never written (lower the rank and they vanish)
 - shape: {id, rank, description, changes[{type, value, stat}], grants[uuids, pets], unlocksEffects[identifier|name], events[]}
-- changes: damageAdd (dice/number), damageReplace, dieStep (+/- along dieLadder), manaCost/junkCost/usesCost (move both ends of a ranged cost, floor 0, adds a cost where none), rollBonus, rollTarget (checkTargets id), armorPiercing, damageType, rankDamageBonus/rankDamageStep (whole numbers, see rankDamage); a Damage Effect's de* changes (see damageEffects); a Roll Modifier's rm* changes (see rollMods)
+- changes: damageAdd (dice/number), damageReplace, dieStep (+/- along dieLadder), manaCost/junkCost/usesCost (move both ends of a ranged cost, floor 0, adds a cost where none), rollBonus, rollTarget (checkTargets id), armorPiercing, damageType, areaShape (the area's shape; last wins)/areaShapeExtra (adds a shape the roll pop-up lets the player pick)/areaSizeAdd (feet, negative ok)/areaSizeReplace (amount; drops earlier additions) (area changes are only offered on skills/spells with Area targeting, and only change that skill/spell's own area; effective.areaShape/areaShapes/areaSize/areaSizeDelta, first of areaShapes = the shape used without a choice), rankDamageBonus/rankDamageStep (whole numbers, see rankDamage); a Damage Effect's de* changes (see damageEffects); a Roll Modifier's rm* changes (see rollMods)
 - ui: sheet description lists all upgrades (locked dimmed), chat card lists only unlocked, Attributes tab shows effective values at current rank. Default new ranks 5,10,15,20 (rank editable, any number).
 
 ## damageEffects
@@ -137,7 +137,7 @@
 ## targeting
 - file: helpers/targeting.mjs
 - when: every use at depth 0 for non-mob items, after the pop-up (so counts can read @cost), before anything is spent
-- modes: none = plain use; count = pick up to N tokens (prompt window stays open while clicking tokens, 'Selected N of M', remove buttons, Select nearest, range warning, range ring around user's token); self = no prompt; area = place a Foundry measured template (circle|cone|ray|rect) with live 'N tokens inside'; if player cannot create templates the GM confirms
+- modes: none = plain use; count = pick up to N tokens (prompt window stays open while clicking tokens, 'Selected N of M', remove buttons, Select nearest, range warning, range ring around user's token); self = no prompt; area = place a Foundry measured template (circle|cone|ray|rect) with live 'N tokens inside' (the shape and size are the effective ones after upgrades; the shape picked in the roll pop-up when there are several); if player cannot create templates the GM confirms
 - range: an amount in feet (number or formula over roll data, no dice, same data as count/size, incl. @rank and @cost) or melee/touch (5 ft) or unlimited; blank, 0 or less = no limit. rangeInfo(text, data) in helpers/amounts.mjs returns {kind none|melee|touch|unlimited|feet|pending|invalid, feet}; item.rangeInfo() reads it with the item's costData. Count mode marks targets beyond it 'out of range'; area mode warns when the template origin is placed beyond it (still goes ahead). Shown as a Range badge (so in tooltips too) for count/area items, and under the Range field on the sheet when it is a formula; an unreadable range is flagged like other bad formulas
 - filter: enemies|allies|any (at least one target required unless self/area)
 - mobAbilities: GM gets same prompt when declaring; targets stored with the declaration

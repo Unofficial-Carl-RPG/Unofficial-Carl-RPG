@@ -14,6 +14,7 @@ import { CarlRPGDialog } from './dialog.mjs';
 import { applyQueuedEffect } from './events.mjs';
 import { rangeInfo, wholeAmount } from './amounts.mjs';
 import { clearSplash, noteArea, splashBand } from './splash.mjs';
+import { effectiveOf } from './upgrades.mjs';
 
 const t = (key, data) => (data ? game.i18n.format(key, data) : game.i18n.localize(key));
 
@@ -58,11 +59,11 @@ function listHtml(cfg, src, limit, range) {
  * @param {object} [data]  The roll data the formulas read (item.costData(paid))
  * @returns {Promise<boolean>} false if the player cancelled
  */
-export async function chooseTargets(item, data = item.costData?.() ?? {}) {
+export async function chooseTargets(item, data = item.costData?.() ?? {}, { shape = null } = {}) {
   // (What the last use found in an area's splash is forgotten.)
   clearSplash();
   const cfg = item.system.targeting;
-  if (cfg?.mode === 'area') return chooseArea(item, data);
+  if (cfg?.mode === 'area') return chooseArea(item, data, shape);
   if (cfg?.mode !== 'count') return true;
   const limit = wholeAmount(cfg.count, data, { min: 1, fallback: 1 });
   const range = rangeInfo(cfg.range, data).feet;
@@ -140,23 +141,32 @@ export async function chooseTargets(item, data = item.costData?.() ?? {}) {
  * who can't create templates get a warning; the GM places it.
  * @param {CarlRPGItem} item
  * @param {object} [data]  The roll data the formulas read
+ * @param {string|null} [chosenShape]  The shape picked in the roll pop-up (else the item's own)
  * @returns {Promise<boolean>} false if cancelled or not allowed
  */
-export async function chooseArea(item, data = item.costData?.() ?? {}) {
+export async function chooseArea(item, data = item.costData?.() ?? {}, chosenShape = null) {
   const cfg = item.system.targeting;
+  // What upgrades make of the area's shape and size (see helpers/upgrades.mjs).
+  const effective = effectiveOf(item);
+  const shape = Object.hasOwn(CONFIG.CARL_RPG.areaShapes, chosenShape)
+    ? chosenShape
+    : (effective.areaShape ?? cfg.shape);
   const total = wholeAmount(cfg.areas, data, { min: 1, fallback: 1 });
-  const size = wholeAmount(cfg.size, data, { min: 0, fallback: 0 });
+  const size = Math.max(
+    0,
+    wholeAmount(effective.areaSize ?? cfg.size, data, { min: 0, fallback: 0 }) + (effective.areaSizeDelta ?? 0)
+  );
   const limit = wholeAmount(cfg.limit, data, { min: 0, fallback: 0 });
   const range = rangeInfo(cfg.range, data).feet;
   const splash = wholeAmount(cfg.splash, data, { min: 0, fallback: 0 });
   for (let n = 1; n <= total; n++) {
-    if (!(await placeOneArea(item, n, total, { size, limit, range, splash }))) return false;
+    if (!(await placeOneArea(item, n, total, { size, limit, range, splash, shape }))) return false;
   }
   return true;
 }
 
 /** Place one area with the template tool (see chooseArea). */
-function placeOneArea(item, n, total, { size, limit, range, splash }) {
+function placeOneArea(item, n, total, { size, limit, range, splash, shape }) {
   const cfg = item.system.targeting;
   if (!game.user.can('TEMPLATE_CREATE')) {
     ui.notifications.warn(t('CARL_RPG.Targeting.NoTemplatePermission'));
@@ -236,7 +246,7 @@ function placeOneArea(item, n, total, { size, limit, range, splash }) {
     Hooks.on('createMeasuredTemplate', onCreate);
     document.addEventListener('keydown', onKey, true);
     ui.notifications.info(t('CARL_RPG.Targeting.PlaceAreaN', { n, m: total }));
-    canvas.templates.activate({ tool: cfg.shape });
+    canvas.templates.activate({ tool: shape });
   });
 }
 

@@ -50,9 +50,11 @@ export function statOfFormula(formula) {
  *   Effects that can be chosen (`stun`: the effect offers an "instead of damage" option)
  * @param {{id: string, name: string}[]} [config.rollMods]  The Roll Modifiers that can be chosen
  * @param {boolean} [config.surpriseOption]  Whether to offer the Surprise attack tick
+ * @param {{id: string, label: string}[]} [config.shapes]  The shapes an area can be placed as
+ *   (offered when there is more than one; the first is the default)
  * @returns {Promise<{bonus: string, stat: string|null, mode: 'normal'|'advantage'|'disadvantage',
  *   costs: Object<string, number>, damageEffect: string, option: boolean, rollMod: string,
- *   surprise: boolean}|null>}
+ *   surprise: boolean, shape: string}|null>}
  */
 export async function promptRoll({
   title,
@@ -63,6 +65,7 @@ export async function promptRoll({
   damageEffects = [],
   rollMods = [],
   surpriseOption = false,
+  shapes = [],
 }) {
   const abilities = CONFIG.CARL_RPG.abilities;
   const statMenu = stat
@@ -137,6 +140,17 @@ export async function promptRoll({
       </div>`
       : '');
 
+  // An area item with several shapes (upgrades can add them) asks which one to place.
+  const shapeFields =
+    shapes.length > 1
+      ? `<div class="form-group">
+        <label>${esc(t('CARL_RPG.RollDialog.Shape'))}</label>
+        <select name="shape">
+          ${shapes.map((s) => `<option value="${esc(s.id)}">${esc(s.label)}</option>`).join('')}
+        </select>
+      </div>`
+      : '';
+
   const rollFields = rolls
     ? `<div class="form-group">
       <label>${esc(t('CARL_RPG.RollDialog.Bonus'))}</label>
@@ -160,6 +174,7 @@ export async function promptRoll({
   const content = `<div class="carl-roll-dialog">
     ${tip ? `<p class="roll-tip">${esc(tip)}</p>` : ''}
     ${costFields}
+    ${shapeFields}
     ${rollFields}
   </div>`;
 
@@ -195,6 +210,7 @@ export async function promptRoll({
     option: !!(effect?.stun && result[`stun_${effect.id}`]),
     rollMod: rollMods.find((m) => m.id === result.rollMod)?.id ?? '',
     surprise: !!result.surprise,
+    shape: shapes.find((s) => s.id === result.shape)?.id ?? '',
   };
 }
 

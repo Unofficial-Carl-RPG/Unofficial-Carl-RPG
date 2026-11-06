@@ -59,6 +59,10 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
           rollTarget: 'evade',
           damageType: damageTypes()[0]?.id ?? '',
           rmDR: '5',
+          areaShape: 'cone',
+          areaShapeExtra: 'cone',
+          areaSizeAdd: '5',
+          areaSizeReplace: '10',
         };
         foundry.utils.setProperty(
           system,

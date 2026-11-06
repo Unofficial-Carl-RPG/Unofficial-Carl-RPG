@@ -41,10 +41,19 @@
       <option value='ray' {{#if (eq system.targeting.shape 'ray')}}selected{{/if}}>{{localize 'CARL_RPG.Targeting.ShapeRay'}}</option>
       <option value='rect' {{#if (eq system.targeting.shape 'rect')}}selected{{/if}}>{{localize 'CARL_RPG.Targeting.ShapeRect'}}</option>
     </select>
+    {{#if effective.shapeChanged}}
+    <p class='upgrade-now'><i class='fas fa-arrow-up'></i> {{localize 'CARL_RPG.Upgrades.NowShape' value=effective.shape}}</p>
+    {{/if}}
+    {{#if effective.extraShapes}}
+    <p class='upgrade-now'><i class='fas fa-arrow-up'></i> {{localize 'CARL_RPG.Upgrades.NowShapes' value=effective.extraShapes}}</p>
+    {{/if}}
   </div>
   <div class='resource'>
     <label class='resource-label' for='system.targeting.size'>{{localize 'CARL_RPG.Targeting.Size'}}</label>
     <input type='text' class='{{#if badTargeting.size}}bad-formula{{/if}}' name='system.targeting.size' value='{{system.targeting.size}}' />
+    {{#if effective.sizeChanged}}
+    <p class='upgrade-now'><i class='fas fa-arrow-up'></i> {{localize 'CARL_RPG.Upgrades.NowSize' value=effective.sizeNow}}</p>
+    {{/if}}
   </div>
   <div class='resource'>
     <label class='resource-label' for='system.targeting.lasting'>{{localize 'CARL_RPG.Targeting.Lasting'}}</label>

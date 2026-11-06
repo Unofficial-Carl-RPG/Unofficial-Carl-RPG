@@ -1,5 +1,6 @@
 import { manaCostOf } from '../data/costs.mjs';
 import { damageTypes } from './damage-types.mjs';
+import { validAmount } from './amounts.mjs';
 /**
  * Skill, spell and pet upgrades.
  *
@@ -27,6 +28,10 @@ import { damageTypes } from './damage-types.mjs';
  *  - rollTarget     roll against something else (a key of CONFIG.CARL_RPG.checkTargets)
  *  - armorPiercing  the damage ignores Damage Resistance (no value)
  *  - damageType     the damage becomes this type (an id from the GM's damage types)
+ *  - areaShape      the area becomes this shape (a key of CONFIG.CARL_RPG.areaShapes); the last wins
+ *  - areaShapeExtra the area can also be this shape: the roll pop-up offers the choice
+ *  - areaSizeAdd    add feet to the area's size (negative ok)
+ *  - areaSizeReplace the area's size becomes this amount (a number or formula); drops earlier additions
  *  - rankDamageBonus  add to the rank that @rankDamage is read at (see rank-damage.mjs)
  *  - rankDamageStep   move @rankDamage that many rows along its table
  *  - rmRank / rmDice / rmDR  a Roll Modifier's changes (see roll-mods.mjs); each has an
@@ -119,6 +124,13 @@ export function changeProblem(change) {
       return !(value in CONFIG.CARL_RPG.checkTargets);
     case 'armorPiercing':
       return false;
+    case 'areaShape':
+    case 'areaShapeExtra':
+      return !Object.hasOwn(CONFIG.CARL_RPG.areaShapes, value);
+    case 'areaSizeAdd':
+      return !Number.isFinite(Number(value)) || value === '';
+    case 'areaSizeReplace':
+      return value === '' || !validAmount(value);
     case 'damageType':
       return !damageTypes().some((d) => d.id === value);
     // A Damage Effect's changes (see damage-effects.mjs).
@@ -169,7 +181,10 @@ export function changeProblem(change) {
  *                         manaCost and upgrades)
  * @returns {{damage: string, manaCost: number, rollBonus: number,
  *   rankBonus: number, rankStep: number,
- *   target: string, damageType: string, armorPiercing: boolean, unlocked: string[]}}
+ *   target: string, damageType: string, armorPiercing: boolean, areaShape: string,
+ *   areaShapes: string[], areaSize: string, areaSizeDelta: number, unlocked: string[]}}
+ *   `areaShapes` is the shapes the area can have (the first is the one used without a choice),
+ *   `areaSize` the size amount and `areaSizeDelta` the feet added to it.
  *   `unlocked` is the ids of the upgrades that have been reached.
  */
 export function computeEffective(system) {
@@ -187,6 +202,11 @@ export function computeEffective(system) {
   let target = system.check?.target ?? 'unopposed';
   let damageType = system.damageType ?? '';
   let armorPiercing = !!system.armorPiercing;
+  // An area's shape (and the others it can be), and its size (an amount, plus feet added).
+  let areaShape = system.targeting?.shape ?? 'circle';
+  const extraShapes = [];
+  let areaSize = String(system.targeting?.size ?? '0');
+  let areaSizeDelta = 0;
 
   const reached = unlockedUpgrades(system);
   for (const upgrade of reached) {
@@ -225,6 +245,19 @@ export function computeEffective(system) {
         case 'damageType':
           damageType = value;
           break;
+        case 'areaShape':
+          areaShape = value;
+          break;
+        case 'areaShapeExtra':
+          if (!extraShapes.includes(value)) extraShapes.push(value);
+          break;
+        case 'areaSizeAdd':
+          areaSizeDelta += Math.trunc(Number(value));
+          break;
+        case 'areaSizeReplace':
+          areaSize = value;
+          areaSizeDelta = 0;
+          break;
         case 'rankDamageBonus':
           rankBonus += Math.trunc(Number(value));
           break;
@@ -246,6 +279,10 @@ export function computeEffective(system) {
     target,
     damageType,
     armorPiercing,
+    areaShape,
+    areaShapes: [areaShape, ...extraShapes.filter((shape) => shape !== areaShape)],
+    areaSize,
+    areaSizeDelta,
     unlocked: reached.map((u) => u.id),
   };
 }
@@ -316,6 +353,10 @@ export function effectiveOf(item) {
       target: system.check?.target ?? 'unopposed',
       damageType: system.damageType ?? '',
       armorPiercing: !!system.armorPiercing,
+      areaShape: system.targeting?.shape ?? 'circle',
+      areaShapes: [system.targeting?.shape ?? 'circle'],
+      areaSize: String(system.targeting?.size ?? '0'),
+      areaSizeDelta: 0,
       unlocked: [],
     }
   );
@@ -422,6 +463,20 @@ export function summarizeChanges(upgrade, effectNames = [], grantNames = []) {
         break;
       case 'armorPiercing':
         parts.push(t('CARL_RPG.Upgrades.Summary.armorPiercing'));
+        break;
+      case 'areaShape':
+      case 'areaShapeExtra':
+        parts.push(
+          t(`CARL_RPG.Upgrades.Summary.${change.type}`, {
+            shape: t(CONFIG.CARL_RPG.areaShapes[value]).toLowerCase(),
+          })
+        );
+        break;
+      case 'areaSizeAdd':
+        parts.push(t('CARL_RPG.Upgrades.Summary.areaSizeAdd', { value: signed(n) }));
+        break;
+      case 'areaSizeReplace':
+        parts.push(t('CARL_RPG.Upgrades.Summary.areaSizeReplace', { value }));
         break;
       case 'rankDamageBonus':
         parts.push(t('CARL_RPG.Upgrades.Summary.rankDamageBonus', { value: signed(n) }));

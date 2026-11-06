@@ -1178,7 +1178,13 @@ export class CarlRPGItem extends Item {
     let effectOption = false;
     let chosenMod = null;
     let surprise = false;
-    if (rollPopup || (asks.length && !event?.shiftKey)) {
+    // An area item that can be placed as more than one shape (upgrades add them) asks which, in
+    // the pop-up; Shift uses its first.
+    const areaShapes = this.system.targeting?.mode === 'area' ? (effectiveOf(this).areaShapes ?? []) : [];
+    const shapePopup =
+      !!event && !event.shiftKey && depth === 0 && areaShapes.length > 1 && this.actor?.type !== 'mob';
+    let chosenShape = null;
+    if (rollPopup || shapePopup || (asks.length && !event?.shiftKey)) {
       const chosen = await promptRoll({
         title: this.name,
         stat: rollPopup ? defaultStat : null,
@@ -1192,9 +1198,13 @@ export class CarlRPGItem extends Item {
         })),
         rollMods: mods.map((mod) => ({ id: mod.id, name: mod.name })),
         surpriseOption,
+        shapes: shapePopup
+          ? areaShapes.map((id) => ({ id, label: game.i18n.localize(CONFIG.CARL_RPG.areaShapes[id]) }))
+          : [],
       });
       if (!chosen) return null;
       Object.assign(paid, chosen.costs);
+      if (shapePopup) chosenShape = chosen.shape || null;
       if (rollPopup) {
         // A mistyped bonus is caught now, before any action or mana is spent.
         if (buildFormula(this.system.formula, chosen) === null) return null;
@@ -1228,7 +1238,7 @@ export class CarlRPGItem extends Item {
 
     // Targets are picked before anything is spent or rolled, once the amounts to pay are
     // known (a target count can follow them; see helpers/targeting.mjs).
-    if (depth === 0 && this.actor?.type !== 'mob' && !(await chooseTargets(this, this.costData(paid)))) {
+    if (depth === 0 && this.actor?.type !== 'mob' && !(await chooseTargets(this, this.costData(paid), { shape: chosenShape }))) {
       return null;
     }
 

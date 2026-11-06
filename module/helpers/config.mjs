@@ -257,6 +257,14 @@ CARL_RPG.checkTargets = {
   size: 'CARL_RPG.Check.Targets.size',
 };
 
+/** The shapes an area can have (the template tools), with their labels. */
+CARL_RPG.areaShapes = {
+  circle: 'CARL_RPG.Targeting.ShapeCircle',
+  cone: 'CARL_RPG.Targeting.ShapeCone',
+  ray: 'CARL_RPG.Targeting.ShapeRay',
+  rect: 'CARL_RPG.Targeting.ShapeRect',
+};
+
 /**
  * Skill and spell upgrades (see helpers/upgrades.mjs). A skill or spell holds a
  * list of upgrades; each has a rank, a description, changes picked from a menu
@@ -284,6 +292,11 @@ CARL_RPG.upgrades = {
     damageType: 'CARL_RPG.Upgrades.Changes.damageType',
     rankDamageBonus: 'CARL_RPG.Upgrades.Changes.rankDamageBonus',
     rankDamageStep: 'CARL_RPG.Upgrades.Changes.rankDamageStep',
+    // An area's shape and size (only offered on an item that places an area).
+    areaShape: 'CARL_RPG.Upgrades.Changes.areaShape',
+    areaShapeExtra: 'CARL_RPG.Upgrades.Changes.areaShapeExtra',
+    areaSizeAdd: 'CARL_RPG.Upgrades.Changes.areaSizeAdd',
+    areaSizeReplace: 'CARL_RPG.Upgrades.Changes.areaSizeReplace',
     // A Damage Effect's changes (see helpers/damage-effects.mjs).
     deAddDice: 'CARL_RPG.Upgrades.Changes.deAddDice',
     deBaseByRank: 'CARL_RPG.Upgrades.Changes.deBaseByRank',
@@ -301,6 +314,8 @@ CARL_RPG.upgrades = {
     rmDR: 'CARL_RPG.Upgrades.Changes.rmDR',
   },
   spellOnly: [],
+  // Only offered on an item whose targeting is an Area.
+  areaOnly: ['areaShape', 'areaShapeExtra', 'areaSizeAdd', 'areaSizeReplace'],
   // Only offered on a skill that is a Damage Effect.
   damageEffectOnly: [
     'deAddDice',

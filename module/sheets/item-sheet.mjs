@@ -555,15 +555,23 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       const isEffect = !!system.damageEffect?.enabled;
       // (A Roll Modifier's changes likewise.)
       const isMod = !!system.rollMod?.enabled;
+      // (An area's changes are offered on an item that places an area, or that already has some.)
+      const usesArea =
+        system.targeting?.mode === 'area' ||
+        (system.upgrades ?? []).some((u) =>
+          (u.changes ?? []).some((c) => cfg.upgrades.areaOnly.includes(c.type))
+        );
       context.upgradeChangeOptions = Object.fromEntries(
         Object.entries(cfg.upgrades.changes).filter(
           ([key]) =>
             (isSpell || !cfg.upgrades.spellOnly.includes(key)) &&
             (isEffect || !cfg.upgrades.damageEffectOnly.includes(key)) &&
-            (isMod || !cfg.upgrades.rollModOnly.includes(key))
+            (isMod || !cfg.upgrades.rollModOnly.includes(key)) &&
+            (usesArea || !cfg.upgrades.areaOnly.includes(key))
         )
       );
       context.upgradeTargetOptions = cfg.checkTargets;
+      context.upgradeShapeOptions = cfg.areaShapes;
       // The skill's own effects an upgrade can unlock.
       context.upgradeEffects = this.item.effects.map((effect) => ({
         key: effectKey(effect),
@@ -588,6 +596,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
               'rollBonus',
               'rankDamageBonus',
               'rankDamageStep',
+              'areaSizeAdd',
               'deTotalMultiplier',
               'deHealthMax',
               'deSizeMax',
@@ -596,6 +605,8 @@ export class CarlRPGItemSheet extends ItemSheetBase {
               'rmDR',
             ].includes(change.type),
             isTarget: change.type === 'rollTarget',
+            isShape: ['areaShape', 'areaShapeExtra'].includes(change.type),
+            isAmount: change.type === 'areaSizeReplace',
             isDamageType: change.type === 'damageType',
             // A Roll Modifier's changes can have an "Only when" condition.
             whenOptions: whenOptionsFor(change.type),
@@ -630,6 +641,23 @@ export class CarlRPGItemSheet extends ItemSheetBase {
         targetChanged: (effective?.target ?? '') !== (system.check?.target ?? ''),
         target: cfg.checkTargets[effective?.target],
         rollBonus: effective?.rollBonus ?? 0,
+        // An area's shape and size at the current rank (shown under the Area fields).
+        shapeChanged: (effective?.areaShape ?? '') !== (system.targeting?.shape ?? ''),
+        shape: effective ? game.i18n.localize(cfg.areaShapes[effective.areaShape] ?? '') : '',
+        extraShapes: (effective?.areaShapes ?? [])
+          .slice(1)
+          .map((shape) => game.i18n.localize(cfg.areaShapes[shape] ?? ''))
+          .join(', '),
+        sizeChanged:
+          !!effective &&
+          (effective.areaSize !== String(system.targeting?.size ?? '') || effective.areaSizeDelta !== 0),
+        sizeNow: effective
+          ? `${effective.areaSize}${
+              effective.areaSizeDelta
+                ? ` ${effective.areaSizeDelta > 0 ? '+' : '-'} ${Math.abs(effective.areaSizeDelta)}`
+                : ''
+            }`
+          : '',
         rank: system.effectiveRank ?? system.rank ?? 0,
         rankChanged: (system.rankBonus ?? 0) !== 0,
       };

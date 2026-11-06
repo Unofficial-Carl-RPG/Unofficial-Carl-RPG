@@ -56,6 +56,14 @@
                 {{selectOptions @root.upgradeTargetOptions selected=change.value localize=true}}
               </select>
             {{/if}}
+            {{#if change.isShape}}
+              <select data-path='{{change.path}}.value'>
+                {{selectOptions @root.upgradeShapeOptions selected=change.value localize=true}}
+              </select>
+            {{/if}}
+            {{#if change.isAmount}}
+              <input type='text' class='event-amount' data-path='{{change.path}}.value' value='{{change.value}}' />
+            {{/if}}
             {{#if change.isDamageType}}
               <select data-path='{{change.path}}.value'>
                 {{selectOptions @root.damageTypeOptions selected=change.value}}
