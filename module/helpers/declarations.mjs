@@ -20,6 +20,7 @@
  */
 import { CarlRPGDialog } from './dialog.mjs';
 import { chooseTargets } from './targeting.mjs';
+import { setSplash, takeSplash } from './splash.mjs';
 
 const NS = 'carl-rpg';
 
@@ -86,12 +87,13 @@ export async function clearDeclarations(combat) {
 
 /*  Declaring                                   */
 
-/** The targeted tokens, as a declaration remembers them. */
-function currentTargets() {
+/** The targeted tokens, as a declaration remembers them (those only in an area's splash are marked). */
+function currentTargets(splash = []) {
   return [...game.user.targets].map((token) => ({
     name: token.name,
     tokenUuid: token.document.uuid,
     actorUuid: token.actor?.uuid ?? '',
+    ...(splash.includes(token.document.uuid) ? { splash: true } : {}),
   }));
 }
 
@@ -115,7 +117,7 @@ export async function declareInsteadOfUsing(item) {
     kind: 'ability',
     itemUuid: item.uuid,
     itemName: item.name,
-    targets: currentTargets(),
+    targets: currentTargets(takeSplash(item.uuid)),
   });
   return true;
 }
@@ -206,6 +208,11 @@ async function resolveOne(combatant, declaration) {
     return;
   }
   await retarget(declaration);
+  // (The splash found when it was declared is put back for the roll.)
+  setSplash(
+    item.uuid,
+    (declaration.targets ?? []).filter((target) => target.splash).map((target) => target.tokenUuid)
+  );
   await item.roll(null, { declared: true });
 }
 

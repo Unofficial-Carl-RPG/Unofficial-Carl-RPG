@@ -1,5 +1,5 @@
 import { costOf, manaCostOf } from '../data/costs.mjs';
-import { rangeInfo } from './amounts.mjs';
+import { rangeInfo, wholeAmount } from './amounts.mjs';
 
 import { isTwoHanded } from './gear-slots.mjs';
 
@@ -131,6 +131,15 @@ export function describeBadges(item) {
   if (['count', 'area'].includes(targeting?.mode) && String(targeting.range ?? '').trim()) {
     const info = item.rangeInfo ? item.rangeInfo() : rangeInfo(targeting.range);
     badges.push(`${loc('CARL_RPG.Badges.Range')} ${rangeText(info)}`);
+  }
+  // The extra reach of an area's splash.
+  if (targeting?.mode === 'area') {
+    const splash = wholeAmount(targeting.splash, item.costData ? item.costData() : {}, { min: 0, fallback: 0 });
+    if (splash > 0) {
+      badges.push(
+        `${loc('CARL_RPG.Badges.Splash')} ${game.i18n.format('CARL_RPG.Targeting.RangeFeet', { n: splash })}`
+      );
+    }
   }
 
   // Quantity and uses, wherever the item has them.

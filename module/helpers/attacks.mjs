@@ -160,15 +160,16 @@ export function degreeOf(natural, total, dc) {
  * has any, and post the result card.
  * @param {Item} item
  * @param {Roll|null} roll  The roll (null if the item doesn't roll: any damage simply hits)
- * @param {{damageEffect?: {item: Item, option: boolean}|null, modDice?: object[]}} [options]
+ * @param {{damageEffect?: {item: Item, option: boolean}|null, modDice?: object[], splash?: string[]}} [options]
  *   The Damage Effect the roller chose (see helpers/damage-effects.mjs); its option trades the
- *   damage away. modDice are the damage dice Roll Modifiers add (see helpers/roll-mods.mjs)
+ *   damage away. modDice are the damage dice Roll Modifiers add (see helpers/roll-mods.mjs).
+ *   splash lists the token UUIDs that are only in the splash of an area (helpers/splash.mjs)
  * @returns {Promise<{degrees: string[], hits: Array<{actor: Actor, degree: string}>}|null>}
  *   null if there is nothing to resolve
  */
-export async function resolveCheck(item, roll, { damageEffect = null, modDice = [] } = {}) {
+export async function resolveCheck(item, roll, { damageEffect = null, modDice = [], splash = [] } = {}) {
   // Mobs never roll a d20: a crawler rolls against the mob's number instead.
-  if (item.actor?.type === 'mob') return resolveMobCheck(item);
+  if (item.actor?.type === 'mob') return resolveMobCheck(item, splash);
   // An item whose action is No Roll has no check or damage to resolve.
   if (item.system.action?.type === 'none') return null;
 
@@ -243,6 +244,30 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
       return null;
     }
   }
+  // Splash: a target only in the splash of an area takes the splash damage instead of the
+  // damage (rolled once; a natural 20 doubles its dice). No formula means no damage.
+  const splashIds = new Set(splash);
+  const splashEffects = !!item.system.targeting?.splashEffects;
+  let splashRoll = null;
+  let splashDamage = null;
+  if (
+    damaging &&
+    hasSplashDamage(item.system.targeting?.splashDamage) &&
+    targets.some((x) => splashIds.has(x.doc.uuid))
+  ) {
+    try {
+      splashRoll = new Roll(
+        expandRankDamage(item.system.targeting.splashDamage, item),
+        owner?.getRollData() ?? {}
+      );
+      if (crit) splashRoll = splashRoll.alter(2, 0);
+      await splashRoll.evaluate();
+      splashDamage = Math.max(0, Math.floor(splashRoll.total));
+    } catch (err) {
+      splashRoll = null;
+      ui.notifications.warn(t('CARL_RPG.Attack.BadDamage', { name: item.name }));
+    }
+  }
   const floor = getFloor();
   const effectRank = rankOf(effectItem?.system);
   // With no filters the effect works against everyone, so the card's headline shows it.
@@ -302,6 +327,18 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
     };
   });
 
+  // A target in the splash takes the splash damage (no Damage Effect or Roll Modifier dice),
+  // plus the Floor on an Amazing Success when there is splash damage. Its effects are not
+  // worked against (see evented below for the events).
+  for (const row of rows) {
+    if (!splashIds.has(row.tokenUuid)) continue;
+    row.splash = true;
+    row.effectApplied = false;
+    if (damaging) {
+      row.damage = splashDamage == null ? 0 : splashDamage + (row.degree === 'amazing' ? floor : 0);
+    }
+  }
+
   // What an opposed check is against, in words: a stat or the Size Class.
   const targetLabel = t(CONFIG.CARL_RPG.checkTargets[targetKey] ?? '');
   const usedNames = [effectItem?.name, ...new Set(modRolled.map((d) => d.name))].filter(Boolean);
@@ -326,7 +363,12 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
   const message = await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: owner }),
     rolls: damageRoll
-      ? [damageRoll, ...(extraRoll ? [extraRoll] : []), ...modRolled.map((d) => d.roll)]
+      ? [
+          damageRoll,
+          ...(extraRoll ? [extraRoll] : []),
+          ...modRolled.map((d) => d.roll),
+          ...(splashRoll ? [splashRoll] : []),
+        ]
       : [],
     content: checkHeadingHtml(heading, damaging),
     sound: damageRoll ? CONFIG.sounds.dice : undefined,
@@ -336,8 +378,10 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
   // The degrees of success for the events: one for each target, the one result
   // of an unopposed check, or, with nothing to compare, what the natural roll
   // alone decides.
-  const degrees = rows.length
-    ? rows.map((row) => row.degree)
+  // (A target in the splash runs the events only when the item says its splash does.)
+  const evented = (row) => !row.splash || splashEffects;
+  const degrees = rows.some(evented)
+    ? rows.filter(evented).map((row) => row.degree)
     : unopposedDegree
       ? [unopposedDegree]
       : fromNatural;
@@ -351,13 +395,13 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
         ? rows.some((row) => row.effectApplied && row.hit)
         : !hasFilters(rules)),
     hits: targets.flatMap(({ actor }, i) =>
-      rows[i].hit
+      rows[i].hit && evented(rows[i])
         ? [{ actor, degree: rows[i].degree, effect: rows[i].effectApplied }]
         : []
     ),
     // The targets it didn't hit, for the "an attack misses a target" events.
     misses: targets.flatMap(({ actor }, i) =>
-      rows[i].hit ? [] : [{ actor, degree: rows[i].degree }]
+      rows[i].hit || !evented(rows[i]) ? [] : [{ actor, degree: rows[i].degree }]
     ),
     // The attack card, where effects the events offer are shown (see helpers/events.mjs).
     message,
@@ -419,6 +463,9 @@ function mobDamage(base, degree, floor) {
   return base;
 }
 
+/** A splash row's damage on a mob's card: none without a splash formula, else as mobDamage. */
+const splashMobDamage = (base, degree, floor) => (base == null ? 0 : mobDamage(base, degree, floor));
+
 /**
  * A mob uses an item. The GM never rolls a d20, so a mob's check is a fixed
  * number (the number set on the item + the Floor).
@@ -433,7 +480,7 @@ function mobDamage(base, degree, floor) {
  *  - Unopposed: the mob's number is compared with 10 + (Floor x 2).
  * @param {Item} item
  */
-async function resolveMobCheck(item) {
+async function resolveMobCheck(item, splash = []) {
   const targetKey = effectiveOf(item).target;
   const type = checkKind(targetKey);
   const damaging = hasDamage(item);
@@ -461,13 +508,37 @@ async function resolveMobCheck(item) {
     .map((token) => ({ doc: token.document, actor: token.actor }))
     .filter((x) => x.actor);
 
+  // Splash (see resolveCheck): rolled once, no crits for a mob.
+  const splashIds = new Set(splash);
+  const splashEffects = !!item.system.targeting?.splashEffects;
+  let splashRoll = null;
+  let splashDamage = null;
+  if (
+    damaging &&
+    hasSplashDamage(item.system.targeting?.splashDamage) &&
+    targets.some((x) => splashIds.has(x.doc.uuid))
+  ) {
+    try {
+      splashRoll = await new Roll(
+        expandRankDamage(item.system.targeting.splashDamage, item),
+        owner?.getRollData() ?? {}
+      ).evaluate();
+      splashDamage = Math.max(0, Math.floor(splashRoll.total));
+    } catch (err) {
+      splashRoll = null;
+      ui.notifications.warn(t('CARL_RPG.Attack.BadDamage', { name: item.name }));
+    }
+  }
+
   // Unopposed: one number to reach, whoever is targeted.
   const unopposedDC = type === 'unopposed' ? checkDC(item, null) : null;
   const unopposedDegree =
     type === 'unopposed' ? degreeOf(null, number, unopposedDC) : null;
 
   const rows = targets.map(({ doc, actor }) => {
+    const inSplash = splashIds.has(doc.uuid);
     const base = {
+      ...(inSplash ? { splash: true } : {}),
       tokenUuid: doc.uuid,
       actorUuid: actor.uuid,
       name: doc.name,
@@ -476,7 +547,13 @@ async function resolveMobCheck(item) {
     };
     // A crawler (or pet) answers a mob's attack (or stat or Size Class check) by rolling.
     if (type !== 'unopposed' && actor.type !== 'mob') {
-      return { ...base, state: 'pending', degree: null, hit: null, damage };
+      return {
+        ...base,
+        state: 'pending',
+        degree: null,
+        hit: null,
+        damage: inSplash ? (splashDamage ?? 0) : damage,
+      };
     }
     // Everyone else: the numbers are simply compared.
     const dc = type === 'unopposed' ? unopposedDC : checkDC(item, actor);
@@ -487,7 +564,9 @@ async function resolveMobCheck(item) {
       dc,
       degree,
       hit: HITS.includes(degree),
-      damage: mobDamage(damage, degree, floor),
+      damage: inSplash
+        ? splashMobDamage(splashDamage, degree, floor)
+        : mobDamage(damage, degree, floor),
     };
   });
 
@@ -501,6 +580,7 @@ async function resolveMobCheck(item) {
     type,
     number,
     damage,
+    splashDamage,
     floor,
     natural: null,
     crit: false,
@@ -513,18 +593,20 @@ async function resolveMobCheck(item) {
     : t(`CARL_RPG.Check.Header.${type}`, { stat: defenseLabel(targetKey) });
   await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: owner }),
-    rolls: damageRoll ? [damageRoll] : [],
+    rolls: [damageRoll, splashRoll].filter(Boolean),
     content: checkHeadingHtml(heading, damaging),
     sound: damageRoll ? CONFIG.sounds.dice : undefined,
     flags: { [NS]: { attack: check } },
   });
 
   // Crawlers are still to roll; their hits run the events when they resolve.
-  const degrees = rows.flatMap((row) => (row.degree ? [row.degree] : []));
+  // (A target in the splash runs the events only when the item says its splash does.)
+  const evented = (row) => !row.splash || splashEffects;
+  const degrees = rows.filter(evented).flatMap((row) => (row.degree ? [row.degree] : []));
   return {
     degrees: degrees.length || !unopposedDegree ? degrees : [unopposedDegree],
     hits: targets.flatMap(({ actor }, i) =>
-      rows[i].hit ? [{ actor, degree: rows[i].degree }] : []
+      rows[i].hit && evented(rows[i]) ? [{ actor, degree: rows[i].degree }] : []
     ),
   };
 }
@@ -568,7 +650,9 @@ async function applyMobResult(
     state: 'resolved',
     degree,
     hit: HITS.includes(degree),
-    damage: mobDamage(attack.damage, degree, attack.floor),
+    damage: row.splash
+      ? splashMobDamage(attack.splashDamage, degree, attack.floor)
+      : mobDamage(attack.damage, degree, attack.floor),
     rolled,
     skipped,
     injury,
@@ -579,7 +663,7 @@ async function applyMobResult(
   if (injury && actor) await markInjury(actor, injury);
   if (row.hit) {
     const item = await fromUuid(attack.itemUuid);
-    if (item && actor) {
+    if (item && actor && (!row.splash || item.system.targeting?.splashEffects)) {
       await runEvents(item, 'hit', {
         target: actor,
         degree,
@@ -795,6 +879,7 @@ const MULTIPLIERS = [
 ];
 
 import { cancelDying, dyingEffectOf } from './dying.mjs';
+import { hasSplashDamage } from './splash.mjs';
 
 /** How an attack's damage is applied: Armor-Piercing skips DR, and the type is passed on. */
 const hitOptions = (attack) => ({
@@ -873,6 +958,10 @@ async function undoAttackDamage(message, index) {
   target.undo = null;
   await message.setFlag(NS, 'attack', attack);
 }
+
+/** A small note on a card row for a token that was only in the splash of the area. */
+const splashTag = (target) =>
+  target.splash ? ` <em class="attack-splash">${esc(t('CARL_RPG.Attack.Splash'))}</em>` : '';
 
 /** The result of a roll as a coloured word, e.g. "Success". */
 function resultHtml(degree, hit) {
@@ -956,7 +1045,7 @@ function renderAttackCard(message, html) {
             )}</button></span>`
           : '';
         body += `<div class="attack-target">
-          <span class="attack-name">${esc(target.name)}</span>
+          <span class="attack-name">${esc(target.name)}${splashTag(target)}</span>
           <span class="attack-waiting">${esc(t('CARL_RPG.Attack.Waiting', { label }))}</span>
           ${answer}
         </div>`;
@@ -995,7 +1084,7 @@ function renderAttackCard(message, html) {
       }
       const damage = target.damage ?? attack.damage;
       const action =
-        !damaging || !target.hit
+        !damaging || !target.hit || (target.splash && !target.damage)
           ? ''
           : target.applied
             ? `<span class="attack-applied">${esc(
@@ -1040,7 +1129,7 @@ function renderAttackCard(message, html) {
       // (A row is tinted by its degree, except on a mob's card: there a "success" is
       // bad news for the crawler.)
       body += `<div class="attack-target${attack.mob ? '' : ` degree-${degree}`}">
-        <span class="attack-name">${esc(target.name)}</span>
+        <span class="attack-name">${esc(target.name)}${splashTag(target)}</span>
         ${number}
         ${result}${action}${effects}
       </div>`;

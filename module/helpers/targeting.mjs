@@ -13,6 +13,7 @@
 import { CarlRPGDialog } from './dialog.mjs';
 import { applyQueuedEffect } from './events.mjs';
 import { rangeInfo, wholeAmount } from './amounts.mjs';
+import { clearSplash, noteArea, splashBand } from './splash.mjs';
 
 const t = (key, data) => (data ? game.i18n.format(key, data) : game.i18n.localize(key));
 
@@ -58,6 +59,8 @@ function listHtml(cfg, src, limit, range) {
  * @returns {Promise<boolean>} false if the player cancelled
  */
 export async function chooseTargets(item, data = item.costData?.() ?? {}) {
+  // (What the last use found in an area's splash is forgotten.)
+  clearSplash();
   const cfg = item.system.targeting;
   if (cfg?.mode === 'area') return chooseArea(item, data);
   if (cfg?.mode !== 'count') return true;
@@ -145,14 +148,15 @@ export async function chooseArea(item, data = item.costData?.() ?? {}) {
   const size = wholeAmount(cfg.size, data, { min: 0, fallback: 0 });
   const limit = wholeAmount(cfg.limit, data, { min: 0, fallback: 0 });
   const range = rangeInfo(cfg.range, data).feet;
+  const splash = wholeAmount(cfg.splash, data, { min: 0, fallback: 0 });
   for (let n = 1; n <= total; n++) {
-    if (!(await placeOneArea(item, n, total, { size, limit, range }))) return false;
+    if (!(await placeOneArea(item, n, total, { size, limit, range, splash }))) return false;
   }
   return true;
 }
 
 /** Place one area with the template tool (see chooseArea). */
-function placeOneArea(item, n, total, { size, limit, range }) {
+function placeOneArea(item, n, total, { size, limit, range, splash }) {
   const cfg = item.system.targeting;
   if (!game.user.can('TEMPLATE_CREATE')) {
     ui.notifications.warn(t('CARL_RPG.Targeting.NoTemplatePermission'));
@@ -186,9 +190,31 @@ function placeOneArea(item, n, total, { size, limit, range }) {
         (tok) => tok.visible && matchesFilter(tok, cfg.filter) && area?.testPoint(tok.center)
       );
       const picked = limit > 0 ? inside.slice(0, limit) : inside;
-      const ids = new Set([...game.user.targets.map((tk) => tk.id), ...picked.map((tok) => tok.id)]);
+      // Splash: tokens outside the area but within the splash distance of its edge. They
+      // are targeted too; the attack reads them as splash (see helpers/splash.mjs).
+      const candidates = canvas.tokens.placeables.filter((tok) => tok.visible && matchesFilter(tok, cfg.filter));
+      const bandIds =
+        area && splash > 0
+          ? splashBand(
+              area.shape,
+              splash * (canvas.dimensions?.distancePixels ?? 1),
+              candidates.map((tok) => ({ id: tok.id, x: tok.center.x - doc.x, y: tok.center.y - doc.y })),
+              inside.map((tok) => tok.id)
+            )
+          : [];
+      const band = candidates.filter((tok) => bandIds.includes(tok.id));
+      noteArea(
+        item.uuid,
+        picked.map((tok) => tok.document.uuid),
+        band.map((tok) => tok.document.uuid)
+      );
+      const ids = new Set([
+        ...game.user.targets.map((tk) => tk.id),
+        ...picked.map((tok) => tok.id),
+        ...band.map((tok) => tok.id),
+      ]);
       await game.user.updateTokenTargets([...ids]);
-      await areaCard(item, picked, t('CARL_RPG.Targeting.AreaCard', { name: item.name }));
+      await areaCard(item, picked, t('CARL_RPG.Targeting.AreaCard', { name: item.name }), band);
       if (cfg.lasting) {
         const rounds = Math.max(0, Number(cfg.lasts) || 0);
         await doc.update({
@@ -267,20 +293,25 @@ async function applyOptions(item) {
  * A chat card for the GM (whispered): the tokens inside an area, each with an Apply
  * button per effect the item can apply. Nothing is applied automatically.
  */
-async function areaCard(item, tokens, label) {
-  if (!tokens.length) return;
+async function areaCard(item, tokens, label, splashTokens = []) {
+  if (!tokens.length && !splashTokens.length) return;
   const options = await applyOptions(item);
-  const rows = tokens
-    .map((tok) => {
-      const buttons = options
-        .map(
-          (o) =>
-            `<button type="button" class="carl-area-apply" data-item="${item.uuid}" data-event="${o.eventId}" data-index="${o.actionIndex}" data-token="${tok.id}">${foundry.utils.escapeHTML(o.name)}</button>`
-        )
-        .join('');
-      return `<li><span>${foundry.utils.escapeHTML(tok.name)}</span> ${buttons}</li>`;
-    })
-    .join('');
+  // Tokens in the splash get the Apply buttons only when the item's splash applies effects.
+  const splashButtons = !!item.system.targeting?.splashEffects;
+  const rowOf = (tok, splash) => {
+    const buttons =
+      splash && !splashButtons
+        ? ''
+        : options
+            .map(
+              (o) =>
+                `<button type="button" class="carl-area-apply" data-item="${item.uuid}" data-event="${o.eventId}" data-index="${o.actionIndex}" data-token="${tok.id}">${foundry.utils.escapeHTML(o.name)}</button>`
+            )
+            .join('');
+    const tag = splash ? ` <em>${foundry.utils.escapeHTML(t('CARL_RPG.Targeting.SplashTag'))}</em>` : '';
+    return `<li><span>${foundry.utils.escapeHTML(tok.name)}</span>${tag} ${buttons}</li>`;
+  };
+  const rows = [...tokens.map((tok) => rowOf(tok, false)), ...splashTokens.map((tok) => rowOf(tok, true))].join('');
   await ChatMessage.create({
     whisper: ChatMessage.getWhisperRecipients('GM').map((u) => u.id),
     content: `<div class="carl-area-card"><strong>${foundry.utils.escapeHTML(label)}</strong><ul>${rows}</ul></div>`,

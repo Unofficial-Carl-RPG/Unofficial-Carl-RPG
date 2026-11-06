@@ -73,5 +73,19 @@
     <label class='resource-label' for='system.targeting.limit'>{{localize 'CARL_RPG.Targeting.Limit'}}</label>
     <input type='text' class='{{#if badTargeting.limit}}bad-formula{{/if}}' name='system.targeting.limit' value='{{system.targeting.limit}}' />
   </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.targeting.splash'>{{localize 'CARL_RPG.Targeting.Splash'}}</label>
+    <input type='text' class='{{#if badTargeting.splash}}bad-formula{{/if}}' name='system.targeting.splash' value='{{system.targeting.splash}}' />
+    <p class='hint'>{{localize 'CARL_RPG.Targeting.SplashHint'}}</p>
+  </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.targeting.splashDamage'>{{localize 'CARL_RPG.Targeting.SplashDamage'}}</label>
+    <input type='text' name='system.targeting.splashDamage' value='{{system.targeting.splashDamage}}' placeholder='1d6' />
+    <p class='hint'>{{localize 'CARL_RPG.Targeting.SplashDamageHint'}}</p>
+  </div>
+  <div class='resource'>
+    <label class='resource-label' for='system.targeting.splashEffects'>{{localize 'CARL_RPG.Targeting.SplashEffects'}}</label>
+    <input type='checkbox' name='system.targeting.splashEffects' {{checked system.targeting.splashEffects}} />
+  </div>
   {{/if}}
 </div>

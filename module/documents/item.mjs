@@ -41,6 +41,7 @@ import {
   statOfFormula,
 } from '../helpers/roll-dialog.mjs';
 import { chooseTargets } from '../helpers/targeting.mjs';
+import { takeSplash } from '../helpers/splash.mjs';
 import { rangeInfo } from '../helpers/amounts.mjs';
 import { dyingEffectOf } from '../helpers/dying.mjs';
 import { logAmmo, logMana } from '../helpers/change-log.mjs';
@@ -1278,21 +1279,32 @@ export class CarlRPGItem extends Item {
     // Check the roll against what the item targets (nothing, a target's Evade
     // or a target's stat), roll any damage and post the result (see
     // helpers/attacks.mjs).
+    // Tokens only in the splash of an area (see helpers/splash.mjs). Unless the item's splash
+    // applies effects, its events reach only the targets inside the area.
+    const splash = depth === 0 ? takeSplash(this.uuid) : [];
+    const targeted =
+      splash.length && !this.system.targeting?.splashEffects
+        ? [...game.user.targets]
+            .filter((tk) => !splash.includes(tk.document.uuid))
+            .map((tk) => tk.actor)
+            .filter(Boolean)
+        : undefined;
     const attack = await resolveCheck(this, roll, {
       damageEffect: chosenEffect ? { item: chosenEffect, option: effectOption } : null,
       modDice: modResult.dice,
+      splash,
     });
     rolling?.restore();
     // Summaries of the events that fire for this roll (shown on the attack card).
     const fired = [];
     // The rolled skill's own events run too.
-    if (rolling) await runEvents(rolling.skill, 'used', { roll, paid, depth, degrees: attack?.degrees });
+    if (rolling) await runEvents(rolling.skill, 'used', { roll, paid, depth, degrees: attack?.degrees, targeted });
     // (`degrees` are the degrees of success, for the "the roll's result is"
     // condition.)
-    await runEvents(this, 'used', { roll, paid, depth, degrees: attack?.degrees, collect: fired });
+    await runEvents(this, 'used', { roll, paid, depth, degrees: attack?.degrees, collect: fired, targeted });
     // A Damage Effect that changed the attack goes on cooldown, and its own events run
     // (they see whether the "instead of damage" option was ticked).
-    const effectCtx = { roll, paid, depth, option: effectOption ? 1 : 0, collect: fired };
+    const effectCtx = { roll, paid, depth, option: effectOption ? 1 : 0, collect: fired, targeted };
     if (chosenEffect && attack?.effectApplied) {
       await startCooldown(chosenEffect);
       await runEvents(chosenEffect, 'used', { ...effectCtx, degrees: attack?.degrees });

@@ -280,6 +280,12 @@
       "AreaCard": "Inside the {name} area",
       "Areas": "Areas per use",
       "Limit": "Most tokens inside (0: all)",
+      "Splash": "Splash (feet)",
+      "SplashHint": "Extra feet beyond the area. Tokens there take the splash damage.",
+      "SplashDamage": "Splash damage",
+      "SplashDamageHint": "Dice, like 1d6. Blank: none.",
+      "SplashEffects": "Splash applies effects",
+      "SplashTag": "(splash)",
       "PlaceAreaN": "Place area {n} of {m}. Escape cancels.",
       "GMPlaceAreaNotice": "{player} asks you to place an area for {name}.",
       "NoTemplatePermission": "You can't place areas here. Ask the GM to place it."
@@ -1177,6 +1183,7 @@
       "Interrupt": "Interrupt",
       "Junk": "Misc Junk",
       "Range": "Range",
+      "Splash": "Splash",
       "Ammo": "Ammo",
       "AlsoGrants": "Also grants"
     },
@@ -1591,6 +1598,7 @@
       "CritNote": "Natural 20! A Critical Hit: it always hits, and the damage dice are doubled.",
       "CritFailNote": "Natural 1! A Critical Fail.",
       "FloorBonus": "(+{floor} Floor)",
+      "Splash": "Splash",
       "TargetDamage": "{damage} damage",
       "ApplyEffect": "Apply {name}",
       "EffectApplied": "{name} applied",

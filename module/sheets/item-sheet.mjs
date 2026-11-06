@@ -713,7 +713,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       (c) => !!String(c.max ?? '').trim() && !validAmount(c.max)
     );
     context.badTargeting = Object.fromEntries(
-      ['count', 'size', 'areas', 'limit'].map((key) => [
+      ['count', 'size', 'areas', 'limit', 'splash'].map((key) => [
         key,
         !validAmount(this.item.system.targeting?.[key]),
       ])

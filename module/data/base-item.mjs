@@ -96,6 +96,12 @@ export default class CarlRPGItemBase extends foundry.abstract
       areas: new fields.StringField({ required: true, blank: false, initial: '1' }),
       // The most tokens an area targets (0: all of them).
       limit: new fields.StringField({ required: true, blank: false, initial: '0' }),
+      // Splash: extra feet beyond the area (an amount). Tokens there are checked with the
+      // same roll and take the splash damage (dice, blank for none) instead of the damage.
+      // Its effects (hit events) reach them only when splashEffects is ticked.
+      splash: new fields.StringField({ required: true, blank: false, initial: '0' }),
+      splashDamage: new fields.StringField({ required: true, blank: true, initial: '' }),
+      splashEffects: new fields.BooleanField({ initial: false }),
       kind: new fields.StringField({ required: true, blank: true, initial: '', choices: ['', 'fire', 'difficult', 'poison'] }),
     });
     // A short version for chat cards and tooltips (blank means use the full text).
