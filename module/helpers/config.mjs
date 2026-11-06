@@ -331,6 +331,8 @@ CARL_RPG.upgrades = {
   ],
   // Only offered on a skill that is a Roll Modifier.
   rollModOnly: ['rmRank', 'rmDice', 'rmDR'],
+  // Bonus dice that can name a damage type of their own (and a second one).
+  bonusTyped: ['deAddDice', 'rmDice'],
 };
 
 /**

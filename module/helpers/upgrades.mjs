@@ -1,5 +1,5 @@
 import { manaCostOf } from '../data/costs.mjs';
-import { damageTypes } from './damage-types.mjs';
+import { damageTypeLabel, damageTypes, rowTypes, rowTypesProblem } from './damage-types.mjs';
 import { validAmount } from './amounts.mjs';
 /**
  * Skill, spell and pet upgrades.
@@ -36,6 +36,9 @@ import { validAmount } from './amounts.mjs';
  *  - rankDamageStep   move @rankDamage that many rows along its table
  *  - rmRank / rmDice / rmDR  a Roll Modifier's changes (see roll-mods.mjs); each has an
  *                   optional `when` condition
+ *
+ * A Damage Effect's deAddDice and a Roll Modifier's rmDice can also name a damage type
+ * (`bonusType`, plus an optional second one, `bonusAlso`; see rowTypes in damage-types.mjs).
  */
 
 const t = (key, data) =>
@@ -135,7 +138,7 @@ export function changeProblem(change) {
       return !damageTypes().some((d) => d.id === value);
     // A Damage Effect's changes (see damage-effects.mjs).
     case 'deAddDice':
-      return !validFormula(value);
+      return !validFormula(value) || rowTypesProblem(change);
     case 'deTotalMultiplier':
     case 'deHealthMax':
     case 'deSizeMax':
@@ -151,7 +154,7 @@ export function changeProblem(change) {
     case 'rmRank':
       return whenProblem(change);
     case 'rmDice':
-      return !validFormula(value) || whenProblem(change);
+      return !validFormula(value) || whenProblem(change) || rowTypesProblem(change);
     case 'rmDR':
       return (
         !Number.isFinite(Number(value)) || value === '' || Number(value) < 0 || whenProblem(change)
@@ -492,13 +495,16 @@ export function summarizeChanges(upgrade, effectNames = [], grantNames = []) {
         );
         break;
       // A Damage Effect's changes.
-      case 'deAddDice':
+      case 'deAddDice': {
+        const type = typeLabelOf(change);
         parts.push(
-          t('CARL_RPG.Upgrades.Summary.deAddDice', {
+          t(`CARL_RPG.Upgrades.Summary.deAddDice${type ? 'Typed' : ''}`, {
             value: /^[+-]/.test(value) ? value : `+${value}`,
+            type,
           })
         );
         break;
+      }
       case 'deBaseByRank':
         parts.push(t('CARL_RPG.Upgrades.Summary.deBaseByRank'));
         break;
@@ -520,13 +526,16 @@ export function summarizeChanges(upgrade, effectNames = [], grantNames = []) {
       case 'rmRank':
         parts.push(t('CARL_RPG.Upgrades.Summary.rmRank') + whenSuffix(change));
         break;
-      case 'rmDice':
+      case 'rmDice': {
+        const type = typeLabelOf(change);
         parts.push(
-          t('CARL_RPG.Upgrades.Summary.rmDice', {
+          t(`CARL_RPG.Upgrades.Summary.rmDice${type ? 'Typed' : ''}`, {
             value: /^[+-]/.test(value) ? value : `+${value}`,
+            type,
           }) + whenSuffix(change)
         );
         break;
+      }
       case 'rmDR':
         parts.push(t('CARL_RPG.Upgrades.Summary.rmDR', { value: n }) + whenSuffix(change));
         break;
@@ -570,6 +579,9 @@ export function summarizeChanges(upgrade, effectNames = [], grantNames = []) {
 }
 
 const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
+
+/** The type(s) a bonus row names, for text: "Fire" or "Fire & Lightning" ('' when untyped). */
+const typeLabelOf = (change) => rowTypes(change).map(damageTypeLabel).join(' & ');
 
 /** " (only with Disadvantage)" after a Roll Modifier change that has a condition. */
 const whenSuffix = (change) =>

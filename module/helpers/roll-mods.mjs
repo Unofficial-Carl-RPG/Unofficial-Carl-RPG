@@ -15,7 +15,9 @@
  * `modRules`, never stored. Every row can carry an "Only when" condition:
  *  - rmRank   adds the modifier's Rank to the d20 roll
  *  - rmDice   dice or a number added to the damage of each target it applies to
- *             (@rankDamage reads the MODIFIER's rank; a natural 20 doubles the dice)
+ *             (@rankDamage reads the MODIFIER's rank; a natural 20 doubles the dice). A row can
+ *             name a damage type, or two (the roll is split between them): it is then kept
+ *             apart from the attack's damage and resisted, stopped or doubled on its own
  *  - rmDR     Damage Resistance for the next damage the crawler takes
  * Conditions (CONFIG.CARL_RPG.rollMods): the roll's mode (disadvantage, advantage), a
  * Surprise attack (a tick in the pop-up) and, for damage dice only, the degree of success
@@ -27,6 +29,7 @@
 import { changeProblem, unlockedUpgrades } from './upgrades.mjs';
 import { rankOf } from './skill-rank.mjs';
 import { listAccepts, listEntries } from './skill-list.mjs';
+import { rowTypes } from './damage-types.mjs';
 
 const NS = 'carl-rpg';
 
@@ -65,7 +68,10 @@ export function modRules(system) {
       const when = change.when ?? '';
       const value = String(change.value ?? '').trim();
       if (change.type === 'rmRank') rules.rank.push({ when });
-      else if (change.type === 'rmDice') rules.dice.push({ formula: value, when });
+      else if (change.type === 'rmDice') {
+        const types = rowTypes(change);
+        rules.dice.push(types.length ? { formula: value, when, types } : { formula: value, when });
+      }
       else rules.dr.push({ amount: Math.trunc(Number(value)), when });
     }
   }
@@ -160,7 +166,7 @@ export const selfModOf = (skill) => (isRollMod(skill) && appliesToSelf(skill) ? 
  * @param {{mode?: string, surprise?: boolean}} roll  The roll's final mode and the Surprise tick
  * @returns {{rank: {id: string, name: string, amount: number}[],
  *   dr: {id: string, name: string, amount: number}[],
- *   dice: {item: Item, name: string, formula: string, when: string}[]}}
+ *   dice: {item: Item, name: string, formula: string, when: string, types: string[]}[]}}
  *   Dice rows keep a degree condition: it is checked against each target later.
  */
 export function resolveMods(mods, { mode = 'normal', surprise = false } = {}) {
@@ -178,7 +184,13 @@ export function resolveMods(mods, { mode = 'normal', surprise = false } = {}) {
     }
     for (const row of rules.dice) {
       if (row.formula && whenMet(row.when, ctx)) {
-        out.dice.push({ item: mod, name: mod.name, formula: row.formula, when: row.when });
+        out.dice.push({
+          item: mod,
+          name: mod.name,
+          formula: row.formula,
+          when: row.when,
+          types: row.types ?? [],
+        });
       }
     }
   }

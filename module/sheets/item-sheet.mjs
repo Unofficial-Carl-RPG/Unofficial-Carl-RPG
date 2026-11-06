@@ -572,6 +572,16 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       );
       context.upgradeTargetOptions = cfg.checkTargets;
       context.upgradeShapeOptions = cfg.areaShapes;
+      // The type menus of a bonus row: blank is "the attack's type" / "no second type".
+      const { '': noType, ...typeMenu } = damageTypeOptions();
+      context.bonusTypeOptions = {
+        '': game.i18n.localize('CARL_RPG.Upgrades.BonusType.None'),
+        ...typeMenu,
+      };
+      context.bonusAlsoOptions = {
+        '': game.i18n.localize('CARL_RPG.Upgrades.BonusType.NoSecond'),
+        ...typeMenu,
+      };
       // The skill's own effects an upgrade can unlock.
       context.upgradeEffects = this.item.effects.map((effect) => ({
         key: effectKey(effect),
@@ -608,6 +618,8 @@ export class CarlRPGItemSheet extends ItemSheetBase {
             isShape: ['areaShape', 'areaShapeExtra'].includes(change.type),
             isAmount: change.type === 'areaSizeReplace',
             isDamageType: change.type === 'damageType',
+            // Bonus dice can name a damage type of their own (and a second).
+            hasBonusType: cfg.upgrades.bonusTyped.includes(change.type),
             // A Roll Modifier's changes can have an "Only when" condition.
             whenOptions: whenOptionsFor(change.type),
             invalid: changeProblem(change),

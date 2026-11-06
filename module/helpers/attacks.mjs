@@ -38,7 +38,14 @@ import { rankOf } from './skill-rank.mjs';
 import { applyQueuedEffect, runEvents } from './events.mjs';
 import { effectiveOf } from './upgrades.mjs';
 import { expandRankDamage } from './rank-damage.mjs';
-import { damageTypeLabel } from './damage-types.mjs';
+import {
+  damageParts,
+  damageTypeLabel,
+  partsLabel,
+  partsMatter,
+  partsTotal,
+  scaleParts,
+} from './damage-types.mjs';
 import { offerAiFavor } from './ai-favor.mjs';
 import { promptRoll, buildFormula, optionsNote } from './roll-dialog.mjs';
 import { applyBenefits, rollBenefits } from './build-mods.mjs';
@@ -76,10 +83,12 @@ const HITS = ['critHit', 'amazing', 'success'];
 const hasDamage = (item) => !!effectiveOf(item).damage?.trim();
 
 /** The heading of a damage roll: the damage, its type and whether it is Armor-Piercing. */
-function damageHeading(item, damage) {
+function damageHeading(item, damage, parts = null) {
   const { damageType, armorPiercing } = effectiveOf(item);
   let text = t('CARL_RPG.Attack.Damage', { damage });
-  if (damageType) text += ` ${damageTypeLabel(damageType)}`;
+  // Typed bonus dice: the damage by type instead of the attack's one type.
+  if (parts) text += ` (${partsLabel(parts)})`;
+  else if (damageType) text += ` ${damageTypeLabel(damageType)}`;
   if (armorPiercing) text += ` (${t('CARL_RPG.Damage.ArmorPiercing')})`;
   return text;
 }
@@ -210,6 +219,8 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
   let extraRoll = null;
   // The dice Roll Modifiers add, once rolled.
   const modRolled = [];
+  // The effect's dice that carry a damage type of their own, once rolled.
+  const effectTyped = [];
   if (damaging) {
     try {
       damageRoll = new Roll(
@@ -228,6 +239,19 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
         if (crit) extraRoll = extraRoll.alter(2, 0);
         await extraRoll.evaluate();
         extra = Math.max(0, Math.floor(extraRoll.total));
+      }
+      // Its dice with a damage type of their own are rolled once each, apart from the base.
+      for (const row of rules?.typedDice ?? []) {
+        const formula = expandRankDamage(row.formula, effectItem);
+        if (!formula) continue;
+        let typedRoll = new Roll(formula, owner?.getRollData() ?? {});
+        if (crit) typedRoll = typedRoll.alter(2, 0);
+        await typedRoll.evaluate();
+        effectTyped.push({
+          types: row.types,
+          roll: typedRoll,
+          total: Math.max(0, Math.floor(typedRoll.total)),
+        });
       }
       // Each Roll Modifier row is rolled once (a natural 20 doubles it like the damage) and
       // added to the targets its condition allows.
@@ -285,9 +309,39 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
 
   // What the Roll Modifiers' dice add for a degree of success. The headline counts them as for
   // a hit (or the unopposed result), as there is no target yet to read a degree from.
+  // (Dice with a damage type of their own are kept apart: see typedFor.)
+  const untyped = (d) => !d.types?.length;
   const modTotalFor = (degree) =>
-    modRolled.reduce((sum, d) => sum + (degreeMet(d.when, degree) ? d.total : 0), 0);
-  const headline = damaging ? baseHeadline + modTotalFor(unopposedDegree ?? 'success') : baseHeadline;
+    modRolled.reduce((sum, d) => sum + (untyped(d) && degreeMet(d.when, degree) ? d.total : 0), 0);
+  // The typed dice that count for one target: the Damage Effect's, when it works against the
+  // target (after its multiplier), and the Roll Modifiers' that its degree allows.
+  const effectMultiplier = rules?.totalMultiplier ?? 1;
+  const typedFor = (degree, applies) => [
+    ...(rules && applies
+      ? effectTyped.map((d) => ({ types: d.types, amount: Math.floor(d.total * effectMultiplier) }))
+      : []),
+    ...modRolled
+      .filter((d) => !untyped(d) && degreeMet(d.when, degree))
+      .map((d) => ({ types: d.types, amount: d.total })),
+  ];
+  const ownType = effectiveOf(item).damageType ?? '';
+  // A target's damage: the number, and the parts by type when typed dice are in it (the
+  // parts are what resistances read; with none, damage works exactly as it always did).
+  const damageFor = (base, degree, applies) => {
+    const parts = damageParts(base, ownType, typedFor(degree, applies));
+    return partsMatter(parts, ownType)
+      ? { damage: partsTotal(parts), parts }
+      : { damage: base, parts: null };
+  };
+  const headlineApplies = !!rules && !hasFilters(rules);
+  const headlineDamage = damaging
+    ? damageFor(
+        baseHeadline + modTotalFor(unopposedDegree ?? 'success'),
+        unopposedDegree ?? 'success',
+        headlineApplies
+      )
+    : null;
+  const headline = headlineDamage ? headlineDamage.damage : baseHeadline;
 
   const rows = targets.map(({ doc, actor }) => {
     const dc = type === 'unopposed' ? unopposedDC : checkDC(item, actor);
@@ -301,6 +355,22 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
         targetSize: sizeClassOf(actor),
         healthPct: healthPercentOf(actor),
       });
+    // An Amazing Success adds the Floor to the damage.
+    const dealt = damaging
+      ? damageFor(
+          damageWithEffect({
+            total: damage,
+            diceSum,
+            extra,
+            bonus: degree === 'amazing' ? floor : 0,
+            rules,
+            rank: effectRank,
+            applies,
+          }) + modTotalFor(degree),
+          degree,
+          applies
+        )
+      : null;
     return {
       tokenUuid: doc.uuid,
       actorUuid: actor.uuid,
@@ -310,18 +380,9 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
       isMob: actor.type === 'mob',
       degree,
       hit: HITS.includes(degree),
-      // An Amazing Success adds the Floor to the damage.
-      damage: damaging
-        ? damageWithEffect({
-            total: damage,
-            diceSum,
-            extra,
-            bonus: degree === 'amazing' ? floor : 0,
-            rules,
-            rank: effectRank,
-            applies,
-          }) + modTotalFor(degree)
-        : null,
+      damage: dealt ? dealt.damage : null,
+      // The damage by type, when typed bonus dice are in it (resistances read each part).
+      ...(dealt?.parts ? { parts: dealt.parts } : {}),
       effectApplied: applies,
       applied: false,
     };
@@ -334,6 +395,7 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
     if (!splashIds.has(row.tokenUuid)) continue;
     row.splash = true;
     row.effectApplied = false;
+    delete row.parts; // (splash damage takes no bonus dice)
     if (damaging) {
       row.damage = splashDamage == null ? 0 : splashDamage + (row.degree === 'amazing' ? floor : 0);
     }
@@ -345,12 +407,13 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
   const usedEffect = usedNames.length ? ` (${usedNames.join(', ')})` : '';
   const heading =
     (damaging
-      ? damageHeading(item, headline)
+      ? damageHeading(item, headline, headlineDamage?.parts ?? null)
       : t(`CARL_RPG.Check.Header.${type}`, { stat: targetLabel })) + usedEffect;
   const check = {
     itemName: item.name,
     type,
     damage: headline,
+    ...(headlineDamage?.parts ? { parts: headlineDamage.parts } : {}),
     damageType: effectiveOf(item).damageType ?? '',
     armorPiercing: !!effectiveOf(item).armorPiercing,
     floor,
@@ -366,6 +429,7 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
       ? [
           damageRoll,
           ...(extraRoll ? [extraRoll] : []),
+          ...effectTyped.map((d) => d.roll),
           ...modRolled.map((d) => d.roll),
           ...(splashRoll ? [splashRoll] : []),
         ]
@@ -903,9 +967,10 @@ async function applyAttackDamage(message, which, multiplier = 1) {
   if (!attack || attack.damage == null) return;
 
   if (which === 'current') {
-    const damage = scaled(attack.damage, multiplier);
+    const parts = attack.parts ? scaleParts(attack.parts, multiplier) : null;
+    const damage = parts ? partsTotal(parts) : scaled(attack.damage, multiplier);
     for (const token of game.user.targets) {
-      await token.actor?.applyDamage(damage, hitOptions(attack));
+      await token.actor?.applyDamage(damage, { ...hitOptions(attack), parts });
     }
     return;
   }
@@ -927,9 +992,12 @@ async function applyAttackDamage(message, which, multiplier = 1) {
       continue;
     }
     // Each target has its own damage (an Amazing Success adds the Floor).
-    const damage = scaled(target.damage ?? attack.damage, multiplier);
+    const parts = target.parts ? scaleParts(target.parts, multiplier) : null;
+    const damage = parts
+      ? partsTotal(parts)
+      : scaled(target.damage ?? attack.damage, multiplier);
     const undo = { before: actor.system.health.value, wasDying: !!dyingEffectOf(actor) };
-    await actor.applyDamage(damage, hitOptions(attack));
+    await actor.applyDamage(damage, { ...hitOptions(attack), parts });
     // Remember what was applied, so the card can say so, and what Undo puts back.
     target.applied = true;
     target.undo = undo;
@@ -1094,7 +1162,11 @@ function renderAttackCard(message, html) {
               )}</span>`
             : `<span class="attack-damage">${esc(
                 t('CARL_RPG.Attack.TargetDamage', { damage })
-              )}</span>${buttons(i, damage)}`;
+              )}</span>${
+                target.parts
+                  ? `<span class="attack-floor">${esc(`(${partsLabel(target.parts)})`)}</span>`
+                  : ''
+              }${buttons(i, damage)}`;
       // Players don't see a mob's numbers, only how the roll went. (An
       // unopposed check's number is shown once at the top instead.)
       const dc = target.dc ?? target.evade;

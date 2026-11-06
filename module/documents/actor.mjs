@@ -1,5 +1,5 @@
 /** The Carl RPG actor: crawlers, mobs, pets, loot piles and mounts. */
-import { adjustForType, damageTypeNote } from '../helpers/damage-types.mjs';
+import { adjustForType, adjustParts, damageTypeNote } from '../helpers/damage-types.mjs';
 import { runActorEvents } from '../helpers/events.mjs';
 import { defeatMob } from '../helpers/defeat.mjs';
 import { canDie, cancelDying, hurtWhileDying, startDying } from '../helpers/dying.mjs';
@@ -107,14 +107,28 @@ export class CarlRPGActor extends Actor {
    * @param {object} [options]
    * @param {boolean} [options.ignoreDR=false]  Skip damage reduction
    * @param {string} [options.damageType='']  The damage's type; effects can halve, double or stop it
+   * @param {{type: string, amount: number}[]|null} [options.parts=null]  The damage by type (typed
+   *   bonus dice): each part is worked out on its own, then added up. `amount` is their total and
+   *   `damageType` is ignored.
    * @returns {Promise<{amount: number, dr: number, net: number, boxes: number, value: number}>}
    */
-  async applyDamage(amount, { ignoreDR = false, damageType = '' } = {}) {
+  async applyDamage(amount, { ignoreDR = false, damageType = '', parts = null } = {}) {
     amount = Number(amount) || 0;
-    // Effects that make the actor resist, be immune to or be vulnerable to the type.
-    const typed = adjustForType(amount, this, damageType);
-    amount = typed.amount;
-    const typeNote = damageTypeNote(typed.multiplier, this.name, damageType);
+    // Effects that make the actor resist, be immune to or be vulnerable to the type. Damage in
+    // several types (typed bonus dice) is worked out type by type, then added up.
+    let typeNote;
+    if (parts?.length) {
+      const typed = adjustParts(parts, this);
+      amount = typed.amount;
+      typeNote = typed.changes
+        .map((change) => damageTypeNote(change.multiplier, this.name, change.type))
+        .filter(Boolean)
+        .join(' ');
+    } else {
+      const typed = adjustForType(amount, this, damageType);
+      amount = typed.amount;
+      typeNote = damageTypeNote(typed.multiplier, this.name, damageType);
+    }
     const withNote = (text) => (typeNote ? `${text} ${typeNote}` : text);
     // (Crawlers and pets have the 10 box health bar; mobs have set health.)
     if (this.type === 'mob') {

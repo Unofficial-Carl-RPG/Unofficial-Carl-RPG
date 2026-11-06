@@ -12,7 +12,9 @@
  * CONFIG.CARL_RPG.upgrades.changes. They are folded at the effect's current rank by
  * `effectRules`, never stored:
  *  - addDice         dice or a number added to the base damage (can use @rankDamage, which
- *                    reads the EFFECT's rank); adds up
+ *                    reads the EFFECT's rank); adds up. A row that names a damage type (or two)
+ *                    is kept apart as typedDice: it is not base damage and is resisted,
+ *                    stopped or doubled on its own (see damage-types.mjs)
  *  - baseByRank      the base damage dice result is multiplied by the effect's Rank before
  *                    modifiers and buffs are added
  *  - totalMultiplier the whole damage is multiplied (after modifiers and the Amazing bonus)
@@ -32,6 +34,7 @@
  */
 import { changeProblem, unlockedUpgrades } from './upgrades.mjs';
 import { listAccepts, listEntries } from './skill-list.mjs';
+import { rowTypes } from './damage-types.mjs';
 
 /** Whether an item is a Damage Effect. */
 export const isDamageEffect = (item) =>
@@ -46,6 +49,7 @@ export const isDamageEffect = (item) =>
 export function effectRules(system) {
   const rules = {
     addDice: [],
+    typedDice: [],
     baseByRank: false,
     totalMultiplier: 1,
     healthMax: null,
@@ -60,9 +64,12 @@ export function effectRules(system) {
       const value = String(change.value ?? '').trim();
       const n = Math.trunc(Number(value));
       switch (change.type) {
-        case 'deAddDice':
-          rules.addDice.push(value);
+        case 'deAddDice': {
+          const types = rowTypes(change);
+          if (types.length) rules.typedDice.push({ formula: value, types });
+          else rules.addDice.push(value);
           break;
+        }
         case 'deBaseByRank':
           rules.baseByRank = true;
           break;

@@ -46,11 +46,11 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 273).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 291).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 273 pass)
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 291 pass)
 - stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node
 
 ## files
@@ -67,6 +67,7 @@
 - costs.test.mjs: cost spans/labels
 - damage-effects.test.mjs: Damage Effect rules per rank, per-target filters, damage maths, who can choose what, cooldowns
 - damage-types.test.mjs: damage types and modes
+- typed-bonus.test.mjs: bonus dice with their own damage type: row types, even split of mixed types, damage parts, resist/immune/vulnerable per part, DR after the sum, untyped rows unchanged
 - events.test.mjs: triggers, conditions, formulas over roll data, actions, trust, add-token, approval
 - gear-slots.test.mjs: slot room, two-handed gear, what comes off when equipping
 - later-floor.test.mjs: later-floor starts
@@ -94,4 +95,5 @@
 - id=compat-versions; severity=note; detail=system.json compatibility minimum/verified 13.339; local Foundry used for API checks is 13.351.
 - id=hardcoded-english; severity=i18n; detail=A few warnings bypass lang/en.json: combat.mjs refillCombatActions ('Only the GM can refill actions.'), carl-rpg.mjs createDocMacro / rollItemMacro warnings.
 - id=mob-loot-dead-export; severity=dead-code; detail=mob-loot.mjs giveMobLoot(mob, crawler) is not called from module code (pickCrawlerAndLoot -> makeMobPile only), so direct-to-crawler looting is unreachable from the UI.
+- id=mob-damage-taken-public; severity=verify; where=documents/actor.mjs applyDamage; detail=The DamageTaken chat line for a MOB is a public message with its DR, health lost and health remaining, and typed notes name the type it resisted. This looks like it shows mob numbers to players. Not changed by the typed bonus work; confirm whether it should be whispered to the GM.
 - id=event-trust-on-edit; severity=note; detail=eventsTrusted is set only when a GM saves (_preCreate/_preUpdate); player-edited events on items they own cannot touch other actors or run GM macros until approved. Migration saves carry carlMigration and skip this.

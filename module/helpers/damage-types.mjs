@@ -111,6 +111,113 @@ export function adjustForType(amount, actor, type) {
   return { amount: Math.floor(amount * multiplier), multiplier };
 }
 
+/*  Bonus dice with a type of their own         */
+
+/**
+ * The types a bonus row names (a Damage Effect's or Roll Modifier's extra dice): its type and
+ * the optional second one, without blanks or repeats. Empty means untyped: the dice take the
+ * attack's own type.
+ * @param {{bonusType?: string, bonusAlso?: string}} change
+ * @returns {string[]}
+ */
+export function rowTypes(change) {
+  const first = String(change?.bonusType ?? '').trim();
+  const second = String(change?.bonusAlso ?? '').trim();
+  return first ? [...new Set([first, second].filter(Boolean))] : [];
+}
+
+/** Whether a bonus row names a type it cannot use: one off the GM's list, or a second with no first. */
+export function rowTypesProblem(change) {
+  const first = String(change?.bonusType ?? '').trim();
+  const second = String(change?.bonusAlso ?? '').trim();
+  if (second && !first) return true;
+  const known = damageTypes().map((d) => d.id);
+  return [first, second].some((id) => id && !known.includes(id));
+}
+
+/**
+ * An amount split evenly between some types; the first gets any odd points, so nothing is lost.
+ * @param {number} amount
+ * @param {number} count  How many types
+ * @returns {number[]}
+ */
+export function splitAmount(amount, count) {
+  const total = Math.max(0, Math.floor(Number(amount) || 0));
+  const n = Math.max(1, Math.floor(count) || 1);
+  const each = Math.floor(total / n);
+  return Array.from({ length: n }, (_, i) => (i === 0 ? total - each * (n - 1) : each));
+}
+
+/**
+ * One target's damage as parts, one for each damage type, so resistances can act on each on
+ * its own. The attack's own damage (with any untyped bonus dice) comes first; a typed bonus
+ * is split evenly between the types it names. Parts of one type merge; empty ones are left out.
+ * @param {number} base  The attack's own damage
+ * @param {string} baseType  The attack's damage type ('' for none)
+ * @param {{types: string[], amount: number}[]} [typed]  The typed bonus dice, rolled
+ * @returns {{type: string, amount: number}[]}
+ */
+export function damageParts(base, baseType, typed = []) {
+  const own = baseType ?? '';
+  const parts = [];
+  const add = (type, amount) => {
+    if (!(amount > 0)) return;
+    const part = parts.find((p) => p.type === type);
+    if (part) part.amount += amount;
+    else parts.push({ type, amount });
+  };
+  add(own, Math.floor(Number(base) || 0));
+  for (const row of typed) {
+    const types = row.types ?? [];
+    if (!types.length) add(own, row.amount);
+    else splitAmount(row.amount, types.length).forEach((share, i) => add(types[i], share));
+  }
+  return parts;
+}
+
+/** Whether parts say more than one number does: several types, or one that is not the attack's own. */
+export const partsMatter = (parts, baseType = '') =>
+  parts.length > 1 || (parts.length === 1 && parts[0].type !== (baseType ?? ''));
+
+/** The damage in a list of parts. */
+export const partsTotal = (parts) => parts.reduce((sum, p) => sum + p.amount, 0);
+
+/** Parts at a multiplier (x2, x1, x1/2); each part rounds down on its own. */
+export const scaleParts = (parts, multiplier) =>
+  parts.map((p) => ({ type: p.type, amount: Math.floor(p.amount * multiplier) }));
+
+/**
+ * Damage in several types, as the actor takes it: each part is resisted, stopped or doubled by
+ * its own type, then they are added up (DR comes off the total afterwards).
+ * @param {{type: string, amount: number}[]} parts
+ * @param {Actor} actor
+ * @returns {{amount: number, changes: {multiplier: number, type: string}[]}}
+ *   `changes` are the types that changed their part, for the chat note
+ */
+export function adjustParts(parts, actor) {
+  let amount = 0;
+  const changes = [];
+  for (const part of parts) {
+    const adjusted = adjustForType(part.amount, actor, part.type);
+    amount += adjusted.amount;
+    if (adjusted.multiplier !== 1 && part.amount > 0) {
+      changes.push({ multiplier: adjusted.multiplier, type: part.type });
+    }
+  }
+  return { amount, changes };
+}
+
+/** Parts for display: "4 Bludgeoning + 2 Fire" (a part with no type is just its number). */
+export function partsLabel(parts) {
+  return parts
+    .map((p) =>
+      p.type
+        ? game.i18n.format('CARL_RPG.Damage.Part', { amount: p.amount, type: damageTypeLabel(p.type) })
+        : String(p.amount)
+    )
+    .join(' + ');
+}
+
 /** The line for the chat when a type changed the damage (empty when it didn't). */
 export function damageTypeNote(multiplier, name, type) {
   const key = { 0: 'Immune', 0.5: 'Resisted', 2: 'Vulnerable' }[multiplier];

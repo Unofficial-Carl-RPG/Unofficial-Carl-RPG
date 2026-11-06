@@ -46,6 +46,10 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
       if (/^upgrades\.\d+\.rank$/.test(path)) {
         system.upgrades.sort((a, b) => a.rank - b.rank);
       }
+      // No type means no second type either.
+      if (/^upgrades\.\d+\.changes\.\d+\.bonusType$/.test(path) && !value) {
+        foundry.utils.setProperty(system, path.replace(/bonusType$/, 'bonusAlso'), '');
+      }
       // A different kind of change starts with a value that suits it.
       if (/^upgrades\.\d+\.changes\.\d+\.type$/.test(path)) {
         const starts = {
@@ -71,6 +75,8 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
         );
         // (and no "Only when" condition, which not every kind of change has)
         foundry.utils.setProperty(system, path.replace(/\.type$/, '.when'), '');
+        foundry.utils.setProperty(system, path.replace(/\.type$/, '.bonusType'), '');
+        foundry.utils.setProperty(system, path.replace(/\.type$/, '.bonusAlso'), '');
       }
     });
   }

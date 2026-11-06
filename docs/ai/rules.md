@@ -32,8 +32,9 @@
 - advantage: two d20 keep highest; disadvantage keep lowest
 
 ## damage
-- applyDamage(amount, {ignoreDR, damageType}):
+- applyDamage(amount, {ignoreDR, damageType, parts}):
   - damage type: effects with damageMods halve (resist), zero (immune) or double (vulnerable)
+  - parts: [{type, amount}] (set when typed bonus dice are in the damage, see typedBonus). Each part is adjusted by its OWN type (halves round down), the results are added, then DR comes off the total. amount is the parts' total and damageType is ignored. The chat note names each type that changed its part (qualitative, no numbers). No parts = the one-type path above.
   - crawler/pet: net = max(amount - (dr.total + held Roll Modifier DR), 0); boxes = floor(net / health.perBox) (leftover below a box is lost); health.value -= boxes (min 0); posts a damage card
   - mob: net = max(amount - (drTotal + held Roll Modifier DR), 0); health.value -= net
   - held Roll Modifier DR (flag tempDR) is added for this damage and then cleared, even when ignoreDR skips it; see rollMods
@@ -42,6 +43,7 @@
 - attackCardButtons: carl-apply-damage with multiplier x2 / x1 / x0.5 (GM), carl-undo-damage per target (restores exact boxes lost, clears Dying it caused, once), carl-apply-effect per target+effect (GM), carl-mob-roll (crawler rolls defense or skips)
 - noTargets: unopposed check still shows result; damage applies to whatever the GM has targeted when clicked
 - crit: doubles damage dice before stats/buffs
+- attackCard parts: a target row (and the card, for the no-target case) carries parts only when typed bonus dice changed the damage. The row shows '(4 Bludgeoning + 2 Fire)' beside the damage; the x2/x1/x0.5 buttons scale each part (floor each) and apply them through applyDamage parts. The card heading shows the parts instead of the attack's single type. Splash rows never have parts. The card shows rolled amounts only, never what a target resisted, so no mob numbers leak.
 
 ## rankDamage
 - token: @rankDamage in a damage formula = the dice for the rank (table in constants.md). Skill, spell and mobAbility read their own rank (the effective rank for skills and spells; a pet's skills: the floor); gear/item that roll with a skill read that skill's rank for both their own and the skill's damage. Anything else, rank 0 or no item = 0. File helpers/rank-damage.mjs.
@@ -95,6 +97,7 @@
 - holders: skill, spell (by rank), pet (by level)
 - rule: every upgrade with rank <= current rank (the effective rank, see items-effects skillRankBonus) applies, in rank order then listed order; worked out at use/prepare time from current rank, never written (lower the rank and they vanish)
 - shape: {id, rank, description, changes[{type, value, stat}], grants[uuids, pets], unlocksEffects[identifier|name], events[]}
+- changeFields: every change is {type, value, stat, when, bonusType, bonusAlso}; when is the Roll Modifier condition, bonusType/bonusAlso name damage types for deAddDice and rmDice only (see typedBonus)
 - changes: damageAdd (dice/number), damageReplace, dieStep (+/- along dieLadder), manaCost/junkCost/usesCost (move both ends of a ranged cost, floor 0, adds a cost where none), rollBonus, rollTarget (checkTargets id), armorPiercing, damageType, areaShape (the area's shape; last wins)/areaShapeExtra (adds a shape the roll pop-up lets the player pick)/areaSizeAdd (feet, negative ok)/areaSizeReplace (amount; drops earlier additions) (area changes are only offered on skills/spells with Area targeting, and only change that skill/spell's own area; effective.areaShape/areaShapes/areaSize/areaSizeDelta, first of areaShapes = the shape used without a choice), rankDamageBonus/rankDamageStep (whole numbers, see rankDamage); a Damage Effect's de* changes (see damageEffects); a Roll Modifier's rm* changes (see rollMods)
 - ui: sheet description lists all upgrades (locked dimmed), chat card lists only unlocked, Attributes tab shows effective values at current rank. Default new ranks 5,10,15,20 (rank editable, any number).
 
@@ -103,7 +106,7 @@
 - what: a skill with system.damageEffect.enabled (passive, own rank and upgrades). system.damageEffect.skills lists the attack skills it works with (names, identifiers or #tags, comma separated, case-insensitive; the EFFECT holds the list; see skillLists). A weapon that rolls a skill uses that skill, but its own tags count for a #tag entry. Unarmed Combat is listed by no effect, so it shows no choice.
 - choose: roll pop-up (click, depth 0, not a mob, not Shift) shows a Damage Effect menu: None (default) or one effect the actor owns that lists the skill and is off cooldown. At most one per roll. An effect with the stun option adds a tick 'instead of damage' (no damage is rolled; the item's other numbers stand).
 - rules (effectRules, folded from the upgrades reached at the effect's own rank; rank 1 is the base text so base changes sit in an upgrade at rank 1; later changes override scalars, addDice adds up):
-  - deAddDice: extra dice/number rolled once (crit doubles the dice), added to base damage for each target it works against; @rankDamage reads the EFFECT's rank
+  - deAddDice: extra dice/number rolled once (crit doubles the dice), added to base damage for each target it works against; @rankDamage reads the EFFECT's rank. A row with a damage type (bonusType, optional bonusAlso) is NOT base damage: it goes to rules.typedDice [{formula, types}] (addDice holds untyped rows only), is rolled once on its own, and for a target it works against becomes a typed part (after deTotalMultiplier: floor(roll x M), then split). deBaseByRank, the Amazing Floor bonus and the filters never touch it
   - deBaseByRank: base dice result x the effect's Rank, then modifiers and buffs are added
   - deTotalMultiplier: (dice + modifiers + extra + Amazing Floor bonus) x M
   - deHealthMax: only targets at or under that percent of Health Bar (value/max x 100)
@@ -121,12 +124,21 @@
 - choose: roll pop-up (click, depth 0, not a mob, not Shift) shows a Roll Modifier menu: None (default) or one modifier the actor owns that lists the skill (never the skill itself). At most one per roll. A Surprise attack tick shows when any modifier in play (offered ones, the self one) has a row conditioned on surprise. Shift, events and macros skip the choice; a self modifier (the rolled skill lists self) still applies to its own use then.
 - rules (modRules, folded from the upgrades reached at the modifier's own rank; rank 1 is the base text; rows add up, never replace):
   - rmRank: the modifier's Rank is added to the d20 roll as extra bonus (card badge '<name> +<rank>'); not on an item that does not roll; rank 0 adds nothing
-  - rmDice: dice or number added to the damage of each target whose degree meets the row's condition; rolled once per row (natural 20 doubles it like the damage), @rankDamage reads the MODIFIER's rank; only when the rolled item has a damage formula; added after a chosen Damage Effect's multiplier (not multiplied by it); the card headline counts them as for a hit (or the unopposed result); the modifier's name is added to the card heading
+  - rmDice: dice or number added to the damage of each target whose degree meets the row's condition; rolled once per row (natural 20 doubles it like the damage), @rankDamage reads the MODIFIER's rank; only when the rolled item has a damage formula; added after a chosen Damage Effect's multiplier (not multiplied by it); the card headline counts them as for a hit (or the unopposed result); the modifier's name is added to the card heading. A row with a damage type (bonusType, optional bonusAlso) is kept apart as a typed part (see typedBonus); modRules rows carry types only when typed, resolveMods dice rows always have types ([] when untyped)
   - rmDR: DR for the next damage (see tempDR); set when the modifier is used (rolled or not), after costs and the action are paid
 - when (per row, optional; allowed ids in CONFIG.CARL_RPG.rollMods.allowed): '' always; disadvantage|advantage = the roll's final mode (after the build's advantage cancels a chosen disadvantage); surprise = the pop-up tick; hit|amazing|crit|miss = each target's degree (rmDice only; amazing = amazing or critHit, crit = critHit, miss = not a hit). rmRank and rmDR only offer the first four. A change whose condition its kind cannot use is skipped and the sheet warns.
 - tempDR: actor flag flags.carl-rpg.tempDR = {modifierItemId: {amount, name}}. A modifier used again replaces its own entry; other modifiers add. applyDamage adds the total to DR and clears the flag. Also cleared at Cleanup (roundEnd) and when the combat ends (events.mjs). An Observer's use is relayed to the GM client (helpers/relay.mjs allows only entries of the actor's own modifiers within the amount their rules can give). Set with updateWithRelay; cleared with the '-=tempDR' key.
 - ui: Attributes tab ticks Roll Modifier and lists the skills; the Upgrades tab then offers rmRank/rmDice/rmDR and an 'Only when' menu on those rows (changing a row's kind resets its condition). No cooldown and no events of its own.
 - notes: the pop-up menu allows one chosen modifier plus the self one. A rank bonus is shown in the bonus badge too (the combined bonus).
+
+## typedBonus
+- file: helpers/damage-types.mjs (rowTypes, rowTypesProblem, splitAmount, damageParts, partsMatter, partsTotal, scaleParts, adjustParts, partsLabel); glue in attacks.mjs resolveCheck (typedFor, damageFor)
+- what: Damage Effect deAddDice rows and Roll Modifier rmDice rows can name a damage type from the world list (change.bonusType) and an optional second (change.bonusAlso, only with a first). Blank = untyped = old behaviour (the dice take the attack's type and merge into its damage). A type that has left the list, or a second without a first, makes changeProblem true (row skipped, sheet warns).
+- mixed: two types split the row's rolled amount evenly (the first type gets any odd point), each share resolved on its own type. 'Both must be resisted' was NOT chosen.
+- parts: per target damageParts(base, attackType, typedRows) = the attack's own damage (with untyped bonus dice and the Amazing Floor) first, then each typed row's shares; same types merge, zero parts drop. Only when parts differ from one plain number of the attack's type (partsMatter) are they stored on the row/card; otherwise damage is exactly the old number.
+- rolls: each typed row is rolled once (crit doubles it), its Roll goes into the message rolls. Typed Roll Modifier rows still obey their 'Only when' degree condition per target; typed effect rows follow the effect's per-target filters.
+- ui: upgrades.hbs shows a Type menu (blank = the attack's type) on deAddDice/rmDice rows and, once a Type is set, an 'Also' menu. Clearing Type clears Also; changing the change kind clears both. Summary text uses Summary.deAddDiceTyped/rmDiceTyped ('+1d6 Fire & Lightning damage').
+- notYet: a skill's own damage cannot be mixed (damageType is one type); mob abilities take no bonus dice, so mob attacks have no parts.
 
 ## skillLists
 - file: helpers/skill-list.mjs (pure; used by damage-effects.mjs and roll-mods.mjs)

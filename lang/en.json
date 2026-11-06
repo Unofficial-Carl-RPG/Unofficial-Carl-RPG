@@ -169,7 +169,8 @@
       },
       "Immune": "{name} is immune to {type} damage.",
       "Resisted": "{name} resists {type} damage (half).",
-      "Vulnerable": "{name} is vulnerable to {type} damage (double)."
+      "Vulnerable": "{name} is vulnerable to {type} damage (double).",
+      "Part": "{amount} {type}"
     },
     "Hotlist": {
       "OnlyName": "Hotlist-only spells",
@@ -1351,6 +1352,12 @@
       "DescriptionPlaceholder": "Description (leave blank to show a summary of the changes)",
       "FormulaPlaceholder": "1d6 or 2",
       "Invalid": "This change can't be used until its value is valid.",
+      "BonusType": {
+        "None": "Attack's type",
+        "NoSecond": "No 2nd type",
+        "Hint": "Damage type of these dice. Blank takes the attack's type.",
+        "AlsoHint": "Mixed: the roll is split between both types."
+      },
       "Unlocks": "Unlocks effects",
       "NoEffects": "Add effects on the Effects tab to unlock them here.",
       "Events": "Events",
@@ -1440,6 +1447,7 @@
         "areaSizeAdd": "Area size {value} ft",
         "areaSizeReplace": "Area size becomes {value} ft",
         "deAddDice": "{value} base damage",
+        "deAddDiceTyped": "{value} {type} damage",
         "deBaseByRank": "base damage dice x Rank",
         "deTotalMultiplier": "total damage x{value}",
         "deHealthMax": "only at {value}% Health Bar or less",
@@ -1452,6 +1460,7 @@
         "deStunOptionOff": "no longer used instead of damage",
         "rmRank": "adds its Rank to the roll",
         "rmDice": "{value} damage",
+        "rmDiceTyped": "{value} {type} damage",
         "rmDR": "+{value} DR until the next damage",
         "unlocks": "Unlocks {name}",
         "statBonus": "{value} {stat}",
