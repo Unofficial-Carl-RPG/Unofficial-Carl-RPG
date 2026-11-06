@@ -36,7 +36,7 @@
   - damage type: effects with damageMods halve (resist), zero (immune) or double (vulnerable)
   - parts: [{type, amount}] (set when typed bonus dice are in the damage, see typedBonus). Each part is adjusted by its OWN type (halves round down), the results are added, then DR comes off the total. amount is the parts' total and damageType is ignored. The chat note names each type that changed its part (qualitative, no numbers). No parts = the one-type path above.
   - crawler/pet: net = max(amount - (dr.total + held Roll Modifier DR), 0); boxes = floor(net / health.perBox) (leftover below a box is lost); health.value -= boxes (min 0); posts a damage card
-  - mob: net = max(amount - (drTotal + held Roll Modifier DR), 0); health.value -= net
+  - mob: net = max(amount - (drTotal + held Roll Modifier DR), 0); health.value -= net; the damage line (DR, health lost, health left, types resisted) is whispered to the GM only, so players never see mob numbers
   - held Roll Modifier DR (flag tempDR) is added for this damage and then cleared, even when ignoreDR skips it; see rollMods
   - after: hurtWhileDying (boxes>0), runActorEvents takesDamage
   - health reaching 0 (GM client): crawler/Crawler-mob -> startDying; other mob -> defeatMob; >0 -> cancelDying

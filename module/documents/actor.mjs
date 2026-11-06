@@ -140,8 +140,10 @@ export class CarlRPGActor extends Actor {
       await this.update({ 'system.health.value': value });
       // A Roll Modifier's DR bonus is used up by this damage.
       await clearTempDR(this);
+      // Whispered to the GM: players never see a mob's numbers or what it resisted.
       await ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ actor: this }),
+        whisper: ChatMessage.getWhisperRecipients('GM'),
         content: withNote(
           game.i18n.format('CARL_RPG.Actor.Crawler.Header.DamageTaken', {
             name: this.name,
