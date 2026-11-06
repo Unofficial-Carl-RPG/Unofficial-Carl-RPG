@@ -18,6 +18,8 @@
  *  - skillCap    raises the rank cap of skills and spells from 15 to 20 (see skill-cap.mjs);
  *                `target` is the scope: `all`, `skill` (`value` is its Identifier, `name`
  *                its name for display) or `tag` (`value` is the tag)
+ *  - skillRankBonus   adds `amount` (a whole number, negative allowed) to the effective rank of
+ *                the skills it covers, same scope as Skill cap (see skill-rank.mjs); rows add together
  *  - rankDamageBonus, rankDamageStep   move the dice of the @rankDamage scalar (see
  *                rank-damage.mjs): `target` and `value` are the scope like Skill cap's,
  *                `amount` a whole number (negative allowed); rows add together
@@ -29,11 +31,19 @@ const cap = (stat) => stat.charAt(0).toUpperCase() + stat.slice(1);
 const t = (key, data) =>
   data ? game.i18n.format(key, data) : game.i18n.localize(key);
 
-/** The rows of every effect on the actor that is on. */
-export function buildModsOf(actor) {
+/**
+ * The rows of every effect on the actor that is on.
+ * @param {Actor|null} actor
+ * @param {{stored?: boolean}} [options]  `stored`: judge an effect an upgrade holds back by
+ *   stored ranks instead of effective ones (used to work the effective rank out itself)
+ */
+export function buildModsOf(actor, { stored = false } = {}) {
   const rows = [];
   for (const effect of actor?.effects ?? []) {
-    if (effect.disabled || effect.isSuppressed) continue;
+    if (effect.disabled) continue;
+    if (stored && effect.lockedRank ? effect.lockedRank({ stored: true }) !== null : effect.isSuppressed) {
+      continue;
+    }
     for (const row of effect.getFlag?.(NS, 'buildMods') ?? []) {
       if (row && row.kind in CONFIG.CARL_RPG.buildKinds) rows.push(row);
     }
@@ -43,10 +53,11 @@ export function buildModsOf(actor) {
 
 /** The build benefit kinds that cover skills and spells by a scope (all, one skill or a tag). */
 export const isScopedKind = (kind) =>
-  ['skillCap', 'rankDamageBonus', 'rankDamageStep'].includes(kind);
+  ['skillCap', 'skillRankBonus', 'rankDamageBonus', 'rankDamageStep'].includes(kind);
 
 /** The kinds that also hold a whole number, `amount`. */
-export const hasAmount = (kind) => kind === 'rankDamageBonus' || kind === 'rankDamageStep';
+export const hasAmount = (kind) =>
+  kind === 'skillRankBonus' || kind === 'rankDamageBonus' || kind === 'rankDamageStep';
 
 /** A row's amount: a whole number, 1 when it has none yet. */
 const amountOf = (n) => (n == null ? 1 : Math.trunc(Number(n)) || 0);
@@ -55,8 +66,8 @@ const amountOf = (n) => (n == null ? 1 : Math.trunc(Number(n)) || 0);
 export const validDie = (text) => /^\d*d\d+$/i.test(String(text ?? '').trim());
 
 /**
- * A build benefit row tidied for saving. A Skill cap, Rank damage bonus or Rank damage
- * step row's target is its scope (all,
+ * A build benefit row tidied for saving. A scoped row's (Skill cap, Skill rank bonus, Rank
+ * damage bonus or Rank damage step) target is its scope (all,
  * skill or tag), its value the Identifier or the tag, and `name` the dropped skill's
  * name. Any other row's target is Evade or a stat. Changing a row's kind or scope
  * clears what no longer fits.

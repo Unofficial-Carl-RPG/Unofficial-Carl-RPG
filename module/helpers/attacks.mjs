@@ -34,6 +34,7 @@
  * applied to whatever the GM has targeted at that moment.
  */
 import { getFloor } from './floor.mjs';
+import { rankOf } from './skill-rank.mjs';
 import { applyQueuedEffect, runEvents } from './events.mjs';
 import { effectiveOf } from './upgrades.mjs';
 import { expandRankDamage } from './rank-damage.mjs';
@@ -243,7 +244,7 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
     }
   }
   const floor = getFloor();
-  const effectRank = effectItem?.system?.rank ?? 0;
+  const effectRank = rankOf(effectItem?.system);
   // With no filters the effect works against everyone, so the card's headline shows it.
   const baseHeadline =
     damaging && rules && !hasFilters(rules)

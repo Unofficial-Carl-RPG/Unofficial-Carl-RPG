@@ -37,10 +37,11 @@ export function skillCapRowCovers(row, item) {
  * an item, only a row covering everything counts.
  * @param {Actor} actor
  * @param {Item|null} [item]  The skill or spell
+ * @param {{stored?: boolean}} [options]  See buildModsOf
  */
-export function skillCapOf(actor, item = null) {
+export function skillCapOf(actor, item = null, { stored = false } = {}) {
   if (actor?.type === 'pet') return Infinity;
-  const boosted = buildModsOf(actor).some(
+  const boosted = buildModsOf(actor, { stored }).some(
     (row) => row.kind === 'skillCap' && skillCapRowCovers(row, item)
   );
   return boosted ? SKILL_CAP_BOOSTED : SKILL_CAP;

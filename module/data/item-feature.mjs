@@ -1,4 +1,5 @@
 import CarlRPGItemBase from './base-item.mjs';
+import { applyEffectiveRank } from '../helpers/skill-rank.mjs';
 import { upgradesField } from './upgrade-field.mjs';
 import { computeEffective } from '../helpers/upgrades.mjs';
 import { effectRules } from '../helpers/damage-effects.mjs';
@@ -92,6 +93,10 @@ export default class CarlRPGFeature extends CarlRPGItemBase {
       this.rank = CONFIG.CARL_RPG.getFloor();
     }
 
+    // The rank everything reads: the stored rank moved by Skill rank bonus build
+    // benefits on the owner's effects (never stored; see helpers/skill-rank.mjs).
+    applyEffectiveRank(this, this.parent, this.parent?.parent);
+
     // What this skill uses at its current rank, with its upgrades applied
     // (never stored: the skill's own fields stay as they were typed).
     this.effective = computeEffective(this);
@@ -105,7 +110,7 @@ export default class CarlRPGFeature extends CarlRPGItemBase {
     // An upgrade can add a bonus to the roll.
     const bonus = this.effective.rollBonus;
     this.formula =
-      `1d20 + @${this.stat}.mod + ${this.rank}` +
+      `1d20 + @${this.stat}.mod + ${this.effectiveRank}` +
       (bonus ? ` ${bonus > 0 ? '+' : '-'} ${Math.abs(bonus)}` : '');
   }
 }

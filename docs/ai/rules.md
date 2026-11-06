@@ -44,7 +44,7 @@
 - crit: doubles damage dice before stats/buffs
 
 ## rankDamage
-- token: @rankDamage in a damage formula = the dice for the rank (table in constants.md). Skill, spell and mobAbility read their own rank (a pet's skills: the floor); gear/item that roll with a skill read that skill's rank for both their own and the skill's damage. Anything else, rank 0 or no item = 0. File helpers/rank-damage.mjs.
+- token: @rankDamage in a damage formula = the dice for the rank (table in constants.md). Skill, spell and mobAbility read their own rank (the effective rank for skills and spells; a pet's skills: the floor); gear/item that roll with a skill read that skill's rank for both their own and the skill's damage. Anything else, rank 0 or no item = 0. File helpers/rank-damage.mjs.
 - when: expanded to plain dice right before the damage Roll: attacks.mjs resolveCheck and resolveMobCheck (expandRankDamage(effectiveOf(item).damage, item)); a weapon's joined weapon+skill damage is expanded in item.mjs #useRollingSkill with the skill. effective.damage and the sheets keep the raw token (like @str.mod).
 - moves: rank bonus (added to the rank, then the table is read) then row step (rows along the table; below the first row = nothing, past the last = 2d10). Sources: skill/spell upgrade changes rankDamageBonus / rankDamageStep (effective.rankBonus / rankStep, not applied to the stored damage) plus the owner's effect buildMods rows of the same kinds whose scope (all|skill|tag, as skillCap) covers the item; all add up. Rank 0 ignores them.
 - dice: a natural 20 doubles the dice but not the flat 1 of rank 1; dieStep upgrades do not change the rank dice; a multi-term result is wrapped in parentheses after - * /; @rankDamageX and @rankDamage.x are not the token.
@@ -87,13 +87,13 @@
 - effect: heal/mana per constants.rests.recovery; ends effects whose lastsUntil is that rest or shorter (long ends short+long, full ends all); restores item uses (recharge short/long/full chain); runs restTaken events; cancels Dying via healing
 
 - leveling: GM Level Up button (or players if setting playersCanLevel) raises level by 1 -> 3 stat points per level above 1, banked until floor>=3, then Spend Points dialog: +1 per stat, no cap. Fires Hooks 'carlrpg.levelUp'(actor, newLevel) and levelUp events.
-- advancement: skill/spell marked Can Advance: one d20 that must beat current rank; success +1. Rank <=4 any time; rank >=5 shows end-of-floor reminder and allows ONE try per floor (item flag advanceFloor = floor of last try). Capped at skillCap (15, or 20 via skillCap build row). AI Favor is not offered on advancement. Advancement rolls are not logged in recap.
+- advancement: skill/spell marked Can Advance: one d20 that must beat the STORED rank (not the effective one); success +1. Rank <=4 any time; rank >=5 shows end-of-floor reminder and allows ONE try per floor (item flag advanceFloor = floor of last try). Capped at skillCap (15, or 20 via skillCap build row). AI Favor is not offered on advancement. Advancement rolls are not logged in recap.
 - ammunition: cost rows with resource ammo; see items-effects.md. Spent after Mana/Junk, note lines on the card, change-log line per row, @cost.ammo and @cost.total read it
 - uses: system.uses.max>0 limits uses; costs row 'uses' spends; recharge: round (each round end), rounds (every N rounds, cooldown counted by tickCooldowns, or combat end), combat, floor (floorChange), short|long|full rest (longer rests also restore shorter)
 
 ## upgrades
 - holders: skill, spell (by rank), pet (by level)
-- rule: every upgrade with rank <= current rank applies, in rank order then listed order; worked out at use/prepare time from current rank, never written (lower the rank and they vanish)
+- rule: every upgrade with rank <= current rank (the effective rank, see items-effects skillRankBonus) applies, in rank order then listed order; worked out at use/prepare time from current rank, never written (lower the rank and they vanish)
 - shape: {id, rank, description, changes[{type, value, stat}], grants[uuids, pets], unlocksEffects[identifier|name], events[]}
 - changes: damageAdd (dice/number), damageReplace, dieStep (+/- along dieLadder), manaCost/junkCost/usesCost (move both ends of a ranged cost, floor 0, adds a cost where none), rollBonus, rollTarget (checkTargets id), armorPiercing, damageType, rankDamageBonus/rankDamageStep (whole numbers, see rankDamage); a Damage Effect's de* changes (see damageEffects); a Roll Modifier's rm* changes (see rollMods)
 - ui: sheet description lists all upgrades (locked dimmed), chat card lists only unlocked, Attributes tab shows effective values at current rank. Default new ranks 5,10,15,20 (rank editable, any number).

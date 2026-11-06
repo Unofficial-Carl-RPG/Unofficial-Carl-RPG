@@ -44,7 +44,7 @@
 ## skill
 - model: CarlRPGFeature
 - fields: rank int>=0, advanceable bool (Can Advance), passive bool (uses no action, still rolls), stat (abilities), formula (derived), upgrades[], damageEffect{enabled, skills (comma list of attack skill names or identifiers it works with), cooldownHours int (hours left), cooldownRound bool (used this round)}
-- derived: formula = '1d20 + @<stat>.mod + <rank>' plus effective.rollBonus; effective = computeEffective(system); damageRules = effectRules(system) when damageEffect.enabled, else null. On a pet, rank = current floor.
+- derived: rankBonus / effectiveRank (see skillRankBonus in buildBenefits; effectiveRank = rank when nothing applies); formula = '1d20 + @<stat>.mod + <effectiveRank>' plus effective.rollBonus; effective = computeEffective(system); damageRules = effectRules(system) when damageEffect.enabled, else null. On a pet, rank = current floor.
 - damageEffect: a passive skill chosen before rolling to hit; see rules.md damageEffects. Attributes tab: tick Damage Effect, list the attack skills, cooldown state with Reset (owner). Its Upgrades tab then offers the de* changes.
 - rollMod: system.rollMod{enabled, skills} (comma list of skills it changes, or the word self for its own use). A passive skill chosen in the roll pop-up before rolling a listed skill; derived system.rollModRules. Attributes tab: tick Roll Modifier and list the skills; its Upgrades tab then offers the rm* changes (rmRank, rmDice, rmDR) with an 'Only when' menu. See rules.md rollMods.
 
@@ -139,7 +139,7 @@
 - lastsUntil: ''|short|long|full|combat
 - rounds / roundsLeft: duration in rounds, counted down when Cleanup starts; effect then switched off with chat note; count starts when switched on
 - tier: deity tier section this effect belongs to
-- buildMods: [{kind checkDie|healthStat|statCap|skillCap|rankDamageBonus|rankDamageStep, target, value, name?, amount? (rankDamage kinds only)}]
+- buildMods: [{kind checkDie|healthStat|statCap|skillCap|skillRankBonus|rankDamageBonus|rankDamageStep, target, value, name?, amount? (skillRankBonus and rankDamage kinds only)}]
 - damageMods: [{type damage-type id, mode resist(half)|immune(none)|vulnerable(double)}]
 - dead / dying: markers for the Dead (permanent) and Dying effects
 
@@ -150,7 +150,8 @@
 - healthStat: target stat whose modifier a health box is worth instead of CON (last wins)
 - statCap: highest enhanced value for target stat (lowest wins)
 - skillCap: raise rank cap 15 -> 20; target scope all|skill (value = identifier)|tag (value = tag); highest matching row wins
+- skillRankBonus: same scope as skillCap plus amount (whole number, negative ok, new rows start at 1); every covering row of every effect that is on adds up to system.rankBonus; effectiveRank = max(0, rank + rankBonus), a positive bonus stops at the skill cap (skillCapOf; none for pets; a stored rank already above the cap stays), a rank 0 skill is lifted too. Never stored. Everything reads effectiveRank (helpers/skill-rank.mjs rankOf(system)): roll formula, upgrades reached (levelOf) and the effects they unlock, @rank (events, costs, ranges), @rankDamage, Roll Modifier Rank, Damage Effect rank, group/journal checks, lists (tooltip shows 'Rank N, +B from effects'), quick bar, crawler summary, rank sort. Stays on the STORED rank: the Rank field, advancement and its cap, Grant a skill event, 'advanced' trigger rank, granted/raised skills.
 - rankDamageBonus|rankDamageStep: same scope as skillCap (helpers/build-mods.mjs isScopedKind) plus amount (whole number, negative ok, new rows start at 1); bonus is added to the rank @rankDamage reads, step moves rows along its table; every covering row of every effect that is on adds up (see rules rankDamage)
 
-- locks: An effect named in a skill/spell/pet upgrade's unlocksEffects is suppressed until that rank/level (lockedUntilRank).
+- locks: An effect named in a skill/spell/pet upgrade's unlocksEffects is suppressed until that rank/level (lockedUntilRank, measured against effectiveRank). While the bonus itself is worked out, effects are judged by stored ranks (ActiveEffect lockedRank({stored:true}), buildModsOf(actor, {stored:true}), levelOf(system, true)) so a Skill rank bonus never waits on itself.
 - statusEffects: Dying (rounds left), Dead (permanent, skull overlay), Minor Injury (-2 all stats), Major Injury (-5)

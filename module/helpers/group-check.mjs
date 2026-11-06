@@ -1,4 +1,5 @@
 import { checkNumber, ownCrawler, parseCheck, button, plain } from './journal.mjs';
+import { rankOf } from './skill-rank.mjs';
 import { degreeOf, naturalD20 } from './attacks.mjs';
 import { partyMembers } from './party.mjs';
 import { CarlRPGDialog } from './dialog.mjs';
@@ -100,7 +101,7 @@ async function rollGroupCheck(group) {
     );
     if (!item) return ui.notifications.warn(loc('NoSkill', { name: group.skill }));
     stat = item.system.stat;
-    rank = item.system.rank ?? 0;
+    rank = rankOf(item.system);
   }
   const mod = stat ? (crawler.system.abilities?.[stat]?.mod ?? 0) : 0;
   const roll = await new Roll('1d20 + @mod + @rank', { mod, rank }).evaluate();

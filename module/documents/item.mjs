@@ -1,4 +1,5 @@
 import { CarlRPGDialog } from '../helpers/dialog.mjs';
+import { rankOf } from '../helpers/skill-rank.mjs';
 import { CarlRPGActiveEffect } from './active-effect.mjs';
 import { checkRequirements, runEvents } from '../helpers/events.mjs';
 import { castBlockedByHotlist } from '../helpers/hotlist-rule.mjs';
@@ -838,7 +839,7 @@ export class CarlRPGItem extends Item {
     const sys = this.system;
     const saved = { formula: sys.formula, damage: sys.damage };
     const bonus = skill.system.effective?.rollBonus ?? 0;
-    const rank = skill.system.rank ?? 0;
+    const rank = rankOf(skill.system);
     sys.formula = addModifier(
       `1d20 + @${skill.system.stat}.mod + ${rank}` +
         (bonus ? ` ${bonus > 0 ? '+' : '-'} ${Math.abs(bonus)}` : ''),
@@ -993,7 +994,7 @@ export class CarlRPGItem extends Item {
    */
   costData(paid = {}) {
     const data = this.actor?.getRollData?.() ?? {};
-    return { ...data, rank: this.system.rank ?? 0, floor: getFloor(), cost: costPaidData(paid) };
+    return { ...data, rank: rankOf(this.system), floor: getFloor(), cost: costPaidData(paid) };
   }
 
   /**

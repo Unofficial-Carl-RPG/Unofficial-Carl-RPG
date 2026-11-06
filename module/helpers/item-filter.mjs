@@ -2,6 +2,7 @@
  * A filter and sort bar above each item list on an actor sheet. It works in the
  * browser only: the choices are remembered per person, per list, on this computer.
  */
+import { rankOf } from './skill-rank.mjs';
 
 const esc = (value) => foundry.utils.escapeHTML(String(value ?? ''));
 const loc = (key) => game.i18n.localize(key);
@@ -122,7 +123,7 @@ function compareRows(sort, a, b) {
         (typeOrder.indexOf(a.item.type) - typeOrder.indexOf(b.item.type)) || byName
       );
     case 'rank':
-      return (a.item.system.rank ?? 0) - (b.item.system.rank ?? 0) || byName;
+      return rankOf(a.item.system) - rankOf(b.item.system) || byName;
     case 'value':
       return (a.item.system.value ?? 0) - (b.item.system.value ?? 0) || byName;
     case 'mana':

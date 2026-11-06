@@ -33,6 +33,7 @@
  * GM's client re-checks everything against the stored data before doing anything.
  */
 import { CarlRPGActiveEffect } from '../documents/active-effect.mjs';
+import { rankOf } from './skill-rank.mjs';
 import { CarlRPGDialog } from './dialog.mjs';
 import { classHasTag } from './tags.mjs';
 import { allEvents, effectKey, lockedRankFor } from './upgrades.mjs';
@@ -134,7 +135,7 @@ export function eventData(item, ctx = {}) {
   const owner = ctx.actor ?? (item ? ownerOf(item) : null);
   const data = { ...rollDataOf(owner), floor: CONFIG.CARL_RPG.getFloor() };
   if (item) {
-    data.rank = item.system?.rank ?? 0;
+    data.rank = rankOf(item.system);
     data.item = { ...(item.system ?? {}) };
     const stacks = item.getFlag?.(NS, 'stacks');
     if (stacks !== undefined) data.item.stacks = stacks;

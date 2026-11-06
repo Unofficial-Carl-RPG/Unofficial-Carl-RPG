@@ -96,12 +96,22 @@ export class CarlRPGActiveEffect extends ActiveEffect {
    * @returns {number|null}
    */
   get lockedUntilRank() {
+    return this.lockedRank();
+  }
+
+  /**
+   * See `lockedUntilRank`.
+   * @param {{stored?: boolean}} [options]  `stored`: measure against stored ranks, not
+   *   effective ones (a Skill rank bonus can't wait on itself)
+   * @returns {number|null}
+   */
+  lockedRank({ stored = false } = {}) {
     const actor = this.actor;
     if (!actor) return null;
     const key = effectKey(this);
     // A pet's own upgrades can hold one of its effects back until a level.
     if (actor.type === 'pet') {
-      const petLock = lockedRankFor(actor, key);
+      const petLock = lockedRankFor(actor, key, stored);
       if (petLock !== null) return petLock;
     }
     const sources = this.sourceItems
@@ -110,7 +120,7 @@ export class CarlRPGActiveEffect extends ActiveEffect {
     if (!sources.length) return null;
     let lowest = null;
     for (const source of sources) {
-      const locked = lockedRankFor(source, key);
+      const locked = lockedRankFor(source, key, stored);
       if (locked === null) return null;
       lowest = lowest === null ? locked : Math.min(lowest, locked);
     }

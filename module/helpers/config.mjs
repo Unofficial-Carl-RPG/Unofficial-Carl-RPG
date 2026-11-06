@@ -677,6 +677,7 @@ CARL_RPG.buildKinds = {
   healthStat: 'CARL_RPG.Build.Kinds.healthStat',
   statCap: 'CARL_RPG.Build.Kinds.statCap',
   skillCap: 'CARL_RPG.Build.Kinds.skillCap',
+  skillRankBonus: 'CARL_RPG.Build.Kinds.skillRankBonus',
   rankDamageBonus: 'CARL_RPG.Build.Kinds.rankDamageBonus',
   rankDamageStep: 'CARL_RPG.Build.Kinds.rankDamageStep',
 };

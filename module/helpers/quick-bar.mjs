@@ -1,4 +1,5 @@
 import { isLimited, usesLeft } from './uses.mjs';
+import { rankOf } from './skill-rank.mjs';
 import { hideItemTip } from './item-tooltip.mjs';
 
 /*
@@ -65,7 +66,7 @@ function slotButton(item, index) {
 
   const detail = [];
   if (item.type === 'skill' || item.type === 'spell') {
-    detail.push(`${t('CARL_RPG.QuickBar.Rank')} ${item.system.rank ?? 0}`);
+    detail.push(`${t('CARL_RPG.QuickBar.Rank')} ${rankOf(item.system)}`);
   }
   if (item.type === 'spell') {
     detail.push(`${t('CARL_RPG.QuickBar.Mana')} ${item.costLabels?.().mana || 0}`);
@@ -80,7 +81,7 @@ function slotButton(item, index) {
   if (['gear', 'item'].includes(item.type) && item.usesSkillAction) {
     item.rollingSkill().then((skill) => {
       if (!skill) return;
-      detail.unshift(`${t('CARL_RPG.QuickBar.Rank')} ${skill.system.rank ?? 0}`);
+      detail.unshift(`${t('CARL_RPG.QuickBar.Rank')} ${rankOf(skill.system)}`);
       info.textContent = detail.join(' · ');
     });
   }

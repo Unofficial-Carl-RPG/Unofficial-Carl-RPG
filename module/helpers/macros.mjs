@@ -5,6 +5,7 @@
  * game.carlRpg.macros.rest('short'), .levelUp() and .advance().
  */
 import { CarlRPGDialog } from './dialog.mjs';
+import { rankOf } from './skill-rank.mjs';
 import { confirmRest } from './rests.mjs';
 import { levelUp } from './level-up.mjs';
 import { attemptAdvance } from './advancement.mjs';
@@ -77,7 +78,7 @@ export function registerMacros() {
         return;
       }
       const options = skills
-        .map((s) => `<option value="${s.id}">${foundry.utils.escapeHTML(s.name)} (${s.system.rank})</option>`)
+        .map((s) => `<option value="${s.id}">${foundry.utils.escapeHTML(s.name)} (${rankOf(s.system)})</option>`)
         .join('');
       const id = await CarlRPGDialog.prompt({
         window: { title: 'CARL_RPG.Combat.MacroAdvanceTitle' },

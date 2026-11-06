@@ -1,4 +1,5 @@
 import { resolveListing, restockListing } from '../helpers/store.mjs';
+import { rankOf } from '../helpers/skill-rank.mjs';
 import { skillStatLabel } from '../helpers/creation.mjs';
 import { damageTypeOptions } from '../helpers/damage-types.mjs';
 import { describeBadges, itemCardHeader, rangeText, skillBadges } from '../helpers/item-badges.mjs';
@@ -546,7 +547,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       const cfg = CONFIG.CARL_RPG;
       const system = this.item.system;
       const isSpell = this.item.type === 'spell';
-      const rank = system.rank ?? 0;
+      const rank = rankOf(system);
       context.isFeature = true;
       // A pet's skills use the current floor as their rank, so there's no rank to edit.
       context.rankIsFloor = this.item.parent?.type === 'pet';
@@ -629,6 +630,8 @@ export class CarlRPGItemSheet extends ItemSheetBase {
         targetChanged: (effective?.target ?? '') !== (system.check?.target ?? ''),
         target: cfg.checkTargets[effective?.target],
         rollBonus: effective?.rollBonus ?? 0,
+        rank: system.effectiveRank ?? system.rank ?? 0,
+        rankChanged: (system.rankBonus ?? 0) !== 0,
       };
       // A Damage Effect's cooldown, for the Attributes tab (hours left, or used this round).
       if (this.item.type === 'skill' && system.damageEffect?.enabled) {

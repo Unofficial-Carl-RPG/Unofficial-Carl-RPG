@@ -43,7 +43,7 @@
           </div>
           <div>{{item.name}}{{#if item.usesPips.length}} <span class='uses-pips' data-tooltip='{{localize "CARL_RPG.Uses.Tooltip"}}'>{{#each item.usesPips}}<i class='fas fa-circle uses-pip {{#unless this}}spent{{/unless}}'></i>{{/each}}</span>{{/if}}</div>
         </div>
-        <div class='item-prop'>{{item.system.rank}}</div>
+        <div class='item-prop'{{#if item.system.rankBonus}} data-tooltip='{{localize "CARL_RPG.Upgrades.RankTip" stored=item.system.rank bonus=(numberFormat item.system.rankBonus decimals=0 sign=true)}}'{{/if}}>{{item.system.effectiveRank}}</div>
         {{#unless @root.isPet}}
           <div class='item-prop item-advance'>
             <a

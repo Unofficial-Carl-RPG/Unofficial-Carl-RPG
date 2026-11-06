@@ -1,4 +1,5 @@
 import { getFloor } from './floor.mjs';
+import { rankOf } from './skill-rank.mjs';
 import { levelOf } from './upgrades.mjs';
 import { CarlRPGDialog } from './dialog.mjs';
 
@@ -49,13 +50,13 @@ export function crawlerSummaryText(actor) {
 
   heading(loc('Skills'));
   for (const skill of items('skill')) {
-    lines.push(`${skill.name} (${String(skill.system.stat).toUpperCase()}) ${loc('Rank')} ${skill.system.rank ?? 0}`);
+    lines.push(`${skill.name} (${String(skill.system.stat).toUpperCase()}) ${loc('Rank')} ${rankOf(skill.system)}`);
   }
 
   heading(loc('Spells'));
   for (const spell of items('spell')) {
     lines.push(
-      `${spell.name} ${loc('Rank')} ${spell.system.rank ?? 0}, ${spell.costLabels?.().mana || 0} ${loc('Mana')}`
+      `${spell.name} ${loc('Rank')} ${rankOf(spell.system)}, ${spell.costLabels?.().mana || 0} ${loc('Mana')}`
     );
   }
 

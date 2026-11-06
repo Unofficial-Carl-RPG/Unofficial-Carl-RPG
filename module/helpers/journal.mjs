@@ -1,4 +1,5 @@
 import { getFloor, getDaysLeft } from './floor.mjs';
+import { rankOf } from './skill-rank.mjs';
 import { getPartyName } from './party.mjs';
 import { CarlRPGDialog } from './dialog.mjs';
 import { degreeOf, naturalD20, evadeOf } from './attacks.mjs';
@@ -159,7 +160,7 @@ async function rollCheck({ skill, stat, dc }) {
       return;
     }
     stat = item.system.stat;
-    rank = item.system.rank ?? 0;
+    rank = rankOf(item.system);
     label = item.name;
   }
   const mod = stat ? (crawler.system.abilities?.[stat]?.mod ?? 0) : 0;

@@ -79,12 +79,15 @@ function addToFormula(formula, extra) {
 /*  Working out the numbers                     */
 
 /**
- * The rank an upgrade list is measured against: a skill's rank, or a pet's level
- * (a pet's skills use the floor as their rank, but the pet's own upgrades follow
- * its level).
+ * The rank an upgrade list is measured against: a skill's effective rank (its rank moved
+ * by Skill rank bonus build benefits, see skill-rank.mjs), or a pet's level (a pet's
+ * skills use the floor as their rank, but the pet's own upgrades follow its level).
+ * `stored` reads the stored rank instead.
  */
-export const levelOf = (system) =>
-  system.rank ?? system.attributes?.level?.value ?? 0;
+export const levelOf = (system, stored = false) =>
+  (stored ? system.rank : (system.effectiveRank ?? system.rank)) ??
+  system.attributes?.level?.value ??
+  0;
 
 /** The upgrades a skill (or pet) has reached, lowest rank first. */
 export function unlockedUpgrades(system) {
@@ -364,10 +367,10 @@ export function unlockRankOf(item, key) {
  * Whether an item still holds an effect back at its current rank.
  * @returns {number|null}  The rank it unlocks at, if it is still locked
  */
-export function lockedRankFor(item, key) {
+export function lockedRankFor(item, key, stored = false) {
   const need = unlockRankOf(item, key);
   if (need === null) return null;
-  return levelOf(item.system) >= need ? null : need;
+  return levelOf(item.system, stored) >= need ? null : need;
 }
 
 /*  Describing upgrades                         */

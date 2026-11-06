@@ -25,6 +25,7 @@
  * damage it takes uses it up; it also clears when a round or a combat ends.
  */
 import { changeProblem, unlockedUpgrades } from './upgrades.mjs';
+import { rankOf } from './skill-rank.mjs';
 import { listAccepts, listEntries } from './skill-list.mjs';
 
 const NS = 'carl-rpg';
@@ -166,7 +167,7 @@ export function resolveMods(mods, { mode = 'normal', surprise = false } = {}) {
   const out = { rank: [], dr: [], dice: [] };
   for (const mod of mods) {
     const rules = mod.system.rollModRules ?? modRules(mod.system);
-    const rank = Math.max(0, Math.trunc(Number(mod.system.rank) || 0));
+    const rank = Math.max(0, Math.trunc(Number(rankOf(mod.system)) || 0));
     const ctx = { mode, surprise };
     const base = { id: mod.id, name: mod.name };
     for (const row of rules.rank) {

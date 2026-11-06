@@ -19,9 +19,11 @@
  * Both come from the skill's upgrades (changes `rankDamageBonus` and
  * `rankDamageStep`) and from build benefit rows on the actor's effects of the same
  * names, which cover all skills, one skill or the skills with a tag and add together.
- * A skill at rank 0 gets nothing whatever the bonus and step.
+ * A skill at rank 0 gets nothing whatever the bonus and step. The rank is the effective
+ * rank (see skill-rank.mjs), so a Skill rank bonus moves it too.
  */
 import { buildModsOf } from './build-mods.mjs';
+import { rankOf } from './skill-rank.mjs';
 import { skillCapRowCovers } from './skill-cap.mjs';
 
 const HAS_TOKEN = /@rankDamage(?![\w.])/;
@@ -79,7 +81,7 @@ export function rankDamageOf(item) {
   const system = item.system ?? {};
   const effective = system.effective ?? {};
   const actor = rankDamageMods(item.actor ?? item.parent ?? null, item);
-  return rankDamageFormula(system.rank, {
+  return rankDamageFormula(rankOf(system), {
     bonus: whole(effective.rankBonus) + actor.bonus,
     step: whole(effective.rankStep) + actor.step,
   });

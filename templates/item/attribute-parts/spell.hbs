@@ -36,6 +36,9 @@
       <p class='upgrade-now'><i class='fas fa-arrow-up'></i> {{localize 'CARL_RPG.Upgrades.NowDamage' value=effective.damage}}</p>
     {{/if}}
   </div>
+  {{#if effective.rankChanged}}
+    <p class='upgrade-now'><i class='fas fa-arrow-up'></i> {{localize 'CARL_RPG.Upgrades.NowRank' value=effective.rank}}</p>
+  {{/if}}
   {{#if effective.rollBonus}}
     <p class='upgrade-now'><i class='fas fa-arrow-up'></i> {{localize 'CARL_RPG.Upgrades.NowRollBonus' value=(numberFormat effective.rollBonus decimals=0 sign=true)}}</p>
   {{/if}}
