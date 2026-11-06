@@ -297,6 +297,19 @@ test('requirements block use and say why', async () => {
   assert.equal(checkRequirements(item), false);
 });
 
+test('the health action can add or remove health boxes directly', async () => {
+  const run = async (mode, amount, health) => {
+    const item = skillWith([favor({ actions: [{ type: 'health', mode, amount }] })]);
+    const crawler = await crawlerWith(item, { system: { health: { value: health } } });
+    await runEvents(item, 'used', {});
+    return crawler.system.health.value;
+  };
+  assert.equal(await run('remove', '3', 8), 5);
+  assert.equal(await run('remove', '3', 2), 0);
+  assert.equal(await run('heal', '3', 5), 8);
+  assert.equal(await run('heal', '9', 5), 10);
+});
+
 test('a requirement can ask for a formula over roll data', async () => {
   const item = skillWith([], { requirements: [{ type: 'mana', value: '@int.mod * 2' }] });
   const crawler = await crawlerWith(item, { system: { mana: { value: 5 } } });

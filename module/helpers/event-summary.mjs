@@ -131,7 +131,7 @@ export async function summarizeAction(a, otherEvents = {}) {
       text = t(`${S}mana.${a.mode === 'restore' ? 'restore' : 'spend'}`, { amount });
       break;
     case 'health':
-      text = t(`${S}health.${a.mode === 'heal' ? 'heal' : 'damage'}`, { amount });
+      text = t(`${S}health.${{ heal: 'heal', remove: 'remove' }[a.mode] ?? 'damage'}`, { amount });
       break;
     case 'message':
       text = t(`${S}message`, { text: a.text });

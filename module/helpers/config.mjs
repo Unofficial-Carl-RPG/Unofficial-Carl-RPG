@@ -523,6 +523,7 @@ CARL_RPG.manaModes = {
 CARL_RPG.healthModes = {
   damage: 'CARL_RPG.Events.HealthModes.damage',
   heal: 'CARL_RPG.Events.HealthModes.heal',
+  remove: 'CARL_RPG.Events.HealthModes.remove',
 };
 CARL_RPG.macroRunOn = {
   user: 'CARL_RPG.Events.RunOn.user',

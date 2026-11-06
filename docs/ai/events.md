@@ -72,7 +72,7 @@
 - grantSkill: uuid skill; amount = ranks; absent -> added at that rank, present -> raised; permanent (flag raised); stops at skill cap; whisper to owner+GM
 - removeItem: selfItem or uuid; amount reduces quantity else deletes
 - mana: mode spend|restore; amount; not on mobs; spend warns if short
-- health: mode damage (through applyDamage: DR, CON, damage types; ignoreDR) | heal
+- health: mode damage (through applyDamage: DR, CON, damage types; ignoreDR) | heal (add boxes, up to max) | remove (take boxes off directly: no DR/CON/damage type, no takesDamage trigger; reaching 0 starts Dying/defeat through the normal actor update hook)
 - message: text with {name} {item}; posted as event card
 - actions: mode spend|restore; amount; combat only
 - gold: mode add|remove; crawlers only

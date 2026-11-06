@@ -657,6 +657,13 @@ const HANDLERS = {
       });
       return;
     }
+    if (action.mode === 'remove') {
+      // Boxes come off directly: no Damage Resistance, CON or damage type. Reaching 0
+      // still starts Dying (or defeats a mob), as the actor update does for any loss.
+      const { value } = actor.system.health;
+      await actor.update({ 'system.health.value': Math.max(0, value - amount) });
+      return;
+    }
     await actor.applyDamage(amount, { ignoreDR: !!action.ignoreDR });
   },
 

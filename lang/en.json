@@ -1859,7 +1859,8 @@
       },
       "HealthModes": {
         "damage": "Damage",
-        "heal": "Heal (boxes)"
+        "heal": "Add boxes (heal)",
+        "remove": "Remove boxes"
       },
       "ActionsModes": {
         "spend": "Spend",
@@ -1961,7 +1962,8 @@
           },
           "health": {
             "damage": "take {amount} damage",
-            "heal": "heal {amount} health box(es)"
+            "heal": "heal {amount} health box(es)",
+            "remove": "remove {amount} health box(es)"
           },
           "message": "say \"{text}\"",
           "actions": {
