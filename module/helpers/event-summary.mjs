@@ -78,6 +78,9 @@ export async function summarizeCondition(c) {
         kind: t(CONFIG.CARL_RPG.eventTargetKinds[c.text] ?? c.text),
       });
       break;
+    case 'damageOption':
+      text = t(`${S}damageOption`);
+      break;
     case 'restKind':
       text = t(`${S}restKind`, {
         kind: t(CONFIG.CARL_RPG.eventRestKinds[c.text] ?? c.text),

@@ -112,6 +112,20 @@ export function changeProblem(change) {
       return false;
     case 'damageType':
       return !damageTypes().some((d) => d.id === value);
+    // A Damage Effect's changes (see damage-effects.mjs).
+    case 'deAddDice':
+      return !validFormula(value);
+    case 'deTotalMultiplier':
+    case 'deHealthMax':
+    case 'deSizeMax':
+    case 'deCooldownHours':
+    case 'deStunOption':
+      return !Number.isFinite(Number(value)) || value === '';
+    case 'deBaseByRank':
+    case 'deSameSize':
+    case 'deCooldownRound':
+    case 'deCooldownNone':
+      return false;
     // A pet's changes.
     case 'statBonus':
       return (
@@ -403,6 +417,31 @@ export function summarizeChanges(upgrade, effectNames = [], grantNames = []) {
             type: damageTypes().find((d) => d.id === value)?.label ?? value,
           })
         );
+        break;
+      // A Damage Effect's changes.
+      case 'deAddDice':
+        parts.push(
+          t('CARL_RPG.Upgrades.Summary.deAddDice', {
+            value: /^[+-]/.test(value) ? value : `+${value}`,
+          })
+        );
+        break;
+      case 'deBaseByRank':
+        parts.push(t('CARL_RPG.Upgrades.Summary.deBaseByRank'));
+        break;
+      case 'deTotalMultiplier':
+      case 'deHealthMax':
+      case 'deSizeMax':
+      case 'deCooldownHours':
+        parts.push(t(`CARL_RPG.Upgrades.Summary.${change.type}`, { value }));
+        break;
+      case 'deSameSize':
+      case 'deCooldownRound':
+      case 'deCooldownNone':
+        parts.push(t(`CARL_RPG.Upgrades.Summary.${change.type}`));
+        break;
+      case 'deStunOption':
+        parts.push(t(n > 0 ? 'CARL_RPG.Upgrades.Summary.deStunOption' : 'CARL_RPG.Upgrades.Summary.deStunOptionOff'));
         break;
       // A pet's changes.
       case 'statBonus':

@@ -104,7 +104,11 @@
 - defaultRanks: 5, 10, 15, 20
 - rankStep: 5
 - dieLadder: 4, 6, 8, 10, 12, 20
-- changes: damageAdd, damageReplace, dieStep, manaCost, junkCost, usesCost, rollBonus, rollTarget, armorPiercing, damageType, rankDamageBonus, rankDamageStep
+- changes: damageAdd, damageReplace, dieStep, manaCost, junkCost, usesCost, rollBonus, rollTarget, armorPiercing, damageType, rankDamageBonus, rankDamageStep, deAddDice, deBaseByRank, deTotalMultiplier, deHealthMax, deSameSize, deSizeMax, deCooldownHours, deCooldownRound, deCooldownNone, deStunOption
+- damageEffectOnly: the de* changes above; the Upgrades tab offers them only on a skill that is a Damage Effect
+
+## damageEffects
+- restHours: short 1, long 8, full 24 (game hours a rest passes for Damage Effect cooldowns; there is no game clock)
 
 ## petUpgrades
 - defaultLevel: 15

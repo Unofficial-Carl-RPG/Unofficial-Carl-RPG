@@ -30,6 +30,16 @@ const ALLOWED = {
       value === Math.trunc(doc.system.aiFavor ?? 0) - 1,
   },
   Item: {
+    // Starting a Damage Effect's cooldown (hours as its upgrades set, or used this round).
+    'system.damageEffect.cooldownHours': (doc, value) =>
+      !!doc.system.damageEffect?.enabled &&
+      Number.isInteger(value) &&
+      value > 0 &&
+      value === (doc.system.damageRules?.cooldown?.hours ?? 0),
+    'system.damageEffect.cooldownRound': (doc, value) =>
+      !!doc.system.damageEffect?.enabled &&
+      value === true &&
+      doc.system.damageRules?.cooldown?.kind === 'round',
     // Spending one use of an item with a limit on its uses.
     'system.uses.spent': (doc, value) =>
       Number.isInteger(value) &&

@@ -15,6 +15,7 @@
 import { CarlRPGDialog } from './dialog.mjs';
 import { runActorEvents, runFloorRules } from './events.mjs';
 import { RECHARGE_BY_REST, restoreUses } from './uses.mjs';
+import { passRestHours } from './damage-effects.mjs';
 import { canActOutsideSafeRoom } from './floor.mjs';
 
 const NS = 'carl-rpg';
@@ -115,6 +116,7 @@ export async function restActor(actor, rest) {
   const gained = await recover(actor, rest);
   const ended = await endEffects(actor, rest);
   await restoreUses(actor, RECHARGE_BY_REST[rest]);
+  await passRestHours(actor, rest);
   const title = t(`CARL_RPG.Rest.TakenBy.${rest}`, { name: esc(actor.name) });
   const text = summary(gained, ended);
   await ChatMessage.create({
@@ -140,6 +142,7 @@ export async function takeRest(rest) {
     const gained = await recover(actor, rest);
     const ended = await endEffects(actor, rest);
     await restoreUses(actor, RECHARGE_BY_REST[rest]);
+    await passRestHours(actor, rest);
     const text = summary(gained, ended);
     if (text) lines.push(`<br><em>${esc(actor.name)}</em>: ${text}`);
   }

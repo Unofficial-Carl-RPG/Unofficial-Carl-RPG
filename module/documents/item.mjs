@@ -15,6 +15,7 @@ import {
 } from '../data/costs.mjs';
 import { getFloor } from '../helpers/floor.mjs';
 import { resolveCheck } from '../helpers/attacks.mjs';
+import { availableEffects, startCooldown } from '../helpers/damage-effects.mjs';
 import { describeUpgrades, effectiveOf } from '../helpers/upgrades.mjs';
 import { expandRankDamage } from '../helpers/rank-damage.mjs';
 import { badgeRowHtml, itemCardHeader, shortTextOf } from '../helpers/item-badges.mjs';
@@ -1140,6 +1141,14 @@ export class CarlRPGItem extends Item {
     for (const a of ammo) paid[a.key] = a.min;
     const asks = [...this.#costChoices(spans), ...this.#ammoChoices(ammo)];
     const rollPopup = !!event && !event.shiftKey && depth === 0 && rolls;
+    // The Damage Effects that can be chosen for this attack (see helpers/damage-effects.mjs):
+    // the crawler's own, listing the skill the roll uses, off cooldown. Shift skips the choice.
+    const effects =
+      rollPopup && this.actor?.type !== 'mob'
+        ? availableEffects(this.actor, this.type === 'skill' ? this : await this.rollingSkill())
+        : [];
+    let chosenEffect = null;
+    let effectOption = false;
     if (rollPopup || (asks.length && !event?.shiftKey)) {
       const chosen = await promptRoll({
         title: this.name,
@@ -1147,6 +1156,11 @@ export class CarlRPGItem extends Item {
         tip: shortTextOf(this),
         costs: asks,
         rolls: rollPopup,
+        damageEffects: effects.map((effect) => ({
+          id: effect.id,
+          name: effect.name,
+          stun: !!effect.system.damageRules?.stunOption,
+        })),
       });
       if (!chosen) return null;
       Object.assign(paid, chosen.costs);
@@ -1154,6 +1168,8 @@ export class CarlRPGItem extends Item {
         // A mistyped bonus is caught now, before any action or mana is spent.
         if (buildFormula(this.system.formula, chosen) === null) return null;
         rollOptions = chosen;
+        chosenEffect = effects.find((effect) => effect.id === chosen.damageEffect) ?? null;
+        effectOption = !!(chosenEffect && chosen.option);
       }
     }
     // All the ammunition being spent together (what @cost.ammo reads).
@@ -1220,7 +1236,9 @@ export class CarlRPGItem extends Item {
     // Check the roll against what the item targets (nothing, a target's Evade
     // or a target's stat), roll any damage and post the result (see
     // helpers/attacks.mjs).
-    const attack = await resolveCheck(this, roll);
+    const attack = await resolveCheck(this, roll, {
+      damageEffect: chosenEffect ? { item: chosenEffect, option: effectOption } : null,
+    });
     rolling?.restore();
     // Summaries of the events that fire for this roll (shown on the attack card).
     const fired = [];
@@ -1229,6 +1247,13 @@ export class CarlRPGItem extends Item {
     // (`degrees` are the degrees of success, for the "the roll's result is"
     // condition.)
     await runEvents(this, 'used', { roll, paid, depth, degrees: attack?.degrees, collect: fired });
+    // A Damage Effect that changed the attack goes on cooldown, and its own events run
+    // (they see whether the "instead of damage" option was ticked).
+    const effectCtx = { roll, paid, depth, option: effectOption ? 1 : 0, collect: fired };
+    if (chosenEffect && attack?.effectApplied) {
+      await startCooldown(chosenEffect);
+      await runEvents(chosenEffect, 'used', { ...effectCtx, degrees: attack?.degrees });
+    }
     // Each target that was hit runs the "an attack hits a target" events.
     for (const hit of attack?.hits ?? []) {
       await runEvents(this, 'hit', {
@@ -1240,6 +1265,14 @@ export class CarlRPGItem extends Item {
         attackMessage: attack?.message,
         collect: fired,
       });
+      if (chosenEffect && hit.effect) {
+        await runEvents(chosenEffect, 'hit', {
+          ...effectCtx,
+          target: hit.actor,
+          degree: hit.degree,
+          attackMessage: attack?.message,
+        });
+      }
     }
     // Each target that was missed runs the "an attack misses a target" events.
     for (const miss of attack?.misses ?? []) {

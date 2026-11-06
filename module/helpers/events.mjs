@@ -39,6 +39,7 @@ import { allEvents, effectKey, lockedRankFor } from './upgrades.mjs';
 import { summarizeAction } from './event-summary.mjs';
 import { endCombatEffects, tickDurations } from './effect-duration.mjs';
 import { restoreUses, tickCooldowns } from './uses.mjs';
+import { clearRoundCooldowns } from './damage-effects.mjs';
 import { skillCapOf } from './skill-cap.mjs';
 import { getFloorRules } from './floor.mjs';
 import { logEvent } from './change-log.mjs';
@@ -91,7 +92,7 @@ function rollDataOf(actor) {
 }
 
 /** The numbers a trigger can bring along, read as `@trigger.amount` and so on. */
-const TRIGGER_NUMBERS = ['amount', 'level', 'rank', 'actionsLeft'];
+const TRIGGER_NUMBERS = ['amount', 'level', 'rank', 'actionsLeft', 'option'];
 
 /**
  * What a formula can read that depends on how the event came about: `@roll.total` and
@@ -420,6 +421,9 @@ async function checkCondition(condition, ctx, item) {
       return ctx.target ? sizeClass(ctx.target) >= value : false;
     case 'targetKind':
       return isKind(ctx.target, condition.text);
+    case 'damageOption':
+      // The roll pop-up's "instead of damage" option of the Damage Effect was ticked.
+      return (Number(triggerData(ctx).trigger?.option) || 0) > 0;
     case 'restKind':
       // "At least": a long rest counts as a short one too.
       return ctx.rest
@@ -1159,6 +1163,7 @@ export function registerEvents() {
           await tickDurations(actor);
           await restoreUses(actor, ['round']);
           await tickCooldowns(actor);
+          await clearRoundCooldowns(actor);
         });
         await runFloorRules('roundEnd', {});
       }
@@ -1171,6 +1176,7 @@ export function registerEvents() {
     fireForCombat(combat, 'combatEnd', {}, async (actor) => {
       await endCombatEffects(actor);
       await restoreUses(actor, ['round', 'rounds', 'combat']);
+      await clearRoundCooldowns(actor);
     })
   );
 

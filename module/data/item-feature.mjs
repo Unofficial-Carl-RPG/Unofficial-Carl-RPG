@@ -1,6 +1,7 @@
 import CarlRPGItemBase from './base-item.mjs';
 import { upgradesField } from './upgrade-field.mjs';
 import { computeEffective } from '../helpers/upgrades.mjs';
+import { effectRules } from '../helpers/damage-effects.mjs';
 
 export default class CarlRPGFeature extends CarlRPGItemBase {
   static LOCALIZATION_PREFIXES = [
@@ -51,6 +52,16 @@ export default class CarlRPGFeature extends CarlRPGItemBase {
     // it (see helpers/upgrades.mjs).
     schema.upgrades = upgradesField();
 
+    // A Damage Effect: a passive skill chosen before rolling to hit with one of the
+    // attack skills listed here (see helpers/damage-effects.mjs). What it does comes
+    // from its upgrades; the cooldown is its state (hours left, or used this round).
+    schema.damageEffect = new fields.SchemaField({
+      enabled: new fields.BooleanField({ initial: false, nullable: false, required: true }),
+      skills: new fields.StringField({ required: true, blank: true, initial: '' }),
+      cooldownHours: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
+      cooldownRound: new fields.BooleanField({ initial: false, nullable: false, required: true }),
+    });
+
     return schema;
   }
 
@@ -75,6 +86,9 @@ export default class CarlRPGFeature extends CarlRPGItemBase {
     // What this skill uses at its current rank, with its upgrades applied
     // (never stored: the skill's own fields stay as they were typed).
     this.effective = computeEffective(this);
+
+    // What a Damage Effect does at its current rank (never stored).
+    this.damageRules = this.damageEffect?.enabled ? effectRules(this) : null;
 
     // An upgrade can add a bonus to the roll.
     const bonus = this.effective.rollBonus;

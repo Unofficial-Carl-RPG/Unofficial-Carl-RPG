@@ -205,6 +205,7 @@ CARL_RPG.eventConditions = {
   targetSize: 'CARL_RPG.Events.Conditions.targetSize',
   targetKind: 'CARL_RPG.Events.Conditions.targetKind',
   restKind: 'CARL_RPG.Events.Conditions.restKind',
+  damageOption: 'CARL_RPG.Events.Conditions.damageOption',
 };
 /** The kinds of target an event condition can ask about (for "the target is a ...") */
 CARL_RPG.eventTargetKinds = {
@@ -283,8 +284,32 @@ CARL_RPG.upgrades = {
     damageType: 'CARL_RPG.Upgrades.Changes.damageType',
     rankDamageBonus: 'CARL_RPG.Upgrades.Changes.rankDamageBonus',
     rankDamageStep: 'CARL_RPG.Upgrades.Changes.rankDamageStep',
+    // A Damage Effect's changes (see helpers/damage-effects.mjs).
+    deAddDice: 'CARL_RPG.Upgrades.Changes.deAddDice',
+    deBaseByRank: 'CARL_RPG.Upgrades.Changes.deBaseByRank',
+    deTotalMultiplier: 'CARL_RPG.Upgrades.Changes.deTotalMultiplier',
+    deHealthMax: 'CARL_RPG.Upgrades.Changes.deHealthMax',
+    deSameSize: 'CARL_RPG.Upgrades.Changes.deSameSize',
+    deSizeMax: 'CARL_RPG.Upgrades.Changes.deSizeMax',
+    deCooldownHours: 'CARL_RPG.Upgrades.Changes.deCooldownHours',
+    deCooldownRound: 'CARL_RPG.Upgrades.Changes.deCooldownRound',
+    deCooldownNone: 'CARL_RPG.Upgrades.Changes.deCooldownNone',
+    deStunOption: 'CARL_RPG.Upgrades.Changes.deStunOption',
   },
   spellOnly: [],
+  // Only offered on a skill that is a Damage Effect.
+  damageEffectOnly: [
+    'deAddDice',
+    'deBaseByRank',
+    'deTotalMultiplier',
+    'deHealthMax',
+    'deSameSize',
+    'deSizeMax',
+    'deCooldownHours',
+    'deCooldownRound',
+    'deCooldownNone',
+    'deStunOption',
+  ],
 };
 
 /**
@@ -414,6 +439,14 @@ CARL_RPG.usesRecharge = {
   short: 'CARL_RPG.Uses.Recharge.short',
   long: 'CARL_RPG.Uses.Recharge.long',
   full: 'CARL_RPG.Uses.Recharge.full',
+};
+
+/**
+ * Damage Effects (see helpers/damage-effects.mjs). There is no game clock, so hours pass
+ * when a crawler rests: how many each kind of rest is worth.
+ */
+CARL_RPG.damageEffects = {
+  restHours: { short: 1, long: 8, full: 24 },
 };
 
 /**

@@ -1,6 +1,7 @@
 /**
  * Item sheet: the Upgrades tab of a skill or spell.
  */
+import { resetCooldown } from '../helpers/damage-effects.mjs';
 
 export const ItemSheetUpgrades = (Base) => class ItemSheetUpgrades extends Base {
   /**
@@ -31,6 +32,11 @@ export const ItemSheetUpgrades = (Base) => class ItemSheetUpgrades extends Base 
   static async _removeUpgrade(event, target) {
     const ui = Number(target.dataset.ui);
     await this._updateEvents((system) => system.upgrades.splice(ui, 1));
+  }
+
+  /** Clear a Damage Effect's cooldown by hand (the owner can). @this CarlRPGItemSheet */
+  static async _resetCooldown() {
+    if (this.isEditable) await resetCooldown(this.item);
   }
 
   /** @this CarlRPGItemSheet */

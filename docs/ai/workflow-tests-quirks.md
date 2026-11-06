@@ -46,11 +46,11 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 206).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 227).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 206 pass)
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 227 pass)
 - stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node
 
 ## files
@@ -62,6 +62,7 @@
 - class-combo.test.mjs: Race+Class combos
 - combat.test.mjs: degrees, damage, phases, declarations
 - costs.test.mjs: cost spans/labels
+- damage-effects.test.mjs: Damage Effect rules per rank, per-target filters, damage maths, who can choose what, cooldowns
 - damage-types.test.mjs: damage types and modes
 - events.test.mjs: triggers, conditions, formulas over roll data, actions, trust, add-token, approval
 - gear-slots.test.mjs: slot room, two-handed gear, what comes off when equipping

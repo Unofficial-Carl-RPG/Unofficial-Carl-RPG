@@ -43,8 +43,9 @@
 
 ## skill
 - model: CarlRPGFeature
-- fields: rank int>=0, advanceable bool (Can Advance), passive bool (uses no action, still rolls), stat (abilities), formula (derived), upgrades[]
-- derived: formula = '1d20 + @<stat>.mod + <rank>' plus effective.rollBonus; effective = computeEffective(system). On a pet, rank = current floor.
+- fields: rank int>=0, advanceable bool (Can Advance), passive bool (uses no action, still rolls), stat (abilities), formula (derived), upgrades[], damageEffect{enabled, skills (comma list of attack skill names or identifiers it works with), cooldownHours int (hours left), cooldownRound bool (used this round)}
+- derived: formula = '1d20 + @<stat>.mod + <rank>' plus effective.rollBonus; effective = computeEffective(system); damageRules = effectRules(system) when damageEffect.enabled, else null. On a pet, rank = current floor.
+- damageEffect: a passive skill chosen before rolling to hit; see rules.md damageEffects. Attributes tab: tick Damage Effect, list the attack skills, cooldown state with Reset (owner). Its Upgrades tab then offers the de* changes.
 
 ## spell
 - model: extends skill

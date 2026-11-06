@@ -42,6 +42,13 @@ import { offerAiFavor } from './ai-favor.mjs';
 import { promptRoll, buildFormula, optionsNote } from './roll-dialog.mjs';
 import { applyBenefits, rollBenefits } from './build-mods.mjs';
 import { badgeRowHtml } from './item-badges.mjs';
+import {
+  appliesTo,
+  damageWithEffect,
+  diceSumOf,
+  hasFilters,
+  healthPercentOf,
+} from './damage-effects.mjs';
 
 /**
  * The top of a check or attack card: a badge saying what kind of check it is and what
@@ -151,16 +158,23 @@ export function degreeOf(natural, total, dc) {
  * has any, and post the result card.
  * @param {Item} item
  * @param {Roll|null} roll  The roll (null if the item doesn't roll: any damage simply hits)
+ * @param {{damageEffect?: {item: Item, option: boolean}|null}} [options]  The Damage Effect the
+ *   roller chose (see helpers/damage-effects.mjs); its option trades the damage away
  * @returns {Promise<{degrees: string[], hits: Array<{actor: Actor, degree: string}>}|null>}
  *   null if there is nothing to resolve
  */
-export async function resolveCheck(item, roll) {
+export async function resolveCheck(item, roll, { damageEffect = null } = {}) {
   // Mobs never roll a d20: a crawler rolls against the mob's number instead.
   if (item.actor?.type === 'mob') return resolveMobCheck(item);
   // An item whose action is No Roll has no check or damage to resolve.
   if (item.system.action?.type === 'none') return null;
 
-  const damaging = hasDamage(item);
+  // A Damage Effect the roller chose. Its "instead of damage" option (Iron Punch's stun)
+  // means no damage is rolled at all.
+  const effectItem = damageEffect?.item ?? null;
+  const rules = effectItem?.system?.damageRules ?? null;
+  const skipDamage = !!(rules?.stunOption && damageEffect?.option);
+  const damaging = hasDamage(item) && !skipDamage;
   if (!roll && !damaging) return null;
 
   const owner = item.actor;
@@ -186,6 +200,10 @@ export async function resolveCheck(item, roll) {
   // other flat modifiers are left alone.
   let damageRoll = null;
   let damage = null;
+  // What the effect adds: the dice of the damage, and its extra dice (rolled once).
+  let diceSum = 0;
+  let extra = 0;
+  let extraRoll = null;
   if (damaging) {
     try {
       damageRoll = new Roll(
@@ -195,12 +213,28 @@ export async function resolveCheck(item, roll) {
       if (crit) damageRoll = damageRoll.alter(2, 0);
       await damageRoll.evaluate();
       damage = Math.max(0, Math.floor(damageRoll.total));
+      diceSum = diceSumOf(damageRoll);
+      const extraFormulas = (rules?.addDice ?? [])
+        .map((formula) => expandRankDamage(formula, effectItem))
+        .filter(Boolean);
+      if (extraFormulas.length) {
+        extraRoll = new Roll(extraFormulas.join(' + '), owner?.getRollData() ?? {});
+        if (crit) extraRoll = extraRoll.alter(2, 0);
+        await extraRoll.evaluate();
+        extra = Math.max(0, Math.floor(extraRoll.total));
+      }
     } catch (err) {
       ui.notifications.warn(t('CARL_RPG.Attack.BadDamage', { name: item.name }));
       return null;
     }
   }
   const floor = getFloor();
+  const effectRank = effectItem?.system?.rank ?? 0;
+  // With no filters the effect works against everyone, so the card's headline shows it.
+  const headline =
+    damaging && rules && !hasFilters(rules)
+      ? damageWithEffect({ total: damage, diceSum, extra, rules, rank: effectRank, applies: true })
+      : damage;
 
   // An unopposed check has one number to reach, whoever is targeted.
   const unopposedDC = type === 'unopposed' ? checkDC(item, null) : null;
@@ -213,6 +247,14 @@ export async function resolveCheck(item, roll) {
     const dc = type === 'unopposed' ? unopposedDC : checkDC(item, actor);
     // With no roll every target is simply hit.
     const degree = roll ? degreeOf(natural, roll.total, dc) : 'success';
+    // Whether the Damage Effect works against this target (see damage-effects.mjs).
+    const applies =
+      !!rules &&
+      appliesTo(rules, {
+        attackerSize: owner ? sizeClassOf(owner) : 0,
+        targetSize: sizeClassOf(actor),
+        healthPct: healthPercentOf(actor),
+      });
     return {
       tokenUuid: doc.uuid,
       actorUuid: actor.uuid,
@@ -223,20 +265,33 @@ export async function resolveCheck(item, roll) {
       degree,
       hit: HITS.includes(degree),
       // An Amazing Success adds the Floor to the damage.
-      damage: damaging ? damage + (degree === 'amazing' ? floor : 0) : null,
+      damage: damaging
+        ? damageWithEffect({
+            total: damage,
+            diceSum,
+            extra,
+            bonus: degree === 'amazing' ? floor : 0,
+            rules,
+            rank: effectRank,
+            applies,
+          })
+        : null,
+      effectApplied: applies,
       applied: false,
     };
   });
 
   // What an opposed check is against, in words: a stat or the Size Class.
   const targetLabel = t(CONFIG.CARL_RPG.checkTargets[targetKey] ?? '');
-  const heading = damaging
-    ? damageHeading(item, damage)
-    : t(`CARL_RPG.Check.Header.${type}`, { stat: targetLabel });
+  const usedEffect = effectItem ? ` (${effectItem.name})` : '';
+  const heading =
+    (damaging
+      ? damageHeading(item, headline)
+      : t(`CARL_RPG.Check.Header.${type}`, { stat: targetLabel })) + usedEffect;
   const check = {
     itemName: item.name,
     type,
-    damage,
+    damage: headline,
     damageType: effectiveOf(item).damageType ?? '',
     armorPiercing: !!effectiveOf(item).armorPiercing,
     floor,
@@ -248,7 +303,7 @@ export async function resolveCheck(item, roll) {
   };
   const message = await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: owner }),
-    rolls: damageRoll ? [damageRoll] : [],
+    rolls: damageRoll ? [damageRoll, ...(extraRoll ? [extraRoll] : [])] : [],
     content: checkHeadingHtml(heading, damaging),
     sound: damageRoll ? CONFIG.sounds.dice : undefined,
     flags: { [NS]: { attack: check } },
@@ -264,8 +319,17 @@ export async function resolveCheck(item, roll) {
       : fromNatural;
   return {
     degrees,
+    // Whether the Damage Effect changed the attack: it worked against a target that was hit
+    // (or, with no targets, it has no filters). That is what starts its cooldown.
+    effectApplied:
+      !!rules &&
+      (rows.length
+        ? rows.some((row) => row.effectApplied && row.hit)
+        : !hasFilters(rules)),
     hits: targets.flatMap(({ actor }, i) =>
-      rows[i].hit ? [{ actor, degree: rows[i].degree }] : []
+      rows[i].hit
+        ? [{ actor, degree: rows[i].degree, effect: rows[i].effectApplied }]
+        : []
     ),
     // The targets it didn't hit, for the "an attack misses a target" events.
     misses: targets.flatMap(({ actor }, i) =>

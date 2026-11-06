@@ -16,7 +16,7 @@
 ## formulas
 - where: every number an event reads is a number or formula over roll data: action amount (dice allowed, rolled when run), condition value and requirement value (no dice; worked out by helpers/amounts.mjs evalAmount, so 'roll min' etc. are stable)
 - valueConditions: stat, mana, rollMin, rollMax, lootGold, floor, floorExact, health, chance, targetSize. A formula that cannot be worked out (missing data, blank, dice) makes the condition false; a requirement then blocks use with Needs.badFormula; an action amount counts as 0 with Warn.BadFormula
-- data (events.mjs eventData(item, ctx)): the owner's actor roll data (@str.mod, @lvl ...; the OWNER of the event, not the actor an action is aimed at), @floor, @rank (item rank, 0 if none), @item.* (item.system; @item.stacks for effects), @target.* (roll data of the target hit/missed), plus the trigger's: @roll.total, @roll.natural (first die), @cost (total paid; @cost.mana .junk .uses .ammo), @trigger.amount|level|rank|actionsLeft (takesDamage damage, levelUp new level, advanced new rank, actionSpent actions left)
+- data (events.mjs eventData(item, ctx)): the owner's actor roll data (@str.mod, @lvl ...; the OWNER of the event, not the actor an action is aimed at), @floor, @rank (item rank, 0 if none), @item.* (item.system; @item.stacks for effects), @target.* (roll data of the target hit/missed), plus the trigger's: @roll.total, @roll.natural (first die), @cost (total paid; @cost.mana .junk .uses .ammo), @trigger.amount|level|rank|actionsLeft|option (takesDamage damage, levelUp new level, advanced new rank, actionSpent actions left, option 1 when a Damage Effect's instead-of-damage tick was set)
 - passed: item.mjs runEvents for used/hit/miss pass paid (what the use paid); attacks.mjs hit events from the card pass no paid
 - fillData (amounts.mjs): puts @paths into a dice formula (objects use .total, negatives bracketed) before Roll rolls it; any unresolved name -> warn, amount 0
 - storage: condition.value and requirement.value are StringFields (old numbers cast to text on load); effect flags and floor rules are schema-less, so they can still hold numbers, evalAmount reads both
@@ -59,6 +59,7 @@
 - targetSize: target sizeClass >= value
 - targetKind: text: crawler|pet|mob|basic|elite|boss
 - restKind: text: short|long|full, 'at least' (long counts as short)
+- damageOption: @trigger.option > 0, i.e. the roll pop-up's instead-of-damage tick of a Damage Effect; offered on used|hit|miss events (a Damage Effect's own used/hit events get it)
 
 ## actions
 - useItem: uuid of an item the owner has; item.roll() at depth+1 (no action cost, no target prompt)

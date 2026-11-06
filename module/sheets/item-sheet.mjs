@@ -12,6 +12,7 @@ import {
   describeUpgrades,
   effectKey,
 } from '../helpers/upgrades.mjs';
+import { cooldownLeft, effectRules } from '../helpers/damage-effects.mjs';
 import {
   knownTags,
   listHasTag,
@@ -103,6 +104,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       removeUpgrade: this._removeUpgrade,
       addChange: this._addChange,
       removeChange: this._removeChange,
+      resetCooldown: this._resetCooldown,
       removeRequirement: this._removeRequirement,
     },
     form: {
@@ -547,9 +549,13 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       context.isFeature = true;
       // A pet's skills use the current floor as their rank, so there's no rank to edit.
       context.rankIsFloor = this.item.parent?.type === 'pet';
+      // (A Damage Effect's changes are only offered on a skill that is one.)
+      const isEffect = !!system.damageEffect?.enabled;
       context.upgradeChangeOptions = Object.fromEntries(
         Object.entries(cfg.upgrades.changes).filter(
-          ([key]) => isSpell || !cfg.upgrades.spellOnly.includes(key)
+          ([key]) =>
+            (isSpell || !cfg.upgrades.spellOnly.includes(key)) &&
+            (isEffect || !cfg.upgrades.damageEffectOnly.includes(key))
         )
       );
       context.upgradeTargetOptions = cfg.checkTargets;
@@ -568,7 +574,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
             ...change,
             index: ci,
             path: `upgrades.${ui}.changes.${ci}`,
-            isFormula: ['damageAdd', 'damageReplace'].includes(change.type),
+            isFormula: ['damageAdd', 'damageReplace', 'deAddDice'].includes(change.type),
             isNumber: [
               'dieStep',
               'manaCost',
@@ -577,6 +583,11 @@ export class CarlRPGItemSheet extends ItemSheetBase {
               'rollBonus',
               'rankDamageBonus',
               'rankDamageStep',
+              'deTotalMultiplier',
+              'deHealthMax',
+              'deSizeMax',
+              'deCooldownHours',
+              'deStunOption',
             ].includes(change.type),
             isTarget: change.type === 'rollTarget',
             isDamageType: change.type === 'damageType',
@@ -612,6 +623,17 @@ export class CarlRPGItemSheet extends ItemSheetBase {
         target: cfg.checkTargets[effective?.target],
         rollBonus: effective?.rollBonus ?? 0,
       };
+      // A Damage Effect's cooldown, for the Attributes tab (hours left, or used this round).
+      if (this.item.type === 'skill' && system.damageEffect?.enabled) {
+        const left = cooldownLeft(system);
+        context.damageEffectState = {
+          kind: (system.damageRules ?? effectRules(system)).cooldown.kind,
+          hours: left.hours,
+          round: left.round,
+          running: left.hours > 0 || left.round,
+          embedded: this.item.isEmbedded,
+        };
+      }
     }
 
     // Backgrounds: the creation categories they can be ticked for, and a warning

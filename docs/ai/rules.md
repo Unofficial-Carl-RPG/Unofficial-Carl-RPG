@@ -8,7 +8,7 @@
   - 3 hotlistOnlySpells setting: spell must be on hotlist (depth 0, GM exempt)
   - 4 checkRequirements(item): warns every unmet requirement
   - 5 uses: needs spans.uses.min uses left
-  - 6 roll pop-up (click only; Shift skips; not for events/macros/mobs): extra bonus (number|dice), stat change, advantage/disadvantage, amount to pay for ranged costs (capped at what user has; Shift pays least)
+  - 6 roll pop-up (click only; Shift skips; not for events/macros/mobs): extra bonus (number|dice), stat change, advantage/disadvantage, Damage Effect (see damageEffects), amount to pay for ranged costs (capped at what user has; Shift pays least)
   - 7 build benefits (advantage, per-stat skill bonus) applied to every roll
   - 8 chooseTargets(item, costData) for non-mob depth 0 (mode count/area; self = no prompt)
   - 9 claim an action in combat (passive skills and depth>0 free; none left -> confirm 'use anyway')
@@ -17,8 +17,8 @@
   - 12 spend the action; Interrupt in react phase sets combatant flag interruptUsed
   - 13 spend uses
   - 14 _rollCore: card with item header (image, name, badges), short description (full expander), reached upgrades; roll posted; AI Favor reroll offered (not on nat 20/1, not to non-crawlers)
-  - 15 resolveCheck: degree vs each target (or Floor DC), damage roll, attack card with buttons
-  - 16 events: rolling skill's 'used', item 'used', per hit 'hit', per miss 'miss'; summaries collected into attack message flags.carl-rpg.attack.fired (GM-only line)
+  - 15 resolveCheck: degree vs each target (or Floor DC), damage roll, attack card with buttons; a chosen Damage Effect is worked out per target here
+  - 16 events: rolling skill's 'used', item 'used', per hit 'hit', per miss 'miss'; summaries collected into attack message flags.carl-rpg.attack.fired (GM-only line); a chosen Damage Effect that changed the attack then starts its cooldown and runs its own used events, and its hit events run for each hit target it worked against
 
 ## checks
 - dc:
@@ -94,8 +94,25 @@
 - holders: skill, spell (by rank), pet (by level)
 - rule: every upgrade with rank <= current rank applies, in rank order then listed order; worked out at use/prepare time from current rank, never written (lower the rank and they vanish)
 - shape: {id, rank, description, changes[{type, value, stat}], grants[uuids, pets], unlocksEffects[identifier|name], events[]}
-- changes: damageAdd (dice/number), damageReplace, dieStep (+/- along dieLadder), manaCost/junkCost/usesCost (move both ends of a ranged cost, floor 0, adds a cost where none), rollBonus, rollTarget (checkTargets id), armorPiercing, damageType, rankDamageBonus/rankDamageStep (whole numbers, see rankDamage)
+- changes: damageAdd (dice/number), damageReplace, dieStep (+/- along dieLadder), manaCost/junkCost/usesCost (move both ends of a ranged cost, floor 0, adds a cost where none), rollBonus, rollTarget (checkTargets id), armorPiercing, damageType, rankDamageBonus/rankDamageStep (whole numbers, see rankDamage); a Damage Effect's de* changes (see damageEffects)
 - ui: sheet description lists all upgrades (locked dimmed), chat card lists only unlocked, Attributes tab shows effective values at current rank. Default new ranks 5,10,15,20 (rank editable, any number).
+
+## damageEffects
+- file: helpers/damage-effects.mjs (pure rules + cooldown updates); pop-up in roll-dialog.mjs promptRoll({damageEffects}); chosen in item.mjs roll(); worked out in attacks.mjs resolveCheck(item, roll, {damageEffect})
+- what: a skill with system.damageEffect.enabled (passive, own rank and upgrades). system.damageEffect.skills lists the attack skills it works with (names or identifiers, comma separated, case-insensitive; the EFFECT holds the list). A weapon that rolls a skill uses that skill. Unarmed Combat is listed by no effect, so it shows no choice.
+- choose: roll pop-up (click, depth 0, not a mob, not Shift) shows a Damage Effect menu: None (default) or one effect the actor owns that lists the skill and is off cooldown. At most one per roll. An effect with the stun option adds a tick 'instead of damage' (no damage is rolled; the item's other numbers stand).
+- rules (effectRules, folded from the upgrades reached at the effect's own rank; rank 1 is the base text so base changes sit in an upgrade at rank 1; later changes override scalars, addDice adds up):
+  - deAddDice: extra dice/number rolled once (crit doubles the dice), added to base damage for each target it works against; @rankDamage reads the EFFECT's rank
+  - deBaseByRank: base dice result x the effect's Rank, then modifiers and buffs are added
+  - deTotalMultiplier: (dice + modifiers + extra + Amazing Floor bonus) x M
+  - deHealthMax: only targets at or under that percent of Health Bar (value/max x 100)
+  - deSameSize, deSizeMax N: target Size Class equal to / at most N above the attacker's (-1 = smaller only)
+  - deCooldownHours H | deCooldownRound | deCooldownNone
+  - deStunOption 1|0: offer / stop offering the instead-of-damage tick
+- perTarget: filters are checked per target; a target that fails them takes the normal damage. Rows store effectApplied. The card headline shows the effect's damage only when it has no filters; the effect's name is always added to the heading when one was chosen. Players DO see the real per-target numbers (decided: no hiding of the multiplier), so a doubled row tells them the target is low.
+- debuffs: the effect's own events apply them (applyEffect 'hit' events run for each hit target the effect worked against; 'used' events once). The damageOption condition lets one event run only when the instead-of-damage tick was set. Popularity loss, throwing and Held are description text only.
+- cooldown: starts only if the effect changed the attack (it worked against a target that was hit; with no targets, only if it has no filters), not merely when chosen. hours: set to the rank's hours, drop by CONFIG.CARL_RPG.damageEffects.restHours on every rest the crawler takes (restActor, takeRest). round: cleared when Cleanup starts (roundEnd) and when the combat ends. Stale state is ignored (cooldownLeft caps hours at the current rank's cooldown, a round flag only counts while the cooldown is a round one). The owner resets it on the effect's Attributes tab. Observers can start one through the GM relay.
+- notes: an effect at rank 0 is still offered but does nothing (its rank 1 base is not reached). AI Favor 'only if no Damage Effect is used' is description text only.
 
 ## targeting
 - file: helpers/targeting.mjs

@@ -85,4 +85,26 @@
       {{localize 'CARL_RPG.Combat.InterruptLabel'}}
     </label>
   </div>
+  {{! A Damage Effect: chosen before rolling to hit with one of the attack skills it lists }}
+  <div class='resource'>
+    <label class='resource-label' data-tooltip='{{localize "CARL_RPG.DamageEffect.Hint"}}'>
+      <input type='checkbox' name='system.damageEffect.enabled' {{checked system.damageEffect.enabled}}{{#unless @root.editable}} disabled{{/unless}} />
+      {{localize 'CARL_RPG.DamageEffect.Label'}}
+    </label>
+    {{#if system.damageEffect.enabled}}
+      <input
+        type='text'
+        name='system.damageEffect.skills'
+        value='{{system.damageEffect.skills}}'
+        placeholder='{{localize "CARL_RPG.DamageEffect.SkillsPlaceholder"}}'
+      />
+      {{#if damageEffectState.running}}
+        <p class='upgrade-now'>
+          <i class='fas fa-hourglass-half'></i>
+          {{#if damageEffectState.hours}}{{localize 'CARL_RPG.DamageEffect.HoursLeft' hours=damageEffectState.hours}}{{else}}{{localize 'CARL_RPG.DamageEffect.RoundLeft'}}{{/if}}
+          {{#if @root.editable}}<a class='event-add' data-action='resetCooldown'>{{localize 'CARL_RPG.DamageEffect.Reset'}}</a>{{/if}}
+        </p>
+      {{/if}}
+    {{/if}}
+  </div>
 </section>
