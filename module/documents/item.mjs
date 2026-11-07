@@ -25,11 +25,13 @@ import {
   drNotes,
   grantTempDR,
   needsSurprise,
+  needsMeleeMod,
   resolveMods,
   selfModOf,
 } from '../helpers/roll-mods.mjs';
 import { describeUpgrades, effectiveOf } from '../helpers/upgrades.mjs';
 import { expandRankDamage } from '../helpers/rank-damage.mjs';
+import { needsMelee, resolveMultipliers } from '../helpers/damage-multiply.mjs';
 import { badgeRowHtml, itemCardHeader, shortTextOf } from '../helpers/item-badges.mjs';
 import { offerAiFavor } from '../helpers/ai-favor.mjs';
 import { isLimited, spendUse, usesLeft } from '../helpers/uses.mjs';
@@ -1176,10 +1178,20 @@ export class CarlRPGItem extends Item {
     const mods = rollPopup && modSkill ? availableMods(this.actor, modSkill, this) : [];
     const selfMod = selfModOf(modSkill);
     const surpriseOption = [...mods, selfMod].some((mod) => mod && needsSurprise(mod));
+    // The damage multipliers this use can reach: the item's own and those of the skill it rolls
+    // with. One that needs melee range shows its tick in the pop-up (helpers/damage-multiply.mjs).
+    const multiplierRows = [
+      ...(effectiveOf(this).multipliers ?? []),
+      ...(modSkill && modSkill !== this ? (effectiveOf(modSkill).multipliers ?? []) : []),
+    ];
+    const meleeOption =
+      rollPopup &&
+      (needsMelee(multiplierRows) || [...mods, selfMod].some((mod) => mod && needsMeleeMod(mod)));
     let chosenEffect = null;
     let effectOption = false;
     let chosenMod = null;
     let surprise = false;
+    let melee = false;
     // An area item that can be placed as more than one shape (upgrades add them) asks which, in
     // the pop-up; Shift uses its first. A Count item whose upgrades add a shape asks too, with
     // "Single target" first; Shift picks single target.
@@ -1232,6 +1244,7 @@ export class CarlRPGItem extends Item {
         })),
         rollMods: mods.map((mod) => ({ id: mod.id, name: mod.name })),
         surpriseOption,
+        meleeOption,
         shapes: shapeChoices,
       });
       if (!chosen) return null;
@@ -1245,6 +1258,7 @@ export class CarlRPGItem extends Item {
         effectOption = !!(chosenEffect && chosen.option);
         chosenMod = mods.find((mod) => mod.id === chosen.rollMod) ?? null;
         surprise = !!chosen.surprise;
+        melee = !!chosen.melee;
       }
     }
     // All the ammunition being spent together (what @cost.ammo reads).
@@ -1265,8 +1279,19 @@ export class CarlRPGItem extends Item {
     const modResult = resolveMods([chosenMod, selfMod].filter(Boolean), {
       mode: rollOptions.mode ?? 'normal',
       surprise,
+      melee,
     });
     if (rolls) rollOptions = addRankBonus(rollOptions, modResult);
+    // The damage multipliers whose condition on the roll holds (degree conditions are read per
+    // target): the item's and rolled skill's own, and those of the Roll Modifiers in play.
+    const multipliers = [
+      ...resolveMultipliers(multiplierRows, {
+        mode: rollOptions.mode ?? 'normal',
+        surprise,
+        melee,
+      }),
+      ...modResult.multipliers,
+    ];
 
     // Targets are picked before anything is spent or rolled, once the amounts to pay are
     // known (a target count can follow them; see helpers/targeting.mjs).
@@ -1336,6 +1361,7 @@ export class CarlRPGItem extends Item {
       modDice: modResult.dice,
       splash,
       paid,
+      multipliers,
     });
     rolling?.restore();
     // What events can read about the roll and the damage (@roll.margin, @damage.total ...).

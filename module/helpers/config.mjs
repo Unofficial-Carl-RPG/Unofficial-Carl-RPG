@@ -292,6 +292,8 @@ CARL_RPG.upgrades = {
     damageType: 'CARL_RPG.Upgrades.Changes.damageType',
     rankDamageBonus: 'CARL_RPG.Upgrades.Changes.rankDamageBonus',
     rankDamageStep: 'CARL_RPG.Upgrades.Changes.rankDamageStep',
+    // Multiply the damage (see helpers/damage-multiply.mjs).
+    damageMultiply: 'CARL_RPG.Upgrades.Changes.damageMultiply',
     // An area's shape and size (only offered on an item that places an area).
     areaShape: 'CARL_RPG.Upgrades.Changes.areaShape',
     areaShapeExtra: 'CARL_RPG.Upgrades.Changes.areaShapeExtra',
@@ -339,6 +341,11 @@ CARL_RPG.upgrades = {
   rollModOnly: ['rmRank', 'rmDice', 'rmDR'],
   // Bonus dice that can name a damage type of their own (and a second one).
   bonusTyped: ['deAddDice', 'rmDice'],
+  // What a damage multiplier can multiply.
+  multiplyScopes: {
+    total: 'CARL_RPG.Upgrades.Scope.total',
+    base: 'CARL_RPG.Upgrades.Scope.base',
+  },
 };
 
 /**
@@ -355,6 +362,7 @@ CARL_RPG.rollMods = {
     disadvantage: 'CARL_RPG.RollMod.When.disadvantage',
     advantage: 'CARL_RPG.RollMod.When.advantage',
     surprise: 'CARL_RPG.RollMod.When.surprise',
+    melee: 'CARL_RPG.RollMod.When.melee',
     hit: 'CARL_RPG.RollMod.When.hit',
     amazing: 'CARL_RPG.RollMod.When.amazing',
     crit: 'CARL_RPG.RollMod.When.crit',
@@ -364,6 +372,8 @@ CARL_RPG.rollMods = {
     rmRank: ['', 'disadvantage', 'advantage', 'surprise'],
     rmDR: ['', 'disadvantage', 'advantage', 'surprise'],
     rmDice: ['', 'disadvantage', 'advantage', 'surprise', 'hit', 'amazing', 'crit', 'miss'],
+    // A damage multiplier of a skill or spell (melee range is a tick in the roll pop-up).
+    damageMultiply: ['', 'disadvantage', 'advantage', 'surprise', 'melee', 'hit', 'amazing', 'crit'],
   },
 };
 

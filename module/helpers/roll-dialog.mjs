@@ -50,11 +50,12 @@ export function statOfFormula(formula) {
  *   Effects that can be chosen (`stun`: the effect offers an "instead of damage" option)
  * @param {{id: string, name: string}[]} [config.rollMods]  The Roll Modifiers that can be chosen
  * @param {boolean} [config.surpriseOption]  Whether to offer the Surprise attack tick
+ * @param {boolean} [config.meleeOption]  Whether to offer the melee range tick (a damage multiplier needs it)
  * @param {{id: string, label: string}[]} [config.shapes]  The shapes an area can be placed as
  *   (offered when there is more than one; the first is the default)
  * @returns {Promise<{bonus: string, stat: string|null, mode: 'normal'|'advantage'|'disadvantage',
  *   costs: Object<string, number>, damageEffect: string, option: boolean, rollMod: string,
- *   surprise: boolean, shape: string}|null>}
+ *   surprise: boolean, melee: boolean, shape: string}|null>}
  */
 export async function promptRoll({
   title,
@@ -65,6 +66,7 @@ export async function promptRoll({
   damageEffects = [],
   rollMods = [],
   surpriseOption = false,
+  meleeOption = false,
   shapes = [],
 }) {
   const abilities = CONFIG.CARL_RPG.abilities;
@@ -138,6 +140,12 @@ export async function promptRoll({
         <label>${esc(t('CARL_RPG.RollDialog.Surprise'))}</label>
         <input type="checkbox" name="surprise">
       </div>`
+      : '') +
+    (meleeOption
+      ? `<div class="form-group">
+        <label>${esc(t('CARL_RPG.RollDialog.Melee'))}</label>
+        <input type="checkbox" name="melee">
+      </div>`
       : '');
 
   // An area item with several shapes (upgrades can add them) asks which one to place.
@@ -210,6 +218,7 @@ export async function promptRoll({
     option: !!(effect?.stun && result[`stun_${effect.id}`]),
     rollMod: rollMods.find((m) => m.id === result.rollMod)?.id ?? '',
     surprise: !!result.surprise,
+    melee: !!result.melee,
     shape: shapes.find((s) => s.id === result.shape)?.id ?? '',
   };
 }

@@ -37,6 +37,9 @@ import { validAmount } from './amounts.mjs';
  *  - splashAdd      add feet to the splash distance (an Area item's, or a Count item's around each target)
  *  - rankDamageBonus  add to the rank that @rankDamage is read at (see rank-damage.mjs)
  *  - rankDamageStep   move @rankDamage that many rows along its table
+ *  - damageMultiply   multiply the damage: `value` is the multiplier, `scope` is `total` or `base`
+ *                   (just the item's own dice), and `when` an optional "Only when" condition (see
+ *                   damage-multiply.mjs)
  *  - rmRank / rmDice / rmDR  a Roll Modifier's changes (see roll-mods.mjs); each has an
  *                   optional `when` condition
  *
@@ -145,6 +148,14 @@ export function changeProblem(change) {
       return value === '' || !validAmount(value);
     case 'damageType':
       return !damageTypes().some((d) => d.id === value);
+    case 'damageMultiply':
+      return (
+        value === '' ||
+        !Number.isFinite(Number(value)) ||
+        !(Number(value) > 0) ||
+        !['', ...Object.keys(CONFIG.CARL_RPG.upgrades.multiplyScopes)].includes(change.scope ?? '') ||
+        whenProblem(change)
+      );
     // A Damage Effect's changes (see damage-effects.mjs).
     case 'deAddDice':
       return !validFormula(value) || rowTypesProblem(change);
@@ -194,6 +205,7 @@ export function changeProblem(change) {
  * @returns {{damage: string, manaCost: number, rollBonus: number,
  *   rankBonus: number, rankStep: number,
  *   target: string, damageType: string, armorPiercing: boolean, areaShape: string,
+ *   multipliers: {value: number, scope: string, when: string}[],
  *   areaShapes: string[], areaSize: string, areaSizeDelta: number, areaExtras: object, splashDelta: number, unlocked: string[]}}
  *   `areaShapes` is the shapes the area can have (the first is the one used without a choice),
  *   `areaSize` the size amount and `areaSizeDelta` the feet added to it. `areaExtras` holds, by
@@ -225,6 +237,8 @@ export function computeEffective(system) {
   const areaExtras = {};
   // What upgrades add to the splash distance.
   let splashDelta = 0;
+  // The damage multipliers (see damage-multiply.mjs).
+  const multipliers = [];
 
   const reached = unlockedUpgrades(system);
   for (const upgrade of reached) {
@@ -286,6 +300,13 @@ export function computeEffective(system) {
         case 'rankDamageStep':
           rankStep += Math.trunc(Number(value));
           break;
+        case 'damageMultiply':
+          multipliers.push({
+            value: Number(value),
+            scope: change.scope === 'base' ? 'base' : 'total',
+            when: change.when ?? '',
+          });
+          break;
       }
     }
   }
@@ -307,6 +328,7 @@ export function computeEffective(system) {
     areaSizeDelta,
     areaExtras,
     splashDelta,
+    multipliers,
     unlocked: reached.map((u) => u.id),
   };
 }
@@ -383,6 +405,7 @@ export function effectiveOf(item) {
       areaSizeDelta: 0,
       areaExtras: {},
       splashDelta: 0,
+      multipliers: [],
       unlocked: [],
     }
   );
@@ -522,6 +545,13 @@ export function summarizeChanges(upgrade, effectNames = [], grantNames = []) {
         break;
       case 'rankDamageStep':
         parts.push(t('CARL_RPG.Upgrades.Summary.rankDamageStep', { value: signed(n) }));
+        break;
+      case 'damageMultiply':
+        parts.push(
+          t(`CARL_RPG.Upgrades.Summary.damageMultiply${change.scope === 'base' ? 'Base' : ''}`, {
+            value,
+          }) + whenSuffix(change)
+        );
         break;
       case 'damageType':
         parts.push(

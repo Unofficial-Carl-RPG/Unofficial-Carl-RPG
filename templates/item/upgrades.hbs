@@ -51,6 +51,12 @@
             {{#if change.isNumber}}
               <input type='number' class='event-value' data-path='{{change.path}}.value' value='{{change.value}}' step='1' />
             {{/if}}
+            {{#if change.isMultiplier}}
+              <input type='number' class='event-value' data-path='{{change.path}}.value' value='{{change.value}}' step='any' min='0' />
+              <select data-path='{{change.path}}.scope' data-tooltip='{{localize "CARL_RPG.Upgrades.Scope.Hint"}}'>
+                {{selectOptions @root.upgradeScopeOptions selected=change.scope localize=true}}
+              </select>
+            {{/if}}
             {{#if change.isTarget}}
               <select data-path='{{change.path}}.value'>
                 {{selectOptions @root.upgradeTargetOptions selected=change.value localize=true}}

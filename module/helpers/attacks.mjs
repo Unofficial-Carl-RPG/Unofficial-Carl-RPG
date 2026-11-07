@@ -40,26 +40,19 @@ import { effectiveOf } from './upgrades.mjs';
 import { damageNumbers, marginOf } from './event-roll.mjs';
 import { expandRankDamage } from './rank-damage.mjs';
 import { damageRollData, withCost } from './cost-damage.mjs';
-import {
-  damageParts,
-  damageTypeLabel,
-  partsLabel,
-  partsMatter,
-  partsTotal,
-  scaleParts,
-} from './damage-types.mjs';
+import { damageTypeLabel, partsLabel, partsTotal, scaleParts } from './damage-types.mjs';
 import { offerAiFavor } from './ai-favor.mjs';
 import { promptRoll, buildFormula, optionsNote } from './roll-dialog.mjs';
 import { applyBenefits, rollBenefits } from './build-mods.mjs';
 import { badgeRowHtml } from './item-badges.mjs';
-import {
-  appliesTo,
-  damageWithEffect,
-  diceSumOf,
-  hasFilters,
-  healthPercentOf,
-} from './damage-effects.mjs';
+import { appliesTo, diceSumOf, hasFilters, healthPercentOf } from './damage-effects.mjs';
 import { degreeMet } from './roll-mods.mjs';
+import {
+  critReplaces,
+  multiplierFor,
+  multiplierNote,
+  targetDamage,
+} from './damage-multiply.mjs';
 
 /**
  * The top of a check or attack card: a badge saying what kind of check it is and what
@@ -176,7 +169,8 @@ export function degreeOf(natural, total, dc) {
  *   The Damage Effect the roller chose (see helpers/damage-effects.mjs); its option trades the
  *   damage away. modDice are the damage dice Roll Modifiers add (see helpers/roll-mods.mjs).
  *   splash lists the token UUIDs that are only in the splash of an area (helpers/splash.mjs);
- *   paid is what the use cost, which damage formulas read as @cost (helpers/cost-damage.mjs)
+ *   paid is what the use cost, which damage formulas read as @cost (helpers/cost-damage.mjs).
+ *   multipliers are the damage multipliers in play (helpers/damage-multiply.mjs)
  * @returns {Promise<{degrees: string[], margin?: number, damage: object|null, hits: Array<{actor: Actor, degree: string, margin?: number, damage: number|null}>}|null>}
  *   null if there is nothing to resolve. margin is an unopposed check's; damage the use's numbers
  *   for events (see helpers/event-roll.mjs); each hit and miss has its own margin, a hit its damage.
@@ -184,7 +178,7 @@ export function degreeOf(natural, total, dc) {
 export async function resolveCheck(
   item,
   roll,
-  { damageEffect = null, modDice = [], splash = [], paid = {} } = {}
+  { damageEffect = null, modDice = [], splash = [], paid = {}, multipliers = [] } = {}
 ) {
   // Mobs never roll a d20: a crawler rolls against the mob's number instead.
   if (item.actor?.type === 'mob') return resolveMobCheck(item, splash);
@@ -206,6 +200,8 @@ export async function resolveCheck(
   const type = checkKind(targetKey);
   const natural = naturalD20(roll);
   const crit = natural === 20;
+  // A multiplier for a Critical Hit takes the place of the critical's x2 on the item's own dice.
+  const critReplaced = crit && critReplaces(multipliers);
 
   // The targets as they are right now.
   const targets = [...game.user.targets]
@@ -235,7 +231,7 @@ export async function resolveCheck(
   if (damaging) {
     try {
       damageRoll = new Roll(withCost(expandRankDamage(effectiveOf(item).damage, item)), rollData);
-      if (crit) damageRoll = damageRoll.alter(2, 0);
+      if (crit && !critReplaced) damageRoll = damageRoll.alter(2, 0);
       await damageRoll.evaluate();
       damage = Math.max(0, Math.floor(damageRoll.total));
       diceSum = diceSumOf(damageRoll);
@@ -302,11 +298,6 @@ export async function resolveCheck(
   }
   const floor = getFloor();
   const effectRank = rankOf(effectItem?.system);
-  // With no filters the effect works against everyone, so the card's headline shows it.
-  const baseHeadline =
-    damaging && rules && !hasFilters(rules)
-      ? damageWithEffect({ total: damage, diceSum, extra, rules, rank: effectRank, applies: true })
-      : damage;
 
   // An unopposed check has one number to reach, whoever is targeted.
   const unopposedDC = type === 'unopposed' ? checkDC(item, null) : null;
@@ -334,22 +325,31 @@ export async function resolveCheck(
   ];
   const ownType = effectiveOf(item).damageType ?? '';
   // A target's damage: the number, and the parts by type when typed dice are in it (the
-  // parts are what resistances read; with none, damage works exactly as it always did).
-  const damageFor = (base, degree, applies) => {
-    const parts = damageParts(base, ownType, typedFor(degree, applies));
-    return partsMatter(parts, ownType)
-      ? { damage: partsTotal(parts), parts }
-      : { damage: base, parts: null };
-  };
+  // parts are what resistances read; with none, damage works exactly as it always did). The
+  // multipliers (helpers/damage-multiply.mjs) are read for the degree of success.
+  const damageFor = (degree, applies, { bonus = 0, multDegree = degree } = {}) =>
+    targetDamage({
+      damage,
+      diceSum,
+      extra,
+      bonus,
+      rules,
+      rank: effectRank,
+      applies,
+      modTotal: modTotalFor(degree),
+      typed: typedFor(degree, applies),
+      ownType,
+      mult: multiplierFor(multipliers, multDegree),
+    });
+  // With no filters the effect works against everyone, so the card's headline shows it.
   const headlineApplies = !!rules && !hasFilters(rules);
+  // (With nothing to read a degree from, the headline counts as a hit, or a Critical Hit on a
+  // natural 20, for the multipliers.)
+  const headlineMult = unopposedDegree ?? (crit ? 'critHit' : 'success');
   const headlineDamage = damaging
-    ? damageFor(
-        baseHeadline + modTotalFor(unopposedDegree ?? 'success'),
-        unopposedDegree ?? 'success',
-        headlineApplies
-      )
+    ? damageFor(unopposedDegree ?? 'success', headlineApplies, { multDegree: headlineMult })
     : null;
-  const headline = headlineDamage ? headlineDamage.damage : baseHeadline;
+  const headline = headlineDamage ? headlineDamage.damage : damage;
 
   const rows = targets.map(({ doc, actor }) => {
     const dc = type === 'unopposed' ? unopposedDC : checkDC(item, actor);
@@ -365,19 +365,7 @@ export async function resolveCheck(
       });
     // An Amazing Success adds the Floor to the damage.
     const dealt = damaging
-      ? damageFor(
-          damageWithEffect({
-            total: damage,
-            diceSum,
-            extra,
-            bonus: degree === 'amazing' ? floor : 0,
-            rules,
-            rank: effectRank,
-            applies,
-          }) + modTotalFor(degree),
-          degree,
-          applies
-        )
+      ? damageFor(degree, applies, { bonus: degree === 'amazing' ? floor : 0 })
       : null;
     return {
       tokenUuid: doc.uuid,
@@ -415,7 +403,8 @@ export async function resolveCheck(
   const usedEffect = usedNames.length ? ` (${usedNames.join(', ')})` : '';
   const heading =
     (damaging
-      ? damageHeading(item, headline, headlineDamage?.parts ?? null)
+      ? damageHeading(item, headline, headlineDamage?.parts ?? null) +
+        multiplierNote(multiplierFor(multipliers, headlineMult))
       : t(`CARL_RPG.Check.Header.${type}`, { stat: targetLabel })) + usedEffect;
   const check = {
     itemName: item.name,

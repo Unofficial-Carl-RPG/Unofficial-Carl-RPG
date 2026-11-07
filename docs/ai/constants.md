@@ -104,7 +104,9 @@
 - defaultRanks: 5, 10, 15, 20
 - rankStep: 5
 - dieLadder: 4, 6, 8, 10, 12, 20
-- changes: damageAdd, damageReplace, dieStep, manaCost, junkCost, usesCost, rollBonus, rollTarget, armorPiercing, damageType, rankDamageBonus, rankDamageStep, areaShape, areaShapeExtra, areaSizeAdd, areaSizeReplace, splashAdd, deAddDice, deBaseByRank, deTotalMultiplier, deHealthMax, deSameSize, deSizeMax, deCooldownHours, deCooldownRound, deCooldownNone, deStunOption, rmRank, rmDice, rmDR
+- changes: damageAdd, damageReplace, dieStep, manaCost, junkCost, usesCost, rollBonus, rollTarget, armorPiercing, damageType, rankDamageBonus, rankDamageStep, areaShape, areaShapeExtra, areaSizeAdd, areaSizeReplace, splashAdd, deAddDice, deBaseByRank, deTotalMultiplier, deHealthMax, deSameSize, deSizeMax, deCooldownHours, deCooldownRound, deCooldownNone, deStunOption, rmRank, rmDice, rmDR, damageMultiply
+- change rows also carry scope (string, default ""): a damageMultiply change's "total" or "base" (blank = total)
+- upgrades.multiplyScopes: total, base (lang CARL_RPG.Upgrades.Scope.*)
 - change rows also carry when (string, default ''): the 'Only when' condition of a Roll Modifier change
 - change rows also carry size (string, default '') and keep (bool): an areaShapeExtra change's own size amount and whether the area's own shape is placed too
 - areaOnly: areaShape, areaShapeExtra, areaSizeAdd, areaSizeReplace (offered on Area targeting); countArea: areaShapeExtra (the only areaOnly change also offered on Count targeting: the item's area version); splashOnly: splashAdd (offered on Count or Area targeting)
@@ -113,8 +115,8 @@
 
 ## rollMods
 - self: the word 'self' in a modifier's skill list means its own use
-- when: ids '' (always), disadvantage, advantage, surprise, hit, amazing, crit, miss
-- allowed: rmRank and rmDR: '', disadvantage, advantage, surprise; rmDice: all of them
+- when: ids '' (always), disadvantage, advantage, surprise, melee, hit, amazing, crit, miss
+- allowed: rmRank and rmDR: '', disadvantage, advantage, surprise; rmDice: all of them; damageMultiply: '', disadvantage, advantage, surprise, melee, hit, amazing, crit
 
 ## damageEffects
 - restHours: short 1, long 8, full 24 (game hours a rest passes for Damage Effect cooldowns; there is no game clock)

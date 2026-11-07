@@ -19,6 +19,9 @@
  *             name a damage type, or two (the roll is split between them): it is then kept
  *             apart from the attack's damage and resisted, stopped or doubled on its own
  *  - rmDR     Damage Resistance for the next damage the crawler takes
+ * A modifier's upgrades can also hold damage multipliers (the `damageMultiply` change, see
+ * damage-multiply.mjs): they apply to the attacks the modifier is used with, like its dice, and
+ * can only be conditioned on the roll (mode, Surprise, melee range) or on each target's degree.
  * Conditions (CONFIG.CARL_RPG.rollMods): the roll's mode (disadvantage, advantage), a
  * Surprise attack (a tick in the pop-up) and, for damage dice only, the degree of success
  * against each target (hit, amazing or better, critical hit, miss).
@@ -58,12 +61,23 @@ export const isRollMod = (item) => item?.type === 'skill' && !!item.system?.roll
  * What a modifier does at its current rank.
  * @param {object} system  The modifier skill's system data (rank, upgrades)
  * @returns {{rank: {when: string}[], dice: {formula: string, when: string}[],
- *   dr: {amount: number, when: string}[]}}
+ *   dr: {amount: number, when: string}[],
+ *   multiply: {value: number, scope: string, when: string}[]}}
  */
 export function modRules(system) {
-  const rules = { rank: [], dice: [], dr: [] };
+  const rules = { rank: [], dice: [], dr: [], multiply: [] };
   for (const upgrade of unlockedUpgrades(system)) {
     for (const change of upgrade.changes ?? []) {
+      if (change.type === 'damageMultiply') {
+        if (!changeProblem(change)) {
+          rules.multiply.push({
+            value: Number(change.value),
+            scope: change.scope === 'base' ? 'base' : 'total',
+            when: change.when ?? '',
+          });
+        }
+        continue;
+      }
       if (!MOD_CHANGES.includes(change.type) || changeProblem(change)) continue;
       const when = change.when ?? '';
       const value = String(change.value ?? '').trim();
@@ -86,7 +100,7 @@ export function whenOptionsFor(type) {
 }
 
 /** Whether a condition on the roll itself holds ('' and degree conditions always do here). */
-export function whenMet(when, { mode = 'normal', surprise = false } = {}) {
+export function whenMet(when, { mode = 'normal', surprise = false, melee = false } = {}) {
   switch (when) {
     case 'disadvantage':
       return mode === 'disadvantage';
@@ -94,6 +108,8 @@ export function whenMet(when, { mode = 'normal', surprise = false } = {}) {
       return mode === 'advantage';
     case 'surprise':
       return !!surprise;
+    case 'melee':
+      return !!melee;
     default:
       return true;
   }
@@ -119,6 +135,12 @@ export function degreeMet(when, degree) {
 export function needsSurprise(mod) {
   const rules = mod?.system?.rollModRules ?? modRules(mod.system);
   return [...rules.rank, ...rules.dice, ...rules.dr].some((row) => row.when === 'surprise');
+}
+
+/** Whether a modifier has a damage multiplier that only works at melee range. */
+export function needsMeleeMod(mod) {
+  const rules = mod?.system?.rollModRules ?? modRules(mod.system);
+  return (rules.multiply ?? []).some((row) => row.when === 'melee');
 }
 
 /*  Which modifiers apply                       */
@@ -163,24 +185,30 @@ export const selfModOf = (skill) => (isRollMod(skill) && appliesToSelf(skill) ? 
 /**
  * Fold the active modifiers for one roll.
  * @param {Item[]} mods  The modifiers in play (the chosen one, the skill itself)
- * @param {{mode?: string, surprise?: boolean}} roll  The roll's final mode and the Surprise tick
+ * @param {{mode?: string, surprise?: boolean, melee?: boolean}} roll  The roll's final mode and the
+ *   Surprise and melee range ticks
  * @returns {{rank: {id: string, name: string, amount: number}[],
  *   dr: {id: string, name: string, amount: number}[],
- *   dice: {item: Item, name: string, formula: string, when: string, types: string[]}[]}}
+ *   dice: {item: Item, name: string, formula: string, when: string, types: string[]}[],
+ *   multipliers: {value: number, scope: string, when: string}[]}}
  *   Dice rows keep a degree condition: it is checked against each target later.
  */
-export function resolveMods(mods, { mode = 'normal', surprise = false } = {}) {
-  const out = { rank: [], dr: [], dice: [] };
+export function resolveMods(mods, { mode = 'normal', surprise = false, melee = false } = {}) {
+  const out = { rank: [], dr: [], dice: [], multipliers: [] };
   for (const mod of mods) {
     const rules = mod.system.rollModRules ?? modRules(mod.system);
     const rank = Math.max(0, Math.trunc(Number(rankOf(mod.system)) || 0));
-    const ctx = { mode, surprise };
+    const ctx = { mode, surprise, melee };
     const base = { id: mod.id, name: mod.name };
     for (const row of rules.rank) {
       if (rank > 0 && whenMet(row.when, ctx)) out.rank.push({ ...base, amount: rank });
     }
     for (const row of rules.dr) {
       if (row.amount > 0 && whenMet(row.when, ctx)) out.dr.push({ ...base, amount: row.amount });
+    }
+    // (degree conditions of a multiplier are read per target, with the attack)
+    for (const row of rules.multiply ?? []) {
+      if (whenMet(row.when, ctx)) out.multipliers.push({ ...row });
     }
     for (const row of rules.dice) {
       if (row.formula && whenMet(row.when, ctx)) {

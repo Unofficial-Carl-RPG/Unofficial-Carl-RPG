@@ -582,6 +582,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
         )
       );
       context.upgradeTargetOptions = cfg.checkTargets;
+      context.upgradeScopeOptions = cfg.upgrades.multiplyScopes;
       context.upgradeShapeOptions = cfg.areaShapes;
       context.upgradeCountItem = isCount;
       // The type menus of a bonus row: blank is "the attack's type" / "no second type".
@@ -627,6 +628,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
               'deStunOption',
               'rmDR',
             ].includes(change.type),
+            isMultiplier: change.type === 'damageMultiply',
             isTarget: change.type === 'rollTarget',
             isShape: ['areaShape', 'areaShapeExtra'].includes(change.type),
             isExtra: change.type === 'areaShapeExtra',

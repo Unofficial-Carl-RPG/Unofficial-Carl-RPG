@@ -62,7 +62,7 @@ const CATCHER = [up(5, ['rmDR', 5]), up(10, ['rmDR', 5]), up(15, ['rmDR', 5])];
 
 test('rules are folded from the upgrades reached at the modifier\'s rank', () => {
   const at = (rank) => modRules({ rank, upgrades: AIMING });
-  assert.deepEqual(at(0), { rank: [], dice: [], dr: [] });
+  assert.deepEqual(at(0), { rank: [], dice: [], dr: [], multiply: [] });
   assert.deepEqual(at(1).rank, [{ when: 'disadvantage' }]);
   assert.deepEqual(at(1).dice, [{ formula: '1d4', when: 'hit' }]);
   assert.equal(at(5).dice.length, 2);
@@ -78,7 +78,7 @@ test('a change with a bad value or a condition its kind cannot use is skipped', 
       up(1, ['rmRank', '', 'hit'], ['rmDice', '', ''], ['rmDR', -2], ['rmDR', 'x'], ['rmDice', '1d4', 'bogus'], ['rmDice', '1d6', 'miss']),
     ],
   });
-  assert.deepEqual(rules, { rank: [], dice: [{ formula: '1d6', when: 'miss' }], dr: [] });
+  assert.deepEqual(rules, { rank: [], dice: [{ formula: '1d6', when: 'miss' }], dr: [], multiply: [] });
 });
 
 test('changes are checked and described', () => {
@@ -196,7 +196,7 @@ test('Aiming: its Rank is added only with Disadvantage, and 1d4 per reached upgr
 
   // A rank of 0 adds nothing; the build's advantage cancelling Disadvantage is the caller's mode.
   const zero = mod('Aiming', 0, AIMING, 'Ranged Attacks');
-  assert.deepEqual(resolveMods([zero], { mode: 'disadvantage' }), { rank: [], dr: [], dice: [] });
+  assert.deepEqual(resolveMods([zero], { mode: 'disadvantage' }), { rank: [], dr: [], dice: [], multipliers: [] });
 });
 
 test('Ambush and Cesta Punta add their own rank die; Ambush only on a Surprise attack', () => {

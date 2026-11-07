@@ -63,6 +63,7 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
           rollTarget: 'evade',
           damageType: damageTypes()[0]?.id ?? '',
           rmDR: '5',
+          damageMultiply: '2',
           areaShape: 'cone',
           areaShapeExtra: 'cone',
           areaSizeAdd: '5',
@@ -76,6 +77,11 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
         );
         // (and no "Only when" condition, which not every kind of change has)
         foundry.utils.setProperty(system, path.replace(/\.type$/, '.when'), '');
+        foundry.utils.setProperty(
+          system,
+          path.replace(/\.type$/, '.scope'),
+          value === 'damageMultiply' ? 'total' : ''
+        );
         foundry.utils.setProperty(system, path.replace(/\.type$/, '.bonusType'), '');
         foundry.utils.setProperty(system, path.replace(/\.type$/, '.bonusAlso'), '');
         // (nor an added shape's own size or keeping the base)

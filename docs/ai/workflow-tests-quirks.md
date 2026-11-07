@@ -46,11 +46,11 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 379).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 401).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 379 pass)
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 401 pass)
 - stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node
 
 ## files
@@ -67,6 +67,7 @@
 - combat.test.mjs: degrees, damage, phases, declarations
 - costs.test.mjs: cost spans/labels
 - cost-damage.test.mjs: damage formulas reading @cost (bare @cost, roll data, Magic Missile at each Mana choice and rank)
+- damage-multiply.test.mjs: damageMultiply upgrade change (validity, rank unlock, the reference skills), roll/degree conditions, highest row wins, base vs total, typed parts resisted after multiplying, Roll Modifier rows
 - damage-effects.test.mjs: Damage Effect rules per rank, per-target filters, damage maths, who can choose what, cooldowns
 - damage-types.test.mjs: damage types and modes
 - typed-bonus.test.mjs: bonus dice with their own damage type: row types, even split of mixed types, damage parts, resist/immune/vulnerable per part, DR after the sum, untyped rows unchanged
@@ -100,3 +101,4 @@
 - id=hardcoded-english; severity=i18n; detail=A few warnings bypass lang/en.json: combat.mjs refillCombatActions ('Only the GM can refill actions.'), carl-rpg.mjs createDocMacro / rollItemMacro warnings.
 - id=mob-loot-dead-export; severity=dead-code; detail=mob-loot.mjs giveMobLoot(mob, crawler) is not called from module code (pickCrawlerAndLoot -> makeMobPile only), so direct-to-crawler looting is unreachable from the UI.
 - id=event-trust-on-edit; severity=note; detail=eventsTrusted is set only when a GM saves (_preCreate/_preUpdate); player-edited events on items they own cannot touch other actors or run GM macros until approved. Migration saves carry carlMigration and skip this.
+- id=typed-dice-same-type-lost; severity=bug; where=helpers/damage-types.mjs damageParts + attacks.mjs (via damage-multiply.mjs targetDamage); detail=A typed bonus die whose type is the same as the attack's own damage type merges into the own-type part, so partsMatter is false and the per-target damage falls back to the untyped total, dropping the typed die's amount. Kept as it was by the damage multiplier work; not fixed.
