@@ -70,6 +70,11 @@ export function newAction(extra = {}) {
     skipIfHas: true,
     hidden: false,
     joinCombat: true,
+    duration: '0',
+    limit: '0',
+    sizeClass: '',
+    levelMax: '',
+    health: '',
     ignoreDR: false,
     ask: false,
     text: '',
@@ -234,14 +239,15 @@ export async function buildEventRows(events, base) {
                 ? 'effect'
                 : a.type === 'rollTable'
                   ? 'table'
-                  : a.type === 'addToken'
+                  : a.type === 'addToken' || (a.type === 'summon' && (a.mode || 'place') === 'place')
                     ? 'actor'
                     : 'item';
           const needsDrop =
             ['useItem', 'macro', 'toggleEffect', 'applyEffect', 'addItem', 'addToken', 'awardAchievement', 'grantSkill', 'rollTable'].includes(
               a.type
             ) ||
-            (a.type === 'removeItem' && !a.selfItem);
+            (a.type === 'removeItem' && !a.selfItem) ||
+            (a.type === 'summon' && (a.mode || 'place') === 'place');
           return {
             ...a,
             index: ai,
@@ -255,6 +261,10 @@ export async function buildEventRows(events, base) {
             fixedTarget: a.type === 'applyEffect',
             isAddItem: a.type === 'addItem',
             isAddToken: a.type === 'addToken',
+            isSummon: a.type === 'summon',
+            summonPlace: a.type === 'summon' && (a.mode || 'place') === 'place',
+            summonRaise: a.type === 'summon' && a.mode === 'raise',
+            summonCopy: a.type === 'summon' && a.mode === 'copy',
             isRemoveItem: a.type === 'removeItem',
             isMana: a.type === 'mana',
             isHealth: a.type === 'health',
@@ -273,16 +283,17 @@ export async function buildEventRows(events, base) {
               'gold',
               'aiFavor',
               'grantSkill',
+              'summon',
             ].includes(a.type),
             // Who it affects: not for a macro (it runs once), the hit target, or
             // another event (which has its own actions).
-            canChooseTarget: !['macro', 'applyEffect', 'runEvent', 'addToken'].includes(a.type),
+            canChooseTarget: !['macro', 'applyEffect', 'runEvent', 'addToken', 'summon'].includes(a.type),
             showSpecificActor:
-              !a.targetGroup && !['macro', 'applyEffect', 'runEvent', 'addToken'].includes(a.type),
+              !a.targetGroup && !['macro', 'applyEffect', 'runEvent', 'addToken', 'summon'].includes(a.type),
             needsDrop,
             docAccept: accept,
             docName: doc?.name,
-            dropHint: a.type === 'addToken' ? 'CARL_RPG.Events.Drop.tokenActor' : `CARL_RPG.Events.Drop.${accept}`,
+            dropHint: accept === 'actor' ? 'CARL_RPG.Events.Drop.tokenActor' : `CARL_RPG.Events.Drop.${accept}`,
             docMissing: !!a.uuid && !doc,
             targetName: target?.name ?? (a.targetActor ? a.targetActor : ''),
             targetMissing: !!a.targetActor && !target,
@@ -321,6 +332,7 @@ export function eventOptions(triggers) {
     actionsModes: cfg.actionsModes,
     goldModes: cfg.goldModes,
     aiFavorModes: cfg.aiFavorModes,
+    summonModes: cfg.summonModes,
     targetGroups: cfg.eventTargetGroups,
     targetKinds: cfg.eventTargetKinds,
     restKinds: cfg.eventRestKinds,

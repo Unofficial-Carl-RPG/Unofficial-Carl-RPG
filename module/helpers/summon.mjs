@@ -100,7 +100,7 @@ function importedCopy(source) {
 }
 
 /** The combat on a scene that new tokens can join. */
-function combatOn(scene) {
+export function combatOn(scene) {
   const all = game.combats?.contents ?? [...(game.combats ?? [])];
   return all.find((c) => c.scene?.id === scene.id && (c.active || c === game.combat)) ?? null;
 }
@@ -127,7 +127,7 @@ export function canPlaceDirectly(source, anchor, joinCombat) {
 }
 
 /** A world actor for a token: a compendium actor is imported once, then reused. */
-async function worldActor(source) {
+export async function worldActor(source) {
   if (!source.inCompendium) return source;
   return (
     importedCopy(source) ??

@@ -558,6 +558,7 @@ CARL_RPG.eventActions = {
   applyEffect: 'CARL_RPG.Events.Actions.applyEffect',
   addItem: 'CARL_RPG.Events.Actions.addItem',
   addToken: 'CARL_RPG.Events.Actions.addToken',
+  summon: 'CARL_RPG.Events.Actions.summon',
   awardAchievement: 'CARL_RPG.Events.Actions.awardAchievement',
   revive: 'CARL_RPG.Events.Actions.revive',
   grantSkill: 'CARL_RPG.Events.Actions.grantSkill',
@@ -584,6 +585,12 @@ CARL_RPG.aiFavorModes = {
   award: 'CARL_RPG.Events.AiFavorModes.award',
   spend: 'CARL_RPG.Events.AiFavorModes.spend',
 };
+/** What a Summon action does (see helpers/minions.mjs). */
+CARL_RPG.summonModes = {
+  place: 'CARL_RPG.Events.SummonModes.place',
+  raise: 'CARL_RPG.Events.SummonModes.raise',
+  copy: 'CARL_RPG.Events.SummonModes.copy',
+};
 /**
  * Who an action can affect. Blank is the owner of the item or effect (or the actor
  * dropped on the action, if there is one).
@@ -595,6 +602,7 @@ CARL_RPG.eventTargetGroups = {
   targeted: 'CARL_RPG.Events.TargetGroups.targeted',
   burst: 'CARL_RPG.Events.TargetGroups.burst',
   pets: 'CARL_RPG.Events.TargetGroups.pets',
+  minions: 'CARL_RPG.Events.TargetGroups.minions',
   master: 'CARL_RPG.Events.TargetGroups.master',
 };
 
@@ -737,6 +745,12 @@ CARL_RPG.sizeOptions = () =>
       `${game.i18n.localize(label)} (${index + 1})`,
     ])
   );
+
+/**
+ * How many grid squares wide a token is for a Size Class (1 Tiny .. 8 Gargantuan). A Summon that
+ * sets a Size Class uses it for the placed token (see helpers/minions.mjs).
+ */
+CARL_RPG.sizeFootprint = { 1: 1, 2: 1, 3: 1, 4: 1, 5: 2, 6: 3, 7: 4, 8: 5 };
 
 /**
  * The phases of a combat round, in order. `side` is who acts in that phase

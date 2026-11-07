@@ -33,7 +33,7 @@
 - rolls: rollMobLoot: junk (number|dice), gold (number|dice, blank = none), each item rolls its own percent chance. Stacks like store purchases. Gold is tithed.
 - delivery: The Loot button (mob sheet and tracker) calls pickCrawlerAndLoot, which only calls makeMobPile: a native loot pile actor + token is made and the mob tokens link to it. Crawlers in the combat open the pile and claim items one click at a time; gold/junk is shared evenly or taken (remainder to the first). giveMobLoot (direct to one crawler) is exported but not called from module code.
 - drop: dropping an item on the canvas makes a pile (GM directly; an owner asks the GM client). An item from a crawler leaves one at a time; items with no compendium source are copied into the world.
-- needsLoot: a mob counts as looted once Loot was used; mobs with no loot set are left out of reminders
+- needsLoot: a mob counts as looted once Loot was used; mobs with no loot set are left out of reminders; temporary summons (Summon place/copy) are left out too
 
 ## stores
 - files: helpers/store.mjs, sheets/item-sheet-store-quest-loot.mjs, templates/sidebar/store-window.hbs

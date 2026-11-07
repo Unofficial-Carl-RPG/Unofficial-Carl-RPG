@@ -122,6 +122,8 @@
 - recapped / advance: recap bookkeeping
 - relays: updateRelay, eventRelay, libraryRelay, lootRequest, lootResponse, mobCheckRelay, pileRelay, storeBuy, storeOpen, storeSell (whispered, handled and deleted by the active GM client)
 
+- summon: temporary summon / raised mob marker on the token actor (delta for unlinked tokens): {mode place|raise|copy, key, itemUuid, itemName, casterUuid, casterName, at, lasts, roundsLeft, side, owners, before}; see events.md summon
+
 ## measuredTemplate
 - area: {roundsLeft, kind, ...} lasting area bookkeeping
 

@@ -8,6 +8,7 @@
  */
 import { CarlRPGDialog } from './dialog.mjs';
 import { grantStoreItem } from './store.mjs';
+import { isTempSummon } from './minion-side.mjs';
 import { titheOf } from './tithe.mjs';
 
 /** Whether a mob has anything to loot. */
@@ -20,6 +21,7 @@ export function hasLoot(mob) {
 export function needsLoot(actor) {
   return (
     actor.type === 'mob' &&
+    !isTempSummon(actor) &&
     actor.statuses.has('dead') &&
     hasLoot(actor) &&
     !actor.system.loot.looted

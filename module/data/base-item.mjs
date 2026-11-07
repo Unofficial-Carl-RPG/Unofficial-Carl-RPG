@@ -47,6 +47,16 @@ export function eventsField() {
             // "Add a token to the scene": place it hidden, and join the combat on that scene.
             hidden: new fields.BooleanField({ initial: false }),
             joinCombat: new fields.BooleanField({ initial: true }),
+            // "Summon" (its mode place|raise|copy is `mode`). Each is a number or a formula over roll data:
+            // rounds before it ends (0: when the combat ends), the most the caster can have from the
+            // spell at once (0: no limit), the Size Class of what is placed (blank: the Actor's own),
+            // the highest level a raised Mob may have (blank: any) and the fraction of its max health
+            // it comes back with (blank: full).
+            duration: requiredString('0'),
+            limit: requiredString('0'),
+            sizeClass: requiredString(),
+            levelMax: requiredString(),
+            health: requiredString(),
             ignoreDR: new fields.BooleanField({ initial: false }),
             // Ask the player first, and skip the action if they say no.
             ask: new fields.BooleanField({ initial: false }),

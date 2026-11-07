@@ -74,7 +74,7 @@
 - buyAction: crawler spends 1 AI Favor for +1 action this round, once per round per crawler, crawler side only, not Dying; plus button on tracker pips and sheet; whispered to GM; cleared at cleanup.
 - declarations: In declare phase GM uses mob ability -> stored (targets chosen via chooseTargets, kept on combat flag declarations {combatantId:[{id, kind ability|move, itemUuid, itemName, note, targets[], resolved}]}). Cap = combatant.maxActions. GM can declare a movement with a note. Announced to chat when react starts (never numbers); resolved in order by the GM client when resolve starts (ability -> item.roll(null,{declared:true}); move -> spends an action and posts); cleared when cleanup starts. Declarations only target tokens on the mob's own scene.
 - defeat: mob at 0 health: defeatMob removes from all combats; Crawler-type follows Dying. End-of-combat GM whisper lists defeated, unlooted, loot-bearing mobs from THAT combat; tracker shows the same list with Loot buttons.
-- sideOf: mob side = actor type mob; everything else (crawler, pet, mount) crawler side
+- sideOf: mob side = actor type mob; everything else (crawler, pet, mount) crawler side; a summon flag side overrides it (helpers/minion-side.mjs sideOfActor: a raised mob is crawler side)
 
 ## dying
 - who: crawlers and Crawler-kind mobs

@@ -1,4 +1,5 @@
 import { hasLoot } from '../helpers/mob-loot.mjs';
+import { summonFlag } from '../helpers/minion-side.mjs';
 import { canLevelUp } from '../helpers/level-up.mjs';
 import {
   classRoleOf,
@@ -552,8 +553,11 @@ export class CarlRPGActorSheet extends ActorSheetBase {
     }
     // Crawler Killer skulls shown beside the name (crawlers and crawler mobs).
     context.skulls = killSkulls(this.actor);
-    // A mob's Evade and DR are seen by the GM and by anyone with Observer on the sheet.
-    context.seesMobNumbers = game.user.isGM || this.actor.testUserPermission(game.user, 'OBSERVER');
+    // A mob's Evade and DR are seen by the GM and by anyone with Observer on the sheet, except a
+    // Mob that fights for the crawlers (a raised Mob): its owner never sees its numbers.
+    context.seesMobNumbers =
+      game.user.isGM ||
+      (this.actor.testUserPermission(game.user, 'OBSERVER') && !(this.actor.type === 'mob' && summonFlag(this.actor)));
     context.stars = bossStars(this.actor);
     context.killBadge = context.skulls.count + context.stars.count > 0;
     context.starsEditable = this.editMode && game.user.isGM && this.actor.type === 'crawler';

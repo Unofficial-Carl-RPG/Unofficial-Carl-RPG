@@ -43,6 +43,7 @@ import { registerPetUpgrades } from './helpers/pet-upgrades.mjs';
 import { registerRelay } from './helpers/relay.mjs';
 import { registerStores } from './helpers/store.mjs';
 import { registerMobLoot } from './helpers/mob-loot.mjs';
+import { registerMinions } from './helpers/minions.mjs';
 import { registerJournalEnrichers } from './helpers/journal.mjs';
 import { CarlRPGActorDirectory } from './helpers/crawler-summary.mjs';
 import { registerGroupChecks } from './helpers/group-check.mjs';
@@ -129,6 +130,7 @@ Hooks.once('init', function () {
   registerRelay();
   registerStores();
   registerMobLoot();
+  registerMinions();
   // Journal live values (@Floor, @Party, @DaysLeft).
   registerJournalEnrichers();
   // Group checks: the GM's card, each crawler's Roll, and the overall result.

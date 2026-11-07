@@ -69,6 +69,14 @@
 - applyEffect: same handler but for 'the target that was hit': NEVER automatic; adds an Apply button for that target on the attack card, GM clicks (queueEffect/applyQueuedEffect)
 - addItem: uuid Item; amount; stacks quantity into existing; skipIfHas
 - addToken: uuid Actor; amount; hidden; joinCombat. Tokens fill nearest free cells around the user's first targeted token else the owner's token; never on another token; join combat only if one exists on that scene (never starts one). Direct placement needs create-token permission + owning actor/combat, else GM client (needs trusted events). Compendium actor imported once.
+- summon: mode place|raise|copy; amount (count; default 2 for copy, 1 otherwise); duration (rounds, formula over roll data; 0 = until combat ends); limit (formula; 0 = none; over the limit the oldest of the same spell (key = item identifier else uuid) and caster ends first); hidden; joinCombat. addToken is unchanged.
+  - place: uuid Actor, placed like addToken (nearest free cells, never stacked, unlinked token, same trust/GM-relay rules); sizeClass formula (blank = actor size) sets the size class and token footprint (CONFIG.CARL_RPG.sizeFootprint 1-4:1, 5:2, 6:3, 7:4, 8:5 squares).
+  - raise: first targeted token must be a defeated non-crawler mob; levelMax formula (blank = any) over roll data, else warn SummonTooHigh without numbers; revived in place with health formula fraction of max (blank = full; 0.5 = half rounded down, min 1), FRIENDLY disposition, caster's player owners get Owner, crawler side; ends: health 0 + defeatMob, owners/disposition restored.
+  - copy: first targeted token must be a pet or live summon of the owner (isPetOrMinion); amount full unlinked copies (named "Name (2)"...) with the actor data, items and effects, in free cells; removed at expiry.
+  - marker: flags.carl-rpg.summon on the token actor (delta) {mode,key,itemUuid,itemName,casterUuid,casterName,at,lasts,roundsLeft,side,owners,before}; helpers/minion-side.mjs (pure) reads it, helpers/minions.mjs does the work.
+  - ending: each Cleanup phase (carlrpg.cleanupPhase) on the active GM client ticks roundsLeft, ends at <1; Combat._preDelete and deleteCombat end the rest (a summon with no combat waits for one and ends with it). Placed/copied tokens are deleted, a raised mob goes down again; a mob killed early stays defeated until combat ends. Chat note on each end.
+  - loot: temp summons (place/copy) never count in needsLoot; raised mobs still do. A raised mob counts as crawler side (sideOfActor) and is hidden from mob numbers for non-GMs (seesMobNumbers).
+  - relay: players run raise or limited summons through the GM client (eventRelay, anchorUuid; needs trusted events); the GM recomputes the plan.
 - awardAchievement: uuid achievement; once (held = skip); reward box pays on grant
 - revive: dead crawler back with 1 health box, no Dying, not put back in combat
 - grantSkill: uuid skill; amount = ranks; absent -> added at that rank, present -> raised; permanent (flag raised); stops at skill cap; whisper to owner+GM
@@ -89,6 +97,7 @@
 - targeted: user's Foundry targets (without the tokens only in the item's splash unless its splash applies effects)
 - burst: everything the use reached: the targeted tokens plus the tokens in the splash of a Count item's targets, or in and around a placed area, whether or not the item's splash applies effects; the same as targeted when there is no splash. Falls back to the user's Foundry targets; travels with a relayed request (ctx.burst, targetUuids). To heal a burst (Heal Others rank 15): put the heal actions on burst and add a splashAdd of 20 to the rank 15 upgrade.
 - pets: owner's pets
+- minions: owner's pets plus live summons of the owner (Heal Critter, Clockwork Triplicate)
 - master: a pet's owner
 
 - limits: CONFIG.CARL_RPG.maxEventDepth = 5 (warns TooDeep). Action failures are caught per action and warned.

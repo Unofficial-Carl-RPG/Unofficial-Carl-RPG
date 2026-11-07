@@ -47,6 +47,8 @@ import { getFloorRules } from './floor.mjs';
 import { logEvent } from './change-log.mjs';
 import { revive } from './dying.mjs';
 import { findAnchor, canPlaceDirectly, placeTokens } from './summon.mjs';
+import { sideOfActor } from './minion-side.mjs';
+import { executeSummon, isPetOrMinion, levelAllowed, minionActors, modeOf, summonKey } from './minions.mjs';
 import { evalAmount, fillData } from './amounts.mjs';
 import { expandRankDamage, usesRankDamage } from './rank-damage.mjs';
 import { costPaidData } from '../data/costs.mjs';
@@ -234,7 +236,7 @@ export function groupActors(group, owner, ctx) {
   // Floor rules have no owner: they only reach the crawlers.
   if (group === 'crawlers') return game.actors.filter((a) => a.type === 'crawler');
   if (!owner) return [];
-  const side = (a) => (a.type === 'mob' ? 'mob' : 'crawler');
+  const side = (a) => sideOfActor(a);
   const inPlay = () => {
     const combat = game.combat;
     if (combat?.started) {
@@ -259,6 +261,9 @@ export function groupActors(group, owner, ctx) {
       return owner.type === 'crawler'
         ? game.actors.filter((a) => a.type === 'pet' && a.system.owner === owner.id)
         : [];
+    case 'minions':
+      // (The owner's pets and the live summons they made: what "heal pets and minions" reaches.)
+      return minionActors(owner);
     case 'master': {
       const master = owner.type === 'pet' ? game.actors.get(owner.system.owner) : null;
       return master ? [master] : [];
@@ -275,10 +280,10 @@ export function groupActors(group, owner, ctx) {
 async function resolveTargets(action, owner, ctx = {}) {
   let actors;
   // A floor rule with no target affects every crawler.
-  if (ctx.world && !action.targetGroup && !action.targetActor && !['applyEffect', 'macro', 'addToken'].includes(action.type)) {
+  if (ctx.world && !action.targetGroup && !action.targetActor && !['applyEffect', 'macro', 'addToken', 'summon'].includes(action.type)) {
     actors = groupActors('crawlers', owner, ctx);
   } else if (action.type === 'applyEffect') actors = [ctx.target].filter(Boolean);
-  else if (action.type === 'macro' || action.type === 'addToken') actors = [owner];
+  else if (['macro', 'addToken', 'summon'].includes(action.type)) actors = [owner];
   else if (action.targetGroup) actors = groupActors(action.targetGroup, owner, ctx);
   else if (action.targetActor) {
     const doc = await fromUuid(action.targetActor);
@@ -591,6 +596,16 @@ const HANDLERS = {
     const count = await rollAmount(action.amount || '1', eventData(item, ctx), item);
     if (count < 1) return;
     await placeTokens({ source, anchor, count, hidden: !!action.hidden, joinCombat: !!action.joinCombat });
+  },
+
+  /**
+   * Summon (see performSummon). Reached here on the GM's client with a relayed request, which
+   * brings the token it works next to or on in the context.
+   */
+  async summon({ item, action, ctx }) {
+    const plan = await planSummon(item, action, ctx);
+    if (plan.error) return warn(plan.error, plan.data);
+    await executeSummon(plan);
   },
 
   /** Give the target an achievement, once. A new one pays its loot box (see items). */
@@ -966,6 +981,7 @@ async function performAction(item, event, index, ctx) {
   if (action.type === 'applyEffect') return queueEffect(item, event, index, ctx);
   if (action.ask && !ctx.world && !(await askFirst(item, action, ctx))) return;
   if (action.type === 'addToken') return performAddToken(item, event, index, ctx);
+  if (action.type === 'summon') return performSummon(item, event, index, ctx);
 
   // The targeted tokens belong to whoever triggered this, so they are worked out
   // here and travel with the request if it goes to the GM.
@@ -1000,6 +1016,101 @@ async function performAddToken(item, event, index, ctx) {
     return HANDLERS.addToken({ item, event, action, actor: ctx.actor, ctx: full });
   }
   await relayToGM(item, event, index, full, []);
+}
+
+/** A summon formula: blank gives `blank`; one that can't be read, or needs data that isn't there, is an error. */
+function summonNumber(text, data, blank) {
+  const source = String(text ?? '').trim();
+  if (!source) return { value: blank };
+  const value = evalAmount(source, data);
+  return value === null ? { error: 'CARL_RPG.Events.Warn.BadFormula', data: { formula: source } } : { value };
+}
+
+/** The first token this user has targeted. */
+function firstTargeted() {
+  for (const token of [...(game.user.targets ?? [])]) {
+    const doc = token?.document ?? token;
+    if (doc?.parent) return doc;
+  }
+  return null;
+}
+
+/**
+ * Work out a "Summon": which token it works next to or on, how many, for how long, the
+ * limit, the size, and whether the target is allowed. Returns {error, data} (a warning key
+ * and its values) when it can't go ahead. Rolled and worked out once, on the client that
+ * carries it out, from the stored action and the roll data.
+ */
+async function planSummon(item, action, ctx) {
+  const mode = modeOf(action);
+  const caster = ctx.actor;
+  if (!caster) return { error: 'CARL_RPG.Events.Warn.NeedsActor' };
+  let anchor = null;
+  if (ctx.anchorUuid) anchor = await fromUuid(ctx.anchorUuid);
+  else anchor = mode === 'place' ? findAnchor(caster) : firstTargeted();
+  if (anchor?.documentName !== 'Token' || !anchor.parent) {
+    return { error: mode === 'place' ? 'CARL_RPG.Events.Warn.NoAnchor' : 'CARL_RPG.Events.Warn.SummonNoTarget' };
+  }
+
+  const data = eventData(item, ctx);
+  const duration = summonNumber(action.duration, data, 0);
+  const limit = summonNumber(action.limit, data, 0);
+  const size = summonNumber(action.sizeClass, data, 0);
+  const levelMax = summonNumber(action.levelMax, data, null);
+  const health = summonNumber(action.health, data, null);
+  const bad = [duration, limit, size, levelMax, health].find((n) => n.error);
+  if (bad) return bad;
+
+  const plan = {
+    mode,
+    caster,
+    item,
+    anchor,
+    count: mode === 'raise' ? 1 : await rollAmount(action.amount || (mode === 'copy' ? '2' : '1'), data, item),
+    duration: Math.max(0, Math.floor(duration.value)),
+    limit: Math.max(0, Math.floor(limit.value)),
+    sizeClass: mode === 'place' ? Math.max(0, Math.floor(size.value)) : 0,
+    fraction: health.value,
+    hidden: !!action.hidden,
+    join: !!action.joinCombat,
+  };
+
+  if (mode === 'place') {
+    const source = action.uuid ? await fromUuid(action.uuid) : null;
+    if (!source || source.documentName !== 'Actor') return { error: 'CARL_RPG.Events.Warn.ActorMissing' };
+    plan.source = source;
+  } else if (mode === 'raise') {
+    const target = anchor.actor;
+    if (target?.type !== 'mob' || target.system.mobType === 'crawler' || !target.statuses?.has('dead')) {
+      return { error: 'CARL_RPG.Events.Warn.SummonNotDefeated' };
+    }
+    const level = target.system.attributes?.level?.value ?? 1;
+    if (!levelAllowed(level, levelMax.value === null ? null : Math.floor(levelMax.value))) {
+      return { error: 'CARL_RPG.Events.Warn.SummonTooHigh', data: { name: item.name } };
+    }
+  } else if (!isPetOrMinion(anchor.actor, caster)) {
+    return { error: 'CARL_RPG.Events.Warn.SummonNotMinion', data: { name: item.name } };
+  }
+  return plan;
+}
+
+/**
+ * "Summon": place tokens, raise a defeated Mob or copy a pet or minion (see helpers/minions.mjs).
+ * It is done here when the user may do it (create tokens, own the actor and the combat; raising
+ * a Mob and ending an older summon are the GM's), otherwise on the GM's client, which needs the
+ * events to be approved like other actions that do more than the user may.
+ */
+async function performSummon(item, event, index, ctx) {
+  const action = event.actions[index];
+  const plan = await planSummon(item, action, ctx);
+  if (plan.error) return warn(plan.error, plan.data);
+  const direct =
+    game.user.isGM ||
+    (plan.mode !== 'raise' &&
+      !(plan.limit > 0) &&
+      canPlaceDirectly(plan.mode === 'place' ? plan.source : plan.anchor.actor, plan.anchor, plan.join));
+  if (direct) return executeSummon(plan);
+  await relayToGM(item, event, index, { ...ctx, anchorUuid: plan.anchor.uuid }, []);
 }
 
 /** Carry out a stored action on this client, on one actor. */

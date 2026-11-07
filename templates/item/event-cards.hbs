@@ -144,6 +144,11 @@
                 {{selectOptions @root.eventOptions.aiFavorModes selected=action.mode localize=true}}
               </select>
             {{/if}}
+            {{#if action.isSummon}}
+              <select data-path='{{action.path}}.mode'>
+                {{selectOptions @root.eventOptions.summonModes selected=action.mode localize=true}}
+              </select>
+            {{/if}}
             {{#if action.isRunEvent}}
               <select data-path='{{action.path}}.mode'>
                 {{selectOptions ev.eventChoices selected=action.mode blank=(localize 'CARL_RPG.Events.Choose')}}
@@ -202,6 +207,41 @@
               {{localize 'CARL_RPG.Events.TokenJoinCombat'}}
             </label>
             <p class='event-option'><i class='fas fa-bullseye'></i> {{localize 'CARL_RPG.Events.TokenNextTo'}}</p>
+          {{/if}}
+          {{#if action.isSummon}}
+            <div class='event-row'>
+              <span class='event-option'>{{localize 'CARL_RPG.Events.Summon.Duration'}}</span>
+              <input type='text' class='event-amount' data-path='{{action.path}}.duration' value='{{action.duration}}' data-tooltip='{{localize "CARL_RPG.Events.Summon.DurationHint"}}' />
+            </div>
+            <div class='event-row'>
+              <span class='event-option'>{{localize 'CARL_RPG.Events.Summon.Limit'}}</span>
+              <input type='text' class='event-amount' data-path='{{action.path}}.limit' value='{{action.limit}}' data-tooltip='{{localize "CARL_RPG.Events.Summon.LimitHint"}}' />
+            </div>
+            {{#if action.summonPlace}}
+              <div class='event-row'>
+                <span class='event-option'>{{localize 'CARL_RPG.Events.Summon.Size'}}</span>
+                <input type='text' class='event-amount' data-path='{{action.path}}.sizeClass' value='{{action.sizeClass}}' data-tooltip='{{localize "CARL_RPG.Events.Summon.SizeHint"}}' />
+              </div>
+            {{/if}}
+            {{#if action.summonRaise}}
+              <div class='event-row'>
+                <span class='event-option'>{{localize 'CARL_RPG.Events.Summon.LevelMax'}}</span>
+                <input type='text' class='event-amount' data-path='{{action.path}}.levelMax' value='{{action.levelMax}}' data-tooltip='{{localize "CARL_RPG.Events.Summon.LevelMaxHint"}}' />
+              </div>
+              <div class='event-row'>
+                <span class='event-option'>{{localize 'CARL_RPG.Events.Summon.Health'}}</span>
+                <input type='text' class='event-amount' data-path='{{action.path}}.health' value='{{action.health}}' data-tooltip='{{localize "CARL_RPG.Events.Summon.HealthHint"}}' />
+              </div>
+            {{/if}}
+            <label class='event-option'>
+              <input type='checkbox' data-path='{{action.path}}.hidden' {{checked action.hidden}} />
+              {{localize 'CARL_RPG.Events.TokenHidden'}}
+            </label>
+            <label class='event-option'>
+              <input type='checkbox' data-path='{{action.path}}.joinCombat' {{checked action.joinCombat}} />
+              {{localize 'CARL_RPG.Events.TokenJoinCombat'}}
+            </label>
+            <p class='event-option'><i class='fas fa-bullseye'></i> {{#if action.summonPlace}}{{localize 'CARL_RPG.Events.TokenNextTo'}}{{else}}{{localize 'CARL_RPG.Events.Summon.TargetedToken'}}{{/if}}</p>
           {{/if}}
           {{#if action.isRemoveItem}}
             <label class='event-option'>

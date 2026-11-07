@@ -1,3 +1,6 @@
+import { sideOfActor } from '../helpers/minion-side.mjs';
+import { endSummons } from '../helpers/minions.mjs';
+
 /**
  * Carl RPG combat: there is no initiative. Each round is five phases, and the
  * Combat tracks which phase it is in (stored as a flag):
@@ -34,9 +37,10 @@ export class CarlRPGCombat extends Combat {
    * @returns {string|undefined}
    */
   static sideOf(combatant) {
-    const type = combatant.actor?.type;
-    if (!type) return undefined;
-    return type === 'mob' ? 'mob' : 'crawler';
+    const actor = combatant.actor;
+    if (!actor?.type) return undefined;
+    // (A summon is on the side of whoever made it: a raised Mob fights for the crawlers.)
+    return sideOfActor(actor);
   }
 
   /** Mobs are listed first (they act first), then crawlers, then by name. */
@@ -110,6 +114,16 @@ export class CarlRPGCombat extends Combat {
   async previousRound() {
     await super.previousRound();
     return this.#setPhase(0, 'back');
+  }
+
+  /**
+   * @override When a GM ends the combat, its summons end first, while the combatants are still
+   * here (a raised Mob going down again is then listed for loot like any other).
+   */
+  async _preDelete(options, user) {
+    const allowed = await super._preDelete(options, user);
+    if (allowed === false) return false;
+    if (user.id === game.user.id && game.user.isGM) await endSummons(this.scene ?? null);
   }
 }
 

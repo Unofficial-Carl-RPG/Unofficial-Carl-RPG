@@ -1194,6 +1194,10 @@
       "Ammo": "Ammo",
       "AlsoGrants": "Also grants"
     },
+    "Summon": {
+      "Fades": "{name} fades away ({spell}).",
+      "GoesDown": "{name} goes down again ({spell})."
+    },
     "Pets": {
       "Owner": "Owner",
       "NoOwner": "No owner",
@@ -1955,6 +1959,7 @@
         "applyEffect": "Apply effect to the target that was hit",
         "addItem": "Add an item",
         "addToken": "Add a token to the scene",
+        "summon": "Summon",
         "revive": "Revive a dead crawler",
         "grantSkill": "Grant a skill",
         "grantSkillNotice": "{name}: {skill} is now rank {rank}.",
@@ -1996,6 +2001,24 @@
         "award": "Award",
         "spend": "Spend"
       },
+      "SummonModes": {
+        "place": "Place a token",
+        "raise": "Raise a defeated Mob",
+        "copy": "Copy a pet or minion"
+      },
+      "Summon": {
+        "Duration": "Lasts (rounds):",
+        "DurationHint": "A number or formula over roll data. 0: until the combat ends.",
+        "Limit": "Most at once:",
+        "LimitHint": "Most this caster can have from this spell. 0: no limit. The oldest ends first.",
+        "Size": "Size Class:",
+        "SizeHint": "A number or formula, 1 (Tiny) to 8 (Gargantuan). Blank: the Actor's own.",
+        "LevelMax": "Highest level:",
+        "LevelMaxHint": "The highest level the Mob can have, as a formula (for example @lvl - 1). Blank: any.",
+        "Health": "Comes back with:",
+        "HealthHint": "Fraction of its max health, like 0.5 for half (rounded down). Blank: full.",
+        "TargetedToken": "On the first targeted token"
+      },
       "TargetGroups": {
         "owner": "The owner (or one actor)",
         "allies": "All allies",
@@ -2003,6 +2026,7 @@
         "targeted": "The targeted tokens",
         "burst": "The targeted tokens and their splash",
         "pets": "The owner's pets",
+        "minions": "The owner's pets and minions",
         "master": "The pet's owner"
       },
       "TargetKinds": {
@@ -2076,6 +2100,11 @@
           "addItem": "add {amount} of {name}",
           "addToken": "place {amount} token(s) of {name}",
           "addTokenHidden": "place {amount} hidden token(s) of {name}",
+          "summon": {
+            "place": "summon {amount} of {name}",
+            "raise": "raise the targeted defeated Mob",
+            "copy": "copy the targeted pet or minion {amount} time(s)"
+          },
           "revive": "revive the crawler",
           "grantSkill": "give {amount} rank(s) of {name}",
           "removeItem": "remove {name}",
@@ -2142,6 +2171,10 @@
         "NoAnchor": "An event needs a targeted token, or its owner on a scene, to place a token next to.",
         "NoRoom": "No free space next to the token for {name}.",
         "EventMissing": "An event couldn't find the other event it runs.",
+        "SummonNoTarget": "Target a token first.",
+        "SummonNotDefeated": "That needs a defeated Mob as its target.",
+        "SummonTooHigh": "That Mob is too high a level for {name}.",
+        "SummonNotMinion": "{name} only works on your pets and minions.",
         "NeedsActor": "These events need an actor to run on (put the item or effect on an actor).",
         "NoCard": "{name}: applying an effect to the target that was hit needs an attack card."
       }
