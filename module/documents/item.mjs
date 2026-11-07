@@ -42,6 +42,7 @@ import {
   statOfFormula,
 } from '../helpers/roll-dialog.mjs';
 import { chooseTargets } from '../helpers/targeting.mjs';
+import { areaSteps, countAreaShapes, SINGLE_TARGET } from '../helpers/area-plan.mjs';
 import { takeSplash } from '../helpers/splash.mjs';
 import { rangeInfo } from '../helpers/amounts.mjs';
 import { dyingEffectOf } from '../helpers/dying.mjs';
@@ -1180,10 +1181,42 @@ export class CarlRPGItem extends Item {
     let chosenMod = null;
     let surprise = false;
     // An area item that can be placed as more than one shape (upgrades add them) asks which, in
-    // the pop-up; Shift uses its first.
-    const areaShapes = this.system.targeting?.mode === 'area' ? (effectiveOf(this).areaShapes ?? []) : [];
+    // the pop-up; Shift uses its first. A Count item whose upgrades add a shape asks too, with
+    // "Single target" first; Shift picks single target.
+    const targeting = this.system.targeting;
+    const effectiveNow = effectiveOf(this);
+    const countArea = targeting?.mode === 'count';
+    const areaShapes =
+      targeting?.mode === 'area' ? (effectiveNow.areaShapes ?? []) : countAreaShapes(targeting, effectiveNow);
     const shapePopup =
-      !!event && !event.shiftKey && depth === 0 && areaShapes.length > 1 && this.actor?.type !== 'mob';
+      !!event &&
+      !event.shiftKey &&
+      depth === 0 &&
+      areaShapes.length > (countArea ? 0 : 1) &&
+      this.actor?.type !== 'mob';
+    const shapeChoices = !shapePopup
+      ? []
+      : countArea
+        ? [
+            { id: SINGLE_TARGET, label: game.i18n.localize('CARL_RPG.Targeting.SingleTarget') },
+            ...areaShapes.map((id) => ({
+              id,
+              // ("Cone 15 ft": the shape and the size it has of its own)
+              label: game.i18n.format('CARL_RPG.Targeting.ShapeSized', {
+                shape: game.i18n.localize(CONFIG.CARL_RPG.areaShapes[id]),
+                size: areaSteps(targeting, effectiveNow, id, this.costData())[0]?.size ?? 0,
+              }),
+            })),
+          ]
+        : areaShapes.map((id) => ({
+            id,
+            // (a shape an upgrade added that keeps the base area says so)
+            label:
+              game.i18n.localize(CONFIG.CARL_RPG.areaShapes[id]) +
+              (id !== areaShapes[0] && effectiveNow.areaExtras?.[id]?.keep
+                ? ` + ${game.i18n.localize(CONFIG.CARL_RPG.areaShapes[areaShapes[0]])}`
+                : ''),
+          }));
     let chosenShape = null;
     if (rollPopup || shapePopup || (asks.length && !event?.shiftKey)) {
       const chosen = await promptRoll({
@@ -1199,21 +1232,11 @@ export class CarlRPGItem extends Item {
         })),
         rollMods: mods.map((mod) => ({ id: mod.id, name: mod.name })),
         surpriseOption,
-        shapes: shapePopup
-          ? areaShapes.map((id) => ({
-              id,
-              // (a shape an upgrade added that keeps the base area says so)
-              label:
-                game.i18n.localize(CONFIG.CARL_RPG.areaShapes[id]) +
-                (id !== areaShapes[0] && effectiveOf(this).areaExtras?.[id]?.keep
-                  ? ` + ${game.i18n.localize(CONFIG.CARL_RPG.areaShapes[areaShapes[0]])}`
-                  : ''),
-            }))
-          : [],
+        shapes: shapeChoices,
       });
       if (!chosen) return null;
       Object.assign(paid, chosen.costs);
-      if (shapePopup) chosenShape = chosen.shape || null;
+      if (shapePopup) chosenShape = chosen.shape && chosen.shape !== SINGLE_TARGET ? chosen.shape : null;
       if (rollPopup) {
         // A mistyped bonus is caught now, before any action or mana is spent.
         if (buildFormula(this.system.formula, chosen) === null) return null;

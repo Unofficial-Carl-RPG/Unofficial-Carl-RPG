@@ -1,7 +1,14 @@
 import './stubs.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { areaSteps, lastsRounds, splashReach } from '../module/helpers/area-plan.mjs';
+import {
+  areaSteps,
+  countAreaShapes,
+  lastsRounds,
+  originAtCaster,
+  SINGLE_TARGET,
+  splashReach,
+} from '../module/helpers/area-plan.mjs';
 import { computeEffective } from '../module/helpers/upgrades.mjs';
 
 /** A spell's system data, as the sheet would hold it. */
@@ -136,4 +143,88 @@ test('lasting area: a plain number, 0 (until removed) and bad values', () => {
   assert.equal(lastsRounds({ lasts: '-4' }), 0);
   assert.equal(lastsRounds({ lasts: 'forever' }), 0);
   assert.equal(lastsRounds({}), 0);
+});
+
+/* -------------------------------------------- */
+/*  A Count item that can also be an area        */
+
+const extra = (value, size, keep = false) => ({ type: 'areaShapeExtra', value, size, keep });
+// Ice Blast and Thunderlash: a 15 ft cone from rank 15. Lightning Bolt: a 100 ft line from rank 10.
+const iceBlast = [up(5), up(10), up(15, extra('cone', '15'))];
+const lightningBolt = [up(5), up(10, extra('ray', '100')), up(15)];
+
+const countAt = (rank, chosen, upgrades, targeting = {}) => {
+  const cfg = spell(rank, { mode: 'count', ...targeting });
+  return areaSteps(cfg.targeting, computeEffective(spell(rank, { mode: 'count', ...targeting }, upgrades)), chosen, {
+    rank,
+  });
+};
+const offeredAt = (rank, upgrades, targeting = { mode: 'count' }) =>
+  countAreaShapes(spell(rank, targeting).targeting, computeEffective(spell(rank, targeting, upgrades)));
+
+test('count area: Ice Blast offers a 15 ft cone from rank 15, and acts as single target before', () => {
+  assert.deepEqual(offeredAt(14, iceBlast), []);
+  assert.deepEqual(offeredAt(15, iceBlast), ['cone']);
+  assert.deepEqual(countAt(14, 'cone', iceBlast), []);
+  assert.deepEqual(countAt(15, 'cone', iceBlast), [{ shape: 'cone', size: 15, base: false }]);
+  // (single target is no area at all)
+  assert.deepEqual(countAt(15, null, iceBlast), []);
+  assert.deepEqual(countAt(15, SINGLE_TARGET, iceBlast), []);
+});
+
+test('count area: Lightning Bolt offers a 100 ft line from rank 10', () => {
+  assert.deepEqual(offeredAt(9, lightningBolt), []);
+  assert.deepEqual(offeredAt(10, lightningBolt), ['ray']);
+  assert.deepEqual(countAt(10, 'ray', lightningBolt), [{ shape: 'ray', size: 100, base: false }]);
+  assert.deepEqual(countAt(20, 'ray', lightningBolt), [{ shape: 'ray', size: 100, base: false }]);
+  // (a shape that was never offered is ignored)
+  assert.deepEqual(countAt(20, 'cone', lightningBolt), []);
+});
+
+test('count area: it never keeps a base area, and the stored Size and size upgrades do not change it', () => {
+  const upgrades = [up(5, extra('cone', '15', true), { type: 'areaSizeAdd', value: '10' })];
+  assert.deepEqual(countAt(5, 'cone', upgrades, { size: '40' }), [{ shape: 'cone', size: 15, base: false }]);
+});
+
+test('count area: its size can be a formula, and a blank one falls back to the Size field', () => {
+  assert.deepEqual(countAt(10, 'ray', [up(5, extra('ray', '10 * @rank'))]), [{ shape: 'ray', size: 100, base: false }]);
+  assert.deepEqual(countAt(5, 'ray', [up(5, extra('ray', ''))], { size: '30' }), [
+    { shape: 'ray', size: 30, base: false },
+  ]);
+});
+
+test('count area: several shapes are offered in the order they were added, a circle too', () => {
+  const upgrades = [up(5, extra('circle', '10')), up(10, extra('cone', '15')), up(15, extra('circle', '20'))];
+  assert.deepEqual(offeredAt(5, upgrades), ['circle']);
+  assert.deepEqual(offeredAt(10, upgrades), ['circle', 'cone']);
+  // (the later size for the same shape wins, as for an Area item)
+  assert.deepEqual(countAt(15, 'circle', upgrades), [{ shape: 'circle', size: 20, base: false }]);
+});
+
+test('count area: items with no such upgrades, and other modes, offer nothing new', () => {
+  assert.deepEqual(offeredAt(20, []), []);
+  assert.deepEqual(countAreaShapes({ mode: 'count' }, {}), []);
+  assert.deepEqual(countAreaShapes({ mode: 'count' }, undefined), []);
+  // (an Area item keeps using its own shapes: this is only for Count)
+  assert.deepEqual(offeredAt(10, [up(5, extra('ray', '80'))], { mode: 'area' }), []);
+  assert.deepEqual(offeredAt(10, [up(5, extra('ray', '80'))], { mode: 'self' }), []);
+  assert.deepEqual(stepsAt(10, null), [{ shape: 'circle', size: 10, base: false }]);
+});
+
+test('count area: splash for the area version is the item splash plus the upgrades', () => {
+  const upgrades = [up(15, extra('cone', '15'), splashAdd(5))];
+  const targeting = { mode: 'count', splash: '5' };
+  assert.equal(splashReach(targeting, computeEffective(spell(15, targeting, upgrades)), { rank: 15 }), 10);
+});
+
+test('count area: the origin has to be within a grid square of the caster token', () => {
+  // (a 5 ft token: its square corner is about 3.5 ft from the centre)
+  assert.equal(originAtCaster(0, 5), true);
+  assert.equal(originAtCaster(3.6, 5), true);
+  assert.equal(originAtCaster(7.5, 5), true);
+  assert.equal(originAtCaster(7.6, 5), false);
+  // (a 10 ft token reaches 5 ft further out from its centre)
+  assert.equal(originAtCaster(10, 10), true);
+  assert.equal(originAtCaster(10.1, 10), false);
+  assert.equal(originAtCaster(12, 5, 10), true);
 });

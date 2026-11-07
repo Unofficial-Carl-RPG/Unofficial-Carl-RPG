@@ -46,11 +46,11 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 323).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 331).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 323 pass)
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 331 pass)
 - stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node
 
 ## files
@@ -59,7 +59,7 @@
 - amounts.test.mjs: amount evaluator, fillData, rangeInfo
 - skill-list.test.mjs: #tag entries in Roll Modifier and Damage Effect skill lists
 - area-upgrades.test.mjs: area shape/size upgrade changes (replace, extra shapes with their own size and keep, size add/replace, splashAdd, bad values, no upgrades)
-- area-plan.test.mjs: splash distance by rank (Bad Faith, Earworm, Fear, Shotgun, Heal Others burst), areaSteps (Fireball circle and 80 ft line that keeps the blast), lasting area rounds by rank (Confusing Fog)
+- area-plan.test.mjs: splash distance by rank (Bad Faith, Earworm, Fear, Shotgun, Heal Others burst), areaSteps (Fireball circle and 80 ft line that keeps the blast), lasting area rounds by rank (Confusing Fog), a Count item's area version (Ice Blast cone, Lightning Bolt line, origin at the caster)
 - splash.test.mjs: distance to a circle/rectangle/polygon, the splash band, who is splash after several areas, splash around the chosen targets of a Count item
 - buff-slots.test.mjs: stacking buff groups and slot counting
 - build-mods.test.mjs: build benefits, caps, health stat

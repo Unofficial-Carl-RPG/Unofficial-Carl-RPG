@@ -37,6 +37,8 @@ export function lastsRounds(cfg, data = {}) {
  *  - A shape an upgrade added can carry its own size (an amount; blank uses the item's size
  *    and so its additions; a size of its own is used as it is). If it keeps the base, the
  *    item's own shape and size is placed after it as well.
+ *  - A Count item has no area of its own: only an offered added shape gives a step (at its own
+ *    size, never keeping a base); anything else (no choice, "single target") gives none.
  * @param {object} cfg        The item's `system.targeting`
  * @param {object} effective  See computeEffective (areaShape, areaShapes, areaSize,
  *   areaSizeDelta, areaExtras)
@@ -51,17 +53,44 @@ export function areaSteps(cfg, effective = {}, chosenShape = null, data = {}) {
     0,
     wholeAmount(effective.areaSize ?? cfg?.size, data, { min: 0, fallback: 0 }) + (effective.areaSizeDelta ?? 0)
   );
-  const offered = effective.areaShapes ?? [baseShape];
+  const counting = cfg?.mode === 'count';
+  const offered = counting ? countAreaShapes(cfg, effective) : (effective.areaShapes ?? [baseShape]);
   const extra =
-    chosenShape && chosenShape !== baseShape && offered.includes(chosenShape)
+    chosenShape && (counting || chosenShape !== baseShape) && offered.includes(chosenShape)
       ? (effective.areaExtras?.[chosenShape] ?? {})
       : null;
-  if (!extra) return [{ shape: baseShape, size: baseSize, base: false }];
+  if (!extra) return counting ? [] : [{ shape: baseShape, size: baseSize, base: false }];
 
   const own = String(extra.size ?? '').trim();
   const worked = own ? evalAmount(own, data) : null;
   const size = worked === null ? baseSize : Math.max(0, Math.floor(worked));
   const steps = [{ shape: chosenShape, size, base: false }];
-  if (extra.keep) steps.push({ shape: baseShape, size: baseSize, base: true });
+  if (extra.keep && !counting) steps.push({ shape: baseShape, size: baseSize, base: true });
   return steps;
+}
+
+/** The roll pop-up id of a Count item's own single-target use, next to the area shapes it can also be. */
+export const SINGLE_TARGET = 'single';
+
+/**
+ * The area shapes a Count item can also be placed as at its current rank (the "add a shape to
+ * pick" upgrades reached; the shape the Count item stores is not one of them). Other modes: none.
+ * @param {object} cfg        The item's `system.targeting`
+ * @param {object} [effective]  See computeEffective (`areaExtras`)
+ * @returns {string[]}
+ */
+export function countAreaShapes(cfg, effective) {
+  return cfg?.mode === 'count' ? Object.keys(effective?.areaExtras ?? {}) : [];
+}
+
+/**
+ * Whether a template's origin is close enough to the caster's token: no more than `slack` feet
+ * (a grid square) beyond the token's edge, measured from the token's centre.
+ * @param {number} distance   Feet from the token's centre to the origin
+ * @param {number} tokenFeet  The token's larger side in feet
+ * @param {number} [slack=5]
+ * @returns {boolean}
+ */
+export function originAtCaster(distance, tokenFeet, slack = 5) {
+  return !(distance > tokenFeet / 2 + slack);
 }

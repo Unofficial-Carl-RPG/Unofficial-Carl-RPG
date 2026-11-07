@@ -15,6 +15,9 @@
     <label class='resource-label' for='system.targeting.count'>{{localize 'CARL_RPG.Targeting.Count'}}</label>
     <input type='text' class='{{#if badTargeting.count}}bad-formula{{/if}}' name='system.targeting.count' value='{{system.targeting.count}}' />
     <p class='hint'>{{localize 'CARL_RPG.Targeting.FormulaHint'}}</p>
+    {{#if effective.extraShapes}}
+    <p class='upgrade-now'><i class='fas fa-arrow-up'></i> {{localize 'CARL_RPG.Upgrades.NowShapes' value=effective.extraShapes}}</p>
+    {{/if}}
   </div>
   {{/if}}
   {{#unless (eq system.targeting.mode 'self')}}{{#unless (eq system.targeting.mode 'none')}}

@@ -318,6 +318,8 @@ CARL_RPG.upgrades = {
   spellOnly: [],
   // Only offered on an item whose targeting is an Area.
   areaOnly: ['areaShape', 'areaShapeExtra', 'areaSizeAdd', 'areaSizeReplace'],
+  // Of those, the ones a Count item is offered too (a shape to pick: its area version).
+  countArea: ['areaShapeExtra'],
   // Only offered on an item whose targeting is Count or Area (both can have a splash).
   splashOnly: ['splashAdd'],
   // Only offered on a skill that is a Damage Effect.

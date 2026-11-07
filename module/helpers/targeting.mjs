@@ -14,7 +14,7 @@ import { CarlRPGDialog } from './dialog.mjs';
 import { applyQueuedEffect } from './events.mjs';
 import { rangeInfo, wholeAmount } from './amounts.mjs';
 import { clearSplash, noteArea, splashAround, splashBand } from './splash.mjs';
-import { areaSteps, lastsRounds, splashReach } from './area-plan.mjs';
+import { areaSteps, lastsRounds, originAtCaster, splashReach } from './area-plan.mjs';
 import { effectiveOf } from './upgrades.mjs';
 
 const t = (key, data) => (data ? game.i18n.format(key, data) : game.i18n.localize(key));
@@ -65,6 +65,11 @@ export async function chooseTargets(item, data = item.costData?.() ?? {}, { shap
   clearSplash();
   const cfg = item.system.targeting;
   if (cfg?.mode === 'area') return chooseArea(item, data, shape);
+  // A Count item whose upgrades add a shape: when that was picked in the pop-up it is used as an
+  // area placed at the caster instead of picking tokens.
+  if (cfg?.mode === 'count' && shape && areaSteps(cfg, effectiveOf(item), shape, data).length) {
+    return chooseArea(item, data, shape);
+  }
   if (cfg?.mode !== 'count') return true;
   const limit = wholeAmount(cfg.count, data, { min: 1, fallback: 1 });
   const range = rangeInfo(cfg.range, data).feet;
@@ -180,14 +185,17 @@ export async function chooseArea(item, data = item.costData?.() ?? {}, chosenSha
   const cfg = item.system.targeting;
   // What upgrades make of the area's shape, size and splash (see helpers/upgrades.mjs).
   const effective = effectiveOf(item);
-  const total = wholeAmount(cfg.areas, data, { min: 1, fallback: 1 });
+  // (A Count item's area version is one plain area placed at the caster: the Area-only fields
+  // below don't apply to it and the sheet hides them for a Count item.)
+  const counting = cfg.mode === 'count';
+  const total = counting ? 1 : wholeAmount(cfg.areas, data, { min: 1, fallback: 1 });
   // What one area puts down: the shape picked (a shape an upgrade added may have a size of its
   // own and keep the base area too), see helpers/area-plan.mjs.
   const steps = areaSteps(cfg, effective, chosenShape, data);
-  const limit = wholeAmount(cfg.limit, data, { min: 0, fallback: 0 });
+  const limit = counting ? 0 : wholeAmount(cfg.limit, data, { min: 0, fallback: 0 });
   const range = rangeInfo(cfg.range, data).feet;
   const splash = splashReach(cfg, effective, data);
-  const rounds = lastsRounds(cfg, data);
+  const rounds = counting ? 0 : lastsRounds(cfg, data);
   for (let n = 1; n <= total; n++) {
     for (const [i, step] of steps.entries()) {
       const placed = await placeOneArea(item, n, total, {
@@ -197,6 +205,8 @@ export async function chooseArea(item, data = item.costData?.() ?? {}, chosenSha
         range,
         splash,
         rounds,
+        lasting: !counting && !!cfg.lasting,
+        atCaster: counting,
         again: i > 0,
       });
       if (!placed) return false;
@@ -206,7 +216,12 @@ export async function chooseArea(item, data = item.costData?.() ?? {}, chosenSha
 }
 
 /** Place one area with the template tool (see chooseArea). */
-function placeOneArea(item, n, total, { size, limit, range, splash, shape, rounds = 0, again = false }) {
+function placeOneArea(
+  item,
+  n,
+  total,
+  { size, limit, range, splash, shape, rounds = 0, again = false, lasting = false, atCaster = false }
+) {
   const cfg = item.system.targeting;
   if (!game.user.can('TEMPLATE_CREATE')) {
     ui.notifications.warn(t('CARL_RPG.Targeting.NoTemplatePermission'));
@@ -231,18 +246,30 @@ function placeOneArea(item, n, total, { size, limit, range, splash, shape, round
       if (userId !== game.user.id) return;
       // The item's size sets how far the area reaches; the player places its origin.
       if (size > 0) await doc.update({ distance: size });
-      const src = Number.isFinite(range) ? sourceToken() : null;
-      if (src && canvas.grid.measurePath([src.center, { x: doc.x, y: doc.y }]).distance > range) {
+      // A Count item's area version starts at the caster (the Range is for its single target);
+      // an Area item's origin is checked against its Range.
+      const src = atCaster || Number.isFinite(range) ? sourceToken() : null;
+      const away = src ? canvas.grid.measurePath([src.center, { x: doc.x, y: doc.y }]).distance : 0;
+      if (src && atCaster) {
+        const tokenFeet = Math.max(src.document.width, src.document.height) * (canvas.dimensions?.distance ?? 5);
+        if (!originAtCaster(away, tokenFeet)) {
+          ui.notifications.warn(t('CARL_RPG.Targeting.AreaNotAtCaster', { name: item.name }));
+        }
+      } else if (src && away > range) {
         ui.notifications.warn(t('CARL_RPG.Targeting.AreaOutOfRange', { name: item.name, m: range }));
       }
+      // (The caster is never caught in their own area.)
+      const casterId = atCaster ? src?.id : null;
       const area = doc.object ?? canvas.templates.get(doc.id);
       const inside = canvas.tokens.placeables.filter(
-        (tok) => tok.visible && matchesFilter(tok, cfg.filter) && area?.testPoint(tok.center)
+        (tok) => tok.id !== casterId && tok.visible && matchesFilter(tok, cfg.filter) && area?.testPoint(tok.center)
       );
       const picked = limit > 0 ? inside.slice(0, limit) : inside;
       // Splash: tokens outside the area but within the splash distance of its edge. They
       // are targeted too; the attack reads them as splash (see helpers/splash.mjs).
-      const candidates = canvas.tokens.placeables.filter((tok) => tok.visible && matchesFilter(tok, cfg.filter));
+      const candidates = canvas.tokens.placeables.filter(
+        (tok) => tok.id !== casterId && tok.visible && matchesFilter(tok, cfg.filter)
+      );
       const bandIds =
         area && splash > 0
           ? splashBand(
@@ -265,7 +292,7 @@ function placeOneArea(item, n, total, { size, limit, range, splash, shape, round
       ]);
       await game.user.updateTokenTargets([...ids]);
       await areaCard(item, picked, t('CARL_RPG.Targeting.AreaCard', { name: item.name }), band);
-      if (cfg.lasting) {
+      if (lasting) {
         await doc.update({
           fillColor: AREA_COLORS[cfg.kind] ?? doc.fillColor,
           'flags.carl-rpg.area': {

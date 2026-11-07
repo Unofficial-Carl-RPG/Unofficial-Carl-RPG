@@ -13,6 +13,7 @@ import {
   describeUpgrades,
   effectKey,
 } from '../helpers/upgrades.mjs';
+import { countAreaShapes } from '../helpers/area-plan.mjs';
 import { cooldownLeft, effectRules } from '../helpers/damage-effects.mjs';
 import { whenOptionsFor } from '../helpers/roll-mods.mjs';
 import {
@@ -556,10 +557,13 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       // (A Roll Modifier's changes likewise.)
       const isMod = !!system.rollMod?.enabled;
       // (An area's changes are offered on an item that places an area, or that already has some.)
+      // (A Count item is only offered the shape to pick: its area version.)
+      const isCount = system.targeting?.mode === 'count';
+      const countOk = (key) => isCount && cfg.upgrades.countArea.includes(key);
       const usesArea =
         system.targeting?.mode === 'area' ||
         (system.upgrades ?? []).some((u) =>
-          (u.changes ?? []).some((c) => cfg.upgrades.areaOnly.includes(c.type))
+          (u.changes ?? []).some((c) => cfg.upgrades.areaOnly.includes(c.type) && !countOk(c.type))
         );
       // (A splash change is offered on an item that picks tokens or places an area, or that has one.)
       const usesSplash =
@@ -573,12 +577,13 @@ export class CarlRPGItemSheet extends ItemSheetBase {
             (isSpell || !cfg.upgrades.spellOnly.includes(key)) &&
             (isEffect || !cfg.upgrades.damageEffectOnly.includes(key)) &&
             (isMod || !cfg.upgrades.rollModOnly.includes(key)) &&
-            (usesArea || !cfg.upgrades.areaOnly.includes(key)) &&
+            (usesArea || countOk(key) || !cfg.upgrades.areaOnly.includes(key)) &&
             (usesSplash || !cfg.upgrades.splashOnly.includes(key))
         )
       );
       context.upgradeTargetOptions = cfg.checkTargets;
       context.upgradeShapeOptions = cfg.areaShapes;
+      context.upgradeCountItem = isCount;
       // The type menus of a bonus row: blank is "the attack's type" / "no second type".
       const { '': noType, ...typeMenu } = damageTypeOptions();
       context.bonusTypeOptions = {
@@ -631,7 +636,10 @@ export class CarlRPGItemSheet extends ItemSheetBase {
             hasBonusType: cfg.upgrades.bonusTyped.includes(change.type),
             // A Roll Modifier's changes can have an "Only when" condition.
             whenOptions: whenOptionsFor(change.type),
-            invalid: changeProblem(change),
+            // (a shape on a Count item needs a size of its own: it has no area to take it from)
+            invalid:
+              changeProblem(change) ||
+              (isCount && change.type === 'areaShapeExtra' && !String(change.size ?? '').trim()),
           })),
           effects: context.upgradeEffects.map((effect) => ({
             ...effect,
@@ -665,8 +673,10 @@ export class CarlRPGItemSheet extends ItemSheetBase {
         // An area's shape and size at the current rank (shown under the Area fields).
         shapeChanged: (effective?.areaShape ?? '') !== (system.targeting?.shape ?? ''),
         shape: effective ? game.i18n.localize(cfg.areaShapes[effective.areaShape] ?? '') : '',
-        extraShapes: (effective?.areaShapes ?? [])
-          .slice(1)
+        extraShapes: (isCount
+          ? countAreaShapes(system.targeting, effective)
+          : (effective?.areaShapes ?? []).slice(1)
+        )
           .map((shape) => game.i18n.localize(cfg.areaShapes[shape] ?? ''))
           .join(', '),
         sizeChanged:
