@@ -52,6 +52,13 @@
 - dice: a natural 20 doubles the dice but not the flat 1 of rank 1; dieStep upgrades do not change the rank dice; a multi-term result is wrapped in parentheses after - * /; @rankDamageX and @rankDamage.x are not the token.
 - events: an event action amount can use @rankDamage too (the holder's rank dice; a weapon's rolled skill), see events.md rankDamage.
 
+## costDamage
+- file: helpers/cost-damage.mjs (withCost, damageRollData); wired in attacks.mjs resolveCheck and resolveMobCheck; item.mjs roll() passes `paid` to resolveCheck
+- what: damage formulas read @cost, what the use paid (the amounts picked in the roll pop-up, the least with Shift): @cost.mana, @cost.junk, @cost.uses, @cost.ammo, @cost.total; a bare @cost means @cost.total. Nothing paid = 0 (a mob pays nothing, so its @cost fields are 0 instead of failing). Read by the item's own damage (as upgraded), a chosen Damage Effect's extra and typed dice, Roll Modifier dice and the splash damage. Event amounts and the d20 formula do not read it.
+- steps: Foundry rolls have no comparisons or ternaries, so turn an amount into a step with min, max and floor: -2 * max(0, 5 - @cost.mana) is -4 at 3 Mana, -2 at 4 and 0 from 5; min(1, max(0, @cost.mana - 5)) * @rankDamage is one rank die from 6 Mana.
+- magicMissile (Mana 3 to 6 from rank 5, 5 normal): damage `1d4 + @int.mod - 2 * max(0, 5 - @cost.mana) + min(1, max(0, @cost.mana - 5)) * @rankDamage`; Mana cost amount `5 - 2 * min(1, floor(@rank / 5))`, max `5 + min(1, floor(@rank / 5))` (5 below rank 5, then 3 to 6). Tested in tests/cost-damage.test.mjs.
+- notes: @cost is what was picked, even if 'use anyway' then spends less Mana. The rolled damage is held at 0 or more.
+
 ## mobAttacks
 - numberToBeat: item.system.check.number + mob floor
 - vsCrawler: card row pending; crawler owner clicks Roll (pop-up; AI Favor reroll offered) = d20 + defenseModifier (Evade total | stat mod | Size Class) vs number; or skips (counts as standard Success for the attack). A player's result is relayed to the GM client (mobCheckRelay).

@@ -140,7 +140,7 @@ class Roll {
     this.formula = String(formula);
   }
   static validate(formula) {
-    return /^[\d\s+\-*/().d@a-z]+$/i.test(String(formula));
+    return /^[\d\s+\-*/().,d@a-z]+$/i.test(String(formula));
   }
   async evaluate() {
     this.total = evalAmount(this.formula) ?? Number(this.formula);

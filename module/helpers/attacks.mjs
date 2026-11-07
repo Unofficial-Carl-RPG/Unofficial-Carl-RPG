@@ -39,6 +39,7 @@ import { applyQueuedEffect, runEvents } from './events.mjs';
 import { effectiveOf } from './upgrades.mjs';
 import { damageNumbers, marginOf } from './event-roll.mjs';
 import { expandRankDamage } from './rank-damage.mjs';
+import { damageRollData, withCost } from './cost-damage.mjs';
 import {
   damageParts,
   damageTypeLabel,
@@ -170,15 +171,21 @@ export function degreeOf(natural, total, dc) {
  * has any, and post the result card.
  * @param {Item} item
  * @param {Roll|null} roll  The roll (null if the item doesn't roll: any damage simply hits)
- * @param {{damageEffect?: {item: Item, option: boolean}|null, modDice?: object[], splash?: string[]}} [options]
+ * @param {{damageEffect?: {item: Item, option: boolean}|null, modDice?: object[], splash?: string[],
+ *   paid?: object}} [options]
  *   The Damage Effect the roller chose (see helpers/damage-effects.mjs); its option trades the
  *   damage away. modDice are the damage dice Roll Modifiers add (see helpers/roll-mods.mjs).
- *   splash lists the token UUIDs that are only in the splash of an area (helpers/splash.mjs)
+ *   splash lists the token UUIDs that are only in the splash of an area (helpers/splash.mjs);
+ *   paid is what the use cost, which damage formulas read as @cost (helpers/cost-damage.mjs)
  * @returns {Promise<{degrees: string[], margin?: number, damage: object|null, hits: Array<{actor: Actor, degree: string, margin?: number, damage: number|null}>}|null>}
  *   null if there is nothing to resolve. margin is an unopposed check's; damage the use's numbers
  *   for events (see helpers/event-roll.mjs); each hit and miss has its own margin, a hit its damage.
  */
-export async function resolveCheck(item, roll, { damageEffect = null, modDice = [], splash = [] } = {}) {
+export async function resolveCheck(
+  item,
+  roll,
+  { damageEffect = null, modDice = [], splash = [], paid = {} } = {}
+) {
   // Mobs never roll a d20: a crawler rolls against the mob's number instead.
   if (item.actor?.type === 'mob') return resolveMobCheck(item, splash);
   // An item whose action is No Roll has no check or damage to resolve.
@@ -193,6 +200,8 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
   if (!roll && !damaging) return null;
 
   const owner = item.actor;
+  // (what damage formulas read: the owner's stats and @cost, what this use cost)
+  const rollData = damageRollData(owner?.getRollData(), paid);
   const targetKey = effectiveOf(item).target;
   const type = checkKind(targetKey);
   const natural = naturalD20(roll);
@@ -225,28 +234,25 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
   const effectTyped = [];
   if (damaging) {
     try {
-      damageRoll = new Roll(
-        expandRankDamage(effectiveOf(item).damage, item),
-        owner?.getRollData() ?? {}
-      );
+      damageRoll = new Roll(withCost(expandRankDamage(effectiveOf(item).damage, item)), rollData);
       if (crit) damageRoll = damageRoll.alter(2, 0);
       await damageRoll.evaluate();
       damage = Math.max(0, Math.floor(damageRoll.total));
       diceSum = diceSumOf(damageRoll);
       const extraFormulas = (rules?.addDice ?? [])
-        .map((formula) => expandRankDamage(formula, effectItem))
+        .map((formula) => withCost(expandRankDamage(formula, effectItem)))
         .filter(Boolean);
       if (extraFormulas.length) {
-        extraRoll = new Roll(extraFormulas.join(' + '), owner?.getRollData() ?? {});
+        extraRoll = new Roll(extraFormulas.join(' + '), rollData);
         if (crit) extraRoll = extraRoll.alter(2, 0);
         await extraRoll.evaluate();
         extra = Math.max(0, Math.floor(extraRoll.total));
       }
       // Its dice with a damage type of their own are rolled once each, apart from the base.
       for (const row of rules?.typedDice ?? []) {
-        const formula = expandRankDamage(row.formula, effectItem);
+        const formula = withCost(expandRankDamage(row.formula, effectItem));
         if (!formula) continue;
-        let typedRoll = new Roll(formula, owner?.getRollData() ?? {});
+        let typedRoll = new Roll(formula, rollData);
         if (crit) typedRoll = typedRoll.alter(2, 0);
         await typedRoll.evaluate();
         effectTyped.push({
@@ -258,9 +264,9 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
       // Each Roll Modifier row is rolled once (a natural 20 doubles it like the damage) and
       // added to the targets its condition allows.
       for (const entry of modDice) {
-        const formula = expandRankDamage(entry.formula, entry.item);
+        const formula = withCost(expandRankDamage(entry.formula, entry.item));
         if (!formula) continue;
-        let modRoll = new Roll(formula, owner?.getRollData() ?? {});
+        let modRoll = new Roll(formula, rollData);
         if (crit) modRoll = modRoll.alter(2, 0);
         await modRoll.evaluate();
         modRolled.push({ ...entry, roll: modRoll, total: Math.max(0, Math.floor(modRoll.total)) });
@@ -283,8 +289,8 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
   ) {
     try {
       splashRoll = new Roll(
-        expandRankDamage(item.system.targeting.splashDamage, item),
-        owner?.getRollData() ?? {}
+        withCost(expandRankDamage(item.system.targeting.splashDamage, item)),
+        rollData
       );
       if (crit) splashRoll = splashRoll.alter(2, 0);
       await splashRoll.evaluate();
@@ -573,8 +579,8 @@ async function resolveMobCheck(item, splash = []) {
   if (damaging) {
     try {
       damageRoll = await new Roll(
-        expandRankDamage(effectiveOf(item).damage, item),
-        owner?.getRollData() ?? {}
+        withCost(expandRankDamage(effectiveOf(item).damage, item)),
+        damageRollData(owner?.getRollData())
       ).evaluate();
       damage = Math.max(0, Math.floor(damageRoll.total));
     } catch (err) {
@@ -599,8 +605,8 @@ async function resolveMobCheck(item, splash = []) {
   ) {
     try {
       splashRoll = await new Roll(
-        expandRankDamage(item.system.targeting.splashDamage, item),
-        owner?.getRollData() ?? {}
+        withCost(expandRankDamage(item.system.targeting.splashDamage, item)),
+        damageRollData(owner?.getRollData())
       ).evaluate();
       splashDamage = Math.max(0, Math.floor(splashRoll.total));
     } catch (err) {

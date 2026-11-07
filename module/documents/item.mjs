@@ -1335,6 +1335,7 @@ export class CarlRPGItem extends Item {
       damageEffect: chosenEffect ? { item: chosenEffect, option: effectOption } : null,
       modDice: modResult.dice,
       splash,
+      paid,
     });
     rolling?.restore();
     // What events can read about the roll and the damage (@roll.margin, @damage.total ...).
