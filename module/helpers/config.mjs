@@ -290,6 +290,7 @@ CARL_RPG.upgrades = {
     rollTarget: 'CARL_RPG.Upgrades.Changes.rollTarget',
     armorPiercing: 'CARL_RPG.Upgrades.Changes.armorPiercing',
     damageType: 'CARL_RPG.Upgrades.Changes.damageType',
+    damageTypeAlso: 'CARL_RPG.Upgrades.Changes.damageTypeAlso',
     rankDamageBonus: 'CARL_RPG.Upgrades.Changes.rankDamageBonus',
     rankDamageStep: 'CARL_RPG.Upgrades.Changes.rankDamageStep',
     // Multiply the damage (see helpers/damage-multiply.mjs).

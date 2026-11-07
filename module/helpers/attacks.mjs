@@ -324,6 +324,7 @@ export async function resolveCheck(
       .map((d) => ({ types: d.types, amount: d.total })),
   ];
   const ownType = effectiveOf(item).damageType ?? '';
+  const alsoType = effectiveOf(item).damageTypeAlso ?? '';
   // A target's damage: the number, and the parts by type when typed dice are in it (the
   // parts are what resistances read; with none, damage works exactly as it always did). The
   // multipliers (helpers/damage-multiply.mjs) are read for the degree of success.
@@ -339,6 +340,7 @@ export async function resolveCheck(
       modTotal: modTotalFor(degree),
       typed: typedFor(degree, applies),
       ownType,
+      alsoType,
       mult: multiplierFor(multipliers, multDegree),
     });
   // With no filters the effect works against everyone, so the card's headline shows it.

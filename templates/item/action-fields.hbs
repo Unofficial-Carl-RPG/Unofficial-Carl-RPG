@@ -40,6 +40,10 @@
         <select name='system.damageType'>
           {{selectOptions @root.damageTypeOptions selected=system.damageType}}
         </select>
+        <label class='resource-label' for='system.damageTypeAlso'>{{localize 'CARL_RPG.Damage.Also'}}</label>
+        <select name='system.damageTypeAlso' data-tooltip='{{localize "CARL_RPG.Damage.AlsoHint"}}'>
+          {{selectOptions @root.damageTypeOptions selected=system.damageTypeAlso}}
+        </select>
         <label class='damage-pierce'>
           <input type='checkbox' name='system.armorPiercing' {{checked system.armorPiercing}} />
           {{localize 'CARL_RPG.Damage.ArmorPiercing'}}

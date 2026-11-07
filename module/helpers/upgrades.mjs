@@ -28,6 +28,7 @@ import { validAmount } from './amounts.mjs';
  *  - rollTarget     roll against something else (a key of CONFIG.CARL_RPG.checkTargets)
  *  - armorPiercing  the damage ignores Damage Resistance (no value)
  *  - damageType     the damage becomes this type (an id from the GM's damage types)
+ *  - damageTypeAlso the damage is split evenly between its type and this second one (an id)
  *  - areaShape      the area becomes this shape (a key of CONFIG.CARL_RPG.areaShapes); the last wins
  *  - areaShapeExtra the area can also be this shape: the roll pop-up offers the choice. The change
  *                   can carry a `size` of its own (an amount; blank uses the area's size) and
@@ -147,6 +148,7 @@ export function changeProblem(change) {
     case 'areaSizeReplace':
       return value === '' || !validAmount(value);
     case 'damageType':
+    case 'damageTypeAlso':
       return !damageTypes().some((d) => d.id === value);
     case 'damageMultiply':
       return (
@@ -204,7 +206,7 @@ export function changeProblem(change) {
  *                         manaCost and upgrades)
  * @returns {{damage: string, manaCost: number, rollBonus: number,
  *   rankBonus: number, rankStep: number,
- *   target: string, damageType: string, armorPiercing: boolean, areaShape: string,
+ *   target: string, damageType: string, damageTypeAlso: string, armorPiercing: boolean, areaShape: string,
  *   multipliers: {value: number, scope: string, when: string}[],
  *   areaShapes: string[], areaSize: string, areaSizeDelta: number, areaExtras: object, splashDelta: number, unlocked: string[]}}
  *   `areaShapes` is the shapes the area can have (the first is the one used without a choice),
@@ -227,6 +229,7 @@ export function computeEffective(system) {
   let rankStep = 0;
   let target = system.check?.target ?? 'unopposed';
   let damageType = system.damageType ?? '';
+  let damageTypeAlso = system.damageTypeAlso ?? '';
   let armorPiercing = !!system.armorPiercing;
   // An area's shape (and the others it can be), and its size (an amount, plus feet added).
   let areaShape = system.targeting?.shape ?? 'circle';
@@ -277,6 +280,9 @@ export function computeEffective(system) {
         case 'damageType':
           damageType = value;
           break;
+        case 'damageTypeAlso':
+          damageTypeAlso = value;
+          break;
         case 'areaShape':
           areaShape = value;
           break;
@@ -321,6 +327,7 @@ export function computeEffective(system) {
     rankStep,
     target,
     damageType,
+    damageTypeAlso,
     armorPiercing,
     areaShape,
     areaShapes: [areaShape, ...extraShapes.filter((shape) => shape !== areaShape)],
@@ -398,6 +405,7 @@ export function effectiveOf(item) {
       rankStep: 0,
       target: system.check?.target ?? 'unopposed',
       damageType: system.damageType ?? '',
+      damageTypeAlso: system.damageTypeAlso ?? '',
       armorPiercing: !!system.armorPiercing,
       areaShape: system.targeting?.shape ?? 'circle',
       areaShapes: [system.targeting?.shape ?? 'circle'],
@@ -556,6 +564,13 @@ export function summarizeChanges(upgrade, effectNames = [], grantNames = []) {
       case 'damageType':
         parts.push(
           t('CARL_RPG.Upgrades.Summary.damageType', {
+            type: damageTypes().find((d) => d.id === value)?.label ?? value,
+          })
+        );
+        break;
+      case 'damageTypeAlso':
+        parts.push(
+          t('CARL_RPG.Upgrades.Summary.damageTypeAlso', {
             type: damageTypes().find((d) => d.id === value)?.label ?? value,
           })
         );

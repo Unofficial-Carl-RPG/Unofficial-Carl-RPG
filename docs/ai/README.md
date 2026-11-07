@@ -18,7 +18,7 @@ source: branch carl-rpg @ d84882d. Read from module/ (data models, documents, he
 - NS: the flag/setting namespace 'carl-rpg'
 
 ## Status
-- tests: npm test -> 401 rule tests pass (node --test, stubs in tests/stubs.mjs stand in for Foundry)
+- tests: npm test -> 417 rule tests pass (node --test, stubs in tests/stubs.mjs stand in for Foundry)
 - foundryRun: NEVER run in Foundry. Every runtime behaviour below is verified only by code reading and stub tests. Playtesting is done by the user.
 - openWork: system.json url/manifest/download/bugs are placeholders. Everything else in the plan is built or dropped.
 - commits: 362

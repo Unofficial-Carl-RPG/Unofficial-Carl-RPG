@@ -46,11 +46,11 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 401).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 417).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 401 pass)
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 417 pass)
 - stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node
 
 ## files
@@ -67,6 +67,7 @@
 - combat.test.mjs: degrees, damage, phases, declarations
 - costs.test.mjs: cost spans/labels
 - cost-damage.test.mjs: damage formulas reading @cost (bare @cost, roll data, Magic Missile at each Mana choice and rank)
+- damage-also-type.test.mjs: a second damage type (even split, odd point, untyped dice split with it, typed rows kept apart, resistances per part, with the multiplier, the upgrade at rank 10)
 - damage-multiply.test.mjs: damageMultiply upgrade change (validity, rank unlock, the reference skills), roll/degree conditions, highest row wins, base vs total, typed parts resisted after multiplying, Roll Modifier rows
 - damage-effects.test.mjs: Damage Effect rules per rank, per-target filters, damage maths, who can choose what, cooldowns
 - damage-types.test.mjs: damage types and modes

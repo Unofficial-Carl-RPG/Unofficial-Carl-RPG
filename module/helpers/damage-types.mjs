@@ -152,13 +152,18 @@ export function splitAmount(amount, count) {
  * One target's damage as parts, one for each damage type, so resistances can act on each on
  * its own. The attack's own damage (with any untyped bonus dice) comes first; a typed bonus
  * is split evenly between the types it names. Parts of one type merge; empty ones are left out.
+ * An attack with a second type (`alsoType`) splits all its own-type damage (the dice and any
+ * untyped bonus dice) evenly between the two, the first getting an odd point; a second type
+ * does nothing on an attack with no type of its own, or the same one.
  * @param {number} base  The attack's own damage
  * @param {string} baseType  The attack's damage type ('' for none)
  * @param {{types: string[], amount: number}[]} [typed]  The typed bonus dice, rolled
+ * @param {string} [alsoType]  The attack's second damage type ('' for none)
  * @returns {{type: string, amount: number}[]}
  */
-export function damageParts(base, baseType, typed = []) {
+export function damageParts(base, baseType, typed = [], alsoType = '') {
   const own = baseType ?? '';
+  const also = own && alsoType && alsoType !== own ? alsoType : '';
   const parts = [];
   const add = (type, amount) => {
     if (!(amount > 0)) return;
@@ -166,11 +171,15 @@ export function damageParts(base, baseType, typed = []) {
     if (part) part.amount += amount;
     else parts.push({ type, amount });
   };
-  add(own, Math.floor(Number(base) || 0));
+  let ownAmount = Math.floor(Number(base) || 0);
+  for (const row of typed) {
+    if (!(row.types ?? []).length && row.amount > 0) ownAmount += row.amount;
+  }
+  if (also) splitAmount(ownAmount, 2).forEach((share, i) => add(i ? also : own, share));
+  else add(own, ownAmount);
   for (const row of typed) {
     const types = row.types ?? [];
-    if (!types.length) add(own, row.amount);
-    else splitAmount(row.amount, types.length).forEach((share, i) => add(types[i], share));
+    if (types.length) splitAmount(row.amount, types.length).forEach((share, i) => add(types[i], share));
   }
   return parts;
 }

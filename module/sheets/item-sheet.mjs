@@ -633,7 +633,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
             isShape: ['areaShape', 'areaShapeExtra'].includes(change.type),
             isExtra: change.type === 'areaShapeExtra',
             isAmount: change.type === 'areaSizeReplace',
-            isDamageType: change.type === 'damageType',
+            isDamageType: ['damageType', 'damageTypeAlso'].includes(change.type),
             // Bonus dice can name a damage type of their own (and a second).
             hasBonusType: cfg.upgrades.bonusTyped.includes(change.type),
             // A Roll Modifier's changes can have an "Only when" condition.

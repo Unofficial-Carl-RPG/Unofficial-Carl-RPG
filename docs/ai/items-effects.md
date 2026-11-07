@@ -12,6 +12,7 @@
   - check: {target checkTargets id init unopposed, number int (mob checks)}
   - damage: number or dice formula e.g. '1d6+@str.mod'; blank = no damage; @rankDamage = the dice for the rank (see rules rankDamage)
   - damageType: id from the world damage type list or ''
+- damageTypeAlso: optional second damage type (id or ''); the item's own damage is split evenly between damageType and this (see rules.md typedBonus alsoType); ignored with no damageType or the same one
   - armorPiercing: bool; damage ignores DR
   - targeting: {mode none|count|self|area, count formula, range amount in feet (number or formula) or Melee|Touch|Unlimited, filter enemies|allies|any, shape circle|cone|ray|rect, size formula, lasting bool, lasts amount, in rounds (number or formula over roll data, e.g. by @rank; 0 until GM removes; was an integer, migrated to text), areas formula, limit formula (0 = all), splash amount in feet (Area: beyond the placed area's edge; Count: around each chosen target; default 0), splashDamage dice formula (blank = none), splashEffects bool, kind ''|fire|difficult|poison}
   - requirements: [{type mana|stat|gold|actions|classTag, stat, value (number or formula, see events.md formulas), tag}] must hold or the item cannot be used (warns)

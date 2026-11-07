@@ -104,7 +104,7 @@
 - defaultRanks: 5, 10, 15, 20
 - rankStep: 5
 - dieLadder: 4, 6, 8, 10, 12, 20
-- changes: damageAdd, damageReplace, dieStep, manaCost, junkCost, usesCost, rollBonus, rollTarget, armorPiercing, damageType, rankDamageBonus, rankDamageStep, areaShape, areaShapeExtra, areaSizeAdd, areaSizeReplace, splashAdd, deAddDice, deBaseByRank, deTotalMultiplier, deHealthMax, deSameSize, deSizeMax, deCooldownHours, deCooldownRound, deCooldownNone, deStunOption, rmRank, rmDice, rmDR, damageMultiply
+- changes: damageAdd, damageReplace, dieStep, manaCost, junkCost, usesCost, rollBonus, rollTarget, armorPiercing, damageType, damageTypeAlso, rankDamageBonus, rankDamageStep, areaShape, areaShapeExtra, areaSizeAdd, areaSizeReplace, splashAdd, deAddDice, deBaseByRank, deTotalMultiplier, deHealthMax, deSameSize, deSizeMax, deCooldownHours, deCooldownRound, deCooldownNone, deStunOption, rmRank, rmDice, rmDR, damageMultiply
 - change rows also carry scope (string, default ""): a damageMultiply change's "total" or "base" (blank = total)
 - upgrades.multiplyScopes: total, base (lang CARL_RPG.Upgrades.Scope.*)
 - change rows also carry when (string, default ''): the 'Only when' condition of a Roll Modifier change

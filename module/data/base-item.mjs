@@ -166,6 +166,12 @@ export default class CarlRPGItemBase extends foundry.abstract
       blank: true,
       initial: '',
     });
+    // An optional second type: the attack's own damage is split evenly between the two.
+    schema.damageTypeAlso = new fields.StringField({
+      required: true,
+      blank: true,
+      initial: '',
+    });
     schema.armorPiercing = new fields.BooleanField({ initial: false });
 
     // Tags: plain text labels that rules can ask for (see helpers/tags.mjs).

@@ -62,6 +62,7 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
           rollBonus: '1',
           rollTarget: 'evade',
           damageType: damageTypes()[0]?.id ?? '',
+          damageTypeAlso: damageTypes()[1]?.id ?? damageTypes()[0]?.id ?? '',
           rmDR: '5',
           damageMultiply: '2',
           areaShape: 'cone',

@@ -92,6 +92,7 @@ export function scaleBase(total, diceSum, times) {
  * @param {number} [p.modTotal]  What the Roll Modifiers' untyped dice add for this target
  * @param {{types: string[], amount: number}[]} [p.typed]  The dice with a type of their own
  * @param {string} [p.ownType]  The attack's damage type
+ * @param {string} [p.alsoType]  The attack's second damage type (its own damage is split)
  * @param {{base: number, total: number}} [p.mult]  See multiplierFor
  * @returns {{damage: number, parts: {type: string, amount: number}[]|null}}
  *   `parts` only when the damage is of more than the attack's one type
@@ -107,6 +108,7 @@ export function targetDamage({
   modTotal = 0,
   typed = [],
   ownType = '',
+  alsoType = '',
   mult = { base: 1, total: 1 },
 }) {
   const scaled = scaleBase(damage, diceSum, mult.base);
@@ -121,7 +123,7 @@ export function targetDamage({
       applies,
     }) + modTotal;
   const times = mult.total;
-  const parts = damageParts(base, ownType, typed);
+  const parts = damageParts(base, ownType, typed, alsoType);
   if (partsMatter(parts, ownType)) {
     const scaledParts = scaleParts(parts, times);
     return { damage: partsTotal(scaledParts), parts: scaledParts };
