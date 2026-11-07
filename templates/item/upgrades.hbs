@@ -96,6 +96,9 @@
               <select data-path='{{change.path}}.when' data-tooltip='{{localize "CARL_RPG.RollMod.WhenHint"}}'>
                 {{selectOptions change.whenOptions selected=change.when localize=true}}
               </select>
+              {{#if change.isWithin}}
+                <input type='number' class='event-value' data-path='{{change.path}}.feet' value='{{change.feet}}' min='1' step='any' placeholder='{{localize "CARL_RPG.RollMod.WithinPlaceholder"}}' data-tooltip='{{localize "CARL_RPG.RollMod.WithinHint"}}' />
+              {{/if}}
             {{/if}}
             {{#if change.invalid}}
               <i class='fas fa-triangle-exclamation upgrade-invalid' data-tooltip='{{localize "CARL_RPG.Upgrades.Invalid"}}'></i>

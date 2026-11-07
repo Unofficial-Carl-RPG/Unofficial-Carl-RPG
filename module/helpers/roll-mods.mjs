@@ -29,7 +29,8 @@
  * The DR bonus is kept on the actor (flag tempDR, one entry per modifier) until the next
  * damage it takes uses it up; it also clears when a round or a combat ends.
  */
-import { changeProblem, unlockedUpgrades } from './upgrades.mjs';
+import { changeProblem, reachOf, unlockedUpgrades } from './upgrades.mjs';
+import { withinFeet } from './distance.mjs';
 import { rankOf } from './skill-rank.mjs';
 import { listAccepts, listEntries } from './skill-list.mjs';
 import { rowTypes } from './damage-types.mjs';
@@ -74,6 +75,7 @@ export function modRules(system) {
             value: Number(change.value),
             scope: change.scope === 'base' ? 'base' : 'total',
             when: change.when ?? '',
+            ...reachOf(change),
           });
         }
         continue;
@@ -84,7 +86,10 @@ export function modRules(system) {
       if (change.type === 'rmRank') rules.rank.push({ when });
       else if (change.type === 'rmDice') {
         const types = rowTypes(change);
-        rules.dice.push(types.length ? { formula: value, when, types } : { formula: value, when });
+        const reach = reachOf(change);
+        rules.dice.push(
+          types.length ? { formula: value, when, types, ...reach } : { formula: value, when, ...reach }
+        );
       }
       else rules.dr.push({ amount: Math.trunc(Number(value)), when });
     }
@@ -129,6 +134,18 @@ export function degreeMet(when, degree) {
     default:
       return true;
   }
+}
+
+/**
+ * Whether a row's condition holds for one target. A degree condition reads the target's degree
+ * of success; `within` reads how far the target is from the attacker (the row's `feet`; a
+ * distance that could not be measured, null, never counts); the others always hold here.
+ * @param {{when?: string, feet?: number}} row
+ * @param {{degree?: string, feet?: number|null}} target
+ */
+export function targetMet(row, { degree, feet = null } = {}) {
+  if (row?.when === 'within') return withinFeet(feet, row.feet);
+  return degreeMet(row?.when ?? '', degree);
 }
 
 /** Whether a modifier has a row that only works on a Surprise attack. */
@@ -218,6 +235,7 @@ export function resolveMods(mods, { mode = 'normal', surprise = false, melee = f
           formula: row.formula,
           when: row.when,
           types: row.types ?? [],
+          ...(row.feet !== undefined ? { feet: row.feet } : {}),
         });
       }
     }

@@ -80,7 +80,13 @@ export function validFormula(text) {
 
 /** Whether a Roll Modifier change has a condition its kind of change can't use. */
 const whenProblem = (change) =>
-  !(CONFIG.CARL_RPG.rollMods.allowed[change.type] ?? []).includes(change.when ?? '');
+  !(CONFIG.CARL_RPG.rollMods.allowed[change.type] ?? []).includes(change.when ?? '') ||
+  // ("within" needs a distance above 0)
+  (change.when === 'within' && !(Number(String(change.feet ?? '').trim()) > 0));
+
+/** The distance of a "within" condition, as a row field (nothing for the other conditions). */
+export const reachOf = (change) =>
+  change.when === 'within' ? { feet: Number(String(change.feet ?? '').trim()) } : {};
 
 /** Join an addition onto a formula: "1d6" + "1d4" is "1d6 + 1d4", "-1" is "1d6 - 1". */
 function addToFormula(formula, extra) {
@@ -311,6 +317,7 @@ export function computeEffective(system) {
             value: Number(value),
             scope: change.scope === 'base' ? 'base' : 'total',
             when: change.when ?? '',
+            ...reachOf(change),
           });
           break;
       }
@@ -666,7 +673,9 @@ const typeLabelOf = (change) => rowTypes(change).map(damageTypeLabel).join(' & '
 
 /** " (only with Disadvantage)" after a Roll Modifier change that has a condition. */
 const whenSuffix = (change) =>
-  change.when ? ` (${t(`CARL_RPG.RollMod.WhenSummary.${change.when}`)})` : '';
+  change.when
+    ? ` (${t(`CARL_RPG.RollMod.WhenSummary.${change.when}`, { feet: change.feet })})`
+    : '';
 
 /**
  * The upgrades of a skill or spell, for listing on its sheet or in chat: each

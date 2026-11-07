@@ -56,7 +56,7 @@ test('a multiplier needs a number above 0, a known scope and a condition that wo
 
 test('the "only when" ids a multiplier accepts are the roll ones, melee range and the degrees', () => {
   const allowed = CONFIG.CARL_RPG.rollMods.allowed.damageMultiply;
-  assert.deepEqual(allowed, ['', 'disadvantage', 'advantage', 'surprise', 'melee', 'hit', 'amazing', 'crit']);
+  assert.deepEqual(allowed, ['', 'disadvantage', 'advantage', 'surprise', 'melee', 'within', 'hit', 'amazing', 'crit']);
   assert.equal(whenMet('melee', { melee: true }), true);
   assert.equal(whenMet('melee', {}), false);
 });

@@ -638,6 +638,8 @@ export class CarlRPGItemSheet extends ItemSheetBase {
             hasBonusType: cfg.upgrades.bonusTyped.includes(change.type),
             // A Roll Modifier's changes can have an "Only when" condition.
             whenOptions: whenOptionsFor(change.type),
+            // ("within" also asks how many feet)
+            isWithin: change.when === 'within',
             // (a shape on a Count item needs a size of its own: it has no area to take it from)
             invalid:
               changeProblem(change) ||

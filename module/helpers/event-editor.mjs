@@ -182,7 +182,7 @@ export async function buildEventRows(events, base) {
           if (['rollMin', 'rollMax', 'nat20', 'nat1', 'degree'].includes(key)) {
             return attacking;
           }
-          if (['targetSize', 'targetKind', 'damageOption'].includes(key)) return attacking;
+          if (['targetSize', 'targetKind', 'damageOption', 'distance'].includes(key)) return attacking;
           if (['lootItem', 'lootGold'].includes(key)) return ev.trigger === 'opened';
           if (key === 'restKind') return ev.trigger === 'restTaken';
           return true;
@@ -213,6 +213,7 @@ export async function buildEventRows(events, base) {
               'health',
               'chance',
               'targetSize',
+              'distance',
             ].includes(c.type),
             showPhase: c.type === 'phase',
             showDegree: c.type === 'degree',

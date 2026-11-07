@@ -110,7 +110,7 @@ test('each kind of change offers only the conditions that suit it', () => {
   const ids = (type) => Object.keys(whenOptionsFor(type));
   assert.deepEqual(ids('rmRank'), ['', 'disadvantage', 'advantage', 'surprise']);
   assert.deepEqual(ids('rmDR'), ['', 'disadvantage', 'advantage', 'surprise']);
-  assert.deepEqual(ids('rmDice'), ['', 'disadvantage', 'advantage', 'surprise', 'hit', 'amazing', 'crit', 'miss']);
+  assert.deepEqual(ids('rmDice'), ['', 'disadvantage', 'advantage', 'surprise', 'hit', 'amazing', 'crit', 'miss', 'within']);
   assert.equal(whenOptionsFor('damageAdd'), null);
   // Every condition has a label.
   for (const when of Object.values(CONFIG.CARL_RPG.rollMods.when)) assert.match(when, /^CARL_RPG\.RollMod\.When\./);

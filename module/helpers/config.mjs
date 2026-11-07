@@ -204,6 +204,7 @@ CARL_RPG.eventConditions = {
   chance: 'CARL_RPG.Events.Conditions.chance',
   targetSize: 'CARL_RPG.Events.Conditions.targetSize',
   targetKind: 'CARL_RPG.Events.Conditions.targetKind',
+  distance: 'CARL_RPG.Events.Conditions.distance',
   restKind: 'CARL_RPG.Events.Conditions.restKind',
   damageOption: 'CARL_RPG.Events.Conditions.damageOption',
 };
@@ -364,6 +365,7 @@ CARL_RPG.rollMods = {
     advantage: 'CARL_RPG.RollMod.When.advantage',
     surprise: 'CARL_RPG.RollMod.When.surprise',
     melee: 'CARL_RPG.RollMod.When.melee',
+    within: 'CARL_RPG.RollMod.When.within',
     hit: 'CARL_RPG.RollMod.When.hit',
     amazing: 'CARL_RPG.RollMod.When.amazing',
     crit: 'CARL_RPG.RollMod.When.crit',
@@ -372,9 +374,10 @@ CARL_RPG.rollMods = {
   allowed: {
     rmRank: ['', 'disadvantage', 'advantage', 'surprise'],
     rmDR: ['', 'disadvantage', 'advantage', 'surprise'],
-    rmDice: ['', 'disadvantage', 'advantage', 'surprise', 'hit', 'amazing', 'crit', 'miss'],
-    // A damage multiplier of a skill or spell (melee range is a tick in the roll pop-up).
-    damageMultiply: ['', 'disadvantage', 'advantage', 'surprise', 'melee', 'hit', 'amazing', 'crit'],
+    rmDice: ['', 'disadvantage', 'advantage', 'surprise', 'hit', 'amazing', 'crit', 'miss', 'within'],
+    // A damage multiplier of a skill or spell (melee range is a tick in the roll pop-up; within
+    // N ft is measured from the tokens, for each target).
+    damageMultiply: ['', 'disadvantage', 'advantage', 'surprise', 'melee', 'within', 'hit', 'amazing', 'crit'],
   },
 };
 

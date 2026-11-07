@@ -10,8 +10,9 @@
  *           Amazing Floor bonus) or `base` (just the item's own dice result; flat modifiers
  *           and extras are added after, like a Damage Effect's "base x Rank")
  *  - when   an optional "Only when" condition (CONFIG.CARL_RPG.rollMods.allowed.damageMultiply):
- *           the roll's mode, a Surprise attack or melee range (ticks in the roll pop-up), or
- *           the degree of success against each target (hit, Amazing or better, Critical Hit)
+ *           the roll's mode, a Surprise attack or melee range (ticks in the roll pop-up), the
+ *           degree of success against each target (hit, Amazing or better, Critical Hit) or the
+ *           target being within some feet of the attacker (`within`, measured from the tokens)
  *
  * Rows that apply to a target do not add up: the highest one for each scope is used. Each
  * part of a target's damage is multiplied on its own and rounded down, so a type that is
@@ -21,7 +22,7 @@
  * dice: they are rolled once, not doubled, and the multiplier works on them instead. Bonus dice
  * from Damage Effects and Roll Modifiers are still doubled by the critical.
  */
-import { degreeMet, whenMet } from './roll-mods.mjs';
+import { targetMet, whenMet } from './roll-mods.mjs';
 import { damageWithEffect } from './damage-effects.mjs';
 import { damageParts, partsMatter, partsTotal, scaleParts } from './damage-types.mjs';
 
@@ -50,14 +51,15 @@ export const critReplaces = (rows) => (rows ?? []).some((row) => row.when === 'c
 /**
  * The multipliers for one degree of success: the highest applying row of each scope, 1 when
  * none applies.
- * @param {{value: number, scope: string, when: string}[]} rows  Already resolved for the roll
+ * @param {{value: number, scope: string, when: string, feet?: number}[]} rows  Already resolved for the roll
  * @param {string} degree
+ * @param {number|null} [feet]  How far the target is from the attacker (null: not measured)
  * @returns {{base: number, total: number}}
  */
-export function multiplierFor(rows, degree) {
+export function multiplierFor(rows, degree, feet = null) {
   const best = { base: null, total: null };
   for (const row of rows ?? []) {
-    if (!degreeMet(row.when ?? '', degree)) continue;
+    if (!targetMet(row, { degree, feet })) continue;
     const scope = scopeOf(row);
     best[scope] = best[scope] === null ? row.value : Math.max(best[scope], row.value);
   }

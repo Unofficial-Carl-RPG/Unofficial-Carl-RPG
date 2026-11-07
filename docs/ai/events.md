@@ -15,7 +15,7 @@
 
 ## formulas
 - where: every number an event reads is a number or formula over roll data: action amount (dice allowed, rolled when run), condition value and requirement value (no dice; worked out by helpers/amounts.mjs evalAmount, so 'roll min' etc. are stable)
-- valueConditions: stat, mana, rollMin, rollMax, lootGold, floor, floorExact, health, chance, targetSize. A formula that cannot be worked out (missing data, blank, dice) makes the condition false; a requirement then blocks use with Needs.badFormula; an action amount counts as 0 with Warn.BadFormula
+- valueConditions: stat, mana, rollMin, rollMax, lootGold, floor, floorExact, health, chance, targetSize, distance. A formula that cannot be worked out (missing data, blank, dice) makes the condition false; a requirement then blocks use with Needs.badFormula; an action amount counts as 0 with Warn.BadFormula
 - data (events.mjs eventData(item, ctx)): the owner's actor roll data (@str.mod, @lvl ...; the OWNER of the event, not the actor an action is aimed at), @floor, @rank (item rank, 0 if none; a skill's or spell's effective rank), @item.* (item.system; @item.stacks for effects), @target.* (roll data of the target hit/missed), plus the trigger's: @roll.total, @roll.natural (first die), @roll.margin (roll total minus the number to reach, negative under: on hit/miss that target's, on used an unopposed check's, absent for an opposed used event, a no-roll use and a mob card's hit), @roll.bonus (the whole extra bonus: pop-up + build + Roll Modifier Rank; 0 if blank or it has dice), @roll.mod (modifier of the stat the roll used, after a pop-up stat change), @roll.rank (the rank added: the rolled skill's, else the item's own), @damage.total (that target's damage after crit, degree bonus and modifier dice, before DR; on used the card headline; absent on a miss), @damage.dice (sum of the base damage's dice, crit-doubled), @damage.base (base damage roll total; both absent when the use has no damage), @cost (total paid; @cost.mana .junk .uses .ammo), @trigger.amount|level|rank|actionsLeft|option (takesDamage damage, levelUp new level, advanced new rank, actionSpent actions left, option 1 when a Damage Effect's instead-of-damage tick was set)
 - passed: item.mjs runEvents for used/hit/miss pass paid (what the use paid), ctx.check {margin, bonus, mod, rank} and ctx.damage {total, dice, base} (built by event-roll.mjs from resolveCheck's margin, damage and per-hit/miss margin and damage; the Damage Effect's own used/hit events get them too). The mob card's hit event (attacks.mjs) passes only damage.total. A value that is not a finite number is left out, so a formula reading it is unresolved
 - rankDamage: @rankDamage in an ACTION AMOUNT (rollAmount, helpers/events.mjs) is the rank dice (CONFIG.CARL_RPG.rankDamage, see rules.md) of the event's holder: a skill, spell or mob ability reads its own effective rank, a weapon or item with a Skill check reads the skill it rolls with (item.rollingSkill()); an effect, pet upgrade, floor rule, gear with no skill or rank 0 reads "0" without a warning. It is dice, so conditions, requirements and ranges (no dice) cannot use it: they are unresolved (condition false, requirement blocks with Needs.badFormula). Not available to the data object (no @rankDamage.min/max)
@@ -25,8 +25,8 @@
 
 ## triggers
 - used: after an item's roll and check resolved; ctx: roll, degrees
-- hit: once per target that was hit (degree critHit|amazing|success); ctx target, degree
-- miss: once per target missed
+- hit: once per target that was hit (degree critHit|amazing|success); ctx target, targetToken (its token), degree
+- miss: once per target missed; ctx target, targetToken, degree
 - added / removed: item added to / removed from an actor
 - equipped / unequipped: gear only
 - opened: loot box only; after a successful opening, never on cancel/discard
@@ -58,6 +58,7 @@
 - health: current health boxes <= value
 - chance: random percent < value
 - targetSize: target sizeClass >= value
+- distance: the owner's token (helpers/summon.mjs findAnchor, no targets) is within value feet of ctx.targetToken, edge to edge (helpers/distance.mjs: touching tokens are 5 ft apart on a 5 ft grid, one empty square between is 10 ft, a diagonal counts like a straight line). value is a formula like the other value conditions. False when either token is missing or they are on different scenes; offered on used|hit|miss events but only hit and miss bring a targetToken, so on used it is never true. Not carried by a relayed request (conditions are checked on the client that triggered the event)
 - targetKind: text: crawler|pet|mob|basic|elite|boss
 - restKind: text: short|long|full, 'at least' (long counts as short)
 - damageOption: @trigger.option > 0, i.e. the roll pop-up's instead-of-damage tick of a Damage Effect; offered on used|hit|miss events (a Damage Effect's own used/hit events get it)

@@ -1413,6 +1413,7 @@ export class CarlRPGItem extends Item {
         paid,
         depth,
         target: hit.actor,
+        targetToken: hit.token,
         degree: hit.degree,
         attackMessage: attack?.message,
         collect: fired,
@@ -1422,6 +1423,7 @@ export class CarlRPGItem extends Item {
         await runEvents(chosenEffect, 'hit', {
           ...effectCtx,
           target: hit.actor,
+          targetToken: hit.token,
           degree: hit.degree,
           attackMessage: attack?.message,
           ...hitExtra,
@@ -1435,6 +1437,7 @@ export class CarlRPGItem extends Item {
         paid,
         depth,
         target: miss.actor,
+        targetToken: miss.token,
         collect: fired,
         degree: miss.degree,
         // (a miss takes no damage: only the dice and base are there)

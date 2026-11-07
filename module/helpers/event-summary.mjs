@@ -73,6 +73,9 @@ export async function summarizeCondition(c) {
     case 'targetSize':
       text = t(`${S}targetSize`, { value: c.value });
       break;
+    case 'distance':
+      text = t(`${S}distance`, { value: c.value });
+      break;
     case 'targetKind':
       text = t(`${S}targetKind`, {
         kind: t(CONFIG.CARL_RPG.eventTargetKinds[c.text] ?? c.text),

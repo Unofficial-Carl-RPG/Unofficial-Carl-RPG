@@ -8,7 +8,8 @@ import { eventsField } from './base-item.mjs';
  *    Modifier's changes also have an optional `when` condition; their bonus dice can name a
  *    damage type: `bonusType` and an optional second one, `bonusAlso`; an extra area shape's change
  *    can have a `size` of its own (an amount) and `keep`: also place the area's own shape; a
- *    damage multiplier has a `scope`, `total` or `base`, and a `when` condition)
+ *    damage multiplier has a `scope`, `total` or `base`, and a `when` condition; the `within`
+ *    condition also has `feet`, how far the target may be from the attacker)
  *  - the skills and spells it gives (`grants`, a pet's upgrades only)
  *  - the effects it unlocks (`unlocksEffects`, by identifier or name)
  *  - the events it carries, which only run once it has been reached
@@ -34,6 +35,7 @@ export function upgradesField() {
           value: requiredString(),
           stat: requiredString('str'),
           when: requiredString(''),
+          feet: requiredString(''),
           bonusType: requiredString(''),
           bonusAlso: requiredString(''),
           size: requiredString(''),

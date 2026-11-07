@@ -46,7 +46,8 @@ import { promptRoll, buildFormula, optionsNote } from './roll-dialog.mjs';
 import { applyBenefits, rollBenefits } from './build-mods.mjs';
 import { badgeRowHtml } from './item-badges.mjs';
 import { appliesTo, diceSumOf, hasFilters, healthPercentOf } from './damage-effects.mjs';
-import { degreeMet } from './roll-mods.mjs';
+import { targetMet } from './roll-mods.mjs';
+import { attackerToken, tokenDistanceFeet } from './distance.mjs';
 import {
   critReplaces,
   multiplierFor,
@@ -310,25 +311,29 @@ export async function resolveCheck(
   // a hit (or the unopposed result), as there is no target yet to read a degree from.
   // (Dice with a damage type of their own are kept apart: see typedFor.)
   const untyped = (d) => !d.types?.length;
-  const modTotalFor = (degree) =>
-    modRolled.reduce((sum, d) => sum + (untyped(d) && degreeMet(d.when, degree) ? d.total : 0), 0);
+  const modTotalFor = (degree, feet) =>
+    modRolled.reduce(
+      (sum, d) => sum + (untyped(d) && targetMet(d, { degree, feet }) ? d.total : 0),
+      0
+    );
   // The typed dice that count for one target: the Damage Effect's, when it works against the
   // target (after its multiplier), and the Roll Modifiers' that its degree allows.
   const effectMultiplier = rules?.totalMultiplier ?? 1;
-  const typedFor = (degree, applies) => [
+  const typedFor = (degree, applies, feet) => [
     ...(rules && applies
       ? effectTyped.map((d) => ({ types: d.types, amount: Math.floor(d.total * effectMultiplier) }))
       : []),
     ...modRolled
-      .filter((d) => !untyped(d) && degreeMet(d.when, degree))
+      .filter((d) => !untyped(d) && targetMet(d, { degree, feet }))
       .map((d) => ({ types: d.types, amount: d.total })),
   ];
   const ownType = effectiveOf(item).damageType ?? '';
   const alsoType = effectiveOf(item).damageTypeAlso ?? '';
   // A target's damage: the number, and the parts by type when typed dice are in it (the
   // parts are what resistances read; with none, damage works exactly as it always did). The
-  // multipliers (helpers/damage-multiply.mjs) are read for the degree of success.
-  const damageFor = (degree, applies, { bonus = 0, multDegree = degree } = {}) =>
+  // multipliers (helpers/damage-multiply.mjs) are read for the degree of success. `feet` is how
+  // far the target is from the attacker, for the "within" conditions.
+  const damageFor = (degree, applies, { bonus = 0, multDegree = degree, feet = null } = {}) =>
     targetDamage({
       damage,
       diceSum,
@@ -337,19 +342,28 @@ export async function resolveCheck(
       rules,
       rank: effectRank,
       applies,
-      modTotal: modTotalFor(degree),
-      typed: typedFor(degree, applies),
+      modTotal: modTotalFor(degree, feet),
+      typed: typedFor(degree, applies, feet),
       ownType,
       alsoType,
-      mult: multiplierFor(multipliers, multDegree),
+      mult: multiplierFor(multipliers, multDegree, feet),
     });
   // With no filters the effect works against everyone, so the card's headline shows it.
   const headlineApplies = !!rules && !hasFilters(rules);
   // (With nothing to read a degree from, the headline counts as a hit, or a Critical Hit on a
   // natural 20, for the multipliers.)
   const headlineMult = unopposedDegree ?? (crit ? 'critHit' : 'success');
+  // How far each target is from the attacker (null when it can't be measured: no token). The
+  // headline has no target of its own, so it counts the nearest one.
+  const attackerDoc = attackerToken(owner);
+  const feetTo = (doc) => tokenDistanceFeet(attackerDoc, doc);
+  const reaches = targets.map(({ doc }) => feetTo(doc)).filter((feet) => feet !== null);
+  const headlineFeet = reaches.length ? Math.min(...reaches) : null;
   const headlineDamage = damaging
-    ? damageFor(unopposedDegree ?? 'success', headlineApplies, { multDegree: headlineMult })
+    ? damageFor(unopposedDegree ?? 'success', headlineApplies, {
+        multDegree: headlineMult,
+        feet: headlineFeet,
+      })
     : null;
   const headline = headlineDamage ? headlineDamage.damage : damage;
 
@@ -367,7 +381,7 @@ export async function resolveCheck(
       });
     // An Amazing Success adds the Floor to the damage.
     const dealt = damaging
-      ? damageFor(degree, applies, { bonus: degree === 'amazing' ? floor : 0 })
+      ? damageFor(degree, applies, { bonus: degree === 'amazing' ? floor : 0, feet: feetTo(doc) })
       : null;
     return {
       tokenUuid: doc.uuid,
@@ -460,11 +474,12 @@ export async function resolveCheck(
       (rows.length
         ? rows.some((row) => row.effectApplied && row.hit)
         : !hasFilters(rules)),
-    hits: targets.flatMap(({ actor }, i) =>
+    hits: targets.flatMap(({ actor, doc }, i) =>
       rows[i].hit && evented(rows[i])
         ? [
             {
               actor,
+              token: doc,
               degree: rows[i].degree,
               effect: rows[i].effectApplied,
               margin: roll ? marginOf(roll.total, rows[i].dc) : undefined,
@@ -474,10 +489,17 @@ export async function resolveCheck(
         : []
     ),
     // The targets it didn't hit, for the "an attack misses a target" events.
-    misses: targets.flatMap(({ actor }, i) =>
+    misses: targets.flatMap(({ actor, doc }, i) =>
       rows[i].hit || !evented(rows[i])
         ? []
-        : [{ actor, degree: rows[i].degree, margin: roll ? marginOf(roll.total, rows[i].dc) : undefined }]
+        : [
+            {
+              actor,
+              token: doc,
+              degree: rows[i].degree,
+              margin: roll ? marginOf(roll.total, rows[i].dc) : undefined,
+            },
+          ]
     ),
     // The attack card, where effects the events offer are shown (see helpers/events.mjs).
     message,

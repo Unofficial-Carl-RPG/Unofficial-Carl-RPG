@@ -50,6 +50,12 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
       if (/^upgrades\.\d+\.changes\.\d+\.bonusType$/.test(path) && !value) {
         foundry.utils.setProperty(system, path.replace(/bonusType$/, 'bonusAlso'), '');
       }
+      // "Within" starts at melee range (5 ft); any other condition has no distance.
+      if (/^upgrades\.\d+\.changes\.\d+\.when$/.test(path)) {
+        const feetPath = path.replace(/when$/, 'feet');
+        const had = String(foundry.utils.getProperty(system, feetPath) ?? '').trim();
+        foundry.utils.setProperty(system, feetPath, value === 'within' ? had || '5' : '');
+      }
       // A different kind of change starts with a value that suits it.
       if (/^upgrades\.\d+\.changes\.\d+\.type$/.test(path)) {
         const starts = {
@@ -87,6 +93,7 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
         foundry.utils.setProperty(system, path.replace(/\.type$/, '.bonusAlso'), '');
         // (nor an added shape's own size or keeping the base)
         foundry.utils.setProperty(system, path.replace(/\.type$/, '.size'), '');
+        foundry.utils.setProperty(system, path.replace(/\.type$/, '.feet'), '');
         foundry.utils.setProperty(system, path.replace(/\.type$/, '.keep'), false);
       }
     });

@@ -47,6 +47,7 @@ import { getFloorRules } from './floor.mjs';
 import { logEvent } from './change-log.mjs';
 import { revive } from './dying.mjs';
 import { findAnchor, canPlaceDirectly, placeTokens } from './summon.mjs';
+import { tokenDistanceFeet, withinFeet } from './distance.mjs';
 import { sideOfActor } from './minion-side.mjs';
 import { executeSummon, isPetOrMinion, levelAllowed, minionActors, modeOf, summonKey } from './minions.mjs';
 import { evalAmount, fillData } from './amounts.mjs';
@@ -391,6 +392,7 @@ const VALUE_CONDITIONS = new Set([
   'health',
   'chance',
   'targetSize',
+  'distance',
 ]);
 
 async function checkCondition(condition, ctx, item) {
@@ -461,6 +463,10 @@ async function checkCondition(condition, ctx, item) {
       return Math.random() * 100 < value;
     case 'targetSize':
       return ctx.target ? sizeClass(ctx.target) >= value : false;
+    case 'distance':
+      // The owner's token to the token that was hit or missed (edge to edge, see distance.mjs);
+      // false when either has no token to measure.
+      return withinFeet(tokenDistanceFeet(findAnchor(actor, []), ctx.targetToken), value);
     case 'targetKind':
       return isKind(ctx.target, condition.text);
     case 'damageOption':

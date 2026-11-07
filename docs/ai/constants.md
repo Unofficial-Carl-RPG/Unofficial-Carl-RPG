@@ -115,8 +115,9 @@
 
 ## rollMods
 - self: the word 'self' in a modifier's skill list means its own use
-- when: ids '' (always), disadvantage, advantage, surprise, melee, hit, amazing, crit, miss
-- allowed: rmRank and rmDR: '', disadvantage, advantage, surprise; rmDice: all of them; damageMultiply: '', disadvantage, advantage, surprise, melee, hit, amazing, crit
+- when: ids '' (always), disadvantage, advantage, surprise, melee, within, hit, amazing, crit, miss
+- allowed: rmRank and rmDR: '', disadvantage, advantage, surprise; rmDice: '', disadvantage, advantage, surprise, hit, amazing, crit, miss, within; damageMultiply: '', disadvantage, advantage, surprise, melee, within, hit, amazing, crit
+- within: a per-target condition, 'Target within (ft)': the row's feet (change.feet, above 0) is how far the target may be from the attacker; allowed on rmDice and damageMultiply only (see rules.md damageMultiply)
 
 ## damageEffects
 - restHours: short 1, long 8, full 24 (game hours a rest passes for Damage Effect cooldowns; there is no game clock)
