@@ -984,7 +984,8 @@ async function applyAttackDamage(message, which, multiplier = 1) {
 
   for (const i of indexes) {
     const target = attack.targets[i];
-    if (!target?.hit || target.applied) continue;
+    // (A target that evaded can still be given damage by hand: its own buttons, never "all".)
+    if (!target || target.state === 'pending' || target.applied) continue;
     const doc = await fromUuid(target.tokenUuid);
     const actor = doc?.actor ?? (await fromUuid(target.actorUuid));
     if (!actor) {
@@ -1152,7 +1153,9 @@ function renderAttackCard(message, html) {
       }
       const damage = target.damage ?? attack.damage;
       const action =
-        !damaging || !target.hit || (target.splash && !target.damage)
+        !damaging ||
+        (target.splash && !target.damage) ||
+        (!target.hit && !isGM && !target.applied)
           ? ''
           : target.applied
             ? `<span class="attack-applied">${esc(
