@@ -1155,7 +1155,7 @@ function renderAttackCard(message, html) {
       const action =
         !damaging ||
         (target.splash && !target.damage) ||
-        (!target.hit && !isGM && !target.applied)
+        (!isGM && (target.applied || !target.hit))
           ? ''
           : target.applied
             ? `<span class="attack-applied">${esc(
