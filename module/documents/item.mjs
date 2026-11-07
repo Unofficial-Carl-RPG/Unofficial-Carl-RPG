@@ -2,6 +2,7 @@ import { CarlRPGDialog } from '../helpers/dialog.mjs';
 import { rankOf } from '../helpers/skill-rank.mjs';
 import { CarlRPGActiveEffect } from './active-effect.mjs';
 import { checkRequirements, runEvents } from '../helpers/events.mjs';
+import { damageOfTarget, rollNumbers } from '../helpers/event-roll.mjs';
 import { castBlockedByHotlist } from '../helpers/hotlist-rule.mjs';
 import { applyBenefits, rollBenefits } from '../helpers/build-mods.mjs';
 import { grantLoot } from '../helpers/loot.mjs';
@@ -1313,22 +1314,50 @@ export class CarlRPGItem extends Item {
       splash,
     });
     rolling?.restore();
+    // What events can read about the roll and the damage (@roll.margin, @damage.total ...).
+    const rolledNumbers = roll
+      ? rollNumbers({
+          options: rollOptions,
+          data: this.actor?.getRollData?.() ?? {},
+          defaultStat,
+          rank: rankOf((rolling?.skill ?? this).system),
+        })
+      : {};
+    const usedExtra = {
+      check: { ...rolledNumbers, margin: attack?.margin },
+      damage: attack?.damage ?? undefined,
+    };
     // Summaries of the events that fire for this roll (shown on the attack card).
     const fired = [];
     // The rolled skill's own events run too.
-    if (rolling) await runEvents(rolling.skill, 'used', { roll, paid, depth, degrees: attack?.degrees, targeted });
+    if (rolling) {
+      await runEvents(rolling.skill, 'used', { roll, paid, depth, degrees: attack?.degrees, targeted, ...usedExtra });
+    }
     // (`degrees` are the degrees of success, for the "the roll's result is"
     // condition.)
-    await runEvents(this, 'used', { roll, paid, depth, degrees: attack?.degrees, collect: fired, targeted });
+    await runEvents(this, 'used', {
+      roll,
+      paid,
+      depth,
+      degrees: attack?.degrees,
+      collect: fired,
+      targeted,
+      ...usedExtra,
+    });
     // A Damage Effect that changed the attack goes on cooldown, and its own events run
     // (they see whether the "instead of damage" option was ticked).
-    const effectCtx = { roll, paid, depth, option: effectOption ? 1 : 0, collect: fired, targeted };
+    const effectCtx = { roll, paid, depth, option: effectOption ? 1 : 0, collect: fired, targeted, ...usedExtra };
     if (chosenEffect && attack?.effectApplied) {
       await startCooldown(chosenEffect);
       await runEvents(chosenEffect, 'used', { ...effectCtx, degrees: attack?.degrees });
     }
     // Each target that was hit runs the "an attack hits a target" events.
     for (const hit of attack?.hits ?? []) {
+      // (this target's margin and damage)
+      const hitExtra = {
+        check: { ...rolledNumbers, margin: hit.margin },
+        damage: damageOfTarget(attack?.damage, hit.damage),
+      };
       await runEvents(this, 'hit', {
         roll,
         paid,
@@ -1337,6 +1366,7 @@ export class CarlRPGItem extends Item {
         degree: hit.degree,
         attackMessage: attack?.message,
         collect: fired,
+        ...hitExtra,
       });
       if (chosenEffect && hit.effect) {
         await runEvents(chosenEffect, 'hit', {
@@ -1344,6 +1374,7 @@ export class CarlRPGItem extends Item {
           target: hit.actor,
           degree: hit.degree,
           attackMessage: attack?.message,
+          ...hitExtra,
         });
       }
     }
@@ -1356,6 +1387,9 @@ export class CarlRPGItem extends Item {
         target: miss.actor,
         collect: fired,
         degree: miss.degree,
+        // (a miss takes no damage: only the dice and base are there)
+        check: { ...rolledNumbers, margin: miss.margin },
+        damage: damageOfTarget(attack?.damage),
       });
     }
     if (fired.length && attack?.message) {

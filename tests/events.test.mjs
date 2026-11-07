@@ -287,6 +287,114 @@ test('eventData: the owner, the item, the target and the trigger', async () => {
 /*  Requirements                                */
 /* -------------------------------------------- */
 
+test('eventData: the check and damage numbers a use brings', async () => {
+  const item = skillWith([], { rank: 4 });
+  const crawler = await crawlerWith(item);
+  crawler.getRollData = () => DATA;
+  const data = eventData(item, {
+    actor: crawler,
+    roll: roll(15, 12),
+    check: { margin: -2, bonus: 3, mod: 1, rank: 4, junk: 9, extra: 'x' },
+    damage: { total: 7, dice: 5, base: 6, other: 1 },
+  });
+  assert.deepEqual(data.roll, { total: 15, natural: 12, margin: -2, bonus: 3, mod: 1, rank: 4 });
+  assert.deepEqual(data.damage, { total: 7, dice: 5, base: 6 });
+  // No roll (a mob's hit): only what is there.
+  const mob = eventData(item, { actor: crawler, damage: { total: 4 } });
+  assert.equal(mob.roll, undefined);
+  assert.deepEqual(mob.damage, { total: 4 });
+  // A number that is not there (no margin without a number to reach) is left out.
+  const none = eventData(item, { actor: crawler, roll: roll(9), check: { margin: undefined, bonus: 0 } });
+  assert.deepEqual(none.roll, { total: 9, natural: 10, bonus: 0 });
+  assert.equal(none.damage, undefined);
+  // A request handed to the GM brings the damage along too, and only objects.
+  const relayed = eventData(item, {
+    actor: crawler,
+    triggerData: { roll: { total: 9, natural: 2, margin: 1 }, damage: { total: 5 }, cost: 7 },
+  });
+  assert.deepEqual(relayed.roll, { total: 9, natural: 2, margin: 1 });
+  assert.deepEqual(relayed.damage, { total: 5 });
+  assert.equal(relayed.cost, undefined);
+});
+
+test('conditions and amounts read the margin, bonus and damage', async () => {
+  const check = { margin: 4, bonus: 2, mod: 3, rank: 5 };
+  assert.equal(await firesWith([{ type: 'rollMin', value: '@roll.margin + 10' }], { roll: roll(14), check }), true);
+  assert.equal(await firesWith([{ type: 'rollMin', value: '@roll.margin + 11' }], { roll: roll(14), check }), false);
+  assert.equal(await giveAmount('@roll.bonus + @roll.mod + @roll.rank', { roll: roll(14), check }), 10);
+  assert.equal(await giveAmount('@damage.total', { damage: { total: 6, dice: 4, base: 5 } }), 6);
+  assert.equal(await giveAmount('@damage.dice + @damage.base', { damage: { total: 6, dice: 4, base: 5 } }), 9);
+  // A miss has no damage total: the formula can't be worked out.
+  assert.equal(await giveAmount('@damage.total', { damage: { dice: 4, base: 5 } }), 0);
+  assert.equal(world.warnings.length, 1);
+});
+
+test('@rankDamage in an action amount is the dice of the holder\'s rank', async () => {
+  const table = CONFIG.CARL_RPG.rankDamage;
+  // (the real table has dice a plain Node roll can't roll: use one with numbers)
+  CONFIG.CARL_RPG.rankDamage = [
+    { from: 1, formula: '1' },
+    { from: 4, formula: '2 + 1' },
+  ];
+  try {
+    const give = async (rank, amount = '@rankDamage', type = 'skill') => {
+      world.reset();
+      const item = makeItem({ type, name: 'Holder', system: { rank, events: [favor({ actions: [{ type: 'aiFavor', mode: 'award', amount }] })], upgrades: [] } });
+      const crawler = await crawlerWith(item);
+      crawler.getRollData = () => DATA;
+      await runEvents(item, 'used', {});
+      return ran(crawler);
+    };
+    assert.equal(await give(1), 1);
+    assert.equal(await give(4), 3);
+    assert.equal(await give(4, '@rankDamage + @lvl'), 5);
+    assert.equal(await give(3, '2 * @rankDamage'), 2);
+    assert.equal(await give(4, '10 - @rankDamage'), 7);
+    assert.equal(await give(4, '10 - @rankDamage', 'spell'), 7);
+    // Rank 0 gives nothing, quietly.
+    assert.equal(await give(0), 0);
+    assert.equal(world.warnings.length, 0);
+    // An item with no rank dice (gear with no skill) reads as nothing.
+    assert.equal(await give(4, '@rankDamage + 2', 'gear'), 2);
+    assert.equal(world.warnings.length, 0);
+  } finally {
+    CONFIG.CARL_RPG.rankDamage = table;
+  }
+});
+
+test('@rankDamage on a weapon reads the skill it rolls with', async () => {
+  const table = CONFIG.CARL_RPG.rankDamage;
+  CONFIG.CARL_RPG.rankDamage = [
+    { from: 1, formula: '1' },
+    { from: 4, formula: '2 + 1' },
+  ];
+  try {
+    const skill = makeItem({ type: 'skill', name: 'Blades', system: { rank: 4, events: [], upgrades: [] } });
+    const weapon = makeItem({
+      type: 'gear',
+      name: 'Sword',
+      system: { rank: 0, events: [favor({ actions: [{ type: 'aiFavor', mode: 'award', amount: '@rankDamage' }] })], upgrades: [] },
+    });
+    weapon.usesSkillAction = true;
+    weapon.rollingSkill = async () => skill;
+    const crawler = await crawlerWith(weapon);
+    await runEvents(weapon, 'used', {});
+    assert.equal(ran(crawler), 3);
+    // Its skill gone: nothing.
+    world.reset();
+    weapon.rollingSkill = async () => null;
+    const other = await crawlerWith(weapon);
+    await runEvents(weapon, 'used', {});
+    assert.equal(ran(other), 0);
+  } finally {
+    CONFIG.CARL_RPG.rankDamage = table;
+  }
+});
+
+test('@rankDamage is dice, so a condition or requirement can\'t use it', async () => {
+  assert.equal(await firesWith([{ type: 'rollMin', value: '@rankDamage' }], { roll: roll(99) }, {}, { rank: 1 }), false);
+});
+
 test('requirements block use and say why', async () => {
   const item = skillWith([], { requirements: [{ type: 'mana', value: 5 }, { type: 'gold', value: 10 }] });
   const crawler = await crawlerWith(item, { system: { mana: { value: 4 }, gold: 10 } });

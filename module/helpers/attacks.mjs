@@ -37,6 +37,7 @@ import { getFloor } from './floor.mjs';
 import { rankOf } from './skill-rank.mjs';
 import { applyQueuedEffect, runEvents } from './events.mjs';
 import { effectiveOf } from './upgrades.mjs';
+import { damageNumbers, marginOf } from './event-roll.mjs';
 import { expandRankDamage } from './rank-damage.mjs';
 import {
   damageParts,
@@ -173,8 +174,9 @@ export function degreeOf(natural, total, dc) {
  *   The Damage Effect the roller chose (see helpers/damage-effects.mjs); its option trades the
  *   damage away. modDice are the damage dice Roll Modifiers add (see helpers/roll-mods.mjs).
  *   splash lists the token UUIDs that are only in the splash of an area (helpers/splash.mjs)
- * @returns {Promise<{degrees: string[], hits: Array<{actor: Actor, degree: string}>}|null>}
- *   null if there is nothing to resolve
+ * @returns {Promise<{degrees: string[], margin?: number, damage: object|null, hits: Array<{actor: Actor, degree: string, margin?: number, damage: number|null}>}|null>}
+ *   null if there is nothing to resolve. margin is an unopposed check's; damage the use's numbers
+ *   for events (see helpers/event-roll.mjs); each hit and miss has its own margin, a hit its damage.
  */
 export async function resolveCheck(item, roll, { damageEffect = null, modDice = [], splash = [] } = {}) {
   // Mobs never roll a d20: a crawler rolls against the mob's number instead.
@@ -451,6 +453,9 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
       : fromNatural;
   return {
     degrees,
+    // What events read as @roll.margin (unopposed) and @damage.* (see helpers/event-roll.mjs).
+    margin: unopposedDC !== null && roll ? marginOf(roll.total, unopposedDC) : undefined,
+    damage: damaging ? damageNumbers({ base: damage, dice: diceSum }, headline) : null,
     // Whether the Damage Effect changed the attack: it worked against a target that was hit
     // (or, with no targets, it has no filters). That is what starts its cooldown.
     effectApplied:
@@ -460,12 +465,22 @@ export async function resolveCheck(item, roll, { damageEffect = null, modDice = 
         : !hasFilters(rules)),
     hits: targets.flatMap(({ actor }, i) =>
       rows[i].hit && evented(rows[i])
-        ? [{ actor, degree: rows[i].degree, effect: rows[i].effectApplied }]
+        ? [
+            {
+              actor,
+              degree: rows[i].degree,
+              effect: rows[i].effectApplied,
+              margin: roll ? marginOf(roll.total, rows[i].dc) : undefined,
+              damage: rows[i].damage,
+            },
+          ]
         : []
     ),
     // The targets it didn't hit, for the "an attack misses a target" events.
     misses: targets.flatMap(({ actor }, i) =>
-      rows[i].hit || !evented(rows[i]) ? [] : [{ actor, degree: rows[i].degree }]
+      rows[i].hit || !evented(rows[i])
+        ? []
+        : [{ actor, degree: rows[i].degree, margin: roll ? marginOf(roll.total, rows[i].dc) : undefined }]
     ),
     // The attack card, where effects the events offer are shown (see helpers/events.mjs).
     message,
@@ -733,6 +748,8 @@ async function applyMobResult(
         degree,
         depth: 0,
         attackMessage: message,
+        // (the mob rolled no d20: only the damage the target takes)
+        damage: { total: row.damage },
       });
     }
   }

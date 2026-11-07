@@ -50,6 +50,7 @@
 - when: expanded to plain dice right before the damage Roll: attacks.mjs resolveCheck and resolveMobCheck (expandRankDamage(effectiveOf(item).damage, item)); a weapon's joined weapon+skill damage is expanded in item.mjs #useRollingSkill with the skill. effective.damage and the sheets keep the raw token (like @str.mod).
 - moves: rank bonus (added to the rank, then the table is read) then row step (rows along the table; below the first row = nothing, past the last = 2d10). Sources: skill/spell upgrade changes rankDamageBonus / rankDamageStep (effective.rankBonus / rankStep, not applied to the stored damage) plus the owner's effect buildMods rows of the same kinds whose scope (all|skill|tag, as skillCap) covers the item; all add up. Rank 0 ignores them.
 - dice: a natural 20 doubles the dice but not the flat 1 of rank 1; dieStep upgrades do not change the rank dice; a multi-term result is wrapped in parentheses after - * /; @rankDamageX and @rankDamage.x are not the token.
+- events: an event action amount can use @rankDamage too (the holder's rank dice; a weapon's rolled skill), see events.md rankDamage.
 
 ## mobAttacks
 - numberToBeat: item.system.check.number + mob floor
