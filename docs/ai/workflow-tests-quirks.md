@@ -46,11 +46,11 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 370).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 371).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 370 pass)
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 371 pass)
 - stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node
 
 ## files
@@ -73,7 +73,7 @@
 - event-roll.test.mjs: rollNumbers, marginOf, damageNumbers, damageOfTarget (the numbers a use hands to events)
 - gear-slots.test.mjs: slot room, two-handed gear, what comes off when equipping
 - later-floor.test.mjs: later-floor starts
-- minions.test.mjs: Summon action: formulas of Second Chance, Clockwork Triplicate and Rise, Dead Minion! at their ranks, raised health, level limit, footprint, caster limit (replace oldest), round ticks and expiry, copies, raise/expire, player relay, combat sides, loot, minions group
+- minions.test.mjs: Summon action: formulas of Second Chance, Clockwork Triplicate and Rise, Dead Minion! at their ranks, raised health, level limit, footprint, caster limit (replace oldest), copy count as a formula, round ticks and expiry, copies, raise/expire, player relay, combat sides, loot, minions group
 - migration.test.mjs / migration-guards.test.mjs: load-time migration and migrateData guards
 - progression.test.mjs: level up, advancement, origins, upgrades, skill cap
 - rank-damage.test.mjs: @rankDamage table, rank bonus and row step, upgrade and effect sources, expansion, build row cleanup

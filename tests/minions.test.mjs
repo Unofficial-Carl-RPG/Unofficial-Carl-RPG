@@ -415,6 +415,16 @@ test('copy splits a pet into full copies next to it, in its current state', asyn
   assert.equal(new Set(copies.map((c) => `${c.x},${c.y}`)).size, 2);
 });
 
+test('how many copies is a formula over roll data, like @rank', async () => {
+  for (const [rank, expected] of [[1, 1], [5, 2], [10, 3]]) {
+    const { scene, spell, caster } = await setup({ action: { mode: 'copy', amount: '1 + floor(@rank / 5)', joinCombat: false }, rank });
+    const { token } = addPet(scene, caster);
+    gm().targets = new Set([{ document: token }]);
+    await runEvents(spell, 'used', {});
+    assert.equal(live(scene).length, expected, `rank ${rank}`);
+  }
+});
+
 test('copy is only for the caster\'s own pets and minions', async () => {
   const { scene, spell, caster } = await setup({ action: { mode: 'copy', amount: '2' } });
   const stranger = makeActor({ type: 'pet', name: 'Fido', system: { owner: 'someone-else' } });
