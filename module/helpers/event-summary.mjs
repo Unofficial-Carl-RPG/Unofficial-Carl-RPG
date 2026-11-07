@@ -3,6 +3,8 @@
  * is at least 3, take 2 damage"), shown on each event card and when an action asks
  * first. They only read the stored event; nothing here changes anything.
  */
+import { damageTypeLabel } from './damage-types.mjs';
+
 const t = (key, data) =>
   data ? game.i18n.format(key, data) : game.i18n.localize(key);
 
@@ -142,6 +144,16 @@ export async function summarizeAction(a, otherEvents = {}) {
     case 'health':
       text = t(`${S}health.${{ heal: 'heal', remove: 'remove' }[a.mode] ?? 'damage'}`, { amount });
       break;
+    case 'delayedDamage': {
+      const type = a.damageType ? ` ${damageTypeLabel(a.damageType)}` : '';
+      const delay = String(a.delay ?? '').trim();
+      text = t(`${S}${delay && delay !== '1' ? 'delayedDamageLater' : 'delayedDamage'}`, {
+        amount,
+        type,
+        delay,
+      });
+      break;
+    }
     case 'message':
       text = t(`${S}message`, { text: a.text });
       break;

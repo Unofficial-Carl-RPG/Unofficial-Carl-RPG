@@ -1,5 +1,6 @@
 import { damageTypes } from '../helpers/damage-types.mjs';
 import { actsAsClass } from '../helpers/class-combo.mjs';
+import { applyActionDefaults } from '../helpers/event-editor.mjs';
 /**
  * Item sheet: the Events tab and an item's Requirements.
  */
@@ -42,6 +43,7 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
     const path = el.dataset.path;
     await this._updateEvents((system) => {
       foundry.utils.setProperty(system, path, value);
+      applyActionDefaults(system, path, value);
       // Upgrades are kept in rank order.
       if (/^upgrades\.\d+\.rank$/.test(path)) {
         system.upgrades.sort((a, b) => a.rank - b.rank);

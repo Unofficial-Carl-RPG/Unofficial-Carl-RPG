@@ -1988,6 +1988,7 @@
         "removeItem": "Remove an item",
         "mana": "Mana",
         "health": "Health",
+        "delayedDamage": "Delayed damage",
         "message": "Say something in chat",
         "actions": "Actions",
         "gold": "Gold",
@@ -2041,12 +2042,19 @@
         "HealthHint": "Fraction of its max health, like 0.5 for half (rounded down). Blank: full.",
         "TargetedToken": "On the first targeted token"
       },
+      "Delayed": {
+        "Type": "Damage type:",
+        "After": "Round ends to wait:",
+        "AfterHint": "A number or formula over roll data. Blank: the next one (the end of this round).",
+        "Lands": "Delayed damage from {item} lands on {name}."
+      },
       "TargetGroups": {
         "owner": "The owner (or one actor)",
         "allies": "All allies",
         "enemies": "All enemies",
         "targeted": "The targeted tokens",
         "burst": "The targeted tokens and their splash",
+        "hit": "The target that was hit",
         "pets": "The owner's pets",
         "minions": "The owner's pets and minions",
         "master": "The pet's owner"
@@ -2141,6 +2149,8 @@
             "heal": "heal {amount} health box(es)",
             "remove": "remove {amount} health box(es)"
           },
+          "delayedDamage": "deal {amount}{type} damage at the end of the round",
+          "delayedDamageLater": "deal {amount}{type} damage after {delay} round ends",
           "message": "say \"{text}\"",
           "actions": {
             "spend": "spend {amount} action(s)",
@@ -2195,6 +2205,8 @@
         "NoRoom": "No free space next to the token for {name}.",
         "EventMissing": "An event couldn't find the other event it runs.",
         "SummonNoTarget": "Target a token first.",
+        "DelayedNoCombat": "{name}: delayed damage needs a running combat to wait for a round end.",
+        "DelayedNoAmount": "Delayed damage needs a number or dice formula it can read.",
         "SummonNotDefeated": "That needs a defeated Mob as its target.",
         "SummonTooHigh": "That Mob is too high a level for {name}.",
         "SummonNotMinion": "{name} only works on your pets and minions.",

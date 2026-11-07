@@ -76,6 +76,8 @@ export function newAction(extra = {}) {
     levelMax: '',
     health: '',
     ignoreDR: false,
+    damageType: '',
+    delay: '',
     ask: false,
     text: '',
     targetGroup: '',
@@ -269,6 +271,8 @@ export async function buildEventRows(events, base) {
             isRemoveItem: a.type === 'removeItem',
             isMana: a.type === 'mana',
             isHealth: a.type === 'health',
+            isDelayed: a.type === 'delayedDamage',
+            showIgnoreDR: ['health', 'delayedDamage'].includes(a.type),
             isActions: a.type === 'actions',
             isGold: a.type === 'gold',
             isAiFavor: a.type === 'aiFavor',
@@ -280,6 +284,7 @@ export async function buildEventRows(events, base) {
               'removeItem',
               'mana',
               'health',
+              'delayedDamage',
               'actions',
               'gold',
               'aiFavor',
@@ -330,6 +335,7 @@ export function eventOptions(triggers) {
     effectModes: cfg.effectActionModes,
     manaModes: cfg.manaModes,
     healthModes: cfg.healthModes,
+    damageTypes: damageTypeOptions(),
     actionsModes: cfg.actionsModes,
     goldModes: cfg.goldModes,
     aiFavorModes: cfg.aiFavorModes,
@@ -378,6 +384,7 @@ async function duplicateEvent(event, target) {
 }
 
 import { listTemplates, saveLibraryEvent } from './event-library.mjs';
+import { damageTypeOptions } from './damage-types.mjs';
 
 /** Save this event to the event library (anyone who can edit the item; a player through the GM). */
 async function saveToLibrary(event, target) {
@@ -497,6 +504,19 @@ export const EVENT_EDITOR_ACTIONS = {
 
 /*  Fields and drop boxes                       */
 
+/**
+ * Choosing "Delayed damage" for an action aims it at the target that was hit (the owner, the
+ * usual blank, would hurt the caster), unless a group was already picked.
+ * @param {object} system  The data being edited
+ * @param {string} path  The field that changed
+ * @param {*} value  Its new value
+ */
+export function applyActionDefaults(system, path, value) {
+  if (value !== 'delayedDamage' || !/(^|\.)actions\.\d+\.type$/.test(path)) return;
+  const groupPath = path.replace(/type$/, 'targetGroup');
+  if (!foundry.utils.getProperty(system, groupPath)) foundry.utils.setProperty(system, groupPath, 'hit');
+}
+
 /** Save one field of an event, condition or action (by its `data-path`). */
 export async function saveEventField(el) {
   const value =
@@ -505,9 +525,10 @@ export async function saveEventField(el) {
       : el.type === 'number'
         ? Number(el.value) || 0
         : el.value;
-  await this._updateEvents((system) =>
-    foundry.utils.setProperty(system, el.dataset.path, value)
-  );
+  await this._updateEvents((system) => {
+    foundry.utils.setProperty(system, el.dataset.path, value);
+    applyActionDefaults(system, el.dataset.path, value);
+  });
 }
 
 /**

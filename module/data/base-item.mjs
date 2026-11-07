@@ -58,6 +58,10 @@ export function eventsField() {
             levelMax: requiredString(),
             health: requiredString(),
             ignoreDR: new fields.BooleanField({ initial: false }),
+            // "Delayed damage": the damage type (blank: none) and how many round ends to wait
+            // (a number or formula over roll data; blank: the next one).
+            damageType: requiredString(),
+            delay: requiredString(),
             // Ask the player first, and skip the action if they say no.
             ask: new fields.BooleanField({ initial: false }),
             // The text of a chat message.

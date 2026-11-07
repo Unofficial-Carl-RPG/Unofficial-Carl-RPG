@@ -44,6 +44,7 @@ import { registerRelay } from './helpers/relay.mjs';
 import { registerStores } from './helpers/store.mjs';
 import { registerMobLoot } from './helpers/mob-loot.mjs';
 import { registerMinions } from './helpers/minions.mjs';
+import { registerDelayedDamage } from './helpers/delayed-damage.mjs';
 import { registerJournalEnrichers } from './helpers/journal.mjs';
 import { CarlRPGActorDirectory } from './helpers/crawler-summary.mjs';
 import { registerGroupChecks } from './helpers/group-check.mjs';
@@ -131,6 +132,7 @@ Hooks.once('init', function () {
   registerStores();
   registerMobLoot();
   registerMinions();
+  registerDelayedDamage();
   // Journal live values (@Floor, @Party, @DaysLeft).
   registerJournalEnrichers();
   // Group checks: the GM's card, each crawler's Roll, and the overall result.

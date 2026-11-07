@@ -249,7 +249,19 @@
               {{localize 'CARL_RPG.Events.ThisItem'}}
             </label>
           {{/if}}
-          {{#if action.isHealth}}
+          {{#if action.isDelayed}}
+            <div class='event-row'>
+              <span class='event-option'>{{localize 'CARL_RPG.Events.Delayed.Type'}}</span>
+              <select data-path='{{action.path}}.damageType'>
+                {{selectOptions @root.eventOptions.damageTypes selected=action.damageType}}
+              </select>
+            </div>
+            <div class='event-row'>
+              <span class='event-option'>{{localize 'CARL_RPG.Events.Delayed.After'}}</span>
+              <input type='text' class='event-amount' data-path='{{action.path}}.delay' value='{{action.delay}}' placeholder='1' data-tooltip='{{localize "CARL_RPG.Events.Delayed.AfterHint"}}' />
+            </div>
+          {{/if}}
+          {{#if action.showIgnoreDR}}
             <label class='event-option'>
               <input type='checkbox' data-path='{{action.path}}.ignoreDR' {{checked action.ignoreDR}} />
               {{localize 'CARL_RPG.Events.IgnoreDR'}}

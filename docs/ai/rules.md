@@ -85,6 +85,7 @@
 ## combat
 - model: No initiative. Round = 5 phases: declare (mobs), react (crawlers), resolve (mobs), action (crawlers), cleanup (everyone). Within a phase the acting side goes together, any order. Tracker 'Next Turn' button is relabelled Next Phase; Previous Turn steps back (does not rerun events/declarations).
 - phaseStorage: combat flag carl-rpg.phase (index). Phase change options: carlPrevPhase, carlDirection (forward|back).
+- delayedDamage: the Delayed damage event action (Shock Treatment rank 10) queues typed damage on the combat; Cleanup of a later round deals it through applyDamage (docs/ai/events.md delayedDamage). Nothing is dealt after the combat ends; no combat = warning only
 - chat: every phase change posts a card (once, from the active GM); entering cleanup refills actions, ticks round-based effect durations/cooldowns, runs round-end events and fires Hooks 'carlrpg.cleanupPhase'
 - actions: Generic pool. crawler/pet 2, mob typically 2, elite/boss one per crawler combatant. Using any skill/spell/gear/item/mob ability = 1 action; passive skills free; events/depth>0 free. Pips on tracker (click spends/restores for owners). resetActions at combat start and cleanup. GM Refill Actions button in tracker header (refillActions macro util) keeps bought extra actions and refills Dying crawlers too.
 - interrupts: item.system.interrupt true + used in react phase: costs a normal action, sets interruptUsed (bolt on tracker); cleared at cleanup.

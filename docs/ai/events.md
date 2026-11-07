@@ -11,7 +11,7 @@
 ## shape
 - event: {id, name, enabled, trigger, phase ('any'|combat phase id; only for phaseStart/phaseEnd), match 'all'|'any', conditions[], actions[]}
 - condition: {type, negate (NOT), stat, value (string: a number or formula, see formulas), phase, degree, uuid, tag, text}
-- action: {type, mode, uuid, amount (string number|dice), targetActor (actor dropped on the action), runOn user|gm, selfItem, skipIfHas (default true), hidden, joinCombat, ignoreDR, ask (confirm first, skip if declined), text, targetGroup}
+- action: {type, mode, uuid, amount (string number|dice), targetActor (actor dropped on the action), runOn user|gm, selfItem, skipIfHas (default true), hidden, joinCombat, ignoreDR, damageType + delay (delayedDamage), ask (confirm first, skip if declined), text, targetGroup}
 
 ## formulas
 - where: every number an event reads is a number or formula over roll data: action amount (dice allowed, rolled when run), condition value and requirement value (no dice; worked out by helpers/amounts.mjs evalAmount, so 'roll min' etc. are stable)
@@ -84,6 +84,7 @@
 - removeItem: selfItem or uuid; amount reduces quantity else deletes
 - mana: mode spend|restore; amount; not on mobs; spend warns if short
 - health: mode damage (through applyDamage: DR, CON, damage types; ignoreDR) | heal (add boxes, up to max) | remove (take boxes off directly: no DR/CON/damage type, no takesDamage trigger; reaching 0 starts Dying/defeat through the normal actor update hook)
+- delayedDamage: amount (dice, @rankDamage allowed) of damageType dealt to the target after `delay` round ends (formula over roll data, blank = 1 = the end of this round, minimum 1); ignoreDR optional. Runs on the GM client only (needsGM, so players need trusted events). Queued on the running combat (helpers/delayed-damage.mjs, flag carl-rpg.delayedDamage, entry {id, targetUuid, targetName, sourceName, formula, type, ignoreDR, left}); no started combat = warns DelayedNoCombat and queues nothing; a blank or unreadable amount warns DelayedNoAmount. Each Cleanup (carlrpg.cleanupPhase, active GM client) counts the entries down, saves the rest, then rolls the due ones and deals them through applyDamage (type resistance, then DR; dead or missing targets skipped; a failing entry is logged and the rest still land). The queue is a combat flag, so it ends with the combat. The chat note carries no numbers; a mob's damage line is whispered to the GM. Choosing the action in the editor sets a blank targetGroup to hit
 - message: text with {name} {item}; posted as event card
 - actions: mode spend|restore; amount; combat only
 - gold: mode add|remove; crawlers only
@@ -100,6 +101,7 @@
 - pets: owner's pets
 - minions: owner's pets plus live summons of the owner (Heal Critter, Clockwork Triplicate)
 - master: a pet's owner
+- hit: the creature the event is for (the target that was hit or missed); nothing when the event has no target. Any action can use it; delayedDamage defaults to it
 
 - limits: CONFIG.CARL_RPG.maxEventDepth = 5 (warns TooDeep). Action failures are caught per action and warned.
 

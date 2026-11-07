@@ -48,6 +48,7 @@ import { logEvent } from './change-log.mjs';
 import { revive } from './dying.mjs';
 import { findAnchor, canPlaceDirectly, placeTokens } from './summon.mjs';
 import { tokenDistanceFeet, withinFeet } from './distance.mjs';
+import { makeEntry, planDelayed, queueDelayed } from './delayed-damage.mjs';
 import { sideOfActor } from './minion-side.mjs';
 import { executeSummon, isPetOrMinion, levelAllowed, minionActors, modeOf, summonKey } from './minions.mjs';
 import { evalAmount, fillData } from './amounts.mjs';
@@ -258,6 +259,9 @@ export function groupActors(group, owner, ctx) {
       // splash distance of them, or the ones in and around the placed area. It travels with a
       // relayed request like the targeted ones.)
       return ctx.burst ?? [...game.user.targets].map((tk) => tk.actor).filter(Boolean);
+    case 'hit':
+      // (The creature the attack hit or missed; a relayed request brings it along as ctx.target.)
+      return ctx.target ? [ctx.target] : [];
     case 'pets':
       return owner.type === 'crawler'
         ? game.actors.filter((a) => a.type === 'pet' && a.system.owner === owner.id)
@@ -729,6 +733,28 @@ const HANDLERS = {
     await actor.applyDamage(amount, { ignoreDR: !!action.ignoreDR });
   },
 
+  /**
+   * Queue typed damage for a later round end: the running combat holds it and the GM's client
+   * deals it (Damage Resistance, resistances and all) when that Cleanup phase starts. See
+   * helpers/delayed-damage.mjs. It always runs on the GM's client (see performAction).
+   */
+  async delayedDamage({ item, action, actor, ctx }) {
+    if (!game.user.isGM) return;
+    const combat = game.combat?.started ? game.combat : null;
+    if (!combat) return warn('CARL_RPG.Events.Warn.DelayedNoCombat', { name: item.name });
+    const plan = planDelayed(action, eventData(item, ctx), await rankDamageSource(item));
+    if (plan.error) return warn(plan.error, plan.data);
+    await queueDelayed(
+      combat,
+      makeEntry(plan, {
+        id: foundry.utils.randomID(),
+        targetUuid: actor.uuid,
+        targetName: actor.name,
+        sourceName: item.name,
+      })
+    );
+  },
+
   /** Bring a dead crawler back with 1 health box. */
   async revive({ actor }) {
     await revive(actor);
@@ -997,7 +1023,9 @@ async function performAction(item, event, index, ctx) {
   const mine = [];
   const forGM = [];
   for (const target of targets) {
-    const needsGM = action.type === 'macro' ? action.runOn === 'gm' : !target.isOwner;
+    // (Delayed damage is kept on the combat, which only the GM can change.)
+    const needsGM =
+      action.type === 'macro' ? action.runOn === 'gm' : action.type === 'delayedDamage' || !target.isOwner;
     (needsGM && !game.user.isGM ? forGM : mine).push(target);
   }
   for (const target of mine) await executeAction(item, event, index, ctx, target);
