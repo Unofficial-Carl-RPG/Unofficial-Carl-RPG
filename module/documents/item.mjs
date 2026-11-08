@@ -626,6 +626,8 @@ export class CarlRPGItem extends Item {
       const update = { [field]: this.name };
       // A species also sets the crawler's size.
       if (this.type === 'species') update['system.size'] = this.system.size;
+      // A race can set it too (blank: leave it alone).
+      if (this.type === 'race' && this.system.size) update['system.size'] = this.system.size;
       // A Race and Class combo is also the crawler's class.
       if (actsAsClass(this)) update['system.className'] = this.name;
       await actor.update(update);

@@ -810,7 +810,6 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       case 'attributesSponsor':
       case 'attributesStore':
       case 'attributesQuest':
-      case 'attributesOrigin':
       case 'attributesBackground':
       case 'grantedSkills':
       case 'prerequisites':
@@ -827,6 +826,14 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       case 'attributesSpecies':
         context.tab = context.tabs[partId];
         context.sizeOptions = CONFIG.CARL_RPG.sizeOptions();
+        break;
+      case 'attributesOrigin':
+        context.tab = context.tabs[partId];
+        // A race can set the crawler's size; blank leaves it alone.
+        context.sizeOptions = {
+          '': game.i18n.localize('CARL_RPG.Origin.SizeNoChange'),
+          ...CONFIG.CARL_RPG.sizeOptions(),
+        };
         break;
       case 'attributesClub':
         context.tab = context.tabs[partId];

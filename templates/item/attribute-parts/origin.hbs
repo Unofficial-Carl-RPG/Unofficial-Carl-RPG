@@ -27,6 +27,15 @@
   </div>
 
   {{#unless isClass}}
+    {{! A race can set the crawler's size when it is chosen }}
+    <div class='resource'>
+      <label class='resource-label' for='system.size'>{{localize 'CARL_RPG.Origin.Size'}}</label>
+      <select name='system.size'>
+        {{selectOptions sizeOptions selected=system.size}}
+      </select>
+      <p class='hint'>{{localize 'CARL_RPG.Origin.SizeHint'}}</p>
+    </div>
+
     {{! A plain race: how to make it a Race and Class combo }}
     <div class='resource'>
       <p class='hint'>{{localize 'CARL_RPG.Origin.ComboHint'}}</p>

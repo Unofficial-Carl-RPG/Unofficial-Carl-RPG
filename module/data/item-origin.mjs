@@ -74,6 +74,10 @@ export class CarlRPGRace extends CarlRPGOrigin {
       new fields.StringField({ required: true, blank: false })
     );
 
+    // A size (a key of CONFIG.CARL_RPG.sizes) that choosing this race sets on the
+    // crawler. Blank leaves the crawler's size alone.
+    schema.size = new fields.StringField({ required: true, blank: true, initial: '' });
+
     return schema;
   }
 }
