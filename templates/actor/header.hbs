@@ -114,6 +114,17 @@
             <i class='fas fa-dna'></i> {{localize originPrompt}}
           </button>
         {{/if}}
+        {{! Skills to pick or points to split that a race, class or effect left to the player }}
+        {{#if picksPending}}
+          <button type='button' data-action='makeChoices'>
+            <i class='fas fa-list-check'></i> {{localize 'CARL_RPG.Picks.MakeChoices'}}
+          </button>
+        {{/if}}
+        {{#if canReassign}}
+          <button type='button' data-action='reassignPoints'>
+            <i class='fas fa-arrows-rotate'></i> {{localize 'CARL_RPG.Picks.Reassign'}}
+          </button>
+        {{/if}}
       </div>
     {{/if}}
     {{#if (eq actor.type 'crawler')}}

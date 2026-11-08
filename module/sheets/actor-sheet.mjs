@@ -16,6 +16,7 @@ import {
   statOfFormula,
 } from '../helpers/roll-dialog.mjs';
 import { applyBenefits, rollBenefits } from '../helpers/build-mods.mjs';
+import { grantPicksOf, isPickRow, pickSummary } from '../helpers/picks.mjs';
 import { buildEventRows, EVENT_EDITOR_ACTIONS, eventOptions } from '../helpers/event-editor.mjs';
 import { changeProblem, describeUpgrades, effectKey } from '../helpers/upgrades.mjs';
 import { degreeOf, naturalD20 } from '../helpers/attacks.mjs';
@@ -110,6 +111,8 @@ export class CarlRPGActorSheet extends ActorSheetBase {
       spendPoints: editOnly(this._spendPoints),
       chooseOrigin: editOnly(this._chooseOrigin),
       chooseSubclass: editOnly(this._chooseSubclass),
+      makeChoices: editOnly(this._makeChoices),
+      reassignPoints: editOnly(this._reassignPoints),
       createCharacter: editOnly(this._createCharacter),
       toggleEditMode: editOnly(this._toggleEditMode),
       toggleEquipped: editOnly(this._toggleEquipped),
@@ -582,10 +585,18 @@ export class CarlRPGActorSheet extends ActorSheetBase {
     // The Create Character and Choose Race / Class buttons share a line of their
     // own under the name row, which is only there while one of them is.
     context.canRevive = game.user.isGM && isDead(this.actor);
+    // Choices a race, class or effect left to the player, and a stat split that can be redone.
+    if (this.actor.type === 'crawler' && this.isEditable) {
+      const picks = pickSummary(this.actor, CONFIG.CARL_RPG.getFloor());
+      context.picksPending = picks.pending > 0;
+      context.canReassign = picks.reassign;
+    }
     context.hasHeaderActions = !!(
       context.creationPending ||
       context.originPrompt ||
-      context.canRevive
+      context.canRevive ||
+      context.picksPending ||
+      context.canReassign
     );
 
     // Crawlers (10 boxes) and mobs (a settable number of boxes) have a health
@@ -850,6 +861,15 @@ export class CarlRPGActorSheet extends ActorSheetBase {
       if (!['race', 'class', 'subclass', 'species'].includes(item.type)) continue;
       const skills = [];
       for (const entry of item.system.grantedSkills ?? []) {
+        // A "player picks" row is listed by the skills picked so far (none until they pick).
+        if (isPickRow(entry)) {
+          const picked = grantPicksOf(item)[item.system.grantedSkills.indexOf(entry)] ?? [];
+          for (const uuid of picked) {
+            const skill = await fromUuid(uuid);
+            skills.push({ name: skill?.name ?? uuid, rank: entry.rank });
+          }
+          continue;
+        }
         const skill = await fromUuid(entry.uuid);
         skills.push({ name: skill?.name ?? entry.uuid, rank: entry.rank });
       }

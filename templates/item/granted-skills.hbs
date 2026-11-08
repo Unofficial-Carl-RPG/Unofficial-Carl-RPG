@@ -12,6 +12,32 @@
       <div class='item-controls'></div>
     </li>
     {{#each grantedRows as |g|}}
+      {{#if g.isPick}}
+      {{! The player picks: a filter instead of one skill }}
+      <li class='item flexrow pick-grant-row'>
+        <div class='item-name pick-filter'>
+          <span class='pick-label'>{{localize 'CARL_RPG.Picks.PlayerPicks'}}</span>
+          <input type='number' class='event-value pick-count' data-path='grantedSkills.{{g.index}}.count' value='{{g.count}}' min='1' step='1' data-tooltip='{{localize "CARL_RPG.Picks.CountHint"}}' />
+          <input type='text' class='event-value' list='carl-skill-tags' data-path='grantedSkills.{{g.index}}.tag' value='{{g.tag}}' placeholder='{{localize "CARL_RPG.Tags.Placeholder"}}' />
+          <select class='event-value' data-path='grantedSkills.{{g.index}}.stat'>
+            {{selectOptions @root.pickStatOptions selected=g.stat localize=true}}
+          </select>
+          <select class='event-value' data-path='grantedSkills.{{g.index}}.kind'>
+            {{selectOptions @root.pickKindOptions selected=g.kind localize=true}}
+          </select>
+        </div>
+        <div class='item-prop'>
+          <input type='number' class='event-value' data-path='grantedSkills.{{g.index}}.rank' value='{{g.rank}}' min='0' step='1' />
+        </div>
+        <div class='item-controls'>
+          {{#if @root.editable}}
+            <a class='item-control item-delete' data-action='removeGrantedSkill' data-gi='{{g.index}}' data-tooltip='{{localize "CARL_RPG.Events.Remove"}}'>
+              <i class='fas fa-trash'></i>
+            </a>
+          {{/if}}
+        </div>
+      </li>
+      {{else}}
       <li class='item flexrow {{#if g.missing}}missing{{/if}}'>
         <div class='item-name'>
           <div class='item-image'>
@@ -40,9 +66,16 @@
           {{/if}}
         </div>
       </li>
+      {{/if}}
     {{/each}}
   </ol>
+  {{#if skillTagNames.length}}
+    <datalist id='carl-skill-tags'>
+      {{#each skillTagNames as |name|}}<option value='{{name}}'></option>{{/each}}
+    </datalist>
+  {{/if}}
   {{#if editable}}
+    {{#if canPickSkills}}<a class='event-add' data-action='addGrantedPick'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Picks.AddGrant'}}</a>{{/if}}
     <div class='drop-box'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Origin.Drop.skillGrant'}}</div>
   {{/if}}
 </section>

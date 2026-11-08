@@ -20,6 +20,12 @@
  *                its name for display) or `tag` (`value` is the tag)
  *  - skillRankBonus   adds `amount` (a whole number, negative allowed) to the effective rank of
  *                the skills it covers, same scope as Skill cap (see skill-rank.mjs); rows add together
+ *  - statSplit   `points` for the player to split between the stats in `stats` (all five when
+ *                empty); `split` holds the player's answer, `repick` ('floor': can be redone
+ *                once per floor) and `usedFloor` the floor it was last redone on (see picks.mjs)
+ *  - a scoped kind whose scope is `pick` covers only the skills the player picked: `count` of
+ *                them, from those matching the optional `tag`, `stat` and `skillKind`; `picks`
+ *                is [{value: Identifier, name}] (see picks.mjs)
  *  - rankDamageBonus, rankDamageStep   move the dice of the @rankDamage scalar (see
  *                rank-damage.mjs): `target` and `value` are the scope like Skill cap's,
  *                `amount` a whole number (negative allowed); rows add together
@@ -65,6 +71,66 @@ const amountOf = (n) => (n == null ? 1 : Math.trunc(Number(n)) || 0);
 /** Whether text is one die ("d6", "1d4"). */
 export const validDie = (text) => /^\d*d\d+$/i.test(String(text ?? '').trim());
 
+const abilityKeys = () => Object.keys(CONFIG.CARL_RPG.abilities);
+
+/** The fields of a scoped row whose scope is Player picks, tidied; `before` is the row as saved. */
+function cleanPickFields(row, before) {
+  const count = Math.trunc(Number(row.count));
+  const stat = String(row.stat ?? '').trim();
+  const skillKind = String(row.skillKind ?? '').trim();
+  return {
+    count: Number.isFinite(count) && count >= 1 ? count : 1,
+    tag: String(row.tag ?? '').trim(),
+    stat: abilityKeys().includes(stat) ? stat : '',
+    skillKind: skillKind in CONFIG.CARL_RPG.pickKinds ? skillKind : '',
+    picks: Array.isArray(before?.picks) ? before.picks : [],
+  };
+}
+
+/** The stats a Stat split row offers: the ones listed, else all five. */
+export function splitStats(row) {
+  const listed = abilityKeys().filter((key) => (row?.stats ?? []).includes(key));
+  return listed.length ? listed : abilityKeys();
+}
+
+/** The points a Stat split row hands out: a whole number of 1 or more. */
+export const splitPoints = (row) => Math.max(1, Math.trunc(Number(row?.points)) || 1);
+
+/**
+ * A Stat split row's answer tidied: whole numbers of 0 or more for the stats it offers, and
+ * never more than its points in all (later stats lose the excess).
+ * @param {object} row
+ * @param {object} [raw]  The answer to tidy; the row's own by default
+ * @returns {Object<string, number>}  Only the stats that got points
+ */
+export function cleanSplit(row, raw = row?.split) {
+  const out = {};
+  let left = splitPoints(row);
+  for (const key of splitStats(row)) {
+    const take = Math.min(Math.max(0, Math.trunc(Number(raw?.[key])) || 0), left);
+    if (take) out[key] = take;
+    left -= take;
+  }
+  return out;
+}
+
+/** The points of a Stat split row that have been handed out. */
+export const splitTotal = (row) => Object.values(cleanSplit(row)).reduce((a, b) => a + b, 0);
+
+/**
+ * What every Stat split row adds to each stat (it goes into the stat's Enhanced value).
+ * @param {Actor|null} actor
+ * @returns {Object<string, number>}
+ */
+export function statSplitOf(actor) {
+  const out = Object.fromEntries(abilityKeys().map((key) => [key, 0]));
+  for (const row of buildModsOf(actor)) {
+    if (row.kind !== 'statSplit') continue;
+    for (const [key, n] of Object.entries(cleanSplit(row))) out[key] += n;
+  }
+  return out;
+}
+
 /**
  * A build benefit row tidied for saving. A scoped row's (Skill cap, Skill rank bonus, Rank
  * damage bonus or Rank damage step) target is its scope (all,
@@ -80,7 +146,7 @@ export function cleanBuildRow(row, before = null) {
   if (isScopedKind(kind)) {
     const scope = row.target in CONFIG.CARL_RPG.skillCapScopes ? row.target : 'all';
     const same = isScopedKind(before?.kind) && before.target === scope;
-    const value = scope === 'all' || !same ? '' : text;
+    const value = scope === 'all' || scope === 'pick' || !same ? '' : text;
     const name = scope === 'skill' && value ? String(row.name ?? '').trim() : '';
     return {
       kind,
@@ -88,7 +154,23 @@ export function cleanBuildRow(row, before = null) {
       value,
       ...(name ? { name } : {}),
       ...(hasAmount(kind) ? { amount: amountOf(row.amount) } : {}),
+      ...(scope === 'pick' ? cleanPickFields(row, same ? before : null) : {}),
     };
+  }
+  if (kind === 'statSplit') {
+    const asked = abilityKeys().filter((key) => (row.stats ?? []).includes(key));
+    const kept = before?.kind === 'statSplit';
+    const out = {
+      kind,
+      target: '',
+      value: '',
+      points: row.points === undefined ? 2 : splitPoints(row),
+      stats: asked.length === abilityKeys().length ? [] : asked,
+      repick: row.repick in CONFIG.CARL_RPG.repickRules ? row.repick : 'never',
+      split: kept ? before.split ?? {} : {},
+    };
+    if (kept && before.usedFloor !== undefined && before.usedFloor !== null) out.usedFloor = before.usedFloor;
+    return out;
   }
   const own = row.target === 'evade' || row.target in CONFIG.CARL_RPG.abilities;
   return {

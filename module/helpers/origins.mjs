@@ -13,7 +13,8 @@
  * the GM reveals it to them (the reveal is a flag on the crawler).
  *
  * Taking one adds it to the crawler like any item (see CarlRPGItem), so its
- * granted skills and effects come along.
+ * granted skills and effects come along. What it leaves to the player to pick comes next
+ * (see helpers/picks.mjs).
  *
  * A race can also be a class (a Race and Class combo, see helpers/class-combo.mjs):
  * the crawler then needs no class item.
@@ -22,6 +23,7 @@ import { sourceItems } from './sources.mjs';
 import { CarlRPGDialog } from './dialog.mjs';
 import { classHasTag } from './tags.mjs';
 import { actsAsClass } from './class-combo.mjs';
+import { choosePicks } from './pick-dialog.mjs';
 
 const t = (key, data) =>
   data ? game.i18n.format(key, data) : game.i18n.localize(key);
@@ -315,6 +317,10 @@ export async function chooseOrigin(actor) {
   const picked = await askOrigin(actor, type, options);
   if (!picked || !(await addOrigin(actor, picked))) return false;
 
+  // Whatever it leaves to the player (skills to pick, points to split) is asked straight away;
+  // anything left blank waits behind the sheet's Make Choices button.
+  await choosePicks(actor);
+
   if (type === 'race' && !classRoleOf(actor)) await chooseOrigin(actor);
   return true;
 }
@@ -355,5 +361,7 @@ export async function chooseSubclass(actor) {
   }
 
   const picked = await askOrigin(actor, 'subclass', items, true);
-  return !!picked && (await addOrigin(actor, picked));
+  if (!picked || !(await addOrigin(actor, picked))) return false;
+  await choosePicks(actor);
+  return true;
 }

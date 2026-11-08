@@ -46,11 +46,11 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 456).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 481).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 456 pass)
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 481 pass)
 - stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node
 
 ## files
@@ -63,6 +63,7 @@
 - splash.test.mjs: distance to a circle/rectangle/polygon, the splash band, who is splash after several areas, splash around the chosen targets of a Count item
 - buff-slots.test.mjs: stacking buff groups and slot counting
 - build-mods.test.mjs: build benefits, caps, health stat
+- picks.test.mjs: player picks: filters and pools, granted-skills pick rows, Skill cap / rank bonus on picked skills, build row tidying, Stat splits (clamping, Enhanced value, redo once per floor), resetting
 - class-combo.test.mjs: Race+Class combos
 - combat.test.mjs: degrees, damage, phases, declarations
 - costs.test.mjs: cost spans/labels

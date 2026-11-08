@@ -6,7 +6,7 @@ import {
   saveEventField,
 } from '../helpers/event-editor.mjs';
 
-import { cleanBuildRow, hasAmount, isScopedKind } from '../helpers/build-mods.mjs';
+import { cleanBuildRow, hasAmount, isScopedKind, splitStats } from '../helpers/build-mods.mjs';
 import { damageTypeOptions } from '../helpers/damage-types.mjs';
 import { knownTags } from '../helpers/tags.mjs';
 
@@ -94,6 +94,10 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
       ...CONFIG.CARL_RPG.abilities,
     };
     context.skillCapScopeOptions = CONFIG.CARL_RPG.skillCapScopes;
+    // What a Player picks row can be narrowed to, and a Stat split's choices.
+    context.pickStatOptions = { '': 'CARL_RPG.Picks.AnyStat', ...CONFIG.CARL_RPG.abilities };
+    context.pickKindOptions = { '': 'CARL_RPG.Picks.AnyKind', ...CONFIG.CARL_RPG.pickKinds };
+    context.repickOptions = CONFIG.CARL_RPG.repickRules;
     context.buildMods = (flags.buildMods ?? []).map((row, index) => ({
       index,
       ...row,
@@ -101,9 +105,24 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
       hasAmount: hasAmount(row.kind),
       scopeSkill: isScopedKind(row.kind) && row.target === 'skill',
       scopeTag: isScopedKind(row.kind) && row.target === 'tag',
+      scopePick: isScopedKind(row.kind) && row.target === 'pick',
+      isSplit: row.kind === 'statSplit',
+      // The skills already picked (on a crawler's copy), and the stats a split offers.
+      pickedNames: (row.picks ?? []).map((p) => p.name || p.value).join(', '),
+      statBoxes:
+        row.kind === 'statSplit'
+          ? Object.entries(CONFIG.CARL_RPG.abilities).map(([key, label]) => ({
+              key,
+              label,
+              checked: !(row.stats ?? []).length || splitStats(row).includes(key),
+            }))
+          : [],
+      splitText: Object.entries(row.split ?? {})
+        .map(([key, n]) => `${key.charAt(0).toUpperCase()}${key.slice(1)} +${n}`)
+        .join(', '),
     }));
     // Skill tags to suggest, looked up only when a row needs them.
-    context.skillTagNames = context.buildMods.some((row) => row.scopeTag)
+    context.skillTagNames = context.buildMods.some((row) => row.scopeTag || row.scopePick)
       ? await knownTags('skill')
       : [];
     context.enrichedDescription =
@@ -268,10 +287,21 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
       cleanBuildRow(
         {
           kind: row.querySelector('.build-mod-kind').value,
-          target: row.querySelector('.build-mod-target').value,
+          target: row.querySelector('.build-mod-target')?.value ?? '',
           value: row.querySelector('.build-mod-value')?.value ?? '',
           name: row.querySelector('.build-mod-name')?.value ?? '',
           amount: row.querySelector('.build-mod-amount')?.value,
+          // Player picks: how many skills, from which
+          count: row.querySelector('.build-mod-count')?.value,
+          tag: row.querySelector('.build-mod-pick-tag')?.value,
+          stat: row.querySelector('.build-mod-pick-stat')?.value,
+          skillKind: row.querySelector('.build-mod-pick-kind')?.value,
+          // Stat split: the points, the stats offered and whether it can be redone
+          points: row.querySelector('.build-mod-points')?.value,
+          stats: row.querySelector('.build-mod-points')
+            ? Array.from(row.querySelectorAll('.build-mod-stat-box:checked')).map((el) => el.value)
+            : undefined,
+          repick: row.querySelector('.build-mod-repick')?.value,
         },
         before[index]
       )

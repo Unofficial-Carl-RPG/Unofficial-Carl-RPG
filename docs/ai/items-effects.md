@@ -79,10 +79,17 @@
 - rules: One per crawler (matched by identifier else name). Each grant pays its box again once removed and re-added; duplicate blocked while held. Posts card + sound cue. Granted by GM drop, Dungeon Info Award, quest reward, or Award achievement event action.
 
 ## race|class|subclass
-- fields: grantedSkills[{uuid, rank}], prerequisites[{type, stat, value, category, uuid, tag}], earthBased (race tick; not earth = alien), hidden bool, categories[] (class and race), subclass.classUuid
+- fields: grantedSkills[{uuid, rank, count, tag, stat, kind}] (count > 0: no uuid, "the player picks count skills" at rank, see picks below), prerequisites[{type, stat, value, category, uuid, tag}], earthBased (race tick; not earth = alien), hidden bool, categories[] (class and race), subclass.classUuid
 - rules:
   - Chosen from floor 3 for players, race then class (GM can assign any; unmet prerequisites noted in chat). One race, one class (replace prompt). Choices permanent for players.
-  - Granted skills added at set ranks; effects on the item copied to the actor like any item's.
+  - Granted skills added at set ranks; effects on the item copied to the actor like any item's. Pick rows (count > 0) are skipped here and granted when the player picks (see picks).
+  - picks: choices left to the player, files helpers/picks.mjs (pure), helpers/pick-dialog.mjs (dialog and writes). Three kinds, all permanent for the player:
+    - grant: a granted-skills pick row. Pool = skills AND spells from the skills compendium source (sourceItems('skills')) matching the row's optional tag, stat and kind (all must match). Picked skills are added at the row's rank, or raised to it if owned (same as fixed rows). Record: flag picks on the crawler's copy of the race/class/subclass, {row index: [skill uuid]}. Races, classes and subclasses only (not species).
+    - cap: a scoped build row (skillCap, skillRankBonus, rankDamage*) with scope pick: covers only the picked skills, by Identifier. Row fields count, tag, stat, skillKind, picks[{value: Identifier, name}] (picks on the actor's effect copy). Pool skips skills with no Identifier.
+    - split: build kind statSplit, see buildBenefits.
+    - when: right after Choose Race/Class/Subclass (origins.chooseOrigin/chooseSubclass call choosePicks); anything left blank stays pending behind the header Make Choices button (crawler sheet, editable). A dropped-on race/class has no dialog, only the button. Fewer matching skills than needed: pick what exists, the rest stays pending.
+    - GM: Reset picks button on the race/class sheet (crawler's copy only) clears the item's picks flag and the picks/splits on its effect copies (found by flags sourceItems); skills already granted stay.
+    - chat: one card lists what was chosen.
   - Prerequisites all must hold: stat >= value, skillRank, level, race (specific), raceCategory (earthBased|alien), achievement, classTag (class categories count as tags).
   - hidden: not listed until prerequisites met or GM reveals it to that crawler (Dungeon Info Reveal; actor flag revealed[uuid]).
   - Race and Class combo: a race whose effect has modifier classCombo > 0 also acts as the class: fills Class box, counts for class tag prereqs, subclasses attach to it, players cannot take a Class item (GM can after prompt and the class then takes over the Class box).
@@ -150,7 +157,8 @@
 - checkDie: value is a die like 1d4 added to the actor's own checks against target (evade or a stat): defending roll and stat check
 - healthStat: target stat whose modifier a health box is worth instead of CON (last wins)
 - statCap: highest enhanced value for target stat (lowest wins)
-- skillCap: raise rank cap 15 -> 20; target scope all|skill (value = identifier)|tag (value = tag); highest matching row wins
+- skillCap: raise rank cap 15 -> 20; target scope all|skill (value = identifier)|tag (value = tag)|pick (the player's picked skills, see picks); highest matching row wins
+- statSplit: points the player splits between stats. Row: points (>= 1), stats[] offered (empty = all five), repick never|floor, split{stat: n} (the answer, clamped to whole numbers >= 0 on offered stats and never over points in all), usedFloor (floor of the last redo). Adds split points to the stat's Enhanced value in crawler prepareDerivedData (build-mods.mjs statSplitOf; before the statCap), only while the effect is on. Pending until every point is handed out. With repick floor the header Reassign Points button redoes it once per floor (a redo that changes nothing does not use the floor; the first split never does).
 - skillRankBonus: same scope as skillCap plus amount (whole number, negative ok, new rows start at 1); every covering row of every effect that is on adds up to system.rankBonus; effectiveRank = max(0, rank + rankBonus), a positive bonus stops at the skill cap (skillCapOf; none for pets; a stored rank already above the cap stays), a rank 0 skill is lifted too. Never stored. Everything reads effectiveRank (helpers/skill-rank.mjs rankOf(system)): roll formula, upgrades reached (levelOf) and the effects they unlock, @rank (events, costs, ranges), @rankDamage, Roll Modifier Rank, Damage Effect rank, group/journal checks, lists (tooltip shows 'Rank N, +B from effects'), quick bar, crawler summary, rank sort. Stays on the STORED rank: the Rank field, advancement and its cap, Grant a skill event, 'advanced' trigger rank, granted/raised skills.
 - rankDamageBonus|rankDamageStep: same scope as skillCap (helpers/build-mods.mjs isScopedKind) plus amount (whole number, negative ok, new rows start at 1); bonus is added to the rank @rankDamage reads, step moves rows along its table; every covering row of every effect that is on adds up (see rules rankDamage)
 

@@ -26,6 +26,14 @@
     <p class='hint'>{{localize 'CARL_RPG.Origin.HiddenHint'}}</p>
   </div>
 
+  {{#if canResetPicks}}
+    {{! GM only, on a crawler's own copy: let the player pick again }}
+    <div class='resource'>
+      <button type='button' data-action='resetPicks'>{{localize 'CARL_RPG.Picks.Reset'}}</button>
+      <p class='hint'>{{localize 'CARL_RPG.Picks.ResetHint'}}</p>
+    </div>
+  {{/if}}
+
   {{#unless isClass}}
     {{! A race can set the crawler's size when it is chosen }}
     <div class='resource'>

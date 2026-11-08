@@ -12,9 +12,11 @@ export class CarlRPGOrigin extends CarlRPGItemBase {
     const schema = super.defineSchema();
 
     // Skills the crawler gets (by UUID of a Skill item) and the rank they start at.
+    // A row with a `count` is not one skill but "the player picks `count` skills" from those
+    // matching its tag, stat and kind (skill or spell); see helpers/picks.mjs.
     schema.grantedSkills = new fields.ArrayField(
       new fields.SchemaField({
-        uuid: new fields.StringField({ required: true, blank: false }),
+        uuid: new fields.StringField({ required: true, blank: true, initial: '' }),
         rank: new fields.NumberField({
           required: true,
           nullable: false,
@@ -22,6 +24,16 @@ export class CarlRPGOrigin extends CarlRPGItemBase {
           initial: 1,
           min: 0,
         }),
+        count: new fields.NumberField({
+          required: true,
+          nullable: false,
+          integer: true,
+          initial: 0,
+          min: 0,
+        }),
+        tag: new fields.StringField({ required: true, blank: true, initial: '' }),
+        stat: new fields.StringField({ required: true, blank: true, initial: '' }),
+        kind: new fields.StringField({ required: true, blank: true, initial: '' }),
       })
     );
 

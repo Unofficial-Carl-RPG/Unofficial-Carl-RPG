@@ -1,4 +1,4 @@
-import { healthStatOf, statCapOf } from '../helpers/build-mods.mjs';
+import { healthStatOf, statCapOf, statSplitOf } from '../helpers/build-mods.mjs';
 import CarlRPGActorBase from './base-actor.mjs';
 
 export default class CarlRPGCrawler extends CarlRPGActorBase {
@@ -152,9 +152,11 @@ export default class CarlRPGCrawler extends CarlRPGActorBase {
 
     // The floor is global (set by the GM in the sidebar), not stored per actor.
     this.floor = CONFIG.CARL_RPG.getFloor();
-    // Active effects add to the Enhanced value through `bonuses`.
+    // Active effects add to the Enhanced value through `bonuses`, and so do the points
+    // the player split between stats (see helpers/build-mods.mjs statSplitOf).
+    const split = statSplitOf(this.parent);
     for (const key in this.abilities) {
-      const bonus = this.bonuses[key] ?? 0;
+      const bonus = (this.bonuses[key] ?? 0) + (split[key] ?? 0);
       // (An effect can cap a score; see helpers/build-mods.mjs.)
       const boosted = this.abilities[key].value + bonus;
       const capped = statCapOf(this.parent, key);

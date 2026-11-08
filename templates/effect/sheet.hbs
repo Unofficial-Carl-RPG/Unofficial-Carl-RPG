@@ -200,9 +200,36 @@
           {{#if mod.scopeTag}}
             <input class='build-mod-value build-tag' type='text' list='carl-skill-tags' value='{{mod.value}}' placeholder='{{localize "CARL_RPG.Tags.Placeholder"}}' />
           {{/if}}
+          {{#if mod.scopePick}}
+            {{! The player picks N skills, from those matching a tag, stat and kind }}
+            <input class='build-mod-count' type='number' min='1' step='1' value='{{mod.count}}' data-tooltip='{{localize "CARL_RPG.Picks.CountHint"}}' />
+            <input class='build-mod-pick-tag build-tag' type='text' list='carl-skill-tags' value='{{mod.tag}}' placeholder='{{localize "CARL_RPG.Tags.Placeholder"}}' />
+            <select class='build-mod-pick-stat'>
+              {{selectOptions @root.pickStatOptions selected=mod.stat localize=true}}
+            </select>
+            <select class='build-mod-pick-kind'>
+              {{selectOptions @root.pickKindOptions selected=mod.skillKind localize=true}}
+            </select>
+            {{#if mod.pickedNames}}<div class='build-picked'>{{localize 'CARL_RPG.Picks.Picked'}}: {{mod.pickedNames}}</div>{{/if}}
+          {{/if}}
           {{#if mod.hasAmount}}
             <input class='build-mod-amount' type='number' step='1' value='{{mod.amount}}' data-tooltip='{{localize "CARL_RPG.Build.Amount"}}' />
           {{/if}}
+        {{else if mod.isSplit}}
+          {{! Points the player splits between stats }}
+          <input class='build-mod-points' type='number' min='1' step='1' value='{{mod.points}}' data-tooltip='{{localize "CARL_RPG.Picks.PointsHint"}}' />
+          <div class='build-stat-boxes'>
+            {{#each mod.statBoxes as |box|}}
+              <label class='build-stat-box-label'>
+                <input type='checkbox' class='build-mod-stat-box' value='{{box.key}}' {{checked box.checked}} />
+                {{localize box.label}}
+              </label>
+            {{/each}}
+          </div>
+          <select class='build-mod-repick'>
+            {{selectOptions @root.repickOptions selected=mod.repick localize=true}}
+          </select>
+          {{#if mod.splitText}}<div class='build-picked'>{{localize 'CARL_RPG.Picks.Picked'}}: {{mod.splitText}}</div>{{/if}}
         {{else}}
           <select class='build-mod-target'>
             {{selectOptions @root.buildTargetOptions selected=mod.target localize=true}}

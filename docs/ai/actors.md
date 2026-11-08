@@ -32,7 +32,7 @@
   - abilities.<stat>.value: int>=1 init 1
 - derived:
   - floor: CONFIG.CARL_RPG.getFloor()
-  - abilities.<stat>: enhanced = value + bonuses.<stat>, capped by statCap build row; mod = getStatModifier(enhanced); label
+  - abilities.<stat>: enhanced = value + bonuses.<stat> + the points of statSplit build rows, capped by statCap build row; mod = getStatModifier(enhanced); label
   - dr: {armor = sum of equipped gear system.dr, total = armor + bonuses.dr}
   - evade.total: dex mod + bonuses.evade
   - move.total / move.stepTotal: base + bonuses.move / step + bonuses.step

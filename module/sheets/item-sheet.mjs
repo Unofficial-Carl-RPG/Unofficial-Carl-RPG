@@ -29,6 +29,7 @@ import { ItemSheetTags } from './item-sheet-tags.mjs';
 import { ItemSheetCosts } from './item-sheet-costs.mjs';
 import { validAmount } from '../helpers/amounts.mjs';
 import { actsAsClass } from '../helpers/class-combo.mjs';
+import { hasChoices, isPickRow } from '../helpers/picks.mjs';
 import { ItemSheetUpgrades } from './item-sheet-upgrades.mjs';
 import { ItemSheetStoreQuestLoot } from './item-sheet-store-quest-loot.mjs';
 import { ItemSheetDrops } from './item-sheet-drops.mjs';
@@ -99,6 +100,8 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       removeTag: this._removeTag,
       removePrerequisite: this._removePrerequisite,
       removeGrantedSkill: this._removeGrantedSkill,
+      addGrantedPick: this._addGrantedPick,
+      resetPicks: this._resetPicks,
       // The events editor's buttons are shared (helpers/event-editor.mjs).
       ...EVENT_EDITOR_ACTIONS,
       addRequirement: this._addRequirement,
@@ -456,6 +459,18 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       }
       context.grantedRows = await Promise.all(
         (system.grantedSkills ?? []).map(async (entry, index) => {
+          // "The player picks N skills": no skill of its own, a filter instead.
+          if (isPickRow(entry)) {
+            return {
+              index,
+              isPick: true,
+              rank: entry.rank,
+              count: entry.count,
+              tag: entry.tag,
+              stat: entry.stat,
+              kind: entry.kind,
+            };
+          }
           const skill = await fromUuid(entry.uuid);
           return {
             index,
@@ -467,6 +482,16 @@ export class CarlRPGItemSheet extends ItemSheetBase {
           };
         })
       );
+      // What a "player picks" row can be narrowed to, and the tags to suggest.
+      context.canPickSkills = this.item.type !== 'species';
+      context.pickStatOptions = { '': 'CARL_RPG.Picks.AnyStat', ...cfg.abilities };
+      context.pickKindOptions = { '': 'CARL_RPG.Picks.AnyKind', ...cfg.pickKinds };
+      context.skillTagNames = context.grantedRows.some((g) => g.isPick)
+        ? await knownTags('skill')
+        : [];
+      // The GM can reset what the player picked, on the crawler's own copy.
+      context.canResetPicks =
+        game.user.isGM && this.item.actor?.type === 'crawler' && hasChoices(this.item.actor, this.item);
       // A race can't require a race or race category (only classes can).
       context.prereqOptions = {
         types: Object.fromEntries(

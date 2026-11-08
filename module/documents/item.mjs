@@ -581,6 +581,8 @@ export class CarlRPGItem extends Item {
 
     const toCreate = [];
     for (const entry of this.system.grantedSkills ?? []) {
+      // "The player picks" rows are granted when the player has picked (helpers/picks.mjs).
+      if (entry.count > 0) continue;
       const skill = await fromUuid(entry.uuid);
       if (!skill || skill.type !== 'skill') {
         ui.notifications.warn(

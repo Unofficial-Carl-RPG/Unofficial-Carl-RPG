@@ -1,6 +1,7 @@
 /**
  * Item sheet: skills embedded in an item, and the skills a race, class or background grants.
  */
+import { resetPicks } from '../helpers/pick-dialog.mjs';
 
 export const ItemSheetEmbeddedSkills = (Base) => class ItemSheetEmbeddedSkills extends Base {
   /**
@@ -44,6 +45,20 @@ export const ItemSheetEmbeddedSkills = (Base) => class ItemSheetEmbeddedSkills e
     const current = this.item.system.skills ?? [];
     if (current.includes(uuid)) return;
     await this.item.update({ 'system.skills': [...current, uuid] });
+  }
+
+  /** Add a "the player picks" row to the skills a race or class grants. */
+  static async _addGrantedPick(event, target) {
+    event.preventDefault();
+    await this._updateEvents((system) =>
+      system.grantedSkills.push({ uuid: '', rank: 1, count: 1, tag: '', stat: '', kind: '' })
+    );
+  }
+
+  /** GM only: let the player pick again (see helpers/pick-dialog.mjs). */
+  static async _resetPicks(event, target) {
+    event.preventDefault();
+    await resetPicks(this.item);
   }
 
   /** @this CarlRPGItemSheet */

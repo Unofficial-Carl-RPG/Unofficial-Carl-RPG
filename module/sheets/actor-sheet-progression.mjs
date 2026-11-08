@@ -3,6 +3,7 @@
  */
 import { levelUp, spendPoints } from '../helpers/level-up.mjs';
 import { chooseOrigin, chooseSubclass } from '../helpers/origins.mjs';
+import { choosePicks, reassignPoints } from '../helpers/pick-dialog.mjs';
 import { confirmRest } from '../helpers/rests.mjs';
 import { CarlRPGCreationWizard } from './creation-wizard.mjs';
 import { attemptAdvance } from '../helpers/advancement.mjs';
@@ -58,6 +59,18 @@ export const ActorSheetProgression = (Base) => class ActorSheetProgression exten
   static async _chooseOrigin(event, target) {
     event.preventDefault();
     await chooseOrigin(this.actor);
+  }
+
+  /** Make the choices a race, class or effect left to the player (see helpers/picks.mjs). */
+  static async _makeChoices(event, target) {
+    event.preventDefault();
+    await choosePicks(this.actor);
+  }
+
+  /** Redo a split of stat points, once per floor (see helpers/picks.mjs). */
+  static async _reassignPoints(event, target) {
+    event.preventDefault();
+    await reassignPoints(this.actor);
   }
 
   /** Open the Spend Points dialog. */

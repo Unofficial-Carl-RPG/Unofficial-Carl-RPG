@@ -44,6 +44,12 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
     await this._updateEvents((system) => {
       foundry.utils.setProperty(system, path, value);
       applyActionDefaults(system, path, value);
+      // A "player picks" row asks for at least one skill (zero would make it a blank skill).
+      const pickCount = /^grantedSkills\.(\d+)\.count$/.exec(path);
+      if (pickCount) {
+        const row = system.grantedSkills[Number(pickCount[1])];
+        if (row) row.count = Math.max(1, Math.trunc(Number(row.count)) || 1);
+      }
       // Upgrades are kept in rank order.
       if (/^upgrades\.\d+\.rank$/.test(path)) {
         system.upgrades.sort((a, b) => a.rank - b.rank);

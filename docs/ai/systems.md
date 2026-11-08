@@ -16,8 +16,9 @@
 - write: applyCreation(actor, state) writes everything; planSkills(state) resolves duplicates/ranks
 
 ## origins
-- files: helpers/origins.mjs, helpers/class-combo.mjs, sheets/actor-sheet-progression.mjs
+- files: helpers/origins.mjs, helpers/class-combo.mjs, helpers/picks.mjs, helpers/pick-dialog.mjs, sheets/actor-sheet-progression.mjs
 - flow: Choose Race, then Choose Class buttons (same floor-3 rule for the GM's button; GM can still assign by dropping the item). Dialog lists every option with prerequisite status; hidden ones omitted until met/revealed. Subclass chooser from subclassFloor.
+- picks: after the race, class or subclass is added the player's choices (skills to pick, points to split) are asked in one dialog; see items-effects.md race|class|subclass > picks.
 - helpers: raceOf, classOf, comboOf, classRoleOf (class or combo), subclassesOf, latestSubclassOf, evaluatePrerequisites(item, actor), chooseOrigin, chooseSubclass, revealedOf
 
 ## lootBoxes

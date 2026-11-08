@@ -130,7 +130,7 @@
 ## skillCap
 - default: 15
 - boosted: 20
-- scopes: all, skill, tag (also the scope of skillRankBonus, rankDamageBonus and rankDamageStep rows)
+- scopes: all, skill, tag, pick (the skills the player picked; also the scopes of skillRankBonus, rankDamageBonus and rankDamageStep rows)
 
 ## rankDamage
 - table: rows {from, formula} in config rankDamage; rank 1 = 1, 2-3 = 1d2, 4-5 = 1d4, 6-7 = 1d6, 8-9 = 1d8, 10-11 = 1d10, 12-13 = 1d12, 14-15 = 1d8 + 1d6, 16-17 = 2d8, 18-19 = 1d10 + 1d8, 20+ = 2d10; rank 0 = nothing
@@ -144,7 +144,7 @@
 - species: species
 - classes: class+subclass
 - backgrounds: background
-- skills: skill
+- skills: skill+spell (spells so a race can let the player pick them; the creation wizard pool still uses skills only)
 - mobs: Actor type mob
 
 ## systemAnnouncementKinds
@@ -155,6 +155,8 @@
 - general: no banner
 
 - soundCues: boss, natural, dying, achievement, loot
-- buildKinds: checkDie, healthStat, statCap, skillCap, skillRankBonus, rankDamageBonus, rankDamageStep
+- buildKinds: checkDie, healthStat, statCap, skillCap, skillRankBonus, rankDamageBonus, rankDamageStep, statSplit
+- pickKinds: skill, spell (narrows a player pick)
+- repickRules: never, floor (a Stat split can be redone once per floor)
 - effectModifierKeys: str, int, con, dex, cha, dr, evade, move, surprise, mana, hotlist, actions, seeValues, sortValue, step, classCombo, advStr..advCha, skillStr..skillCha
 - itemRequirementTypes: mana, stat, gold, actions, classTag

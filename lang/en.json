@@ -142,16 +142,63 @@
         "skillCap": "Skill cap 20",
         "skillRankBonus": "Skill rank bonus",
         "rankDamageBonus": "Rank damage: rank bonus",
-        "rankDamageStep": "Rank damage: row step"
+        "rankDamageStep": "Rank damage: row step",
+        "statSplit": "Stat split"
       },
       "Scopes": {
         "all": "All skills and spells",
         "skill": "One skill or spell",
-        "tag": "With a tag"
+        "tag": "With a tag",
+        "pick": "Player picks"
       },
       "DropSkill": "Drop a skill or spell",
       "DropWrong": "Drop a skill or spell.",
       "NoIdentifier": "That skill or spell has no Identifier."
+    },
+    "Picks": {
+      "Title": "Make your choices",
+      "Intro": "{name}, make your choices. They are permanent.",
+      "RedoTitle": "Reassign points",
+      "RedoIntro": "{name}, split your points again.",
+      "Confirm": "Confirm",
+      "Left": "Left",
+      "Grant": "Pick {need} {what} at rank {rank}",
+      "Cap": "Pick {need} {what}: {benefit}",
+      "Split": "Split {points} points between {stats}",
+      "StatBased": "{stat}-based",
+      "Plural": {
+        "skill": "skills",
+        "spell": "spells",
+        "both": "skills and spells"
+      },
+      "Kinds": {
+        "skill": "Skills only",
+        "spell": "Spells only"
+      },
+      "Repick": {
+        "never": "Cannot be redone",
+        "floor": "Redo once per floor"
+      },
+      "AnyStat": "Any stat",
+      "AnyKind": "Skill or spell",
+      "NoneFound": "No matching skills found.",
+      "Chosen": "{name} made their choices:",
+      "Done": "{source}: {picks}",
+      "SplitDone": "{source}: {split}",
+      "BadSplit": "{name}: the points do not add up.",
+      "MakeChoices": "Make Choices",
+      "Reassign": "Reassign Points",
+      "NothingToRedo": "No points can be reassigned right now.",
+      "PlayerPicks": "Player picks",
+      "CountHint": "How many",
+      "AddGrant": "Add player pick",
+      "PointsHint": "Points to split",
+      "Picked": "Picked",
+      "Reset": "Reset picks",
+      "ResetHint": "Lets the player pick again. Skills already granted stay.",
+      "ResetTitle": "Reset picks?",
+      "ResetConfirm": "Let {actor} pick again for {name}? Skills already granted stay.",
+      "ResetDone": "{name}: picks reset."
     },
     "Damage": {
       "Type": "Damage type",

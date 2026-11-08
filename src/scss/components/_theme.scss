@@ -693,6 +693,102 @@ nav.tabs {
     flex: 0 0 70px;
     text-align: center;
   }
+
+  // Player picks and Stat split rows have more boxes, so they wrap.
+  flex-wrap: wrap;
+
+  .build-mod-count,
+  .build-mod-points {
+    flex: 0 0 56px;
+    text-align: center;
+  }
+
+  .build-stat-boxes {
+    display: flex;
+    flex: 1 0 100%;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+  }
+
+  .build-stat-box-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  // What the player picked so far (on a crawler's own copy).
+  .build-picked {
+    flex: 1 0 100%;
+    color: var(--dcc-text-dim);
+    font-size: 0.9em;
+  }
+}
+
+// A race or class's "player picks" row on the Skills tab.
+.pick-grant-row {
+  .pick-filter {
+    display: flex;
+    flex: 3;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .pick-label {
+    color: var(--dcc-gold);
+    font-family: var(--dcc-font-display);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .pick-count {
+    width: 52px;
+    text-align: center;
+  }
+}
+
+// The dialog where the player makes the choices a race, class or effect leaves to them.
+.carl-picks {
+  .pick-slot {
+    margin-bottom: 10px;
+    padding: 6px 8px;
+    border: 1px solid rgba(128, 128, 128, 0.4);
+    border-radius: 3px;
+
+    h4 {
+      margin: 0 0 2px;
+    }
+
+    select {
+      width: 100%;
+      margin-top: 4px;
+    }
+  }
+
+  .pick-line,
+  .pick-left-line,
+  .pick-none {
+    margin: 2px 0;
+    font-size: 0.9em;
+  }
+
+  .pick-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin-top: 4px;
+  }
+
+  .pick-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    input {
+      width: 56px;
+      text-align: center;
+    }
+  }
 }
 
 // ---- Loot boxes ---------------------------------------------------------

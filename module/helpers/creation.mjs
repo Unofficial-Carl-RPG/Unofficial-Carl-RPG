@@ -157,7 +157,7 @@ export async function loadSpecies() {
 export async function skillPool() {
   const tag = getCreationDefaults().skillTag;
   if (!tag) return [];
-  return (await sourceItems('skills')).filter((i) => itemHasTag(i, tag));
+  return (await sourceItems('skills')).filter((i) => i.type === 'skill' && itemHasTag(i, tag));
 }
 
 /**

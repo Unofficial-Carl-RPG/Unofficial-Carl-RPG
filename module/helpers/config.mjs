@@ -422,7 +422,8 @@ CARL_RPG.compendiumPurposes = {
   species: { type: 'species', label: 'CARL_RPG.Sources.Purposes.species' },
   classes: { type: 'class', extraTypes: ['subclass'], label: 'CARL_RPG.Sources.Purposes.classes' },
   backgrounds: { type: 'background', label: 'CARL_RPG.Sources.Purposes.backgrounds' },
-  skills: { type: 'skill', label: 'CARL_RPG.Sources.Purposes.skills' },
+  // Spells are listed too (a race or class can let the player pick spells, see helpers/picks.mjs).
+  skills: { type: 'skill', extraTypes: ['spell'], label: 'CARL_RPG.Sources.Purposes.skills' },
   // Mobs are actors, so this list draws on actor compendiums.
   mobs: { type: 'mob', documentName: 'Actor', label: 'CARL_RPG.Sources.Purposes.mobs' },
 };
@@ -728,6 +729,7 @@ CARL_RPG.buildKinds = {
   skillRankBonus: 'CARL_RPG.Build.Kinds.skillRankBonus',
   rankDamageBonus: 'CARL_RPG.Build.Kinds.rankDamageBonus',
   rankDamageStep: 'CARL_RPG.Build.Kinds.rankDamageStep',
+  statSplit: 'CARL_RPG.Build.Kinds.statSplit',
 };
 
 /** Which skills and spells a Skill cap build benefit covers (see helpers/skill-cap.mjs). */
@@ -735,6 +737,21 @@ CARL_RPG.skillCapScopes = {
   all: 'CARL_RPG.Build.Scopes.all',
   skill: 'CARL_RPG.Build.Scopes.skill',
   tag: 'CARL_RPG.Build.Scopes.tag',
+  pick: 'CARL_RPG.Build.Scopes.pick',
+};
+
+/**
+ * Choices a race, class or effect leaves to the player (see helpers/picks.mjs).
+ * `pickKinds` narrows a pick to skills or spells (blank: either); `repickRules` says
+ * whether a stat split can be redone (once per floor) after it is first made.
+ */
+CARL_RPG.pickKinds = {
+  skill: 'CARL_RPG.Picks.Kinds.skill',
+  spell: 'CARL_RPG.Picks.Kinds.spell',
+};
+CARL_RPG.repickRules = {
+  never: 'CARL_RPG.Picks.Repick.never',
+  floor: 'CARL_RPG.Picks.Repick.floor',
 };
 
 /** Creature sizes, smallest to largest (shared by crawlers and mobs). */
