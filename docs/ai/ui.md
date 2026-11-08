@@ -34,5 +34,5 @@
 - overlays: Dead and defeated mobs get Foundry's skull overlay
 
 - interfaceStyle: client setting uiStyle (default on) re-skins Foundry's own UI; chatLogStyle (client, default on) game-style chat; journalStyle (world, default on). Accent colour royal purple via --dcc-accent / --dcc-accent-bright in the palette; danger reds via --dcc-danger(-bright).
-- defenseRollPopup: roll pop-up (helpers/roll-dialog.mjs promptRoll/buildFormula/optionsNote): extra bonus, stat change, advantage/disadvantage, cost amounts. Used by item rolls, sheet ability rolls and a crawler's defending roll. Shift-click skips.
+- defenseRollPopup: roll pop-up (helpers/roll-dialog.mjs promptRoll/buildFormula/optionsNote): extra bonus, stat change, advantage/disadvantage, cost amounts, and for item rolls a Damage stat menu (a build benefit's stat swap). Used by item rolls, sheet ability rolls and a crawler's defending roll. Shift-click skips.
 - rollDataAccess: abilities sidebar: click a stat rolls d20 + mod vs 10 + Floor; (observer permission may roll)

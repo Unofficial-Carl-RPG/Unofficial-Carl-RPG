@@ -46,11 +46,11 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 501).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 526).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 501 pass)
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 526 pass)
 - stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node
 
 ## files
@@ -64,6 +64,7 @@
 - splash.test.mjs: distance to a circle/rectangle/polygon, the splash band, who is splash after several areas, splash around the chosen targets of a Count item
 - buff-slots.test.mjs: stacking buff groups and slot counting
 - build-mods.test.mjs: build benefits, caps, health stat
+- build-damage.test.mjs: Bonus damage dice and Damage stat build rows: saving them, which can be used, scopes (skill, tag, weapon rolling a skill), the melee and Surprise ticks, roll and per-target conditions, typed Ice parts, the stat swap and swapStat, Frost Maiden / Cat Girl / Rat Hooligan examples
 - picks.test.mjs: player picks: filters and pools, granted-skills pick rows, Skill cap / rank bonus on picked skills, build row tidying, Stat splits (clamping, Enhanced value, redo once per floor), resetting
 - class-combo.test.mjs: Race+Class combos
 - combat.test.mjs: degrees, damage, phases, declarations
@@ -106,4 +107,4 @@
 - id=hardcoded-english; severity=i18n; detail=A few warnings bypass lang/en.json: combat.mjs refillCombatActions ('Only the GM can refill actions.'), carl-rpg.mjs createDocMacro / rollItemMacro warnings.
 - id=mob-loot-dead-export; severity=dead-code; detail=mob-loot.mjs giveMobLoot(mob, crawler) is not called from module code (pickCrawlerAndLoot -> makeMobPile only), so direct-to-crawler looting is unreachable from the UI.
 - id=event-trust-on-edit; severity=note; detail=eventsTrusted is set only when a GM saves (_preCreate/_preUpdate); player-edited events on items they own cannot touch other actors or run GM macros until approved. Migration saves carry carlMigration and skip this.
-- id=typed-dice-same-type-lost; severity=bug; where=helpers/damage-types.mjs damageParts + attacks.mjs (via damage-multiply.mjs targetDamage); detail=A typed bonus die whose type is the same as the attack's own damage type merges into the own-type part, so partsMatter is false and the per-target damage falls back to the untyped total, dropping the typed die's amount. Kept as it was by the damage multiplier work; not fixed.
+- id=typed-dice-same-type-lost; severity=bug; where=helpers/damage-types.mjs damageParts + attacks.mjs (via damage-multiply.mjs targetDamage); detail=A typed bonus die whose type is the same as the attack's own damage type merges into the own-type part, so partsMatter is false and the per-target damage falls back to the untyped total, dropping the typed die's amount. Kept as it was by the damage multiplier work; not fixed. Bonus damage dice build rows (build-damage.mjs) meet it too when their type is the attack's own.

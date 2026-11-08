@@ -143,6 +143,8 @@
         "skillRankBonus": "Skill rank bonus",
         "rankDamageBonus": "Rank damage: rank bonus",
         "rankDamageStep": "Rank damage: row step",
+        "damageDice": "Bonus damage dice",
+        "damageStat": "Damage stat",
         "statSplit": "Stat split"
       },
       "Scopes": {
@@ -153,7 +155,10 @@
       },
       "DropSkill": "Drop a skill or spell",
       "DropWrong": "Drop a skill or spell.",
-      "NoIdentifier": "That skill or spell has no Identifier."
+      "NoIdentifier": "That skill or spell has no Identifier.",
+      "DiceHint": "Dice or number added to the damage",
+      "SwapFrom": "The stat modifier to replace",
+      "SwapTo": "The stat modifier to use instead"
     },
     "Picks": {
       "Title": "Make your choices",
@@ -1118,7 +1123,11 @@
       "Shape": "Area shape",
       "NoRollMod": "None",
       "Surprise": "Surprise attack",
-      "Melee": "At melee range"
+      "Melee": "At melee range",
+      "DamageStat": "Damage stat",
+      "DamageStatAsWritten": "As written",
+      "DamageStatOption": "{to} instead of {from}",
+      "DamageStatNote": "damage uses {stat}"
     },
     "RollMod": {
       "Label": "Roll Modifier",

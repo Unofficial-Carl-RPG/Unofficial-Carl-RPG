@@ -215,6 +215,37 @@
           {{#if mod.hasAmount}}
             <input class='build-mod-amount' type='number' step='1' value='{{mod.amount}}' data-tooltip='{{localize "CARL_RPG.Build.Amount"}}' />
           {{/if}}
+          {{#if mod.isDice}}
+            {{! Bonus damage dice: dice, an optional damage type (and a second), and when it applies }}
+            <input class='build-mod-dice' type='text' value='{{mod.dice}}' placeholder='1d4' data-tooltip='{{localize "CARL_RPG.Build.DiceHint"}}' />
+            <select class='build-mod-bonus-type' data-tooltip='{{localize "CARL_RPG.Upgrades.BonusType.Hint"}}'>
+              {{selectOptions @root.bonusTypeOptions selected=mod.bonusType}}
+            </select>
+            {{#if mod.bonusType}}
+              <select class='build-mod-bonus-also' data-tooltip='{{localize "CARL_RPG.Upgrades.BonusType.AlsoHint"}}'>
+                {{selectOptions @root.bonusAlsoOptions selected=mod.bonusAlso}}
+              </select>
+            {{/if}}
+            <select class='build-mod-when' data-tooltip='{{localize "CARL_RPG.RollMod.WhenHint"}}'>
+              {{selectOptions @root.diceWhenOptions selected=mod.when localize=true}}
+            </select>
+            {{#if mod.isWithin}}
+              <input class='build-mod-feet' type='number' min='1' step='any' value='{{mod.feet}}' placeholder='{{localize "CARL_RPG.RollMod.WithinPlaceholder"}}' data-tooltip='{{localize "CARL_RPG.RollMod.WithinHint"}}' />
+            {{/if}}
+          {{/if}}
+          {{#if mod.isSwap}}
+            {{! Damage stat: the stat modifier a damage formula adds is swapped for another }}
+            <select class='build-mod-from' data-tooltip='{{localize "CARL_RPG.Build.SwapFrom"}}'>
+              {{selectOptions @root.statOptions selected=mod.from localize=true}}
+            </select>
+            <i class='fas fa-arrow-right'></i>
+            <select class='build-mod-to' data-tooltip='{{localize "CARL_RPG.Build.SwapTo"}}'>
+              {{selectOptions @root.statOptions selected=mod.to localize=true}}
+            </select>
+          {{/if}}
+          {{#if mod.invalid}}
+            <i class='fas fa-triangle-exclamation upgrade-invalid' data-tooltip='{{localize "CARL_RPG.Upgrades.Invalid"}}'></i>
+          {{/if}}
         {{else if mod.isSplit}}
           {{! Points the player splits between stats }}
           <input class='build-mod-points' type='number' min='1' step='1' value='{{mod.points}}' data-tooltip='{{localize "CARL_RPG.Picks.PointsHint"}}' />

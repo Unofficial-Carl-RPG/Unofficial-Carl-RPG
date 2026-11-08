@@ -5,6 +5,7 @@ import { checkRequirements, runEvents } from '../helpers/events.mjs';
 import { damageOfTarget, rollNumbers } from '../helpers/event-roll.mjs';
 import { castBlockedByHotlist } from '../helpers/hotlist-rule.mjs';
 import { applyBenefits, rollBenefits } from '../helpers/build-mods.mjs';
+import { damageDiceFor, diceNeeds, statSwapsFor } from '../helpers/build-damage.mjs';
 import { grantLoot } from '../helpers/loot.mjs';
 import { addModifier } from '../data/action.mjs';
 import {
@@ -1181,7 +1182,9 @@ export class CarlRPGItem extends Item {
     // or not.
     const mods = rollPopup && modSkill ? availableMods(this.actor, modSkill, this) : [];
     const selfMod = selfModOf(modSkill);
-    const surpriseOption = [...mods, selfMod].some((mod) => mod && needsSurprise(mod));
+    // Build benefits that add damage dice (a race's) can ask for the Surprise and melee ticks too.
+    const diceTicks = rollPopup ? diceNeeds(this.actor, this, modSkill) : { surprise: false, melee: false };
+    const surpriseOption = diceTicks.surprise || [...mods, selfMod].some((mod) => mod && needsSurprise(mod));
     // The damage multipliers this use can reach: the item's own and those of the skill it rolls
     // with. One that needs melee range shows its tick in the pop-up (helpers/damage-multiply.mjs).
     const multiplierRows = [
@@ -1190,7 +1193,19 @@ export class CarlRPGItem extends Item {
     ];
     const meleeOption =
       rollPopup &&
-      (needsMelee(multiplierRows) || [...mods, selfMod].some((mod) => mod && needsMeleeMod(mod)));
+      (diceTicks.melee ||
+        needsMelee(multiplierRows) ||
+        [...mods, selfMod].some((mod) => mod && needsMeleeMod(mod)));
+    // Build benefits that swap the stat the damage adds (Cha for Str): a menu in the pop-up, for
+    // the formulas that have that stat in them (the item's, plus the skill a weapon rolls with).
+    const damageText = [
+      effectiveOf(this).damage,
+      modSkill && modSkill !== this ? effectiveOf(modSkill).damage : '',
+    ]
+      .filter(Boolean)
+      .join(' + ');
+    const swaps = rollPopup ? statSwapsFor(this.actor, this, modSkill, damageText) : [];
+    let chosenSwap = null;
     let chosenEffect = null;
     let effectOption = false;
     let chosenMod = null;
@@ -1249,6 +1264,7 @@ export class CarlRPGItem extends Item {
         rollMods: mods.map((mod) => ({ id: mod.id, name: mod.name })),
         surpriseOption,
         meleeOption,
+        damageStats: swaps,
         shapes: shapeChoices,
       });
       if (!chosen) return null;
@@ -1263,6 +1279,7 @@ export class CarlRPGItem extends Item {
         chosenMod = mods.find((mod) => mod.id === chosen.rollMod) ?? null;
         surprise = !!chosen.surprise;
         melee = !!chosen.melee;
+        chosenSwap = swaps.find((swap) => swap.id === chosen.damageStat) ?? null;
       }
     }
     // All the ammunition being spent together (what @cost.ammo reads).
@@ -1286,6 +1303,19 @@ export class CarlRPGItem extends Item {
       melee,
     });
     if (rolls) rollOptions = addRankBonus(rollOptions, modResult);
+    // The extra damage dice build benefits give (a race's), judged on the final mode and ticks.
+    const buildDice = damageDiceFor(this.actor, this, modSkill, {
+      mode: rollOptions.mode ?? 'normal',
+      surprise,
+      melee,
+    });
+    const swapNotes = chosenSwap
+      ? [
+          game.i18n.format('CARL_RPG.RollDialog.DamageStatNote', {
+            stat: game.i18n.localize(CONFIG.CARL_RPG.abilities[chosenSwap.to]),
+          }),
+        ]
+      : [];
     // The damage multipliers whose condition on the roll holds (degree conditions are read per
     // target): the item's and rolled skill's own, and those of the Roll Modifiers in play.
     const multipliers = [
@@ -1338,7 +1368,7 @@ export class CarlRPGItem extends Item {
     await grantTempDR(this.actor, drGrants);
     const rolling = await this.#useRollingSkill();
     const result = await this._rollCore(event, {
-      costs: [...mana.notes, ...ammoNotes, ...drNotes(drGrants)],
+      costs: [...mana.notes, ...ammoNotes, ...drNotes(drGrants), ...swapNotes],
       options: rollOptions,
     });
     // A mistyped bonus: nothing was rolled, and nothing further happens.
@@ -1362,7 +1392,8 @@ export class CarlRPGItem extends Item {
         : undefined;
     const attack = await resolveCheck(this, roll, {
       damageEffect: chosenEffect ? { item: chosenEffect, option: effectOption } : null,
-      modDice: modResult.dice,
+      modDice: [...modResult.dice, ...buildDice],
+      statSwap: chosenSwap,
       splash,
       paid,
       multipliers,

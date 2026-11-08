@@ -40,6 +40,7 @@ import { effectiveOf } from './upgrades.mjs';
 import { damageNumbers, marginOf } from './event-roll.mjs';
 import { expandRankDamage } from './rank-damage.mjs';
 import { damageRollData, withCost } from './cost-damage.mjs';
+import { swapStat } from './build-damage.mjs';
 import { damageTypeLabel, partsLabel, partsTotal, scaleParts } from './damage-types.mjs';
 import { offerAiFavor } from './ai-favor.mjs';
 import { promptRoll, buildFormula, optionsNote } from './roll-dialog.mjs';
@@ -171,7 +172,9 @@ export function degreeOf(natural, total, dc) {
  *   damage away. modDice are the damage dice Roll Modifiers add (see helpers/roll-mods.mjs).
  *   splash lists the token UUIDs that are only in the splash of an area (helpers/splash.mjs);
  *   paid is what the use cost, which damage formulas read as @cost (helpers/cost-damage.mjs).
- *   multipliers are the damage multipliers in play (helpers/damage-multiply.mjs)
+ *   multipliers are the damage multipliers in play (helpers/damage-multiply.mjs);
+ *   statSwap is {from, to}: the damage formula adds the `to` stat's modifier in place of the
+ *   `from` stat's (a build benefit, helpers/build-damage.mjs)
  * @returns {Promise<{degrees: string[], margin?: number, damage: object|null, hits: Array<{actor: Actor, degree: string, margin?: number, damage: number|null}>}|null>}
  *   null if there is nothing to resolve. margin is an unopposed check's; damage the use's numbers
  *   for events (see helpers/event-roll.mjs); each hit and miss has its own margin, a hit its damage.
@@ -179,7 +182,7 @@ export function degreeOf(natural, total, dc) {
 export async function resolveCheck(
   item,
   roll,
-  { damageEffect = null, modDice = [], splash = [], paid = {}, multipliers = [] } = {}
+  { damageEffect = null, modDice = [], splash = [], paid = {}, multipliers = [], statSwap = null } = {}
 ) {
   // Mobs never roll a d20: a crawler rolls against the mob's number instead.
   if (item.actor?.type === 'mob') return resolveMobCheck(item, splash);
@@ -231,7 +234,10 @@ export async function resolveCheck(
   const effectTyped = [];
   if (damaging) {
     try {
-      damageRoll = new Roll(withCost(expandRankDamage(effectiveOf(item).damage, item)), rollData);
+      damageRoll = new Roll(
+        withCost(expandRankDamage(swapStat(effectiveOf(item).damage, statSwap), item)),
+        rollData
+      );
       if (crit && !critReplaced) damageRoll = damageRoll.alter(2, 0);
       await damageRoll.evaluate();
       damage = Math.max(0, Math.floor(damageRoll.total));

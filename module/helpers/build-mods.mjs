@@ -29,6 +29,8 @@
  *  - rankDamageBonus, rankDamageStep   move the dice of the @rankDamage scalar (see
  *                rank-damage.mjs): `target` and `value` are the scope like Skill cap's,
  *                `amount` a whole number (negative allowed); rows add together
+ *  - damageDice, damageStat   extra damage dice on the attacks a scope covers, and swapping
+ *                the stat a damage formula adds (same scopes; see build-damage.mjs)
  * Only effects that are on count.
  */
 const NS = 'carl-rpg';
@@ -43,23 +45,33 @@ const t = (key, data) =>
  * @param {{stored?: boolean}} [options]  `stored`: judge an effect an upgrade holds back by
  *   stored ranks instead of effective ones (used to work the effective rank out itself)
  */
-export function buildModsOf(actor, { stored = false } = {}) {
-  const rows = [];
+export function* eachBuildRow(actor, { stored = false } = {}) {
   for (const effect of actor?.effects ?? []) {
     if (effect.disabled) continue;
     if (stored && effect.lockedRank ? effect.lockedRank({ stored: true }) !== null : effect.isSuppressed) {
       continue;
     }
     for (const row of effect.getFlag?.(NS, 'buildMods') ?? []) {
-      if (row && row.kind in CONFIG.CARL_RPG.buildKinds) rows.push(row);
+      if (row && row.kind in CONFIG.CARL_RPG.buildKinds) yield { row, effect };
     }
   }
-  return rows;
+}
+
+/** Just the rows (see eachBuildRow). */
+export function buildModsOf(actor, options = {}) {
+  return Array.from(eachBuildRow(actor, options), ({ row }) => row);
 }
 
 /** The build benefit kinds that cover skills and spells by a scope (all, one skill or a tag). */
 export const isScopedKind = (kind) =>
-  ['skillCap', 'skillRankBonus', 'rankDamageBonus', 'rankDamageStep'].includes(kind);
+  [
+    'skillCap',
+    'skillRankBonus',
+    'rankDamageBonus',
+    'rankDamageStep',
+    'damageDice',
+    'damageStat',
+  ].includes(kind);
 
 /** The kinds that also hold a whole number, `amount`. */
 export const hasAmount = (kind) =>
@@ -131,6 +143,37 @@ export function statSplitOf(actor) {
   return out;
 }
 
+/** The fields of a Bonus damage dice row, tidied (a new row starts as 1d4). */
+function cleanDiceFields(row) {
+  const first = String(row.bonusType ?? '').trim();
+  const when = String(row.when ?? '').trim();
+  const feet = Number(String(row.feet ?? '').trim());
+  return {
+    dice: row.dice === undefined ? '1d4' : String(row.dice ?? '').trim(),
+    bonusType: first,
+    bonusAlso: first ? String(row.bonusAlso ?? '').trim() : '',
+    when,
+    // (a "within" condition starts at 5 ft, melee)
+    ...(when === 'within' ? { feet: feet > 0 ? feet : 5 } : {}),
+  };
+}
+
+/** The fields of a Damage stat row, tidied (a new row swaps Str for Cha). */
+function cleanStatFields(row) {
+  const stats = abilityKeys();
+  return {
+    from: stats.includes(row.from) ? row.from : 'str',
+    to: stats.includes(row.to) ? row.to : 'cha',
+  };
+}
+
+/** The extra fields a scoped row of this kind keeps (none for the other kinds). */
+export function kindFields(row) {
+  if (row?.kind === 'damageDice') return cleanDiceFields(row);
+  if (row?.kind === 'damageStat') return cleanStatFields(row);
+  return {};
+}
+
 /**
  * A build benefit row tidied for saving. A scoped row's (Skill cap, Skill rank bonus, Rank
  * damage bonus or Rank damage step) target is its scope (all,
@@ -155,6 +198,7 @@ export function cleanBuildRow(row, before = null) {
       ...(name ? { name } : {}),
       ...(hasAmount(kind) ? { amount: amountOf(row.amount) } : {}),
       ...(scope === 'pick' ? cleanPickFields(row, same ? before : null) : {}),
+      ...kindFields(row),
     };
   }
   if (kind === 'statSplit') {

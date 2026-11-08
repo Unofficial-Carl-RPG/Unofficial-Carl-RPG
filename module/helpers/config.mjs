@@ -381,6 +381,8 @@ CARL_RPG.rollMods = {
     // A damage multiplier of a skill or spell (melee range is a tick in the roll pop-up; within
     // N ft is measured from the tokens, for each target).
     damageMultiply: ['', 'disadvantage', 'advantage', 'surprise', 'melee', 'within', 'hit', 'amazing', 'crit'],
+    // A build benefit's Bonus damage dice (Roll Modifier dice conditions, plus the melee tick)
+    damageDice: ['', 'disadvantage', 'advantage', 'surprise', 'melee', 'within', 'hit', 'amazing', 'crit', 'miss'],
   },
 };
 
@@ -405,7 +407,7 @@ CARL_RPG.rankDamage = [
 
 /** The damage types a new world starts with (the GM edits the list in the settings). */
 CARL_RPG.defaultDamageTypes =
-  'Physical, Slashing, Piercing, Bludgeoning, Fire, Cold, Lightning, Poison, Acid, Necrotic, Psychic';
+  'Physical, Slashing, Piercing, Bludgeoning, Fire, Cold, Ice, Lightning, Poison, Acid, Necrotic, Psychic';
 
 /** How an effect can treat a damage type (see helpers/damage-types.mjs). */
 CARL_RPG.damageModes = {
@@ -732,6 +734,8 @@ CARL_RPG.buildKinds = {
   skillRankBonus: 'CARL_RPG.Build.Kinds.skillRankBonus',
   rankDamageBonus: 'CARL_RPG.Build.Kinds.rankDamageBonus',
   rankDamageStep: 'CARL_RPG.Build.Kinds.rankDamageStep',
+  damageDice: 'CARL_RPG.Build.Kinds.damageDice',
+  damageStat: 'CARL_RPG.Build.Kinds.damageStat',
   statSplit: 'CARL_RPG.Build.Kinds.statSplit',
 };
 

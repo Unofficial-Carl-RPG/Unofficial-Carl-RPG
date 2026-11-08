@@ -51,11 +51,13 @@ export function statOfFormula(formula) {
  * @param {{id: string, name: string}[]} [config.rollMods]  The Roll Modifiers that can be chosen
  * @param {boolean} [config.surpriseOption]  Whether to offer the Surprise attack tick
  * @param {boolean} [config.meleeOption]  Whether to offer the melee range tick (a damage multiplier needs it)
+ * @param {{id: string, from: string, to: string}[]} [config.damageStats]  The stat swaps the
+ *   damage can use (a build benefit's, Cha for Str); "As written" is always the first choice
  * @param {{id: string, label: string}[]} [config.shapes]  The shapes an area can be placed as
  *   (offered when there is more than one; the first is the default)
  * @returns {Promise<{bonus: string, stat: string|null, mode: 'normal'|'advantage'|'disadvantage',
  *   costs: Object<string, number>, damageEffect: string, option: boolean, rollMod: string,
- *   surprise: boolean, melee: boolean, shape: string}|null>}
+ *   surprise: boolean, melee: boolean, damageStat: string, shape: string}|null>}
  */
 export async function promptRoll({
   title,
@@ -67,6 +69,7 @@ export async function promptRoll({
   rollMods = [],
   surpriseOption = false,
   meleeOption = false,
+  damageStats = [],
   shapes = [],
 }) {
   const abilities = CONFIG.CARL_RPG.abilities;
@@ -80,6 +83,27 @@ export async function promptRoll({
           ${Object.entries(abilities)
             .filter(([key]) => key !== stat)
             .map(([key, label]) => `<option value="${key}">${esc(t(label))}</option>`)
+            .join('')}
+        </select>
+      </div>`
+    : '';
+
+  // A build benefit that swaps the stat the damage adds (Cha for Str).
+  const damageStatMenu = damageStats.length
+    ? `<div class="form-group">
+        <label>${esc(t('CARL_RPG.RollDialog.DamageStat'))}</label>
+        <select name="damageStat">
+          <option value="">${esc(t('CARL_RPG.RollDialog.DamageStatAsWritten'))}</option>
+          ${damageStats
+            .map(
+              (s) =>
+                `<option value="${esc(s.id)}">${esc(
+                  t('CARL_RPG.RollDialog.DamageStatOption', {
+                    to: t(abilities[s.to]),
+                    from: t(abilities[s.from]),
+                  })
+                )}</option>`
+            )
             .join('')}
         </select>
       </div>`
@@ -167,6 +191,7 @@ export async function promptRoll({
       )}"${costs.length ? '' : ' autofocus'}>
     </div>
     ${statMenu}
+    ${damageStatMenu}
     <div class="form-group">
       <label>${esc(t('CARL_RPG.RollDialog.Mode'))}</label>
       <select name="mode">
@@ -219,6 +244,7 @@ export async function promptRoll({
     rollMod: rollMods.find((m) => m.id === result.rollMod)?.id ?? '',
     surprise: !!result.surprise,
     melee: !!result.melee,
+    damageStat: damageStats.find((s) => s.id === result.damageStat)?.id ?? '',
     shape: shapes.find((s) => s.id === result.shape)?.id ?? '',
   };
 }

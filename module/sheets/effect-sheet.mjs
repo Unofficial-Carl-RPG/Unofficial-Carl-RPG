@@ -6,8 +6,10 @@ import {
   saveEventField,
 } from '../helpers/event-editor.mjs';
 
-import { cleanBuildRow, hasAmount, isScopedKind, splitStats } from '../helpers/build-mods.mjs';
+import { cleanBuildRow, hasAmount, isScopedKind, kindFields, splitStats } from '../helpers/build-mods.mjs';
+import { diceRowProblem, swapRowProblem } from '../helpers/build-damage.mjs';
 import { damageTypeOptions } from '../helpers/damage-types.mjs';
+import { whenOptionsFor } from '../helpers/roll-mods.mjs';
 import { knownTags } from '../helpers/tags.mjs';
 
 const { HandlebarsApplicationMixin, DocumentSheetV2 } =
@@ -94,6 +96,18 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
       ...CONFIG.CARL_RPG.abilities,
     };
     context.skillCapScopeOptions = CONFIG.CARL_RPG.skillCapScopes;
+    // Bonus damage dice: the type menus (blank is "the attack's type" / "no second type") and
+    // the conditions; Damage stat: the stats to swap.
+    context.bonusTypeOptions = {
+      '': game.i18n.localize('CARL_RPG.Upgrades.BonusType.None'),
+      ...typeMenu,
+    };
+    context.bonusAlsoOptions = {
+      '': game.i18n.localize('CARL_RPG.Upgrades.BonusType.NoSecond'),
+      ...typeMenu,
+    };
+    context.diceWhenOptions = whenOptionsFor('damageDice');
+    context.statOptions = CONFIG.CARL_RPG.abilities;
     // What a Player picks row can be narrowed to, and a Stat split's choices.
     context.pickStatOptions = { '': 'CARL_RPG.Picks.AnyStat', ...CONFIG.CARL_RPG.abilities };
     context.pickKindOptions = { '': 'CARL_RPG.Picks.AnyKind', ...CONFIG.CARL_RPG.pickKinds };
@@ -106,6 +120,13 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
       scopeSkill: isScopedKind(row.kind) && row.target === 'skill',
       scopeTag: isScopedKind(row.kind) && row.target === 'tag',
       scopePick: isScopedKind(row.kind) && row.target === 'pick',
+      isDice: row.kind === 'damageDice',
+      isSwap: row.kind === 'damageStat',
+      isWithin: row.kind === 'damageDice' && row.when === 'within',
+      // (a row that cannot be used is skipped; the sheet warns)
+      invalid:
+        (row.kind === 'damageDice' && diceRowProblem(row)) ||
+        (row.kind === 'damageStat' && swapRowProblem(row)),
       isSplit: row.kind === 'statSplit',
       // The skills already picked (on a crawler's copy), and the stats a split offers.
       pickedNames: (row.picks ?? []).map((p) => p.name || p.value).join(', '),
@@ -291,6 +312,14 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
           value: row.querySelector('.build-mod-value')?.value ?? '',
           name: row.querySelector('.build-mod-name')?.value ?? '',
           amount: row.querySelector('.build-mod-amount')?.value,
+          // Bonus damage dice and Damage stat
+          dice: row.querySelector('.build-mod-dice')?.value,
+          bonusType: row.querySelector('.build-mod-bonus-type')?.value,
+          bonusAlso: row.querySelector('.build-mod-bonus-also')?.value,
+          when: row.querySelector('.build-mod-when')?.value,
+          feet: row.querySelector('.build-mod-feet')?.value,
+          from: row.querySelector('.build-mod-from')?.value,
+          to: row.querySelector('.build-mod-to')?.value,
           // Player picks: how many skills, from which
           count: row.querySelector('.build-mod-count')?.value,
           tag: row.querySelector('.build-mod-pick-tag')?.value,
@@ -321,6 +350,7 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
       target: 'skill',
       value: '',
       ...(hasAmount(kind) ? { amount: amount ?? 1 } : {}),
+      ...kindFields(buildMods[index]),
     };
     await this.document.update({ [`flags.${NS}.buildMods`]: buildMods });
   }
