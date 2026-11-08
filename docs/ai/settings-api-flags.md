@@ -16,7 +16,7 @@
   - key=playersCanLevel; type=bool; default=false; visible=true
   - key=hotlistOnlySpells; type=bool; default=false; visible=true
   - key=speciesInCreation; type=bool; default=false; visible=true
-  - key=damageTypes; type=string (comma list); default=Physical, Slashing, Piercing, Bludgeoning, Fire, Cold, Ice, Lightning, Poison, Acid, Necrotic, Psychic; visible=true
+  - key=damageTypes; type=string (comma list); default=Physical, Slashing, Piercing, Bludgeoning, Fire, Force, Holy, Cold, Ice, Lightning, Poison, Acid, Necrotic, Psychic, Sonic; visible=true
   - key=sponsorLimit; type=number; default=3; visible=true; use=-1 unlimited
   - key=subclassFloor; type=number; default=6; visible=true
   - key=journalStyle; type=bool; default=true; visible=true

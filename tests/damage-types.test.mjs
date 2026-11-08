@@ -90,6 +90,7 @@ test('a new world starts with Slashing, Piercing and Bludgeoning beside Physical
   const ids = damageTypes().map((d) => d.id);
   assert.deepEqual(ids.slice(0, 4), ['physical', 'slashing', 'piercing', 'bludgeoning']);
   assert.ok(ids.includes('psychic'));
+  for (const id of ['force', 'holy', 'sonic']) assert.ok(ids.includes(id), id);
 });
 
 test('withDamageTypes adds only the missing names, at the end', () => {

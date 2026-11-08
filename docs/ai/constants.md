@@ -60,7 +60,7 @@
 - checkTargets: unopposed, evade, str, int, con, dex, cha, size
 - attackDegrees: critHit, amazing, success, nearMiss, fail, majorFail, critFail
 - damageRounding: floor
-- defaultDamageTypes: Physical, Slashing, Piercing, Bludgeoning, Fire, Cold, Ice, Lightning, Poison, Acid, Necrotic, Psychic
+- defaultDamageTypes: Physical, Slashing, Piercing, Bludgeoning, Fire, Force, Holy, Cold, Ice, Lightning, Poison, Acid, Necrotic, Psychic, Sonic
 - damageModes: resist, immune, vulnerable
 
 ## rests
