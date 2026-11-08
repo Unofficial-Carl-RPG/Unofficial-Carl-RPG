@@ -46,17 +46,18 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 481).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 501).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 481 pass)
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 501 pass)
 - stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node
 
 ## files
 - action.test.mjs: item Action formulas
 - ammo.test.mjs: ammunition matching, stacks, amounts
 - amounts.test.mjs: amount evaluator, fillData, rangeInfo
+- prerequisites.test.mjs: race/class prerequisites: any skill or spell by stat(s) or tag at a stored rank, species held, existing types unchanged, hidden-until-met (optionVisible), en.json labels for every type
 - skill-list.test.mjs: #tag entries in Roll Modifier and Damage Effect skill lists
 - area-upgrades.test.mjs: area shape/size upgrade changes (replace, extra shapes with their own size and keep, size add/replace, splashAdd, bad values, no upgrades)
 - area-plan.test.mjs: splash distance by rank (Bad Faith, Earworm, Fear, Shotgun, Heal Others burst), areaSteps (Fireball circle and 80 ft line that keeps the blast), lasting area rounds by rank (Confusing Fog), a Count item's area version (Ice Blast cone, Lightning Bolt line, origin at the caster)

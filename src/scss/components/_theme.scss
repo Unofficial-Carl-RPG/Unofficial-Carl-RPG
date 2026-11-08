@@ -1126,6 +1126,21 @@ prose-mirror,
   flex: 0 0 140px;
   text-align: left;
 }
+// The stats an "any skill of a stat" prerequisite accepts: small tick boxes in a row.
+.event-row .prereq-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  align-items: center;
+  .prereq-stat {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    input {
+      margin: 0;
+    }
+  }
+}
 // The class's selected tags, in italics under its name in the item sheet header.
 .class-tag-line {
   margin: 2px 0 0 2px;

@@ -1762,7 +1762,10 @@
       "Prereq": {
         "stat": "A stat is at least",
         "skillRank": "A skill is at rank",
+        "skillStatRank": "Any skill of a stat is at rank",
+        "skillTagRank": "Any skill with the tag is at rank",
         "level": "Level is at least",
+        "species": "Is this species",
         "race": "Is this race",
         "raceCategory": "Race is",
         "achievement": "Has the achievement",
@@ -1772,6 +1775,9 @@
         "stat": "{stat} {value} or more (you have {have})",
         "level": "Level {value} or more (you have {have})",
         "skillRank": "{skill} at rank {value} or more (you have {have})",
+        "skillStatRank": "A {stats} skill or spell at rank {value} or more (your best is {have})",
+        "skillTagRank": "A skill or spell tagged {tag} at rank {value} or more (your best is {have})",
+        "species": "The species {species}",
         "race": "The race {race}",
         "raceCategory": "A race that is {category}",
         "achievement": "The achievement {achievement}",
@@ -1846,11 +1852,13 @@
         "class": "Drop a class or combo here",
         "achievement": "Drop an achievement here",
         "skillGrant": "Drop a skill here to grant it",
+        "species": "Drop a species here",
         "Wrong": {
           "skill": "Drop a skill here.",
           "race": "Drop a race here.",
           "class": "Drop a class or combo here.",
-          "achievement": "Drop an achievement here."
+          "achievement": "Drop an achievement here.",
+          "species": "Drop a species here."
         }
       }
     },

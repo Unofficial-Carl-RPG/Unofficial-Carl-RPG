@@ -119,7 +119,10 @@ CARL_RPG.classCategories = [
 CARL_RPG.prerequisiteTypes = {
   stat: 'CARL_RPG.Origin.Prereq.stat',
   skillRank: 'CARL_RPG.Origin.Prereq.skillRank',
+  skillStatRank: 'CARL_RPG.Origin.Prereq.skillStatRank',
+  skillTagRank: 'CARL_RPG.Origin.Prereq.skillTagRank',
   level: 'CARL_RPG.Origin.Prereq.level',
+  species: 'CARL_RPG.Origin.Prereq.species',
   race: 'CARL_RPG.Origin.Prereq.race',
   raceCategory: 'CARL_RPG.Origin.Prereq.raceCategory',
   achievement: 'CARL_RPG.Origin.Prereq.achievement',

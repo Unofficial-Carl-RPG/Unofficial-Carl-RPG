@@ -39,7 +39,7 @@
 
 - raceCategories: earthBased, alien
 - classCategories: Arcanist, Barbarian, Bard, Cleric, Druid, Fighter, Mage, Monk, Paladin, Rogue
-- prerequisiteTypes: stat, skillRank, level, race, raceCategory, achievement, classTag
+- prerequisiteTypes: stat, skillRank, skillStatRank, skillTagRank, level, species, race, raceCategory, achievement, classTag
 
 ## sizes
 - order: tiny, small, petite, medium, large, huge, colossal, gargantuan

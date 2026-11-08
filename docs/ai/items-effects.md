@@ -79,7 +79,7 @@
 - rules: One per crawler (matched by identifier else name). Each grant pays its box again once removed and re-added; duplicate blocked while held. Posts card + sound cue. Granted by GM drop, Dungeon Info Award, quest reward, or Award achievement event action.
 
 ## race|class|subclass
-- fields: grantedSkills[{uuid, rank, count, tag, stat, kind}] (count > 0: no uuid, "the player picks count skills" at rank, see picks below), prerequisites[{type, stat, value, category, uuid, tag}], earthBased (race tick; not earth = alien), hidden bool, categories[] (class and race), subclass.classUuid
+- fields: grantedSkills[{uuid, rank, count, tag, stat, kind}] (count > 0: no uuid, "the player picks count skills" at rank, see picks below), prerequisites[{type, stat, stats[], value, category, uuid, tag}], earthBased (race tick; not earth = alien), hidden bool, categories[] (class and race), subclass.classUuid
 - rules:
   - Chosen from floor 3 for players, race then class (GM can assign any; unmet prerequisites noted in chat). One race, one class (replace prompt). Choices permanent for players.
   - Granted skills added at set ranks; effects on the item copied to the actor like any item's. Pick rows (count > 0) are skipped here and granted when the player picks (see picks).
@@ -90,7 +90,8 @@
     - when: right after Choose Race/Class/Subclass (origins.chooseOrigin/chooseSubclass call choosePicks); anything left blank stays pending behind the header Make Choices button (crawler sheet, editable). A dropped-on race/class has no dialog, only the button. Fewer matching skills than needed: pick what exists, the rest stays pending.
     - GM: Reset picks button on the race/class sheet (crawler's copy only) clears the item's picks flag and the picks/splits on its effect copies (found by flags sourceItems); skills already granted stay.
     - chat: one card lists what was chosen.
-  - Prerequisites all must hold: stat >= value, skillRank, level, race (specific), raceCategory (earthBased|alien), achievement, classTag (class categories count as tags).
+  - Prerequisites all must hold (helpers/origins.mjs evaluatePrerequisites): stat >= value, skillRank (one named skill), skillStatRank (any skill or spell whose stat is one of stats[], stored rank >= value; rank bonuses don't count; no stats ticked = never met), skillTagRank (any skill or spell with tag, ignoring case, stored rank >= value; blank tag = never met; bestSkillRank(actor, {stats, tag}) gives the best matching rank), level, species (uuid of a species item; met when the crawler holds a species item with the same identifier, else name), race (specific), raceCategory (earthBased|alien), achievement, classTag (class categories count as tags).
+  - Editor (templates/item/prerequisites.hbs): skillStatRank shows one tick box per stat (class prereq-stat-toggle, saved by _togglePrereqStat) plus the rank; skillTagRank shows a tag box (suggestions: tags used by skills and spells) plus the rank; species is a drop box for a species item. Races can't use race, raceCategory or classTag; the three new types are offered on races and classes.
   - hidden: not listed until prerequisites met or GM reveals it to that crawler (Dungeon Info Reveal; actor flag revealed[uuid]).
   - Race and Class combo: a race whose effect has modifier classCombo > 0 also acts as the class: fills Class box, counts for class tag prereqs, subclasses attach to it, players cannot take a Class item (GM can after prompt and the class then takes over the Class box).
   - Subclass: chooser available from world setting subclassFloor (default 6), lists only subclasses of the crawler's own class they qualify for; a crawler may hold several, Class box shows the newest. GM drop adds without replace prompt.

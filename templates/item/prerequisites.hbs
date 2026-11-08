@@ -8,6 +8,9 @@
   <datalist id='carl-tags-prereq'>
     {{#each classTagNames as |name|}}<option value='{{name}}'></option>{{/each}}
   </datalist>
+  <datalist id='carl-tags-prereq-skill'>
+    {{#each prereqSkillTagNames as |name|}}<option value='{{name}}'></option>{{/each}}
+  </datalist>
   {{#each prereqRows as |p|}}
     <div class='event-row'>
       <select data-path='{{p.path}}.type'>
@@ -18,13 +21,23 @@
           {{selectOptions @root.prereqOptions.stats selected=p.stat localize=true}}
         </select>
       {{/if}}
+      {{#if p.showStats}}
+        <span class='prereq-stats'>
+          {{#each p.statBoxes as |b|}}
+            <label class='prereq-stat'>
+              <input type='checkbox' class='prereq-stat-toggle' data-pi='{{p.index}}' data-stat='{{b.key}}' {{checked b.checked}} {{#unless @root.editable}}disabled{{/unless}} />
+              {{localize b.label}}
+            </label>
+          {{/each}}
+        </span>
+      {{/if}}
       {{#if p.showCategory}}
         <select data-path='{{p.path}}.category'>
           {{selectOptions @root.prereqOptions.categories selected=p.category localize=true}}
         </select>
       {{/if}}
       {{#if p.showTag}}
-        <input type='text' class='event-amount tag-field' list='carl-tags-prereq' data-path='{{p.path}}.tag' value='{{p.tag}}' placeholder='{{localize "CARL_RPG.Tags.Placeholder"}}' />
+        <input type='text' class='event-amount tag-field' list='{{p.tagList}}' data-path='{{p.path}}.tag' value='{{p.tag}}' placeholder='{{localize "CARL_RPG.Tags.Placeholder"}}' />
       {{/if}}
       {{#if p.showValue}}
         <input type='number' class='event-value' data-path='{{p.path}}.value' value='{{p.value}}' step='1' />

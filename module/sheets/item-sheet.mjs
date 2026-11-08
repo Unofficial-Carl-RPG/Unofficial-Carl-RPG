@@ -502,7 +502,22 @@ export class CarlRPGItemSheet extends ItemSheetBase {
         stats: cfg.abilities,
         categories: cfg.raceCategories,
       };
-      const dropTypes = { skillRank: 'skill', race: 'race', achievement: 'achievement' };
+      const dropTypes = {
+        skillRank: 'skill',
+        species: 'species',
+        race: 'race',
+        achievement: 'achievement',
+      };
+      // Suggestions for "any skill with the tag": the tags skills and spells use.
+      const skillTags = new Map();
+      if ((system.prerequisites ?? []).some((p) => p.type === 'skillTagRank')) {
+        for (const kind of ['skill', 'spell']) {
+          for (const tag of await knownTags(kind)) skillTags.set(tag.toLowerCase(), tag);
+        }
+      }
+      context.prereqSkillTagNames = [...skillTags.values()].sort((a, b) =>
+        a.localeCompare(b)
+      );
       context.prereqRows = await Promise.all(
         (system.prerequisites ?? []).map(async (p, index) => {
           const doc = p.uuid ? await fromUuid(p.uuid) : null;
@@ -512,8 +527,18 @@ export class CarlRPGItemSheet extends ItemSheetBase {
             path: `prerequisites.${index}`,
             showStat: p.type === 'stat',
             showCategory: p.type === 'raceCategory',
-            showTag: p.type === 'classTag',
-            showValue: ['stat', 'skillRank', 'level'].includes(p.type),
+            showStats: p.type === 'skillStatRank',
+            statBoxes: Object.keys(cfg.abilities).map((key) => ({
+              key,
+              label: cfg.abilityAbbreviations[key],
+              checked: (p.stats ?? []).includes(key),
+            })),
+            showTag: ['classTag', 'skillTagRank'].includes(p.type),
+            tagList:
+              p.type === 'skillTagRank' ? 'carl-tags-prereq-skill' : 'carl-tags-prereq',
+            showValue: ['stat', 'skillRank', 'skillStatRank', 'skillTagRank', 'level'].includes(
+              p.type
+            ),
             dropType: dropTypes[p.type],
             showDrop: !!dropTypes[p.type],
             dropHint: `CARL_RPG.Origin.Drop.${dropTypes[p.type] ?? 'skill'}`,
@@ -1063,6 +1088,12 @@ export class CarlRPGItemSheet extends ItemSheetBase {
     for (const box of this.element.querySelectorAll('.unlock-effect')) {
       box.addEventListener('change', () =>
         this._toggleUnlockedEffect(Number(box.dataset.ui), box.dataset.key, box.checked)
+      );
+    }
+    // The stats an "any skill of a stat" prerequisite accepts.
+    for (const box of this.element.querySelectorAll('.prereq-stat-toggle')) {
+      box.addEventListener('change', () =>
+        this._togglePrereqStat(Number(box.dataset.pi), box.dataset.stat, box.checked)
       );
     }
     // A background's creation categories.

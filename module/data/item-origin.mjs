@@ -38,11 +38,13 @@ export class CarlRPGOrigin extends CarlRPGItemBase {
     );
 
     // What a crawler must meet to take this (all of them). `uuid` is a skill,
-    // race or achievement depending on `type`.
+    // race, species or achievement depending on `type`. `stats` (any of them counts)
+    // is for "any skill of a stat at rank"; `tag` also serves "any skill with a tag".
     schema.prerequisites = new fields.ArrayField(
       new fields.SchemaField({
         type: new fields.StringField({ required: true, blank: true, initial: 'stat' }),
         stat: new fields.StringField({ required: true, blank: true, initial: 'str' }),
+        stats: new fields.ArrayField(new fields.StringField({ required: true, blank: false })),
         value: new fields.NumberField({ required: true, nullable: false, initial: 1 }),
         category: new fields.StringField({ required: true, blank: true, initial: 'earthBased' }),
         uuid: new fields.StringField({ required: true, blank: true, initial: '' }),

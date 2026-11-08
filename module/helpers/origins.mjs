@@ -2,8 +2,9 @@
  * Races, classes and subclasses ("origins").
  *
  * From the third floor a crawler chooses a race and then a class. Each one has
- * prerequisites (minimum stat, skill rank, level, a particular race, a race
- * category, a class tag, an achievement) that must all be met. The choosing dialog
+ * prerequisites (minimum stat, skill rank, any skill of a stat or with a tag at a
+ * rank, level, a species, a particular race, a race category, a class tag, an
+ * achievement) that must all be met. The choosing dialog
  * shows every option with what is and isn't met; the GM can pick any (override).
  *
  * A subclass comes from a class the crawler has, from the Subclass floor. A
@@ -21,7 +22,7 @@
  */
 import { sourceItems } from './sources.mjs';
 import { CarlRPGDialog } from './dialog.mjs';
-import { classHasTag } from './tags.mjs';
+import { classHasTag, itemHasTag } from './tags.mjs';
 import { actsAsClass } from './class-combo.mjs';
 import { choosePicks } from './pick-dialog.mjs';
 
@@ -66,6 +67,20 @@ export function sameItem(a, b) {
 const statValue = (actor, key) => actor.system.abilities?.[key]?.enhanced ?? 0;
 
 /**
+ * The highest stored rank among the crawler's skills and spells that use one of the
+ * stats (none given: any stat) and carry the tag (none given: any tag). 0 if none match.
+ * @param {Actor} actor
+ * @param {{stats?: string[], tag?: string}} [filter]
+ */
+export function bestSkillRank(actor, { stats = [], tag = '' } = {}) {
+  const held = [...(actor.itemTypes?.skill ?? []), ...(actor.itemTypes?.spell ?? [])];
+  return held
+    .filter((s) => !stats.length || stats.includes(s.system?.stat))
+    .filter((s) => !tag || itemHasTag(s, tag))
+    .reduce((best, s) => Math.max(best, s.system?.rank ?? 0), 0);
+}
+
+/**
  * Check every prerequisite of a race, class or subclass against a crawler.
  * @param {Item} item
  * @param {Actor} actor
@@ -108,6 +123,46 @@ export async function evaluatePrerequisites(item, actor) {
             value: p.value,
             have,
           }),
+        });
+        break;
+      }
+      case 'skillStatRank': {
+        // Any one skill or spell using one of the chosen stats, at that rank or more.
+        const stats = (p.stats ?? []).filter((s) => s in CONFIG.CARL_RPG.abilities);
+        const have = stats.length ? bestSkillRank(actor, { stats }) : 0;
+        results.push({
+          met: stats.length > 0 && have >= p.value,
+          text: t('CARL_RPG.Origin.Needs.skillStatRank', {
+            stats: stats.length
+              ? stats.map((s) => t(CONFIG.CARL_RPG.abilities[s])).join(' / ')
+              : '?',
+            value: p.value,
+            have,
+          }),
+        });
+        break;
+      }
+      case 'skillTagRank': {
+        // Any one skill or spell with the tag, at that rank or more.
+        const tag = String(p.tag ?? '').trim();
+        const have = tag ? bestSkillRank(actor, { tag }) : 0;
+        results.push({
+          met: tag !== '' && have >= p.value,
+          text: t('CARL_RPG.Origin.Needs.skillTagRank', {
+            tag: esc(tag || '?'),
+            value: p.value,
+            have,
+          }),
+        });
+        break;
+      }
+      case 'species': {
+        // The crawler holds that species (an animal crawler's start, see item-species.mjs).
+        const wanted = p.uuid ? await fromUuid(p.uuid) : null;
+        results.push({
+          met:
+            !!wanted && (actor.itemTypes.species ?? []).some((s) => sameItem(s, wanted)),
+          text: t('CARL_RPG.Origin.Needs.species', { species: esc(wanted?.name ?? '?') }),
         });
         break;
       }
@@ -160,7 +215,7 @@ export async function evaluatePrerequisites(item, actor) {
  * Whether a choice is listed to the person looking at it. A hidden option shows
  * once the crawler meets it, or the GM has revealed it (the GM always sees it).
  */
-function optionVisible(item, met, isGM, revealed) {
+export function optionVisible(item, met, isGM, revealed) {
   return isGM || met || !item.system.hidden || revealed.includes(item.uuid);
 }
 

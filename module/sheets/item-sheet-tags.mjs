@@ -58,15 +58,29 @@ export const ItemSheetTags = (Base) => class ItemSheetTags extends Base {
     );
   }
 
+  /** Tick or untick a stat on an "any skill of a stat" prerequisite (kept in stat order). */
+  async _togglePrereqStat(index, stat, on) {
+    await this._updateEvents((system) => {
+      const row = system.prerequisites[index];
+      if (!row) return;
+      const chosen = new Set(row.stats ?? []);
+      if (on) chosen.add(stat);
+      else chosen.delete(stat);
+      row.stats = Object.keys(CONFIG.CARL_RPG.abilities).filter((key) => chosen.has(key));
+    });
+  }
+
   /** @this CarlRPGItemSheet */
   static async _addPrerequisite() {
     await this._updateEvents((system) => {
       system.prerequisites.push({
         type: 'stat',
         stat: 'str',
+        stats: [],
         value: 1,
         category: 'earthBased',
         uuid: '',
+        tag: '',
       });
     });
   }
