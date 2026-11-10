@@ -18,7 +18,7 @@ const { ApplicationV2, HandlebarsApplicationMixin } =
 
 const NS = 'carl-rpg';
 const BASE_STEPS = ['basics', 'stats', 'skills', 'weapon', 'gear', 'bio', 'review'];
-const BACKGROUND = ['pastTrauma', 'popularity', 'looseEnds', 'regrets'];
+const BACKGROUND = ['pastTrauma', 'looseEnds', 'regrets'];
 
 /**
  * The character creation wizard: it guides a new crawler through their name and

@@ -92,6 +92,7 @@ export function crawlerSummaryText(actor) {
 
   if (owner) {
     heading(loc('Notes'));
+    add(loc('Popularity'), s.popularity);
     for (const [key, value] of Object.entries(s.background ?? {})) {
       const label = game.i18n.has(`CARL_RPG.Summary.Background.${key}`)
         ? loc(`Background.${key}`)

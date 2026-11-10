@@ -270,7 +270,7 @@ export async function planSkills(state) {
  * @param {string} [state.species]                    UUID of the chosen species (animal crawlers)
  * @param {string} state.weapon                       UUID of the chosen weapon
  * @param {string[]} state.gear                       UUIDs of the chosen starting gear
- * @param {Object<string, string>} state.background   pastTrauma, popularity, looseEnds, regrets
+ * @param {Object<string, string>} state.background   pastTrauma, looseEnds, regrets
  */
 export async function applyCreation(actor, state) {
   const planned = await planSkills(state);

@@ -282,4 +282,8 @@
     min-height: 60px;
     resize: vertical;
   }
+
+  input[type='number'] {
+    width: 100%;
+  }
 }

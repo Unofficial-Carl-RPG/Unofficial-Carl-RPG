@@ -49,6 +49,14 @@ export default class CarlRPGCrawler extends CarlRPGActorBase {
     });
     schema.aiFavor = new fields.NumberField({ ...requiredInteger, initial: 0 });
 
+    // Popularity: a plain number the GM grants or removes (Dungeon Info), like AI
+    // Favor. Never below 0.
+    schema.popularity = new fields.NumberField({
+      ...requiredInteger,
+      initial: 0,
+      min: 0,
+    });
+
     // Gold: the only currency. A whole number, never negative, with no upper
     // limit (large amounts are fine).
     schema.gold = new fields.NumberField({
@@ -100,7 +108,6 @@ export default class CarlRPGCrawler extends CarlRPGActorBase {
     // Background sections shown on the Notes tab (plain text, edited in textareas).
     schema.background = new fields.SchemaField({
       pastTrauma: new fields.StringField(),
-      popularity: new fields.StringField(),
       looseEnds: new fields.StringField(),
       regrets: new fields.StringField(),
     });
@@ -140,6 +147,8 @@ export default class CarlRPGCrawler extends CarlRPGActorBase {
       source.background ??= source.hotlist;
       source.hotlist = {};
     }
+    // Popularity used to be free text under `background`; it is a number now (`popularity`).
+    if (source.background && 'popularity' in source.background) delete source.background.popularity;
     // The old free-text `kills` note becomes a single row of the kills list.
     if (typeof source.kills === 'string') {
       const text = source.kills.trim();

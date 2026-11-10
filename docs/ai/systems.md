@@ -9,7 +9,7 @@
 - skills: 8 skills in 4 groups of 2: childhood 1, adolescence 1, hobby 2, career 3 (rank = group). Per group pick a background then two of its skills, or 'any skill' (the skillTag pool, if allowAnySkill). No duplicate skill. Chips and options labelled 'Skill (Stat)'.
 - weapon: pick one starter weapon; grants its rollSkill (default first) at rank 3. freeSkills also granted at their ranks.
 - gear: pick up to gearPicks from the starter gear list
-- bio: pastTrauma, popularity, looseEnds, regrets (+ name, gender, size on basics)
+- bio: pastTrauma, looseEnds, regrets (+ name, gender, size on basics); popularity is not asked (starts at 0)
 - notAtCreation: race, class, deity (race/class from floor 3). Exception: later-floor starts.
 - laterFloors: a crawler created while the world floor equals a configured row starts at that level and gold and offers race+class at the end (offerOrigins)
 - species: optional step; species item sets size + Race box + skills + effects
@@ -64,7 +64,7 @@
     - encounter table per floor (roll table of mobs), Roll encounter, Encounter builder
     - loot approval list (only while lootApproval on)
     - events waiting for approval + Approve / Approve all
-    - Awards: pick achievement + Award; Award AI Favor
+    - Awards: pick achievement + Award; one amount box (negative removes, floor 0) with Award AI Favor and Award Popularity buttons, each posts a chat card
     - Reveal: pick crawler + hidden race/class/subclass
     - System announcement: kind, crawler (for died), text, banner toggle, Send
     - Announce Boss Battle (bosses auto-found: active combat else viewed scene; each boss after the first toggles 'vs' (new line) / 'and' (same line))
@@ -97,7 +97,7 @@
 - playersWithoutAccess: installFromUuid() wraps fromUuid: a player's client that cannot read a compendium item asks the GM client over the socket and builds a read-only in-memory item with the real compendium UUID. Needs a GM connected; items-only.
 
 - validate: System settings > Validate World Items (last menu): findProblems() lists broken links (background skills, loot box rewards/guaranteed, event actions' uuids, actor effects whose source item is gone). Changes nothing.
-- crawlerSummary: Actors directory right-click > Crawler Summary: themed window with plain text (name, race, class, level, floor, stats; skills/spells with ranks; gear/inventory, gold, junk; bio, notes, personal tab) + Copy and Save as .txt. Gold/junk/notes only in the owner's copy.
+- crawlerSummary: Actors directory right-click > Crawler Summary: themed window with plain text (name, race, class, level, floor, stats; skills/spells with ranks; gear/inventory, gold, junk; bio, notes, personal tab) + Copy and Save as .txt. Gold/junk/notes/popularity only in the owner's copy.
 - macros: see api. Ready-made macros JSON in packs-source/carl-rpg-macros.json (import into a compendium by hand).
 - itemValues: item.system.value hidden from crawlers unless an effect has seeValues; sortValue lets them sort lists by value without seeing numbers; GM only edits; stores always show their own prices.
 - skillGrantsOnItems: gear/items/deity list skills[]: added when the item is added to a crawler (equipped or not), tracked in flags grantedBy; whisper when removed with the item

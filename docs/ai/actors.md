@@ -22,12 +22,13 @@
   - crawlerKills: int; Crawler Killer skulls
   - bossKills: int; boss stars
   - aiFavor: int
+  - popularity: int>=0, plain number (no rule uses it). Notes tab number box (owner edits it even while the sheet is locked); the GM grants or removes it in Dungeon Info (shares the AI favor amount box). Old Bio text is dropped by migrateData.
   - gold: int>=0, only currency; add via actor.addGold(), spend via actor.spendGold()
   - junk: int>=0, Misc Junk second currency
   - statPointsSpent: int
   - move: {base 20, step 10}
   - hotlist: {size int 0..50 init 10, items [itemId|'']}
-  - background: {pastTrauma, popularity, looseEnds, regrets} strings
+  - background: {pastTrauma, looseEnds, regrets} strings
   - killLog: [{name, note}] Important Things I've Killed (does not change crawlerKills)
   - abilities.<stat>.value: int>=1 init 1
 - derived:

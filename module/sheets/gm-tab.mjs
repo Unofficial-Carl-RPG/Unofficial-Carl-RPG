@@ -43,6 +43,41 @@ import { lootApprovalRequired, waitingApprovals } from '../helpers/loot.mjs';
 import { promptGroupCheck, startGroupCheck } from '../helpers/group-check.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
+
+/**
+ * Give the crawler picked in the Awards section some of a number on the crawler
+ * (`system.<field>`: AI favor or Popularity), or take some away with a negative
+ * amount (never below 0), and say so in chat. The amount box is shared.
+ * @param {HTMLElement} element  The Dungeon Info tab
+ * @param {string} field         aiFavor | popularity
+ * @param {string} key           Language key prefix: Favor | Popularity
+ */
+async function grantCrawlerNumber(element, field, key) {
+  if (!game.user.isGM) return;
+  const actor = game.actors.get(element.querySelector('.award-crawler')?.value);
+  const amount = Math.trunc(Number(element.querySelector('.favor-amount')?.value));
+  if (!actor) {
+    ui.notifications.warn(game.i18n.localize('CARL_RPG.GMTab.NeedCrawler'));
+    return;
+  }
+  if (!Number.isFinite(amount) || amount === 0) {
+    ui.notifications.warn(game.i18n.localize('CARL_RPG.GMTab.NeedAmount'));
+    return;
+  }
+  const total = Math.max(0, (Number(actor.system[field]) || 0) + amount);
+  await actor.update({ [`system.${field}`]: total });
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content: `<div class="carl-level-card">${game.i18n.format(
+      `CARL_RPG.GMTab.${key}${amount > 0 ? 'Awarded' : 'Lost'}`,
+      {
+        name: Handlebars.escapeExpression(actor.name),
+        amount: Math.abs(amount),
+        total,
+      }
+    )}</div>`,
+  });
+}
 const { AbstractSidebarTab } = foundry.applications.sidebar;
 
 /**
@@ -76,6 +111,7 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
       rest: CarlRPGGMTab._onRest,
       awardAchievement: CarlRPGGMTab._onAwardAchievement,
       awardFavor: CarlRPGGMTab._onAwardFavor,
+    awardPopularity: CarlRPGGMTab._onAwardPopularity,
       approveEvents: CarlRPGGMTab._onApproveEvents,
       approveAllEvents: CarlRPGGMTab._onApproveAllEvents,
       sendSystem: CarlRPGGMTab._onSendSystem,
@@ -508,34 +544,12 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
    * never goes below 0) and say so in chat.
    */
   static async _onAwardFavor() {
-    if (!game.user.isGM) return;
-    const actor = game.actors.get(
-      this.element.querySelector('.award-crawler')?.value
-    );
-    const amount = Math.trunc(
-      Number(this.element.querySelector('.favor-amount')?.value)
-    );
-    if (!actor) {
-      ui.notifications.warn(game.i18n.localize('CARL_RPG.GMTab.NeedCrawler'));
-      return;
-    }
-    if (!Number.isFinite(amount) || amount === 0) {
-      ui.notifications.warn(game.i18n.localize('CARL_RPG.GMTab.NeedAmount'));
-      return;
-    }
-    const total = Math.max(0, actor.system.aiFavor + amount);
-    await actor.update({ 'system.aiFavor': total });
-    await ChatMessage.create({
-      speaker: ChatMessage.getSpeaker({ actor }),
-      content: `<div class="carl-level-card">${game.i18n.format(
-        amount > 0 ? 'CARL_RPG.GMTab.FavorAwarded' : 'CARL_RPG.GMTab.FavorLost',
-        {
-          name: Handlebars.escapeExpression(actor.name),
-          amount: Math.abs(amount),
-          total,
-        }
-      )}</div>`,
-    });
+    await grantCrawlerNumber(this.element, 'aiFavor', 'Favor');
+  }
+
+  /** The same for Popularity (the amount box is shared with AI favor). */
+  static async _onAwardPopularity() {
+    await grantCrawlerNumber(this.element, 'popularity', 'Popularity');
   }
 
   /** @this CarlRPGGMTab */
