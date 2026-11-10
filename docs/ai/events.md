@@ -89,6 +89,7 @@
 - actions: mode spend|restore; amount; combat only
 - gold: mode add|remove; crawlers only
 - aiFavor: mode award|spend; crawlers only; floor 0
+- popularity: mode award|remove; crawlers only; floor 0; no chat card (like aiFavor)
 - rollTable: uuid RollTable; draw() to chat
 - runEvent: mode field holds another event id of the same item; runs its actions without trigger/conditions; depth+1
 

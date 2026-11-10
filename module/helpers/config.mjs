@@ -590,6 +590,7 @@ CARL_RPG.eventActions = {
   actions: 'CARL_RPG.Events.Actions.actions',
   gold: 'CARL_RPG.Events.Actions.gold',
   aiFavor: 'CARL_RPG.Events.Actions.aiFavor',
+  popularity: 'CARL_RPG.Events.Actions.popularity',
   rollTable: 'CARL_RPG.Events.Actions.rollTable',
   runEvent: 'CARL_RPG.Events.Actions.runEvent',
 };
@@ -605,6 +606,10 @@ CARL_RPG.goldModes = {
 CARL_RPG.aiFavorModes = {
   award: 'CARL_RPG.Events.AiFavorModes.award',
   spend: 'CARL_RPG.Events.AiFavorModes.spend',
+};
+CARL_RPG.popularityModes = {
+  award: 'CARL_RPG.Events.PopularityModes.award',
+  remove: 'CARL_RPG.Events.PopularityModes.remove',
 };
 /** What a Summon action does (see helpers/minions.mjs). */
 CARL_RPG.summonModes = {

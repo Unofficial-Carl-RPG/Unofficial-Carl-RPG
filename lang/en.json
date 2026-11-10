@@ -302,6 +302,7 @@
       "DaysUsage": "Usage: /days N, where N is the number of days left.",
       "DaysSet": "Days left set to {days}.",
       "AiFavorUsage": "Usage: /aifavor crawler amount, e.g. /aifavor Name 2 or /aifavor Name -1.",
+      "PopularityUsage": "Usage: /popularity crawler amount, e.g. /popularity Name 2 or /popularity Name -1.",
       "AnnounceUsage": "Usage: /announce kind text. Kinds: {kinds}."
     },
     "Targeting": {
@@ -2089,6 +2090,7 @@
         "actions": "Actions",
         "gold": "Gold",
         "aiFavor": "AI Favor",
+        "popularity": "Popularity",
         "rollTable": "Roll on a table",
         "runEvent": "Run another event"
       },
@@ -2119,6 +2121,10 @@
       "AiFavorModes": {
         "award": "Award",
         "spend": "Spend"
+      },
+      "PopularityModes": {
+        "award": "Award",
+        "remove": "Remove"
       },
       "SummonModes": {
         "place": "Place a token",
@@ -2259,6 +2265,10 @@
           "aiFavor": {
             "award": "award {amount} AI Favor",
             "spend": "spend {amount} AI Favor"
+          },
+          "popularity": {
+            "award": "award {amount} Popularity",
+            "remove": "remove {amount} Popularity"
           },
           "rollTable": "roll on {name}",
           "runEvent": "run {name}"

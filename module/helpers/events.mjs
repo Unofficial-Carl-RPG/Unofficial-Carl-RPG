@@ -804,6 +804,15 @@ const HANDLERS = {
     if (next !== have) await actor.update({ 'system.aiFavor': next });
   },
 
+  /** Award or remove Popularity (a crawler's; it never goes below 0). */
+  async popularity({ item, action, actor, ctx }) {
+    if (actor.type !== 'crawler') return;
+    const amount = await rollAmount(action.amount, eventData(item, ctx), item);
+    const have = Math.trunc(actor.system.popularity ?? 0);
+    const next = action.mode === 'remove' ? Math.max(0, have - amount) : have + amount;
+    if (next !== have) await actor.update({ 'system.popularity': next });
+  },
+
   /** Roll on a roll table (the result goes to chat). */
   async rollTable({ action }) {
     const table = await fromUuid(action.uuid);

@@ -41,6 +41,7 @@ import { rollEncounter } from '../helpers/encounters.mjs';
 import { confirmRest } from '../helpers/rests.mjs';
 import { lootApprovalRequired, waitingApprovals } from '../helpers/loot.mjs';
 import { promptGroupCheck, startGroupCheck } from '../helpers/group-check.mjs';
+import { grantNumber } from '../helpers/grants.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -50,9 +51,8 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
  * amount (never below 0), and say so in chat. The amount box is shared.
  * @param {HTMLElement} element  The Dungeon Info tab
  * @param {string} field         aiFavor | popularity
- * @param {string} key           Language key prefix: Favor | Popularity
  */
-async function grantCrawlerNumber(element, field, key) {
+async function grantCrawlerNumber(element, field) {
   if (!game.user.isGM) return;
   const actor = game.actors.get(element.querySelector('.award-crawler')?.value);
   const amount = Math.trunc(Number(element.querySelector('.favor-amount')?.value));
@@ -64,19 +64,7 @@ async function grantCrawlerNumber(element, field, key) {
     ui.notifications.warn(game.i18n.localize('CARL_RPG.GMTab.NeedAmount'));
     return;
   }
-  const total = Math.max(0, (Number(actor.system[field]) || 0) + amount);
-  await actor.update({ [`system.${field}`]: total });
-  await ChatMessage.create({
-    speaker: ChatMessage.getSpeaker({ actor }),
-    content: `<div class="carl-level-card">${game.i18n.format(
-      `CARL_RPG.GMTab.${key}${amount > 0 ? 'Awarded' : 'Lost'}`,
-      {
-        name: Handlebars.escapeExpression(actor.name),
-        amount: Math.abs(amount),
-        total,
-      }
-    )}</div>`,
-  });
+  await grantNumber(actor, field, amount);
 }
 const { AbstractSidebarTab } = foundry.applications.sidebar;
 
@@ -544,12 +532,12 @@ export class CarlRPGGMTab extends HandlebarsApplicationMixin(
    * never goes below 0) and say so in chat.
    */
   static async _onAwardFavor() {
-    await grantCrawlerNumber(this.element, 'aiFavor', 'Favor');
+    await grantCrawlerNumber(this.element, 'aiFavor');
   }
 
   /** The same for Popularity (the amount box is shared with AI favor). */
   static async _onAwardPopularity() {
-    await grantCrawlerNumber(this.element, 'popularity', 'Popularity');
+    await grantCrawlerNumber(this.element, 'popularity');
   }
 
   /** @this CarlRPGGMTab */

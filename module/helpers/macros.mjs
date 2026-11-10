@@ -3,12 +3,17 @@
  * acts on the crawler whose token is selected, else the user's own crawler. They are
  * called from macros (made from a sheet button or the compendium) as
  * game.carlRpg.macros.rest('short'), .levelUp() and .advance().
+ *
+ * The GM can also give a crawler AI Favor or Popularity (a minus takes some away):
+ * game.carlRpg.macros.giveAiFavor(crawler, 2) and .givePopularity(crawler, -1), where
+ * crawler is the Actor, its id or its name.
  */
 import { CarlRPGDialog } from './dialog.mjs';
 import { rankOf } from './skill-rank.mjs';
 import { confirmRest } from './rests.mjs';
 import { levelUp } from './level-up.mjs';
 import { attemptAdvance } from './advancement.mjs';
+import { grantNumber } from './grants.mjs';
 
 /** The crawler a macro acts on: the selected token's, else the user's own. */
 export function macroCrawler() {
@@ -16,6 +21,27 @@ export function macroCrawler() {
   if (selected) return selected;
   if (game.user.character?.type === 'crawler') return game.user.character;
   return game.actors.find((a) => a.type === 'crawler' && a.isOwner) ?? null;
+}
+
+/** A crawler given to a macro: the Actor itself, its id, or its name (not case-sensitive). */
+function crawlerArg(crawler) {
+  if (crawler && typeof crawler === 'object') return crawler.type === 'crawler' ? crawler : null;
+  const key = String(crawler ?? '');
+  const found =
+    game.actors.get(key) ??
+    game.actors.find((a) => a.type === 'crawler' && a.name.toLowerCase() === key.toLowerCase());
+  return found?.type === 'crawler' ? found : null;
+}
+
+/** Give a crawler AI Favor or Popularity from a macro (GM only); returns the new total. */
+async function giveNumber(field, macro, crawler, amount) {
+  const warn = (key, data) => ui.notifications.warn(game.i18n.format(key, data));
+  if (!game.user.isGM) return warn('CARL_RPG.Commands.NotGM', { command: 'game.carlRpg.macros.' + macro });
+  const actor = crawlerArg(crawler);
+  if (!actor) return warn('CARL_RPG.Commands.NoSuchCrawler', { name: String(crawler?.name ?? crawler ?? '') });
+  const total = await grantNumber(actor, field, amount);
+  if (total === null) warn('CARL_RPG.GMTab.NeedAmount');
+  return total ?? undefined;
 }
 
 /** The crawler, or a warning that there isn't one. */
@@ -91,5 +117,11 @@ export function registerMacros() {
       const item = id ? actor.items.get(id) : null;
       if (item) await attemptAdvance(item);
     },
+
+    /** GM only: give a crawler AI Favor (a minus takes some away; never below 0). */
+    giveAiFavor: (crawler, amount) => giveNumber('aiFavor', 'giveAiFavor', crawler, amount),
+
+    /** GM only: give a crawler Popularity (a minus takes some away; never below 0). */
+    givePopularity: (crawler, amount) => giveNumber('popularity', 'givePopularity', crawler, amount),
   };
 }

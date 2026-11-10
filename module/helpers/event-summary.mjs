@@ -166,6 +166,9 @@ export async function summarizeAction(a, otherEvents = {}) {
     case 'aiFavor':
       text = t(`${S}aiFavor.${a.mode === 'spend' ? 'spend' : 'award'}`, { amount });
       break;
+    case 'popularity':
+      text = t(S + 'popularity.' + (a.mode === 'remove' ? 'remove' : 'award'), { amount });
+      break;
     case 'rollTable':
       text = t(`${S}rollTable`, { name: await nameOf(a.uuid) });
       break;

@@ -144,6 +144,11 @@
                 {{selectOptions @root.eventOptions.aiFavorModes selected=action.mode localize=true}}
               </select>
             {{/if}}
+            {{#if action.isPopularity}}
+              <select data-path='{{action.path}}.mode'>
+                {{selectOptions @root.eventOptions.popularityModes selected=action.mode localize=true}}
+              </select>
+            {{/if}}
             {{#if action.isSummon}}
               <select data-path='{{action.path}}.mode'>
                 {{selectOptions @root.eventOptions.summonModes selected=action.mode localize=true}}

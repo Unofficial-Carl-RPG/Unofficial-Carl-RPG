@@ -41,6 +41,7 @@
 ## globals
 - globalThis.carlrpg: {documents:{CarlRPGActor, CarlRPGItem}, applications:{CarlRPGActorSheet, CarlRPGItemSheet}, utils:{rollItemMacro(uuid), refillActions(combat?)}, models}
 - game.carlRpg.macros: rest(kind 'short'|'long'|'full') -> confirmRest; levelUp(); advance() (asks which advanceable skill). All act on the selected token's crawler, else the user's character, else the first owned crawler.
+- game.carlRpg.macros (GM only): giveAiFavor(crawler, amount) and givePopularity(crawler, amount); crawler = Actor, id or name; minus takes away; floor 0; posts the card; returns the new total. Both go through helpers/grants.mjs grantNumber(actor, field, amount), which Dungeon Info and the chat commands use too.
 - CONFIG.CARL_RPG: all constants; CONFIG.CARL_RPG.getFloor()
 - caution: two namespaces with different casing (carlrpg vs carlRpg); see quirks
 
@@ -53,6 +54,7 @@
 - /floor N: GM
 - /days N: GM
 - /aifavor <Crawler> <amount>: GM; minus takes away; floor 0; posts card
+- /popularity <Crawler> <amount>: the same for Popularity
 - /announce <kind> <text>: GM; kinds boss|stairs|floor|general (not died)
 - /group <stat|skill=Name> dc=<n|floor|unopposed> [all|most|atLeast=N]: GM
 - note: Read in the chatMessage hook; nothing posts as the command itself.

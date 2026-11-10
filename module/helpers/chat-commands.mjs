@@ -9,6 +9,7 @@
  *   /floor N                          set the floor (GM only)
  *   /days N                           set the days left (GM only)
  *   /aifavor Crawler amount           give (or take away, with a minus) AI Favor (GM only)
+ *   /popularity Crawler amount        the same for Popularity (GM only)
  *   /announce kind text               a System announcement (GM only); the kinds are
  *                                     those in helpers/system-announcements.mjs, except
  *                                     "died", which needs a crawler
@@ -19,6 +20,7 @@
  */
 import { FLOOR_SETTING, DAYS_SETTING } from './floor.mjs';
 import { restActor, takeRest } from './rests.mjs';
+import { grantNumber } from './grants.mjs';
 import { parseGroupSpec, startGroupCheck } from './group-check.mjs';
 import {
   SYSTEM_KINDS,
@@ -28,7 +30,7 @@ import {
 
 const NS = 'carl-rpg';
 const REST_KINDS = ['short', 'long', 'full'];
-const COMMAND = /^\/(rest|floor|days|aifavor|announce|group)(?:\s+(.*))?$/i;
+const COMMAND = /^\/(rest|floor|days|aifavor|popularity|announce|group)(?:\s+(.*))?$/i;
 
 const t = (key, data) =>
   data ? game.i18n.format(key, data) : game.i18n.localize(key);
@@ -89,35 +91,23 @@ async function days(args) {
 }
 
 /**
- * /aifavor Crawler amount (GM only). The amount is the favor given; a minus takes
- * favor away. The crawler never goes below 0, and chat says so, as the Dungeon Info
- * button does.
+ * /aifavor Crawler amount and /popularity Crawler amount (GM only). The amount is
+ * what is given; a minus takes some away. The crawler never goes below 0, and chat
+ * says so, as the Dungeon Info buttons do.
  */
-async function aiFavor(args) {
-  if (!game.user.isGM) return warn('CARL_RPG.Commands.NotGM', { command: '/aifavor' });
+async function grant(command, field, usageKey, args) {
+  if (!game.user.isGM) return warn('CARL_RPG.Commands.NotGM', { command });
   const words = args.split(/\s+/).filter(Boolean);
   const amount = Math.trunc(Number(words.at(-1)));
   const name = words.slice(0, -1).join(' ');
-  if (!name || !Number.isFinite(amount) || amount === 0) {
-    return warn('CARL_RPG.Commands.AiFavorUsage');
-  }
+  if (!name || !Number.isFinite(amount) || amount === 0) return warn(usageKey);
   const actor = crawlerNamed(name);
   if (!actor) return warn('CARL_RPG.Commands.NoSuchCrawler', { name });
-
-  const total = Math.max(0, actor.system.aiFavor + amount);
-  await actor.update({ 'system.aiFavor': total });
-  await ChatMessage.create({
-    speaker: ChatMessage.getSpeaker({ actor }),
-    content: `<div class="carl-level-card">${t(
-      amount > 0 ? 'CARL_RPG.GMTab.FavorAwarded' : 'CARL_RPG.GMTab.FavorLost',
-      {
-        name: Handlebars.escapeExpression(actor.name),
-        amount: Math.abs(amount),
-        total,
-      }
-    )}</div>`,
-  });
+  await grantNumber(actor, field, amount);
 }
+
+const aiFavor = (args) => grant('/aifavor', 'aiFavor', 'CARL_RPG.Commands.AiFavorUsage', args);
+const popularity = (args) => grant('/popularity', 'popularity', 'CARL_RPG.Commands.PopularityUsage', args);
 
 /** /announce kind text (GM only) */
 async function announce(args) {
@@ -149,7 +139,7 @@ Hooks.on('chatMessage', (chatLog, text) => {
   const match = COMMAND.exec(text.trim());
   if (!match) return;
   const [, command, args = ''] = match;
-  const run = { rest, floor, days, aifavor: aiFavor, announce, group }[command.toLowerCase()];
+  const run = { rest, floor, days, aifavor: aiFavor, popularity, announce, group }[command.toLowerCase()];
   run(args.trim()).catch((err) => {
     console.error(`${NS} | chat command failed: ${text}`, err);
   });

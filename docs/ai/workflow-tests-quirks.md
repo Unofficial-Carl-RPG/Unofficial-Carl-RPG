@@ -46,11 +46,11 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 589).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 596).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 589 pass)
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 596 pass)
 - stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node. The Actor stub's getRollData returns its system, like Foundry's, so CarlRPGActor.prototype.getRollData can run on a stub actor (a crawler stub needs its data model's getRollData attached for the top-level stats, see health-roll-data.test.mjs)
 
 ## files
@@ -84,7 +84,7 @@
 - health-slots.test.mjs: Health Bar slots: the slot count modifier (1..100, clamped not rewritten), slot value rows from the top and bottom, damage slot by slot (even slots equal floor(net / perBox), Tough Guy Tattoo, uneven slots, overkill), Selfie Stick, crawler and mob derived slots, mob damage by CON mod
 - health-roll-data.test.mjs: @health.value/.max/.lost in actor roll data (helpers/health-data.mjs: crawler, pet, mob, read live, never negative), a Bonus damage dice row with a formula and Rage as one (valid row, saved as typed, melee tick, scope, beside other rows, typed, switched off, mob)
 - later-floor.test.mjs: later-floor starts
-- popularity.test.mjs: old Popularity text dropped by Crawler.migrateData (also from the oldest hotlist layout), a popularity number kept
+- popularity.test.mjs: old Popularity text dropped by Crawler.migrateData (also from the oldest hotlist layout), a popularity number kept; grantNumber (award, remove to a floor of 0, chat line, AI favor too, mobs and zero amounts ignored); the Popularity event action
 - minions.test.mjs: Summon action: formulas of Second Chance, Clockwork Triplicate and Rise, Dead Minion! at their ranks, raised health, level limit, footprint, caster limit (replace oldest), copy count as a formula, round ticks and expiry, copies, raise/expire, player relay, combat sides, loot, minions group
 - migration.test.mjs / migration-guards.test.mjs: load-time migration and migrateData guards
 - progression.test.mjs: level up, advancement, origins, upgrades, skill cap

@@ -276,6 +276,7 @@ export async function buildEventRows(events, base) {
             isActions: a.type === 'actions',
             isGold: a.type === 'gold',
             isAiFavor: a.type === 'aiFavor',
+            isPopularity: a.type === 'popularity',
             isMessage: a.type === 'message',
             isRunEvent: a.type === 'runEvent',
             showAmount: [
@@ -288,6 +289,7 @@ export async function buildEventRows(events, base) {
               'actions',
               'gold',
               'aiFavor',
+              'popularity',
               'grantSkill',
               'summon',
             ].includes(a.type),
@@ -339,6 +341,7 @@ export function eventOptions(triggers) {
     actionsModes: cfg.actionsModes,
     goldModes: cfg.goldModes,
     aiFavorModes: cfg.aiFavorModes,
+    popularityModes: cfg.popularityModes,
     summonModes: cfg.summonModes,
     targetGroups: cfg.eventTargetGroups,
     targetKinds: cfg.eventTargetKinds,

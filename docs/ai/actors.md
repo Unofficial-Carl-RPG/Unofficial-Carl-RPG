@@ -22,7 +22,7 @@
   - crawlerKills: int; Crawler Killer skulls
   - bossKills: int; boss stars
   - aiFavor: int
-  - popularity: int>=0, plain number (no rule uses it). Notes tab number box (owner edits it even while the sheet is locked); the GM grants or removes it in Dungeon Info (shares the AI favor amount box). Old Bio text is dropped by migrateData.
+  - popularity: int>=0, plain number (no rule uses it). Notes tab number box (owner edits it even while the sheet is locked); the GM grants or removes it in Dungeon Info (shares the AI favor amount box), with /popularity, game.carlRpg.macros.givePopularity or the Popularity event action (modes award|remove). Old Bio text is dropped by migrateData.
   - gold: int>=0, only currency; add via actor.addGold(), spend via actor.spendGold()
   - junk: int>=0, Misc Junk second currency
   - statPointsSpent: int
