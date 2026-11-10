@@ -81,6 +81,7 @@
 - events.test.mjs: triggers, conditions, formulas over roll data (incl. @roll.margin/bonus/mod/rank, @damage.*, @rankDamage in amounts, a weapon's rolled skill), actions, trust, add-token, approval, target groups (targeted vs burst)
 - event-roll.test.mjs: rollNumbers, marginOf, damageNumbers, damageOfTarget (the numbers a use hands to events)
 - gear-slots.test.mjs: slot room, two-handed gear, what comes off when equipping
+- item-badges.test.mjs: describeBadges builds for gear/skills with count or area targeting and a splash (regression: undefined `eff` stopped weapon skills opening)
 - health-slots.test.mjs: Health Bar slots: the slot count modifier (1..100, clamped not rewritten), slot value rows from the top and bottom, damage slot by slot (even slots equal floor(net / perBox), Tough Guy Tattoo, uneven slots, overkill), Selfie Stick, crawler and mob derived slots, mob damage by CON mod
 - health-roll-data.test.mjs: @health.value/.max/.lost in actor roll data (helpers/health-data.mjs: crawler, pet, mob, read live, never negative), a Bonus damage dice row with a formula and Rage as one (valid row, saved as typed, melee tick, scope, beside other rows, typed, switched off, mob)
 - later-floor.test.mjs: later-floor starts

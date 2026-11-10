@@ -2,6 +2,7 @@ import { costOf, manaCostOf } from '../data/costs.mjs';
 import { hasStat } from './stat-term.mjs';
 import { rangeInfo } from './amounts.mjs';
 import { splashReach } from './area-plan.mjs';
+import { effectiveOf } from './upgrades.mjs';
 
 import { isTwoHanded } from './gear-slots.mjs';
 
@@ -136,7 +137,7 @@ export function describeBadges(item) {
   }
   // The extra reach of a splash (beyond an area, or around each chosen target).
   if (['count', 'area'].includes(targeting?.mode)) {
-    const splash = splashReach(targeting, eff, item.costData ? item.costData() : {});
+    const splash = splashReach(targeting, effectiveOf(item), item.costData ? item.costData() : {});
     if (splash > 0) {
       badges.push(
         `${loc('CARL_RPG.Badges.Splash')} ${game.i18n.format('CARL_RPG.Targeting.RangeFeet', { n: splash })}`
