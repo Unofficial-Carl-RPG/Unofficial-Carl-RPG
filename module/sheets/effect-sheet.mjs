@@ -15,6 +15,7 @@ import {
   splitStats,
 } from '../helpers/build-mods.mjs';
 import { diceRowProblem, swapRowProblem } from '../helpers/build-damage.mjs';
+import { PERCENT_STATS, cleanPercentRow } from '../helpers/percent-mods.mjs';
 import { damageTypeOptions } from '../helpers/damage-types.mjs';
 import { SCOPE_KIND, scopeRowProblem, whenOptionsFor } from '../helpers/roll-mods.mjs';
 import { knownTags } from '../helpers/tags.mjs';
@@ -42,6 +43,8 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
       editImage: this._onEditImage,
       addModifier: this._addModifier,
       removeModifier: this._removeModifier,
+      addPercentMod: this._addPercentMod,
+      removePercentMod: this._removePercentMod,
       addDamageMod: this._addDamageMod,
       removeDamageMod: this._removeDamageMod,
       addBuildMod: this._addBuildMod,
@@ -85,10 +88,23 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
         mod.label,
       ])
     );
-    context.modifiers = effect.changes.map((change, index) => ({
+    // (the stored list: the flat numbers worked out from percents are not part of it)
+    context.modifiers = (effect._source?.changes ?? effect.changes).map((change, index) => ({
       index,
       stat: change.key.split('.').pop(),
       value: change.value,
+    }));
+    // Percent of a stat: worked out once when the effect lands on an actor (the result is
+    // shown on the actor's copy, not to players for a mob).
+    context.percentStatOptions = Object.fromEntries(
+      PERCENT_STATS.map((id) => [id, CONFIG.CARL_RPG.effectModifiers[id].label])
+    );
+    const hideFlat = effect.parent?.type === 'mob' && !game.user.isGM;
+    context.percentMods = effect.percentMods.map((row, index) => ({
+      index,
+      ...row,
+      showFlat: context.isOnActor && row.flat !== null && !hideFlat,
+      flatText: row.flat > 0 ? `+${row.flat}` : String(row.flat),
     }));
     // What it does to damage types: resist, immune, vulnerable.
     const { '': noType, ...typeMenu } = damageTypeOptions();
@@ -290,6 +306,10 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
     )) {
       el.addEventListener('change', () => this.#saveModifiers());
     }
+    // The percent rows are saved as a whole list too.
+    for (const el of this.element.querySelectorAll('.percent-stat, .percent-value')) {
+      el.addEventListener('change', () => this.#savePercentMods());
+    }
     // And the build benefit rows.
     for (const el of this.element.querySelectorAll(
       '.build-mod-row select, .build-mod-row input'
@@ -430,6 +450,37 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
     const damageMods = foundry.utils.deepClone(this.document.getFlag(NS, 'damageMods') ?? []);
     damageMods.splice(index, 1);
     await this.document.update({ [`flags.${NS}.damageMods`]: damageMods });
+  }
+
+  /** Save the percent rows. Each keeps the flat number it was worked out to; a row that
+   * changed is worked out again when the effect is saved (see CarlRPGActiveEffect#_preUpdate). */
+  async #savePercentMods() {
+    const before = this.document.percentMods;
+    const rows = Array.from(this.element.querySelectorAll('.percent-row')).map((row, index) =>
+      cleanPercentRow({
+        stat: row.querySelector('.percent-stat').value,
+        percent: row.querySelector('.percent-value').value,
+        flat: before[index]?.flat ?? null,
+      })
+    );
+    await this.document.update({ [`flags.${NS}.percentMods`]: rows });
+  }
+
+  /** Add a percent row (10% of Strength to start with). */
+  static async _addPercentMod(event, target) {
+    event.preventDefault();
+    const rows = this.document.percentMods;
+    rows.push({ stat: 'str', percent: 10, flat: null });
+    await this.document.update({ [`flags.${NS}.percentMods`]: rows });
+  }
+
+  /** Remove a percent row. */
+  static async _removePercentMod(event, target) {
+    event.preventDefault();
+    const index = Number(target.closest('[data-index]')?.dataset.index);
+    const rows = this.document.percentMods;
+    rows.splice(index, 1);
+    await this.document.update({ [`flags.${NS}.percentMods`]: rows });
   }
 
   /** Add a modifier row (a +1 Strength bonus to start with). */

@@ -161,6 +161,33 @@
     {{/if}}
   </div>
 
+  {{! A percent of a stat, worked out once when the effect lands on an actor }}
+  <div class='effect-modifiers'>
+    <h3 data-tooltip='{{localize "CARL_RPG.Effect.PercentHint"}}'>{{localize 'CARL_RPG.Effect.PercentModifiers'}}</h3>
+    {{#each percentMods as |row|}}
+      <div class='modifier-row percent-row' data-index='{{row.index}}'>
+        <select class='percent-stat'>
+          {{selectOptions @root.percentStatOptions selected=row.stat localize=true}}
+        </select>
+        <input class='percent-value' type='number' value='{{row.percent}}' step='1' min='-100' />
+        <span>%</span>
+        {{#if row.showFlat}}
+          <span class='percent-result' data-tooltip='{{localize "CARL_RPG.Effect.PercentResult"}}'>{{row.flatText}}</span>
+        {{/if}}
+        {{#if @root.editable}}
+          <a class='item-control' data-action='removePercentMod' data-tooltip='{{localize "CARL_RPG.Effect.RemovePercent"}}'>
+            <i class='fas fa-trash'></i>
+          </a>
+        {{/if}}
+      </div>
+    {{/each}}
+    {{#if editable}}
+      <a class='item-control add-modifier' data-action='addPercentMod'>
+        <i class='fas fa-plus'></i> {{localize 'CARL_RPG.Effect.AddPercent'}}
+      </a>
+    {{/if}}
+  </div>
+
   {{! Build benefits that need something picked }}
   <div class='effect-modifiers'>
     <h3>{{localize 'CARL_RPG.Build.Section'}}</h3>

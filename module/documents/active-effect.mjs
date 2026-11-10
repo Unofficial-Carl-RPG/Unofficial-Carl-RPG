@@ -1,6 +1,13 @@
 import { CarlRPGDialog } from '../helpers/dialog.mjs';
 import { effectKey, lockedRankFor } from '../helpers/upgrades.mjs';
 import { groupNameOf, slotMates, usedBuffSlots } from '../helpers/buff-slots.mjs';
+import {
+  clearPercentRows,
+  percentChanges,
+  percentRowsOf,
+  settlePercentRows,
+  totalOf,
+} from '../helpers/percent-mods.mjs';
 
 const NS = 'carl-rpg';
 
@@ -18,6 +25,8 @@ const NS = 'carl-rpg';
  *  permanent     keep this effect on the actor when the item that gave it is removed
  *  equipLinked   only on while the gear that gave it is equipped
  *  sourceItems   ids of the actor's items that gave this effect
+ *  percentMods   [{stat, percent, flat}]: a percent of the actor's stat, worked out once when the
+ *                effect lands on an actor and kept as a flat number (see helpers/percent-mods.mjs)
  *
  * What an effect changes is stored in the normal `changes` list, which the
  * system keeps pointed at `system.bonuses.*` (see CONFIG.CARL_RPG.effectModifiers).
@@ -71,6 +80,11 @@ export class CarlRPGActiveEffect extends ActiveEffect {
 
   get equipLinked() {
     return !!this.getFlag(NS, 'equipLinked');
+  }
+
+  /** The percent modifiers, each with the flat number it was worked out to (or null). */
+  get percentMods() {
+    return percentRowsOf(this.flags?.[NS]);
   }
 
   get sourceItems() {
@@ -144,6 +158,26 @@ export class CarlRPGActiveEffect extends ActiveEffect {
   /*  Applying                                    */
 
   /**
+   * The flat numbers worked out from percents join the changes in memory (they are never
+   * stored there, so the effect sheet's list of modifiers stays as typed).
+   * @override
+   */
+  prepareBaseData() {
+    super.prepareBaseData?.();
+    // (prepared again without a reset: don't add them twice)
+    const own = (this.changes ?? []).filter((change) => !change.carlPercent);
+    const extra =
+      this.parent instanceof Actor
+        ? percentChanges(
+            this.percentMods,
+            CONFIG.CARL_RPG.effectModifiers,
+            CONST.ACTIVE_EFFECT_MODES.ADD
+          ).map((change) => ({ ...change, carlPercent: true }))
+        : [];
+    this.changes = [...own, ...extra];
+  }
+
+  /**
    * Stacks multiply a stackable debuff's numbers.
    * @override
    */
@@ -175,6 +209,16 @@ export class CarlRPGActiveEffect extends ActiveEffect {
       });
     }
 
+    // Percent modifiers are worked out as the effect lands: on an actor from its current
+    // totals, on an item (only a template) not at all.
+    if (this.percentMods.length) {
+      const rows =
+        this.parent instanceof Actor
+          ? settlePercentRows(this.percentMods, { totalOf: (stat) => totalOf(this.parent, stat) })
+          : clearPercentRows(this.percentMods);
+      this.updateSource({ [`flags.${NS}.percentMods`]: rows });
+    }
+
     // An effect that lasts a number of rounds starts counting when it is on.
     if (this.parent instanceof Actor && !this.disabled && this.rounds > 0) {
       this.updateSource({ [`flags.${NS}.roundsLeft`]: this.rounds });
@@ -195,6 +239,19 @@ export class CarlRPGActiveEffect extends ActiveEffect {
     }
     if (foundry.utils.hasProperty(changes, `flags.${NS}.events`)) {
       foundry.utils.setProperty(changes, `flags.${NS}.eventsTrusted`, user.isGM);
+    }
+    // Edited percent modifiers: a row that is new or changed is worked out now from the
+    // actor's total without this effect's own old number; the others keep theirs.
+    const edited = foundry.utils.getProperty(changes, `flags.${NS}.percentMods`);
+    if (Array.isArray(edited)) {
+      const rows = this.actor
+        ? settlePercentRows(edited, {
+            totalOf: (stat) => totalOf(this.actor, stat),
+            prev: this.percentMods,
+            own: (row) => (this.disabled || this.isSuppressed ? 0 : row.flat * (this.stackable ? this.stacks : 1)),
+          })
+        : clearPercentRows(edited);
+      foundry.utils.setProperty(changes, `flags.${NS}.percentMods`, rows);
     }
   }
 

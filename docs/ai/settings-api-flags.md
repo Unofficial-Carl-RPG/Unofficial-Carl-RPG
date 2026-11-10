@@ -98,7 +98,7 @@
 - grantedBy: [item ids] on skills an item added
 - raised: bool; skill rank raised by crawler/grant, protects from removal
 - advanceFloor: floor of last advancement try (skills/spells rank>=5)
-- equipLinked / identifier / tier / sourceItems / stacks / lastsUntil / rounds / roundsLeft / buildMods / damageMods / events / eventsTrusted: on effects (see effects.flags)
+- equipLinked / identifier / tier / sourceItems / stacks / lastsUntil / rounds / roundsLeft / buildMods / damageMods / percentMods / events / eventsTrusted: on effects (see effects.flags)
 - storeSource: key on items bought from a store
 - itemMacro: on hotbar macros made from items
 

@@ -543,6 +543,20 @@ nav.tabs {
       flex: 0 0 70px;
       text-align: center;
     }
+
+    .percent-stat {
+      flex: 1;
+    }
+
+    .percent-value {
+      flex: 0 0 70px;
+      text-align: center;
+    }
+
+    .percent-result {
+      color: var(--dcc-gold);
+      white-space: nowrap;
+    }
   }
 
   .add-modifier {

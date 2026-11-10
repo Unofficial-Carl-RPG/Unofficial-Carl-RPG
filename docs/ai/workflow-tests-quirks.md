@@ -46,11 +46,11 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 558).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 570).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 558 pass)
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 570 pass)
 - stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node. The Actor stub's getRollData returns its system, like Foundry's, so CarlRPGActor.prototype.getRollData can run on a stub actor (a crawler stub needs its data model's getRollData attached for the top-level stats, see health-roll-data.test.mjs)
 
 ## files
@@ -63,6 +63,7 @@
 - area-plan.test.mjs: splash distance by rank (Bad Faith, Earworm, Fear, Shotgun, Heal Others burst), areaSteps (Fireball circle and 80 ft line that keeps the blast), lasting area rounds by rank (Confusing Fog), a Count item's area version (Ice Blast cone, Lightning Bolt line, origin at the caster), singleTarget (Count mode and a count of 1)
 - splash.test.mjs: distance to a circle/rectangle/polygon, the splash band, who is splash after several areas, splash around the chosen targets of a Count item
 - buff-slots.test.mjs: stacking buff groups and slot counting
+- percent-mods.test.mjs: percent modifiers: rounding down, totals read per actor type, settling rows (landing, edits, own old number), clearing on items, flat changes joining an actor effect once, the Cheese Grater / Wand / Hand Grips examples
 - build-mods.test.mjs: build benefits, caps, health stat, Roll Modifier scope row tidying
 - build-damage.test.mjs: Bonus damage dice and Damage stat build rows: saving them, which can be used, scopes (skill, tag, weapon rolling a skill), the melee and Surprise ticks, roll and per-target conditions, typed Ice parts, the stat swap and swapStat, Frost Maiden / Cat Girl / Rat Hooligan examples
 - picks.test.mjs: player picks: filters and pools, granted-skills pick rows, Skill cap / rank bonus on picked skills, build row tidying, Stat splits (clamping, Enhanced value, redo once per floor), resetting
