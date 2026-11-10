@@ -1,4 +1,5 @@
 import { getFloor, getDaysLeft } from './floor.mjs';
+import { hasStat } from './stat-term.mjs';
 import { rankOf } from './skill-rank.mjs';
 import { getPartyName } from './party.mjs';
 import { CarlRPGDialog } from './dialog.mjs';
@@ -248,7 +249,10 @@ function embedNumbers(doc) {
     return rows;
   }
   if (doc.type === 'skill') {
-    rows.push([loc('Stat'), String(doc.system.stat ?? '').toUpperCase()], [loc('Rank'), doc.system.rank ?? 0]);
+    rows.push(
+      [loc('Stat'), hasStat(doc.system.stat) ? String(doc.system.stat).toUpperCase() : game.i18n.localize('CARL_RPG.Stat.None')],
+      [loc('Rank'), doc.system.rank ?? 0]
+    );
   }
   if (doc.type === 'spell') rows.push([loc('Mana'), doc.costLabels?.().mana || 0]);
   if (doc.type === 'gear') rows.push([loc('DR'), doc.system.dr ?? 0]);

@@ -69,7 +69,7 @@
     <div class='resource'>
       <label class='resource-label' for='system.stat'>{{localize 'CARL_RPG.Item.Skill.FIELDS.stat.label'}}</label>
       <select name='system.stat'>
-        {{selectOptions config.abilities selected=system.stat localize=true}}
+        {{selectOptions config.skillStats selected=system.stat localize=true}}
       </select>
     </div>
     {{! A passive skill doesn't use an action when it is used }}

@@ -9,6 +9,12 @@ CARL_RPG.abilities = {
   cha: 'CARL_RPG.Ability.Cha.long',
 };
 
+/** What a skill, spell or mob ability can use as its stat: none, or one of the five stats. */
+CARL_RPG.skillStats = {
+  none: 'CARL_RPG.Stat.None',
+  ...CARL_RPG.abilities,
+};
+
 /** The equipment slots a piece of gear can occupy (from the character sheet). */
 CARL_RPG.gearSlots = {
   head: 'CARL_RPG.Item.Gear.Slots.head',

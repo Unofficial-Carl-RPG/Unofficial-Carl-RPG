@@ -1,4 +1,5 @@
 import { getFloor } from './floor.mjs';
+import { hasStat } from './stat-term.mjs';
 import { rankOf } from './skill-rank.mjs';
 import { levelOf } from './upgrades.mjs';
 import { CarlRPGDialog } from './dialog.mjs';
@@ -50,7 +51,8 @@ export function crawlerSummaryText(actor) {
 
   heading(loc('Skills'));
   for (const skill of items('skill')) {
-    lines.push(`${skill.name} (${String(skill.system.stat).toUpperCase()}) ${loc('Rank')} ${rankOf(skill.system)}`);
+    const stat = hasStat(skill.system.stat) ? ` (${String(skill.system.stat).toUpperCase()})` : '';
+    lines.push(`${skill.name}${stat} ${loc('Rank')} ${rankOf(skill.system)}`);
   }
 
   heading(loc('Spells'));

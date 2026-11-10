@@ -78,7 +78,9 @@ export async function promptRoll({
         <label>${esc(t('CARL_RPG.RollDialog.Stat'))}</label>
         <select name="stat">
           <option value="">${esc(
-            t('CARL_RPG.RollDialog.StatDefault', { stat: t(abilities[stat]) })
+            t('CARL_RPG.RollDialog.StatDefault', {
+              stat: t(CONFIG.CARL_RPG.skillStats[stat] ?? abilities[stat]),
+            })
           )}</option>
           ${Object.entries(abilities)
             .filter(([key]) => key !== stat)
@@ -262,7 +264,12 @@ export async function promptRoll({
  */
 export function buildFormula(formula, { bonus = '', stat = null, mode = 'normal' } = {}) {
   let result = formula;
-  if (stat) result = result.replace(new RegExp(STAT_MOD, 'g'), `@${stat}.mod`);
+  if (stat) {
+    // A roll with no stat of its own (a skill whose stat is None) takes the chosen one after its d20.
+    result = STAT_MOD.test(result)
+      ? result.replace(new RegExp(STAT_MOD, 'g'), () => `@${stat}.mod`)
+      : result.replace(/(\d*d20)/, (d20) => `${d20} + @${stat}.mod`);
+  }
   if (mode === 'advantage' || mode === 'disadvantage') {
     // The first d20 becomes two, keeping one.
     result = result.replace(

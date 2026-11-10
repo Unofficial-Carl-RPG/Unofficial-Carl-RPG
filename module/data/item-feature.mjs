@@ -4,6 +4,7 @@ import { upgradesField } from './upgrade-field.mjs';
 import { computeEffective } from '../helpers/upgrades.mjs';
 import { effectRules } from '../helpers/damage-effects.mjs';
 import { modRules } from '../helpers/roll-mods.mjs';
+import { skillRollFormula, NO_STAT } from '../helpers/stat-term.mjs';
 
 export default class CarlRPGFeature extends CarlRPGItemBase {
   static LOCALIZATION_PREFIXES = [
@@ -41,8 +42,8 @@ export default class CarlRPGFeature extends CarlRPGItemBase {
 
     schema.stat = new fields.StringField({
       trim: true,
-      choices: Object.keys(CONFIG.CARL_RPG.abilities),
-      initial: 'str',
+      choices: Object.keys(CONFIG.CARL_RPG.skillStats),
+      initial: NO_STAT,
       required: true
     });
 
@@ -109,8 +110,6 @@ export default class CarlRPGFeature extends CarlRPGItemBase {
 
     // An upgrade can add a bonus to the roll.
     const bonus = this.effective.rollBonus;
-    this.formula =
-      `1d20 + @${this.stat}.mod + ${this.effectiveRank}` +
-      (bonus ? ` ${bonus > 0 ? '+' : '-'} ${Math.abs(bonus)}` : '');
+    this.formula = skillRollFormula(this.stat, this.effectiveRank, bonus);
   }
 }

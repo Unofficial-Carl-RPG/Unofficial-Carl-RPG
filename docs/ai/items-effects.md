@@ -44,8 +44,8 @@
 
 ## skill
 - model: CarlRPGFeature
-- fields: rank int>=0, advanceable bool (Can Advance), passive bool (uses no action, still rolls), stat (abilities), formula (derived), upgrades[], damageEffect{enabled, skills (comma list of attack skill names or identifiers it works with), cooldownHours int (hours left), cooldownRound bool (used this round)}
-- derived: rankBonus / effectiveRank / rankChange / rankMin (see skillRankBonus in buildBenefits; effectiveRank = rank when nothing applies); formula = '1d20 + @<stat>.mod + <effectiveRank>' plus effective.rollBonus; effective = computeEffective(system); damageRules = effectRules(system) when damageEffect.enabled, else null. On a pet, rank = current floor.
+- fields: rank int>=0, advanceable bool (Can Advance), passive bool (uses no action, still rolls), stat (none|str|int|con|dex|cha; default none = no stat modifier in the roll; helpers/stat-term.mjs NO_STAT/hasStat; choices CONFIG.CARL_RPG.skillStats), formula (derived), upgrades[], damageEffect{enabled, skills (comma list of attack skill names or identifiers it works with), cooldownHours int (hours left), cooldownRound bool (used this round)}
+- derived: rankBonus / effectiveRank / rankChange / rankMin (see skillRankBonus in buildBenefits; effectiveRank = rank when nothing applies); formula = '1d20 + @<stat>.mod + <effectiveRank>' plus effective.rollBonus (skillRollFormula; with stat none the @<stat>.mod term is left out: '1d20 + <effectiveRank>'). A none skill's roll pop-up still offers a stat change, which buildFormula adds after the d20; effective = computeEffective(system); damageRules = effectRules(system) when damageEffect.enabled, else null. On a pet, rank = current floor.
 - damageEffect: a passive skill chosen before rolling to hit; see rules.md damageEffects. Attributes tab: tick Damage Effect, list the attack skills, cooldown state with Reset (owner). Its Upgrades tab then offers the de* changes.
 - rollMod: system.rollMod{enabled, skills} (comma list of skills it changes, or the word self for its own use). A passive skill chosen in the roll pop-up before rolling a listed skill or spell (a rollModScope build benefit can widen the list); derived system.rollModRules. Attributes tab: tick Roll Modifier and list the skills; its Upgrades tab then offers the rm* changes (rmRank, rmDice, rmDR) with an 'Only when' menu. See rules.md rollMods.
 
@@ -67,7 +67,7 @@
 - note: Plain inventory item; same action semantics as gear. Consumable if quantity or uses used.
 
 ## mobAbility
-- fields: rank, stat, formula=1d20+@stat.mod+rank (display only; mobs do not roll), plus base check.number and damage
+- fields: rank, stat (none default, same choices as skills), formula=1d20+@stat.mod+rank (display only; mobs do not roll; no stat term when none), plus base check.number and damage
 - note: In the Mobs Declare phase using it declares it instead (Shift uses now). Numbers hidden from players.
 
 ## lootBox

@@ -1,4 +1,5 @@
 import { costOf, manaCostOf } from '../data/costs.mjs';
+import { hasStat } from './stat-term.mjs';
 import { rangeInfo } from './amounts.mjs';
 import { splashReach } from './area-plan.mjs';
 
@@ -59,7 +60,7 @@ export function describeBadges(item) {
   // Mob abilities: their numbers are for the GM only.
   if (item.type === 'mobAbility') {
     if (!game.user?.isGM) return [];
-    if (sys.stat) badges.push(loc(CONFIG.CARL_RPG.abilities[sys.stat] ?? sys.stat));
+    if (hasStat(sys.stat)) badges.push(loc(CONFIG.CARL_RPG.abilities[sys.stat] ?? sys.stat));
     const target = sys.check?.target;
     if (target && CONFIG.CARL_RPG.checkTargets[target]) {
       badges.push(loc(CONFIG.CARL_RPG.checkTargets[target]));
@@ -71,7 +72,7 @@ export function describeBadges(item) {
   if (['skill', 'spell'].includes(item.type)) {
     const eff = sys.effective ?? {};
     const labels = costLabelsOf(item);
-    if (sys.stat) badges.push(loc(CONFIG.CARL_RPG.abilities[sys.stat] ?? sys.stat));
+    if (hasStat(sys.stat)) badges.push(loc(CONFIG.CARL_RPG.abilities[sys.stat] ?? sys.stat));
     let kind = 'CARL_RPG.Badges.Utility';
     if (sys.passive) kind = 'CARL_RPG.Badges.Passive';
     else if ((eff.target ?? sys.check?.target) === 'evade') kind = 'CARL_RPG.Badges.Attack';
@@ -90,7 +91,7 @@ export function describeBadges(item) {
   if (['gear', 'item'].includes(item.type) && sys.action?.type && sys.action.type !== 'none') {
     let stat = sys.action.type === 'stat' ? sys.action.stat : '';
     if (sys.action.type === 'skill') stat = rollingSkillOf(item)?.system?.stat ?? '';
-    if (stat) badges.push(loc(CONFIG.CARL_RPG.abilities[stat] ?? stat));
+    if (hasStat(stat)) badges.push(loc(CONFIG.CARL_RPG.abilities[stat] ?? stat));
     const target = sys.check?.target;
     if (target && CONFIG.CARL_RPG.checkTargets[target]) {
       badges.push(loc(CONFIG.CARL_RPG.checkTargets[target]));

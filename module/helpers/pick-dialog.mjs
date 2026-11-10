@@ -20,6 +20,8 @@ import {
   withSplit,
 } from './picks.mjs';
 
+import { hasStat } from './stat-term.mjs';
+
 const NS = 'carl-rpg';
 const t = (key, data) =>
   data ? game.i18n.format(key, data) : game.i18n.localize(key);
@@ -92,7 +94,9 @@ function slotHtml(slot, all, redo) {
   const options = pool
     .map(
       (item) =>
-        `<option value="${esc(valueOf(slot, item))}">${esc(item.name)} (${esc(statShort(item.system.stat ?? ''))})</option>`
+        `<option value="${esc(valueOf(slot, item))}">${esc(item.name)}${
+          hasStat(item.system.stat) ? ` (${esc(statShort(item.system.stat))})` : ''
+        }</option>`
     )
     .join('');
   const selects = Array.from(

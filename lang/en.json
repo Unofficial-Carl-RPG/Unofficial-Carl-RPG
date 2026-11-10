@@ -368,6 +368,9 @@
       "GMPlaceAreaNotice": "{player} asks you to place an area for {name}.",
       "NoTemplatePermission": "You can't place areas here. Ask the GM to place it."
     },
+    "Stat": {
+      "None": "None"
+    },
     "Ability": {
       "Str": { "long": "Strength", "abbr": "str" },
       "Con": { "long": "Constitution", "abbr": "con" },

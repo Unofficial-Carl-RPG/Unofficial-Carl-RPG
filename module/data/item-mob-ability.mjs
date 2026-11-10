@@ -1,4 +1,5 @@
 import CarlRPGItemBase from './base-item.mjs';
+import { skillRollFormula, NO_STAT } from '../helpers/stat-term.mjs';
 
 /**
  * A Mob Ability: the mob version of a skill or spell. It has a description, a
@@ -23,8 +24,8 @@ export default class CarlRPGMobAbility extends CarlRPGItemBase {
 
     schema.stat = new fields.StringField({
       trim: true,
-      choices: Object.keys(CONFIG.CARL_RPG.abilities),
-      initial: 'str',
+      choices: Object.keys(CONFIG.CARL_RPG.skillStats),
+      initial: NO_STAT,
       required: true,
     });
 
@@ -34,6 +35,6 @@ export default class CarlRPGMobAbility extends CarlRPGItemBase {
   }
 
   prepareDerivedData() {
-    this.formula = `1d20 + @${this.stat}.mod + ${this.rank}`;
+    this.formula = skillRollFormula(this.stat, this.rank);
   }
 }

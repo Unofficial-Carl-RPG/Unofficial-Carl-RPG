@@ -46,6 +46,7 @@ import {
   optionsParts,
   statOfFormula,
 } from '../helpers/roll-dialog.mjs';
+import { skillRollFormula, NO_STAT } from '../helpers/stat-term.mjs';
 import { chooseTargets } from '../helpers/targeting.mjs';
 import { areaSteps, countAreaShapes, SINGLE_TARGET } from '../helpers/area-plan.mjs';
 import { takeSplash } from '../helpers/splash.mjs';
@@ -853,8 +854,7 @@ export class CarlRPGItem extends Item {
     const bonus = skill.system.effective?.rollBonus ?? 0;
     const rank = rankOf(skill.system);
     sys.formula = addModifier(
-      `1d20 + @${skill.system.stat}.mod + ${rank}` +
-        (bonus ? ` ${bonus > 0 ? '+' : '-'} ${Math.abs(bonus)}` : ''),
+      skillRollFormula(skill.system.stat, rank, bonus),
       sys.action?.modifier
     );
     const skillDamage = (skill.system.effective?.damage ?? '').trim();
@@ -993,7 +993,9 @@ export class CarlRPGItem extends Item {
   async #defaultRollStat() {
     return this.usesSkillAction
       ? ((await this.rollingSkill())?.system.stat ?? 'str')
-      : this.system.stat && this.system.formula.includes(`@${this.system.stat}.mod`)
+      : this.system.stat === NO_STAT && ['skill', 'spell'].includes(this.type)
+        ? NO_STAT
+        : this.system.stat && this.system.formula.includes(`@${this.system.stat}.mod`)
         ? this.system.stat
         : statOfFormula(this.system.formula);
   }
