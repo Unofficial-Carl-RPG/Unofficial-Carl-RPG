@@ -6,12 +6,15 @@
  * when it covers the item being used or the skill that item rolls with (a sword rolling Slice
  * Attack is covered by a row for the Slice Attack skill or for a tag either of them carries):
  *
- *  - damageDice   `dice` (a die or number), optional `bonusType` and `bonusAlso` (damage types)
+ *  - damageDice   `dice` (a die, a number or a formula over the owner's roll data, like
+ *                 `1d4 + @str.mod` or Rage's `@health.lost`, the Health Bar slots lost, see
+ *                 health-data.mjs), optional `bonusType` and `bonusAlso` (damage types)
  *                 and `when` (the Roll Modifier conditions, see CONFIG.CARL_RPG.rollMods): extra
  *                 damage on the attacks the row covers, rolled like a Roll Modifier's dice (a
- *                 natural 20 doubles it; a typed row stays apart from the attack's own damage
- *                 and is resisted on its own type). `melee` is the roll pop-up's tick, `within`
- *                 is measured from the tokens, `hit`/`amazing`/`crit`/`miss` read each target
+ *                 natural 20 doubles its dice, not its numbers; a typed row stays apart from the
+ *                 attack's own damage and is resisted on its own type). `melee` is the roll
+ *                 pop-up's tick, `within` is measured from the tokens, `hit`/`amazing`/`crit`/
+ *                 `miss` read each target. The formula is worked out when the damage is rolled
  *  - damageStat   `from` and `to` (stat ids): the damage formula's `@<from>.mod` becomes
  *                 `@<to>.mod`. Offered as a menu in the roll pop-up ("As written" first), so
  *                 Shift, events and macros keep the formula as written
@@ -39,7 +42,11 @@ export function rowCovers(row, item, skill = null) {
   return [item, skill].filter(Boolean).some((doc) => skillCapRowCovers(row, doc));
 }
 
-/** Whether a Bonus damage dice row cannot be used (the sheet warns, the row is skipped). */
+/**
+ * Whether a Bonus damage dice row cannot be used (the sheet warns, the row is skipped). Its
+ * `dice` is any rollable formula; an `@name` only has to be readable here (Roll.validate reads
+ * each as 1), and is looked up in the roll data when the damage is rolled.
+ */
 export function diceRowProblem(row) {
   if (!validFormula(row?.dice)) return true;
   if (rowTypesProblem(row)) return true;

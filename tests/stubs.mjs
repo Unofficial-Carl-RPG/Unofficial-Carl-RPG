@@ -116,6 +116,10 @@ export const world = {
 class Actor {
   async _preUpdate() {}
   _onUpdate() {}
+  // (Foundry: an actor's roll data is its system data, unless a system adds to it.)
+  getRollData() {
+    return this.system;
+  }
 }
 class Item {
   async _preUpdate() {}

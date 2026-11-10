@@ -4,6 +4,7 @@ import { runActorEvents } from '../helpers/events.mjs';
 import { defeatMob } from '../helpers/defeat.mjs';
 import { canDie, cancelDying, hurtWhileDying, startDying } from '../helpers/dying.mjs';
 import { clearTempDR, tempDRTotal } from '../helpers/roll-mods.mjs';
+import { healthRollData } from '../helpers/health-data.mjs';
 
 export class CarlRPGActor extends Actor {
   /**
@@ -93,9 +94,15 @@ export class CarlRPGActor extends Actor {
     const flags = actorData.flags.carlrpg || {};
   }
 
-  /** The actor's roll data plus its data model's. @override */
+  /**
+   * The actor's roll data plus its data model's, with the Health Bar's @health.value, .max and
+   * .lost (the slots gone; see helpers/health-data.mjs).
+   * @override
+   */
   getRollData() {
-    return { ...super.getRollData(), ...(this.system.getRollData?.() ?? null) };
+    const data = { ...super.getRollData(), ...(this.system.getRollData?.() ?? null) };
+    data.health = healthRollData(data.health ?? this.system.health);
+    return data;
   }
 
   /**

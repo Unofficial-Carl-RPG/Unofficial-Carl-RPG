@@ -46,12 +46,12 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 526).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 541).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 526 pass)
-- stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 541 pass)
+- stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node. The Actor stub's getRollData returns its system, like Foundry's, so CarlRPGActor.prototype.getRollData can run on a stub actor (a crawler stub needs its data model's getRollData attached for the top-level stats, see health-roll-data.test.mjs)
 
 ## files
 - action.test.mjs: item Action formulas
@@ -80,6 +80,7 @@
 - events.test.mjs: triggers, conditions, formulas over roll data (incl. @roll.margin/bonus/mod/rank, @damage.*, @rankDamage in amounts, a weapon's rolled skill), actions, trust, add-token, approval, target groups (targeted vs burst)
 - event-roll.test.mjs: rollNumbers, marginOf, damageNumbers, damageOfTarget (the numbers a use hands to events)
 - gear-slots.test.mjs: slot room, two-handed gear, what comes off when equipping
+- health-roll-data.test.mjs: @health.value/.max/.lost in actor roll data (helpers/health-data.mjs: crawler, pet, mob, read live, never negative), a Bonus damage dice row with a formula and Rage as one (valid row, saved as typed, melee tick, scope, beside other rows, typed, switched off, mob)
 - later-floor.test.mjs: later-floor starts
 - minions.test.mjs: Summon action: formulas of Second Chance, Clockwork Triplicate and Rise, Dead Minion! at their ranks, raised health, level limit, footprint, caster limit (replace oldest), copy count as a formula, round ticks and expiry, copies, raise/expire, player relay, combat sides, loot, minions group
 - migration.test.mjs / migration-guards.test.mjs: load-time migration and migrateData guards

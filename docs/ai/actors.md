@@ -40,7 +40,7 @@
   - health: max 10 always; perBox = mod of healthStat build row (default con); capacity = perBox*10
   - points: {earned = max(0,level-1)*3, spent, available, canSpend = floor>=3}
   - hotlist.size: min(max(floor(size+bonuses.hotlist),0),50)
-  - getRollData: ability objects at top level (@str.mod, @str.enhanced), @lvl
+  - getRollData: ability objects at top level (@str.mod, @str.enhanced), @lvl, and for every actor type (CarlRPGActor#getRollData, helpers/health-data.mjs) @health.value, @health.max, @health.lost (slots lost = max - value, never below 0; mob: health points) next to the health object's own fields (perBox, capacity); worked out on every call, so live
 - sheet:
   - tabs:
     - abilities (left sidebar, always)

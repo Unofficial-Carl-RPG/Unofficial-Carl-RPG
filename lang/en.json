@@ -156,7 +156,7 @@
       "DropSkill": "Drop a skill or spell",
       "DropWrong": "Drop a skill or spell.",
       "NoIdentifier": "That skill or spell has no Identifier.",
-      "DiceHint": "Dice or number added to the damage",
+      "DiceHint": "Dice, number or formula added to the damage (@health.lost = Health Bar slots lost)",
       "SwapFrom": "The stat modifier to replace",
       "SwapTo": "The stat modifier to use instead"
     },
