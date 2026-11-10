@@ -1,5 +1,5 @@
 
-import { world, makeItem, makeActor } from './stubs.mjs';
+import { world, makeItem, makeActor, makeEffect } from './stubs.mjs';
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -16,7 +16,11 @@ import {
   modAccepts,
   modRules,
   needsSurprise,
+  listedSkills,
   resolveMods,
+  scopeCovers,
+  scopeRowProblem,
+  scopeRowsOf,
   selfModOf,
   tempDRTotal,
   whenMet,
@@ -270,4 +274,141 @@ test('the Surprise tick is offered by any modifier row that needs it', () => {
   assert.equal(both.rank.length, 1);
   assert.equal(both.dr.length, 1);
   assert.equal(both.dice.length, 1);
+});
+
+/* -------------------------------------------- */
+/*  Roll Modifier scope (a build benefit)       */
+/* -------------------------------------------- */
+
+/** The Blizzardmancer's row: Aiming also covers ranged, single-target Ice spells. */
+const ICE_ROW = {
+  kind: 'rollModScope',
+  target: 'skill',
+  value: 'aiming',
+  name: 'Aiming',
+  entries: '#ice+#ranged',
+  single: true,
+};
+/** Aiming as the compendium has it: its own list is ranged weapons only. */
+const aimingSkill = () => mod('Aiming', 1, AIMING, '#ranged-weapon', { identifier: 'aiming' });
+/** A spell with tags and targeting. */
+const castable = (
+  name,
+  { tags = ['spell', 'attack', 'ranged', 'ice'], targeting = { mode: 'count', count: '1' } } = {}
+) =>
+  makeItem({
+    type: 'spell',
+    name,
+    system: { identifier: name.toLowerCase().replace(/ /g, '-'), tags, targeting },
+  });
+/** A crawler whose effect carries the rows (the Blizzardmancer's by default). */
+const withRows = (items, rows = [ICE_ROW], disabled = false) =>
+  makeActor({ items, effects: [makeEffect({ name: 'Aiming for Ice', flags: { buildMods: rows }, disabled })] });
+/** The names of the modifiers offered for a spell cast. */
+const offered = (actor, spell) => availableMods(actor, spell, spell).map((m) => m.name);
+
+test('a scope row gives Aiming to ranged single-target ice spells and no others', () => {
+  const icicles = castable('Icicles');
+  const iceBlast = castable('Ice Blast');
+  const frostScar = castable('Frost Scar', { tags: ['spell', 'attack', 'melee', 'ice'] });
+  const fireball = castable('Fireball', {
+    tags: ['spell', 'attack', 'ranged', 'fire'],
+    targeting: { mode: 'area', count: '1' },
+  });
+  const volley = castable('Ice Volley', { targeting: { mode: 'count', count: '3' } });
+  const nova = castable('Frost Nova', { targeting: { mode: 'area', count: '1' } });
+  const actor = withRows([aimingSkill(), icicles, iceBlast, frostScar, fireball, volley, nova]);
+  assert.deepEqual(offered(actor, icicles), ['Aiming']);
+  assert.deepEqual(offered(actor, iceBlast), ['Aiming']);
+  for (const other of [frostScar, fireball, volley, nova]) {
+    assert.deepEqual(offered(actor, other), [], other.name);
+  }
+});
+
+test('other crawlers, and a switched off effect, still cannot use Aiming on spells', () => {
+  const none = makeActor({ items: [aimingSkill(), castable('Icicles')] });
+  assert.deepEqual(offered(none, none.items[1]), []);
+  const off = withRows([aimingSkill(), castable('Icicles')], [ICE_ROW], true);
+  assert.deepEqual(offered(off, off.items[1]), []);
+  const on = withRows([aimingSkill(), castable('Icicles')]);
+  assert.deepEqual(offered(on, on.items[1]), ['Aiming']);
+});
+
+test('the modifier\'s own list is not changed: ranged weapons still work, with or without the row', () => {
+  const aiming = aimingSkill();
+  const actor = withRows([aiming]);
+  assert.deepEqual(listedSkills(aiming), ['#ranged-weapon']);
+  const ranged = makeItem({ name: 'Ranged Attacks', system: { tags: ['ranged-weapon'] } });
+  assert.equal(modAccepts(aiming, ranged), true);
+  assert.equal(modAccepts(aiming, ranged, null, { rows: scopeRowsOf(actor, aiming) }), true);
+  assert.equal(modAccepts(aiming, makeItem({ name: 'Unarmed Combat' }), null, { rows: scopeRowsOf(actor, aiming) }), false);
+});
+
+test('scope rows name one modifier by Identifier (any case); unusable rows are skipped', () => {
+  const aiming = aimingSkill();
+  const cesta = mod('Cesta Punta', 10, CESTA, 'x', { identifier: 'cesta-punta' });
+  const rows = [
+    { ...ICE_ROW, value: ' AIMING ' },
+    { ...ICE_ROW, value: 'cesta-punta', entries: '#fire', single: false },
+    { ...ICE_ROW, entries: ' , ' },
+    { ...ICE_ROW, value: '' },
+    { kind: 'checkDie', target: 'evade', value: '1d4' },
+  ];
+  const actor = withRows([aiming, cesta], rows);
+  assert.equal(scopeRowsOf(actor, aiming).length, 1);
+  assert.deepEqual(scopeRowsOf(actor, cesta).map((r) => r.entries), ['#fire']);
+  // a modifier with no Identifier, or no actor, gets nothing
+  assert.deepEqual(scopeRowsOf(actor, mod('Plain', 1, AIMING, 'x')), []);
+  assert.deepEqual(scopeRowsOf(null, aiming), []);
+  assert.equal(scopeRowProblem(ICE_ROW), false);
+  assert.equal(scopeRowProblem({ ...ICE_ROW, entries: ' , ' }), true);
+  assert.equal(scopeRowProblem({ ...ICE_ROW, value: ' ' }), true);
+  assert.equal(scopeRowProblem(null), true);
+});
+
+test('the single-target tick fails an area version of the cast; the modifier\'s own list does not', () => {
+  const icicles = castable('Icicles');
+  assert.equal(scopeCovers(ICE_ROW, icicles, icicles), true);
+  assert.equal(scopeCovers(ICE_ROW, icicles, icicles, { area: true }), false);
+  assert.equal(scopeCovers({ ...ICE_ROW, single: false }, icicles, icicles, { area: true }), true);
+  // the item defaults to the skill (a spell is its own skill)
+  assert.equal(scopeCovers(ICE_ROW, icicles), true);
+  assert.equal(scopeCovers(ICE_ROW, null), false);
+  assert.equal(modAccepts(aimingSkill(), icicles, icicles, { rows: [ICE_ROW] }), true);
+  assert.equal(modAccepts(aimingSkill(), icicles, icicles, { rows: [ICE_ROW], area: true }), false);
+  assert.equal(modAccepts(mod('Frost Focus', 1, AIMING, '#ice'), icicles, icicles, { rows: [ICE_ROW], area: true }), true);
+});
+
+test('the target count of a single-target check can read roll data', () => {
+  const lance = castable('Frost Lance', { targeting: { mode: 'count', count: '@targets' } });
+  assert.equal(scopeCovers(ICE_ROW, lance, lance, { data: { targets: 1 } }), true);
+  assert.equal(scopeCovers(ICE_ROW, lance, lance, { data: { targets: 2 } }), false);
+  const actor = withRows([aimingSkill(), lance]);
+  assert.deepEqual(availableMods(actor, lance, lance, { data: { targets: 1 } }).map((m) => m.name), ['Aiming']);
+  assert.deepEqual(availableMods(actor, lance, lance, { data: { targets: 2 } }), []);
+});
+
+test('scope entries are names, identifiers and #tags; the item\'s tags count; self never matches', () => {
+  const row = { ...ICE_ROW, entries: 'Icicles, #thrown+#fire, self', single: false };
+  assert.equal(scopeCovers(row, castable('Icicles')), true);
+  assert.equal(scopeCovers(row, castable('Fireball', { tags: ['fire'] })), false);
+  assert.equal(scopeCovers(row, makeItem({ name: 'self' })), false);
+  const throwing = makeItem({ name: 'Throwing' });
+  const torch = makeItem({ type: 'gear', name: 'Torch', system: { tags: ['thrown', 'fire'] } });
+  const rock = makeItem({ type: 'gear', name: 'Rock', system: { tags: ['thrown'] } });
+  assert.equal(scopeCovers(row, throwing, torch), true);
+  assert.equal(scopeCovers(row, throwing, rock), false);
+});
+
+test('spells are offered the modifiers whose own list names them (a spell is its own skill)', () => {
+  const focus = mod('Frost Focus', 1, AIMING, '#ice, Frost Scar', { identifier: 'frost-focus' });
+  const icicles = castable('Icicles');
+  const frostScar = castable('Frost Scar', { tags: ['spell', 'melee'] });
+  const fireball = castable('Fireball', { tags: ['spell', 'fire'] });
+  const actor = makeActor({ items: [focus, icicles, frostScar, fireball] });
+  assert.deepEqual(offered(actor, icicles), ['Frost Focus']);
+  assert.deepEqual(offered(actor, frostScar), ['Frost Focus']);
+  assert.deepEqual(offered(actor, fireball), []);
+  // a modifier never offers itself
+  assert.deepEqual(offered(actor, focus), []);
 });

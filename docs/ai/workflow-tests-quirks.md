@@ -46,11 +46,11 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 548).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 558).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 548 pass)
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 558 pass)
 - stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node. The Actor stub's getRollData returns its system, like Foundry's, so CarlRPGActor.prototype.getRollData can run on a stub actor (a crawler stub needs its data model's getRollData attached for the top-level stats, see health-roll-data.test.mjs)
 
 ## files
@@ -60,10 +60,10 @@
 - prerequisites.test.mjs: race/class prerequisites: any skill or spell by stat(s) or tag at a stored rank, species held, existing types unchanged, hidden-until-met (optionVisible), en.json labels for every type
 - skill-list.test.mjs: #tag entries in Roll Modifier and Damage Effect skill lists
 - area-upgrades.test.mjs: area shape/size upgrade changes (replace, extra shapes with their own size and keep, size add/replace, splashAdd, bad values, no upgrades)
-- area-plan.test.mjs: splash distance by rank (Bad Faith, Earworm, Fear, Shotgun, Heal Others burst), areaSteps (Fireball circle and 80 ft line that keeps the blast), lasting area rounds by rank (Confusing Fog), a Count item's area version (Ice Blast cone, Lightning Bolt line, origin at the caster)
+- area-plan.test.mjs: splash distance by rank (Bad Faith, Earworm, Fear, Shotgun, Heal Others burst), areaSteps (Fireball circle and 80 ft line that keeps the blast), lasting area rounds by rank (Confusing Fog), a Count item's area version (Ice Blast cone, Lightning Bolt line, origin at the caster), singleTarget (Count mode and a count of 1)
 - splash.test.mjs: distance to a circle/rectangle/polygon, the splash band, who is splash after several areas, splash around the chosen targets of a Count item
 - buff-slots.test.mjs: stacking buff groups and slot counting
-- build-mods.test.mjs: build benefits, caps, health stat
+- build-mods.test.mjs: build benefits, caps, health stat, Roll Modifier scope row tidying
 - build-damage.test.mjs: Bonus damage dice and Damage stat build rows: saving them, which can be used, scopes (skill, tag, weapon rolling a skill), the melee and Surprise ticks, roll and per-target conditions, typed Ice parts, the stat swap and swapStat, Frost Maiden / Cat Girl / Rat Hooligan examples
 - picks.test.mjs: player picks: filters and pools, granted-skills pick rows, Skill cap / rank bonus on picked skills, build row tidying, Stat splits (clamping, Enhanced value, redo once per floor), resetting
 - class-combo.test.mjs: Race+Class combos
@@ -87,7 +87,7 @@
 - progression.test.mjs: level up, advancement, origins, upgrades, skill cap
 - rank-damage.test.mjs: @rankDamage table, rank bonus and row step, upgrade and effect sources, expansion, build row cleanup
 - skill-rank.test.mjs: Skill rank bonus build rows: scopes (incl. By stat with its Skills/Spells menu, also for Skill cap), the minimum (floor on the total, stored rank 0, Boring Ol' Mage), row tidying, floor 0 and cap, effective rank through the real skill model (roll formula, upgrades, rank damage), unlock locks, @rank, Roll Modifier rank
-- roll-mods.test.mjs: Roll Modifier rules per rank, conditions, skill lists and self, rank bonus, damage dice, held DR
+- roll-mods.test.mjs: Roll Modifier rules per rank, conditions, skill lists and self, rank bonus, damage dice, held DR, Roll Modifier scope build rows (Aiming for ranged single-target ice spells, other crawlers and a switched off effect, Identifier match and unusable rows, the single-target tick and area casts, count formulas, entries by name/#tag/item tag, spells offered the modifiers whose list names them)
 - recap.test.mjs: recap counting
 - species.test.mjs: species
 - summon.test.mjs: token placement cells

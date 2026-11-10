@@ -147,7 +147,8 @@
         "rankDamageStep": "Rank damage: row step",
         "damageDice": "Bonus damage dice",
         "damageStat": "Damage stat",
-        "statSplit": "Stat split"
+        "statSplit": "Stat split",
+        "rollModScope": "Roll Modifier scope"
       },
       "Scopes": {
         "all": "All skills and spells",
@@ -159,6 +160,12 @@
       "DropSkill": "Drop a skill or spell",
       "DropWrong": "Drop a skill or spell.",
       "NoIdentifier": "That skill or spell has no Identifier.",
+      "DropRollMod": "Drop a Roll Modifier",
+      "DropNotRollMod": "That skill is not a Roll Modifier.",
+      "ScopePlaceholder": "Also works with",
+      "ScopeHint": "Names, identifiers or #tags, comma separated. Join tags with + to need all.",
+      "SingleTarget": "Single target",
+      "SingleTargetHint": "Only when the cast has a single target",
       "DiceHint": "Dice, number or formula added to the damage (@health.lost = Health Bar slots lost)",
       "SwapFrom": "The stat modifier to replace",
       "SwapTo": "The stat modifier to use instead"
@@ -1138,6 +1145,7 @@
       "SkillsPlaceholder": "Skills or #tags it applies to (comma separated)",
       "RankNote": "{name} +{value}",
       "DrNote": "{name}: +{value} DR until the next damage",
+      "NotSingle": "{name} only works with a single target.",
       "WhenHint": "Only when",
       "WithinHint": "Feet from the attacker to the target. 5 is melee.",
       "WithinPlaceholder": "ft",

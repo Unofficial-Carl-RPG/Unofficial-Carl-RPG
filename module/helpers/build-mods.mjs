@@ -33,6 +33,10 @@
  *                `amount` a whole number (negative allowed); rows add together
  *  - damageDice, damageStat   extra damage dice on the attacks a scope covers, and swapping
  *                the stat a damage formula adds (same scopes; see build-damage.mjs)
+ *  - rollModScope   adds entries to the list of one Roll Modifier skill: `target` is 'skill', `value`
+ *                its Identifier (`name` for display), `entries` the extra list (names, identifiers
+ *                or #tags, comma separated) and `single` limits it to single-target casts
+ *                (see roll-mods.mjs scopeRowsOf)
  * Only effects that are on count.
  */
 const NS = 'carl-rpg';
@@ -186,6 +190,9 @@ export function kindFields(row) {
   if (row?.kind === 'damageDice') return cleanDiceFields(row);
   if (row?.kind === 'damageStat') return cleanStatFields(row);
   if (row?.kind === 'skillRankBonus') return rankMinOf(row) ? { min: rankMinOf(row) } : {};
+  if (row?.kind === 'rollModScope') {
+    return { entries: String(row.entries ?? '').trim(), single: !!row.single };
+  }
   return {};
 }
 
@@ -216,6 +223,13 @@ export function cleanBuildRow(row, before = null) {
       ...(scope === 'stat' ? cleanScopeStats(row) : {}),
       ...kindFields(row),
     };
+  }
+  if (kind === 'rollModScope') {
+    // The Roll Modifier is dropped on the row (Identifier in value); a row that was another kind
+    // before has none yet.
+    const value = before?.kind === 'rollModScope' ? text : '';
+    const name = value ? String(row.name ?? '').trim() : '';
+    return { kind, target: 'skill', value, ...(name ? { name } : {}), ...kindFields(row) };
   }
   if (kind === 'statSplit') {
     const asked = abilityKeys().filter((key) => (row.stats ?? []).includes(key));

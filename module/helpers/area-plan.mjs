@@ -84,6 +84,18 @@ export function countAreaShapes(cfg, effective) {
 }
 
 /**
+ * Whether an item is single-target: a Count item whose target count works out to 1 (the count is
+ * an amount, so it can read roll data; one that can't be worked out counts as 1, like the target
+ * prompt). Items that place an area, target themselves or nothing are not.
+ * @param {object} cfg   The item's `system.targeting`
+ * @param {object} [data]  Roll data the count reads
+ * @returns {boolean}
+ */
+export function singleTarget(cfg, data = {}) {
+  return cfg?.mode === 'count' && wholeAmount(cfg.count, data, { min: 1, fallback: 1 }) === 1;
+}
+
+/**
  * Whether a template's origin is close enough to the caster's token: no more than `slack` feet
  * (a grid square) beyond the token's edge, measured from the token's centre.
  * @param {number} distance   Feet from the token's centre to the origin

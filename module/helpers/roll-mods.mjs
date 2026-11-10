@@ -26,6 +26,11 @@
  * Surprise attack (a tick in the pop-up) and, for damage dice only, the degree of success
  * against each target (hit, amazing or better, critical hit, miss).
  *
+ * A "Roll Modifier scope" build benefit adds entries to the list of one modifier (named by its
+ * Identifier) for the crawler whose effect is on: more names, identifiers or #tags, optionally
+ * only for a single-target cast. The modifier's own list is never changed (see scopeRowsOf).
+ * Spells can be offered Roll Modifiers like skills; a spell counts as the skill the roll uses.
+ *
  * The DR bonus is kept on the actor (flag tempDR, one entry per modifier) until the next
  * damage it takes uses it up; it also clears when a round or a combat ends.
  */
@@ -33,6 +38,8 @@ import { changeProblem, reachOf, unlockedUpgrades } from './upgrades.mjs';
 import { withinFeet } from './distance.mjs';
 import { rankOf } from './skill-rank.mjs';
 import { listAccepts, listEntries } from './skill-list.mjs';
+import { buildModsOf } from './build-mods.mjs';
+import { singleTarget } from './area-plan.mjs';
 import { rowTypes } from './damage-types.mjs';
 
 const NS = 'carl-rpg';
@@ -170,13 +177,61 @@ export function listedSkills(mod) {
 /** Whether a modifier lists itself: it applies whenever it is used. */
 export const appliesToSelf = (mod) => listedSkills(mod).includes(CONFIG.CARL_RPG.rollMods.self);
 
+/** The build benefit kind that widens a modifier's list (Roll Modifier scope). */
+export const SCOPE_KIND = 'rollModScope';
+
+/** The entries a Roll Modifier scope row adds (lower case, see skill-list.mjs). */
+export const scopeEntries = (row) => listEntries(row?.entries);
+
+/** Whether a Roll Modifier scope row cannot be used: it names no modifier or adds nothing. */
+export const scopeRowProblem = (row) =>
+  !String(row?.value ?? '').trim() || scopeEntries(row).length === 0;
+
 /**
- * Whether a modifier lists this skill: by name or identifier, or by a #tag the skill or the
- * item being used carries. `self` never matches another skill.
+ * The Roll Modifier scope rows of an actor that widen one modifier: rows of effects that are on
+ * (see build-mods.mjs) naming the modifier's Identifier. Unusable rows are left out.
+ * @param {Actor|null} actor
+ * @param {Item|null} mod  The Roll Modifier skill
+ * @returns {object[]}
  */
-export function modAccepts(mod, skill, item = null) {
+export function scopeRowsOf(actor, mod) {
+  const id = String(mod?.system?.identifier ?? '').trim().toLowerCase();
+  if (!actor || !id) return [];
+  return buildModsOf(actor).filter(
+    (row) =>
+      row.kind === SCOPE_KIND &&
+      !scopeRowProblem(row) &&
+      String(row.value).trim().toLowerCase() === id
+  );
+}
+
+/**
+ * Whether a scope row covers a roll: its entries list the skill (or a #tag the skill or the item
+ * carries), and, with its single-target tick, the item is single-target and no area version was
+ * chosen for this cast.
+ * @param {object} row  A scope row
+ * @param {Item|null} skill  The skill the roll uses (a spell is its own)
+ * @param {Item|null} [item]  The item being used
+ * @param {{data?: object, area?: boolean}} [options]  `data`: roll data the target count reads;
+ *   `area`: the cast was made as an area (a Count item's added shape)
+ */
+export function scopeCovers(row, skill, item = null, { data = {}, area = false } = {}) {
   if (!skill) return false;
-  return listAccepts(listedSkills(mod), skill, item, { skip: [CONFIG.CARL_RPG.rollMods.self] });
+  const skip = [CONFIG.CARL_RPG.rollMods.self];
+  if (!listAccepts(scopeEntries(row), skill, item, { skip })) return false;
+  if (!row.single) return true;
+  return !area && singleTarget((item ?? skill)?.system?.targeting, data);
+}
+
+/**
+ * Whether a modifier covers this skill: its own list has it, by name or identifier or by a #tag
+ * the skill or the item being used carries (`self` never matches another skill), or a Roll
+ * Modifier scope row (`rows`, from scopeRowsOf) adds it.
+ */
+export function modAccepts(mod, skill, item = null, { rows = [], data = {}, area = false } = {}) {
+  if (!skill) return false;
+  if (listAccepts(listedSkills(mod), skill, item, { skip: [CONFIG.CARL_RPG.rollMods.self] })) return true;
+  return rows.some((row) => scopeCovers(row, skill, item, { data, area }));
 }
 
 /**
@@ -185,12 +240,16 @@ export function modAccepts(mod, skill, item = null) {
  * @param {Actor|null} actor
  * @param {Item|null} skill  The skill the roll uses
  * @param {Item|null} [used]  The item being used, when it is not the skill (its tags count)
+ * @param {{data?: object}} [options]  `data`: roll data a scope row's target count reads
  * @returns {Item[]}
  */
-export function availableMods(actor, skill, used = null) {
+export function availableMods(actor, skill, used = null, { data = {} } = {}) {
   if (!actor || !skill) return [];
   return actor.items.filter(
-    (item) => isRollMod(item) && item.id !== skill.id && modAccepts(item, skill, used)
+    (item) =>
+      isRollMod(item) &&
+      item.id !== skill.id &&
+      modAccepts(item, skill, used, { rows: scopeRowsOf(actor, item), data })
   );
 }
 

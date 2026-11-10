@@ -737,6 +737,7 @@ CARL_RPG.buildKinds = {
   damageDice: 'CARL_RPG.Build.Kinds.damageDice',
   damageStat: 'CARL_RPG.Build.Kinds.damageStat',
   statSplit: 'CARL_RPG.Build.Kinds.statSplit',
+  rollModScope: 'CARL_RPG.Build.Kinds.rollModScope',
 };
 
 /** Which skills and spells a Skill cap build benefit covers (see helpers/skill-cap.mjs). */

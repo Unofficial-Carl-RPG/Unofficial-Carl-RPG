@@ -16,7 +16,7 @@ import {
 } from '../helpers/build-mods.mjs';
 import { diceRowProblem, swapRowProblem } from '../helpers/build-damage.mjs';
 import { damageTypeOptions } from '../helpers/damage-types.mjs';
-import { whenOptionsFor } from '../helpers/roll-mods.mjs';
+import { SCOPE_KIND, scopeRowProblem, whenOptionsFor } from '../helpers/roll-mods.mjs';
 import { knownTags } from '../helpers/tags.mjs';
 
 const { HandlebarsApplicationMixin, DocumentSheetV2 } =
@@ -139,11 +139,13 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
       minValue: rankMinOf(row) || '',
       isDice: row.kind === 'damageDice',
       isSwap: row.kind === 'damageStat',
+      isRollScope: row.kind === SCOPE_KIND,
       isWithin: row.kind === 'damageDice' && row.when === 'within',
       // (a row that cannot be used is skipped; the sheet warns)
       invalid:
         (row.kind === 'damageDice' && diceRowProblem(row)) ||
-        (row.kind === 'damageStat' && swapRowProblem(row)),
+        (row.kind === 'damageStat' && swapRowProblem(row)) ||
+        (row.kind === SCOPE_KIND && scopeRowProblem(row)),
       isSplit: row.kind === 'statSplit',
       // The skills already picked (on a crawler's copy), and the stats a split offers.
       pickedNames: (row.picks ?? []).map((p) => p.name || p.value).join(', '),
@@ -261,7 +263,12 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
     }
     const buildMods = foundry.utils.deepClone(this.document.getFlag(NS, 'buildMods') ?? []);
     const row = buildMods[Number(zone.dataset.buildIndex)];
-    if (!isScopedKind(row?.kind)) return;
+    if (!isScopedKind(row?.kind) && row?.kind !== SCOPE_KIND) return;
+    // A Roll Modifier scope row names a Roll Modifier skill.
+    if (row.kind === SCOPE_KIND && !(item.type === 'skill' && item.system.rollMod?.enabled)) {
+      ui.notifications.warn(game.i18n.localize('CARL_RPG.Build.DropNotRollMod'));
+      return;
+    }
     Object.assign(row, { target: 'skill', value: identifier, name: item.name });
     await this.document.update({ [`flags.${NS}.buildMods`]: buildMods });
   }
@@ -353,6 +360,9 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
               ).map((el) => el.value)
             : undefined,
           repick: row.querySelector('.build-mod-repick')?.value,
+          // Roll Modifier scope: what it adds to the list, and the single-target tick
+          entries: row.querySelector('.build-mod-entries')?.value,
+          single: row.querySelector('.build-mod-single')?.checked,
         },
         before[index]
       )

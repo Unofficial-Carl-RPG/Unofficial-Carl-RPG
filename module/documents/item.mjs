@@ -25,9 +25,11 @@ import {
   drGrantsOf,
   drNotes,
   grantTempDR,
+  modAccepts,
   needsSurprise,
   needsMeleeMod,
   resolveMods,
+  scopeRowsOf,
   selfModOf,
 } from '../helpers/roll-mods.mjs';
 import { describeUpgrades, effectiveOf } from '../helpers/upgrades.mjs';
@@ -1179,8 +1181,9 @@ export class CarlRPGItem extends Item {
     const effects = rollPopup && modSkill ? availableEffects(this.actor, modSkill, this) : [];
     // The Roll Modifiers that can be chosen (see helpers/roll-mods.mjs): the crawler's own,
     // listing the skill the roll uses. A skill that lists itself modifies its own use, pop-up
-    // or not.
-    const mods = rollPopup && modSkill ? availableMods(this.actor, modSkill, this) : [];
+    // or not. A spell is its own skill here (Damage Effects above still skip spells).
+    const modsFor = modSkill ?? (this.type === 'spell' && this.actor?.type !== 'mob' ? this : null);
+    const mods = rollPopup && modsFor ? availableMods(this.actor, modsFor, this, { data: this.costData() }) : [];
     const selfMod = selfModOf(modSkill);
     // Build benefits that add damage dice (a race's) can ask for the Surprise and melee ticks too.
     const diceTicks = rollPopup ? diceNeeds(this.actor, this, modSkill) : { surprise: false, melee: false };
@@ -1281,6 +1284,24 @@ export class CarlRPGItem extends Item {
         melee = !!chosen.melee;
         chosenSwap = swaps.find((swap) => swap.id === chosen.damageStat) ?? null;
       }
+    }
+    // A modifier only a single-target scope row covers does not work on an area version of the
+    // cast (a Count item's added shape, picked in the pop-up).
+    if (
+      chosenMod &&
+      chosenShape &&
+      !modAccepts(chosenMod, modsFor, this, {
+        rows: scopeRowsOf(this.actor, chosenMod),
+        data: this.costData(),
+        area: true,
+      })
+    ) {
+      ui.notifications.warn(
+        game.i18n.format('CARL_RPG.RollMod.NotSingle', {
+          name: Handlebars.escapeExpression(chosenMod.name),
+        })
+      );
+      chosenMod = null;
     }
     // All the ammunition being spent together (what @cost.ammo reads).
     paid.ammo = ammo.reduce((sum, a) => sum + (paid[a.key] ?? 0), 0);

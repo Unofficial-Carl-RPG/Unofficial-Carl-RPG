@@ -7,6 +7,7 @@ import {
   lastsRounds,
   originAtCaster,
   SINGLE_TARGET,
+  singleTarget,
   splashReach,
 } from '../module/helpers/area-plan.mjs';
 import { computeEffective } from '../module/helpers/upgrades.mjs';
@@ -227,4 +228,19 @@ test('count area: the origin has to be within a grid square of the caster token'
   assert.equal(originAtCaster(10, 10), true);
   assert.equal(originAtCaster(10.1, 10), false);
   assert.equal(originAtCaster(12, 5, 10), true);
+});
+
+test('single target: a Count item whose target count works out to 1', () => {
+  assert.equal(singleTarget({ mode: 'count', count: '1' }), true);
+  assert.equal(singleTarget({ mode: 'count', count: '3' }), false);
+  // the count is an amount: it can read roll data
+  assert.equal(singleTarget({ mode: 'count', count: '@rank' }, { rank: 1 }), true);
+  assert.equal(singleTarget({ mode: 'count', count: '1 + @rank' }, { rank: 1 }), false);
+  // a blank or unreadable count is 1, like the target prompt
+  assert.equal(singleTarget({ mode: 'count', count: '' }), true);
+  assert.equal(singleTarget({ mode: 'count', count: 'nonsense' }), true);
+  // other modes, and no targeting, are not single-target
+  assert.equal(singleTarget({ mode: 'area', count: '1' }), false);
+  assert.equal(singleTarget({ mode: 'none', count: '1' }), false);
+  assert.equal(singleTarget(null), false);
 });

@@ -263,6 +263,32 @@
           {{#if mod.invalid}}
             <i class='fas fa-triangle-exclamation upgrade-invalid' data-tooltip='{{localize "CARL_RPG.Upgrades.Invalid"}}'></i>
           {{/if}}
+        {{else if mod.isRollScope}}
+          {{! Roll Modifier scope: the modifier it widens, and what it adds to that modifier's list }}
+          <input type='hidden' class='build-mod-value' value='{{mod.value}}' />
+          <input type='hidden' class='build-mod-name' value='{{mod.name}}' />
+          {{#if mod.value}}
+            <div class='build-drop' data-build-index='{{mod.index}}'>
+              <span class='drop-name'>{{#if mod.name}}{{mod.name}}{{else}}{{mod.value}}{{/if}}</span>
+              {{#if @root.editable}}
+                <a class='item-control' data-action='clearBuildSkill'><i class='fas fa-xmark'></i></a>
+              {{/if}}
+            </div>
+          {{else}}
+            {{#if @root.editable}}
+              <div class='build-drop' data-build-index='{{mod.index}}'>
+                <span class='drop-hint'>{{localize 'CARL_RPG.Build.DropRollMod'}}</span>
+              </div>
+            {{/if}}
+          {{/if}}
+          <input class='build-mod-entries' type='text' value='{{mod.entries}}' placeholder='{{localize "CARL_RPG.Build.ScopePlaceholder"}}' data-tooltip='{{localize "CARL_RPG.Build.ScopeHint"}}' />
+          <label class='build-single' data-tooltip='{{localize "CARL_RPG.Build.SingleTargetHint"}}'>
+            <input type='checkbox' class='build-mod-single' {{checked mod.single}} />
+            {{localize 'CARL_RPG.Build.SingleTarget'}}
+          </label>
+          {{#if mod.invalid}}
+            <i class='fas fa-triangle-exclamation upgrade-invalid' data-tooltip='{{localize "CARL_RPG.Upgrades.Invalid"}}'></i>
+          {{/if}}
         {{else if mod.isSplit}}
           {{! Points the player splits between stats }}
           <input class='build-mod-points' type='number' min='1' step='1' value='{{mod.points}}' data-tooltip='{{localize "CARL_RPG.Picks.PointsHint"}}' />

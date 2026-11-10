@@ -1,7 +1,7 @@
 import { world, makeEffect, makeCrawler, makeItem } from './stubs.mjs';
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { applyBenefits, rollBenefits, buildModsOf, cleanBuildRow } from '../module/helpers/build-mods.mjs';
+import { applyBenefits, rollBenefits, buildModsOf, cleanBuildRow, kindFields } from '../module/helpers/build-mods.mjs';
 import { skillCapOf, SKILL_CAP, SKILL_CAP_BOOSTED } from '../module/helpers/skill-cap.mjs';
 
 beforeEach(() => world.reset());
@@ -138,4 +138,32 @@ test('a build row is tidied when saved: scope kept, what no longer fits cleared'
     cleanBuildRow({ kind: 'checkDie', target: 'str', value: ' 1d6 ' }, { kind: 'checkDie', target: 'str', value: '1d4' }),
     { kind: 'checkDie', target: 'str', value: '1d6' }
   );
+});
+
+test('a Roll Modifier scope row keeps its modifier, list and single-target tick', async () => {
+  const dropped = {
+    kind: 'rollModScope',
+    target: 'skill',
+    value: 'aiming',
+    name: 'Aiming',
+    entries: '#ice+#ranged',
+    single: true,
+  };
+  // saving again trims the list and keeps the rest
+  assert.deepEqual(cleanBuildRow({ ...dropped, entries: ' #ice+#ranged ' }, dropped), dropped);
+  // a row that was another kind has no modifier yet (what that kind held is not carried over)
+  assert.deepEqual(
+    cleanBuildRow({ ...dropped, value: 'x', name: 'X' }, { kind: 'skillCap', target: 'skill', value: 'x' }),
+    { kind: 'rollModScope', target: 'skill', value: '', entries: '#ice+#ranged', single: true }
+  );
+  // a missing tick is false; a blank modifier has no name
+  const { single, ...noTick } = dropped;
+  assert.equal(cleanBuildRow(noTick, dropped).single, false);
+  assert.equal('name' in cleanBuildRow({ ...dropped, value: '' }, dropped), false);
+  assert.deepEqual(kindFields({ kind: 'rollModScope', entries: ' a ', single: 1 }), { entries: 'a', single: true });
+  // other kinds do not pick the list up
+  assert.equal('entries' in cleanBuildRow({ kind: 'skillCap', target: 'all', entries: 'x' }), false);
+  // the effect's rows still list it
+  const crawler = await makeCrawler({ effects: [mods(dropped)] });
+  assert.deepEqual(buildModsOf(crawler).map((r) => r.kind), ['rollModScope']);
 });
