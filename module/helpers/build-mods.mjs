@@ -14,6 +14,10 @@
  *                `target` (Evade or a stat): the defending roll and a stat check
  *  - healthStat  `target` is the stat whose modifier a health box is worth, instead
  *                of Constitution (the last one wins)
+ *  - healthSlotValue  adds `amount` (negative allowed) to the value of one Health Bar slot:
+ *                `target` is `top` or `bottom` (the end it is counted from) and `position` the
+ *                slot's number there (1 = the 100% slot from the top, the lowest slot from the
+ *                bottom); rows add together (see health-slots.mjs)
  *  - statCap     `value` is the most `target` can enhance up to (the lowest wins)
  *  - skillCap    raises the rank cap of skills and spells from 15 to 20 (see skill-cap.mjs);
  *                `target` is the scope: `all`, `skill` (`value` is its Identifier, `name`
@@ -39,6 +43,8 @@
  *                (see roll-mods.mjs scopeRowsOf)
  * Only effects that are on count.
  */
+import { SLOT_KIND, slotPosition } from './health-slots.mjs';
+
 const NS = 'carl-rpg';
 
 const cap = (stat) => stat.charAt(0).toUpperCase() + stat.slice(1);
@@ -231,6 +237,16 @@ export function cleanBuildRow(row, before = null) {
     const name = value ? String(row.name ?? '').trim() : '';
     return { kind, target: 'skill', value, ...(name ? { name } : {}), ...kindFields(row) };
   }
+  if (kind === SLOT_KIND) {
+    // Health Bar slot value: the end it counts from, the slot's position there and what it adds.
+    return {
+      kind,
+      target: row.target in CONFIG.CARL_RPG.slotFrom ? row.target : 'top',
+      value: '',
+      position: slotPosition(row.position),
+      amount: amountOf(row.amount),
+    };
+  }
   if (kind === 'statSplit') {
     const asked = abilityKeys().filter((key) => (row.stats ?? []).includes(key));
     const kept = before?.kind === 'statSplit';
@@ -260,6 +276,11 @@ export function healthStatOf(actor) {
     (row) => row.kind === 'healthStat' && row.target in CONFIG.CARL_RPG.abilities
   );
   return rows.length ? rows.at(-1).target : null;
+}
+
+/** The Health Bar slot value rows of the effects that are on. */
+export function healthSlotRowsOf(actor) {
+  return buildModsOf(actor).filter((row) => row.kind === SLOT_KIND);
 }
 
 /** The most a stat can be enhanced to, or null for no cap. */

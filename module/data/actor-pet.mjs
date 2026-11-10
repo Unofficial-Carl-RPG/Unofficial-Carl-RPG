@@ -1,6 +1,8 @@
 import CarlRPGCrawler from './actor-crawler.mjs';
 import { upgradesField } from './upgrade-field.mjs';
 import { computePetUpgrades } from '../helpers/upgrades.mjs';
+import { healthSlotRowsOf } from '../helpers/build-mods.mjs';
+import { capacityOf, slotCountOf, slotValues } from '../helpers/health-slots.mjs';
 
 /**
  * A pet: a companion that belongs to a crawler (`owner`). It has the five stats,
@@ -70,8 +72,9 @@ export default class CarlRPGPet extends CarlRPGCrawler {
     );
     const levelsGained = Math.max(0, this.attributes.level.value - 1);
     const boxes = Math.min(10, sizeClass + levelsGained);
-    this.health.max = boxes;
-    this.health.value = Math.min(Math.max(this.health.value, 0), boxes);
-    this.health.capacity = this.health.perBox * boxes;
+    this.health.max = slotCountOf(boxes, this.bonuses.healthSlots);
+    this.health.value = Math.min(Math.max(this.health.value, 0), this.health.max);
+    this.health.slots = slotValues(this.health.max, this.health.perBox, healthSlotRowsOf(this.parent));
+    this.health.capacity = capacityOf(this.health.slots);
   }
 }

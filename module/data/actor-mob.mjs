@@ -1,4 +1,6 @@
 import CarlRPGActorBase from './base-actor.mjs';
+import { healthSlotRowsOf } from '../helpers/build-mods.mjs';
+import { capacityOf, slotCountOf, slotValues } from '../helpers/health-slots.mjs';
 
 export default class CarlRPGMob extends CarlRPGActorBase {
   static LOCALIZATION_PREFIXES = [
@@ -132,11 +134,16 @@ export default class CarlRPGMob extends CarlRPGActorBase {
 
     // The health bar has one box per point of max health (1-100); the
     // remaining health can never go above the number of boxes.
-    this.health.max = Math.min(Math.max(Math.floor(this.health.max), 1), 100);
+    // Effects can add or take slots (health.baseMax is the number the GM set, which the sheet's
+    // Boxes field edits) and add to the value of one.
+    this.health.baseMax = Math.min(Math.max(Math.floor(this.health.max), 1), 100);
+    this.health.max = slotCountOf(this.health.baseMax, this.bonuses.healthSlots);
     this.health.value = Math.min(Math.max(this.health.value, 0), this.health.max);
 
     // Each health box is worth the mob's CON modifier in damage.
     this.health.perBox = this.abilities.con?.mod ?? 1;
+    this.health.slots = slotValues(this.health.max, this.health.perBox, healthSlotRowsOf(this.parent));
+    this.health.capacity = capacityOf(this.health.slots);
   }
 
   getRollData() {

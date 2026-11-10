@@ -155,7 +155,8 @@
 - general: no banner
 
 - soundCues: boss, natural, dying, achievement, loot
-- buildKinds: checkDie, healthStat, statCap, skillCap, skillRankBonus, rankDamageBonus, rankDamageStep, damageDice, damageStat, statSplit
+- buildKinds: checkDie, healthStat, healthSlotValue, statCap, skillCap, skillRankBonus, rankDamageBonus, rankDamageStep, damageDice, damageStat, statSplit, rollModScope
+- slotFrom: top, bottom (the end a healthSlotValue row counts from; CONFIG.CARL_RPG.slotFrom)
 - pickKinds: skill, spell (narrows a player pick)
 - repickRules: never, floor (a Stat split can be redone once per floor)
 - effectModifierKeys: str, int, con, dex, cha, dr, evade, move, surprise, mana, hotlist, actions, seeValues, sortValue, step, classCombo, advStr..advCha, skillStr..skillCha

@@ -46,11 +46,11 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 570).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 586).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 570 pass)
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 586 pass)
 - stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node. The Actor stub's getRollData returns its system, like Foundry's, so CarlRPGActor.prototype.getRollData can run on a stub actor (a crawler stub needs its data model's getRollData attached for the top-level stats, see health-roll-data.test.mjs)
 
 ## files
@@ -81,6 +81,7 @@
 - events.test.mjs: triggers, conditions, formulas over roll data (incl. @roll.margin/bonus/mod/rank, @damage.*, @rankDamage in amounts, a weapon's rolled skill), actions, trust, add-token, approval, target groups (targeted vs burst)
 - event-roll.test.mjs: rollNumbers, marginOf, damageNumbers, damageOfTarget (the numbers a use hands to events)
 - gear-slots.test.mjs: slot room, two-handed gear, what comes off when equipping
+- health-slots.test.mjs: Health Bar slots: the slot count modifier (1..100, clamped not rewritten), slot value rows from the top and bottom, damage slot by slot (even slots equal floor(net / perBox), Tough Guy Tattoo, uneven slots, overkill), Selfie Stick, crawler and mob derived slots, mob damage by CON mod
 - health-roll-data.test.mjs: @health.value/.max/.lost in actor roll data (helpers/health-data.mjs: crawler, pet, mob, read live, never negative), a Bonus damage dice row with a formula and Rage as one (valid row, saved as typed, melee tick, scope, beside other rows, typed, switched off, mob)
 - later-floor.test.mjs: later-floor starts
 - minions.test.mjs: Summon action: formulas of Second Chance, Clockwork Triplicate and Rise, Dead Minion! at their ranks, raised health, level limit, footprint, caster limit (replace oldest), copy count as a formula, round ticks and expiry, copies, raise/expire, player relay, combat sides, loot, minions group
@@ -100,7 +101,6 @@
 
 - id=hotbar-item-macro-broken; severity=bug; where=module/carl-rpg.mjs createDocMacro; detail=Macros created by dropping an owned item on the hotbar run game.carlrpg.rollItemMacro(uuid). Nothing sets game.carlrpg (the global is globalThis.carlrpg with rollItemMacro under .utils; game.carlRpg only has .macros). Those macros will throw. Fix: point the command at globalThis.carlrpg.utils.rollItemMacro or expose it on game.carlRpg.
 - id=namespace-casing; severity=smell; detail=globalThis.carlrpg vs game.carlRpg. Pick one.
-- id=mob-health-perBox; severity=verify; where=data/actor-mob.mjs vs documents/actor.mjs; detail=Mob prepareDerivedData says each health box is worth the mob's CON modifier and sets health.perBox, but applyDamage for mobs subtracts (damage - drTotal) from health.value 1:1 with no division. Confirm which is intended.
 - id=never-run-in-foundry; severity=risk; detail=No code path has been executed in Foundry. Expect template/ApplicationV2/hook wiring bugs on first run; the stub tests only cover pure logic.
 - id=manifest-placeholders; severity=open; detail=system.json url, manifest, download, bugs are placeholder text; packs and packFolders are empty arrays.
 - id=stale-docs; severity=docs; detail=README.md Status mentions TODO placeholders in actor-crawler.mjs (none exist). CHANGELOG.md is the boilerplate's (1.2.0, Foundry v10). package.json author/description are boilerplate.

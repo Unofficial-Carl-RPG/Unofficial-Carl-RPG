@@ -316,6 +316,16 @@
           {{#if mod.invalid}}
             <i class='fas fa-triangle-exclamation upgrade-invalid' data-tooltip='{{localize "CARL_RPG.Upgrades.Invalid"}}'></i>
           {{/if}}
+        {{else if mod.isSlotValue}}
+          {{! Health Bar slot value: add to the slot N places from the top or the bottom of the bar }}
+          <select class='build-mod-target' data-tooltip='{{localize "CARL_RPG.Build.SlotFromHint"}}'>
+            {{selectOptions @root.slotFromOptions selected=mod.target localize=true}}
+          </select>
+          <input class='build-mod-position' type='number' min='1' step='1' value='{{mod.position}}' data-tooltip='{{localize "CARL_RPG.Build.SlotPositionHint"}}' />
+          <input class='build-mod-amount' type='number' step='1' value='{{mod.amount}}' data-tooltip='{{localize "CARL_RPG.Build.Amount"}}' />
+          {{#if mod.invalid}}
+            <i class='fas fa-triangle-exclamation upgrade-invalid' data-tooltip='{{localize "CARL_RPG.Upgrades.Invalid"}}'></i>
+          {{/if}}
         {{else if mod.isSplit}}
           {{! Points the player splits between stats }}
           <input class='build-mod-points' type='number' min='1' step='1' value='{{mod.points}}' data-tooltip='{{localize "CARL_RPG.Picks.PointsHint"}}' />

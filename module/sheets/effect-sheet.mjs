@@ -19,6 +19,7 @@ import { PERCENT_STATS, cleanPercentRow } from '../helpers/percent-mods.mjs';
 import { damageTypeOptions } from '../helpers/damage-types.mjs';
 import { SCOPE_KIND, scopeRowProblem, whenOptionsFor } from '../helpers/roll-mods.mjs';
 import { knownTags } from '../helpers/tags.mjs';
+import { SLOT_KIND, slotRowProblem } from '../helpers/health-slots.mjs';
 
 const { HandlebarsApplicationMixin, DocumentSheetV2 } =
   foundry.applications.api;
@@ -135,6 +136,7 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
     context.pickStatOptions = { '': 'CARL_RPG.Picks.AnyStat', ...CONFIG.CARL_RPG.abilities };
     context.pickKindOptions = { '': 'CARL_RPG.Picks.AnyKind', ...CONFIG.CARL_RPG.pickKinds };
     context.repickOptions = CONFIG.CARL_RPG.repickRules;
+    context.slotFromOptions = CONFIG.CARL_RPG.slotFrom;
     context.buildMods = (flags.buildMods ?? []).map((row, index) => ({
       index,
       ...row,
@@ -161,7 +163,9 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
       invalid:
         (row.kind === 'damageDice' && diceRowProblem(row)) ||
         (row.kind === 'damageStat' && swapRowProblem(row)) ||
-        (row.kind === SCOPE_KIND && scopeRowProblem(row)),
+        (row.kind === SCOPE_KIND && scopeRowProblem(row)) ||
+        (row.kind === SLOT_KIND && slotRowProblem(row)),
+      isSlotValue: row.kind === SLOT_KIND,
       isSplit: row.kind === 'statSplit',
       // The skills already picked (on a crawler's copy), and the stats a split offers.
       pickedNames: (row.picks ?? []).map((p) => p.name || p.value).join(', '),
@@ -356,6 +360,8 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
           value: row.querySelector('.build-mod-value')?.value ?? '',
           name: row.querySelector('.build-mod-name')?.value ?? '',
           amount: row.querySelector('.build-mod-amount')?.value,
+          // Health Bar slot value: which slot, counted from the end the menu names
+          position: row.querySelector('.build-mod-position')?.value,
           // Bonus damage dice and Damage stat
           dice: row.querySelector('.build-mod-dice')?.value,
           bonusType: row.querySelector('.build-mod-bonus-type')?.value,

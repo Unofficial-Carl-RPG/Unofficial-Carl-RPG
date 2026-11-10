@@ -37,7 +37,7 @@
   - evade.total: dex mod + bonuses.evade
   - move.total / move.stepTotal: base + bonuses.move / step + bonuses.step
   - mana.max = mana.maxTotal: enhanced INT + bonuses.mana; mana.value clamped
-  - health: max 10 always; perBox = mod of healthStat build row (default con); capacity = perBox*10
+  - health: max = 10 + bonuses.healthSlots (the healthSlots modifier; 1..100 slots); perBox = mod of healthStat build row (default con); slots = what each slot absorbs, lowest first (perBox plus healthSlotValue build rows); capacity = sum of slots. See rules.md healthSlots
   - points: {earned = max(0,level-1)*3, spent, available, canSpend = floor>=3}
   - hotlist.size: min(max(floor(size+bonuses.hotlist),0),50)
   - getRollData: ability objects at top level (@str.mod, @str.enhanced), @lvl, and for every actor type (CarlRPGActor#getRollData, helpers/health-data.mjs) @health.value, @health.max, @health.lost (slots lost = max - value, never below 0; mob: health points) next to the health object's own fields (perBox, capacity); worked out on every call, so live
@@ -92,11 +92,11 @@
   - evadeTotal: 10 + dex mod + floor + bonuses.evade
   - drTotal: dr + floor + bonuses.dr
   - moveTotal: move + bonuses.move
-  - health.max: 1..100, one box per point; health.perBox = con mod
+  - health.baseMax: the number the GM set (1..100; the header Boxes field edits it); health.max = baseMax + bonuses.healthSlots (1..100), one slot per point; health.perBox = con mod; health.slots and health.capacity as for crawlers
   - actions: perCrawler true for elite/boss (combatant.maxActions = number of crawler combatants + bonuses.actions, counting defeated crawlers); else base + bonuses
 - rules:
   - Mobs never roll a d20. A mob check number = item.system.check.number + floor; crawlers roll against it.
-  - Mob health is damaged 1:1 by (damage - drTotal) in applyDamage (no CON division) - see quirks.
+  - Mob health boxes are lost like a crawler's: (damage - drTotal) goes through the slots (boxesLost, each worth con mod plus any slot value row), not 1:1 any more. The GM sees the numbers only.
   - At 0 health: Crawler-kind mobs follow Dying rules, other mobs defeatMob(): skull overlay, removed from combat, flag defeatedIn=combatId (drives loot reminder).
   - Mob sheet tabs: abilities, mobAbilities, loot, effects, biography.
 
@@ -106,7 +106,7 @@
 - rules:
   - 5 stats, level, mana, Evade/DR/Move/size, skills, spells, effects, equipped gear. No inventory/gold/hotlist (only gear, skill, spell may be added).
   - Levels like a crawler (3 points/level) but points spendable at any floor (points.canSpend = true).
-  - Health boxes = min(10, sizeClass(effectiveSize) + level - 1), each worth CON mod.
+  - Health boxes = min(10, sizeClass(effectiveSize) + level - 1) + bonuses.healthSlots (1..100), each worth CON mod (or what a slot value row makes it).
   - A pet's skills use the current floor as rank everywhere; no skill rank cap.
   - Upgrades are keyed by level (default 15, +5), cumulative, computed in prepareDerivedData (never written): stat bonus, size step, evade/dr/move/mana/actions bonus. Grants of skills/spells create real items (helpers/pet-upgrades.mjs syncPetGrants), matched by identifier else name, kept if level lowers. Can carry events (actor triggers only) and unlock effects.
   - Pet events use actor triggers only (eventTriggersActor).

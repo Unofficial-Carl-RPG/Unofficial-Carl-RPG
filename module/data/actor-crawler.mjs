@@ -1,4 +1,5 @@
-import { healthStatOf, statCapOf, statSplitOf } from '../helpers/build-mods.mjs';
+import { healthSlotRowsOf, healthStatOf, statCapOf, statSplitOf } from '../helpers/build-mods.mjs';
+import { capacityOf, slotCountOf, slotValues } from '../helpers/health-slots.mjs';
 import CarlRPGActorBase from './base-actor.mjs';
 
 export default class CarlRPGCrawler extends CarlRPGActorBase {
@@ -211,13 +212,15 @@ export default class CarlRPGCrawler extends CarlRPGActorBase {
 
     // Health is a 10 box bar (10%..100% on the sheet). Each box is worth the
     // crawler's CON modifier in damage, so the bar always has 10 points.
-    this.health.max = 10;
+    // (Effects can add or take Health Bar slots, and add to the value of one; see health-slots.mjs.)
+    this.health.max = slotCountOf(10, this.bonuses.healthSlots);
     this.health.value = Math.min(Math.max(this.health.value, 0), this.health.max);
     // (An effect can make a box worth another stat's modifier.)
     const healthStat = healthStatOf(this.parent) ?? 'con';
     this.health.perBox =
       this.abilities[healthStat]?.mod ?? this.abilities.con?.mod ?? 1;
-    this.health.capacity = this.health.perBox * this.health.max;
+    this.health.slots = slotValues(this.health.max, this.health.perBox, healthSlotRowsOf(this.parent));
+    this.health.capacity = capacityOf(this.health.slots);
   }
 
   getRollData() {

@@ -701,6 +701,8 @@ CARL_RPG.effectModifiers = {
   surprise: { label: 'CARL_RPG.Effect.Mods.surprise', key: 'system.bonuses.surprise' },
   mana: { label: 'CARL_RPG.Effect.Mods.mana', key: 'system.bonuses.mana' },
   hotlist: { label: 'CARL_RPG.Effect.Mods.hotlist', key: 'system.bonuses.hotlist' },
+  // Health Bar slots added (or taken, with a negative number); see helpers/health-slots.mjs.
+  healthSlots: { label: 'CARL_RPG.Effect.Mods.healthSlots', key: 'system.bonuses.healthSlots' },
   actions: { label: 'CARL_RPG.Effect.Mods.actions', key: 'system.bonuses.actions' },
   // Grants (any value above 0): the crawler sees item values, and can sort by them.
   seeValues: { label: 'CARL_RPG.Effect.Mods.seeValues', key: 'system.bonuses.seeValues' },
@@ -729,6 +731,7 @@ for (const stat of ['str', 'int', 'con', 'dex', 'cha']) {
 CARL_RPG.buildKinds = {
   checkDie: 'CARL_RPG.Build.Kinds.checkDie',
   healthStat: 'CARL_RPG.Build.Kinds.healthStat',
+  healthSlotValue: 'CARL_RPG.Build.Kinds.healthSlotValue',
   statCap: 'CARL_RPG.Build.Kinds.statCap',
   skillCap: 'CARL_RPG.Build.Kinds.skillCap',
   skillRankBonus: 'CARL_RPG.Build.Kinds.skillRankBonus',
@@ -738,6 +741,12 @@ CARL_RPG.buildKinds = {
   damageStat: 'CARL_RPG.Build.Kinds.damageStat',
   statSplit: 'CARL_RPG.Build.Kinds.statSplit',
   rollModScope: 'CARL_RPG.Build.Kinds.rollModScope',
+};
+
+/** Which end of the Health Bar a Health Bar slot value row counts from (helpers/health-slots.mjs). */
+CARL_RPG.slotFrom = {
+  top: 'CARL_RPG.Build.SlotFrom.top',
+  bottom: 'CARL_RPG.Build.SlotFrom.bottom',
 };
 
 /** Which skills and spells a Skill cap build benefit covers (see helpers/skill-cap.mjs). */

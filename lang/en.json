@@ -134,12 +134,19 @@
       "Remove": "Remove",
       "Value": "Die or number",
       "Amount": "Whole number, can be negative",
+      "SlotFrom": {
+        "top": "From the top",
+        "bottom": "From the bottom"
+      },
+      "SlotFromHint": "Count slots from the top (100%) or the bottom of the bar",
+      "SlotPositionHint": "Slot number: 1 is the 100% slot from the top, the lowest slot from the bottom",
       "Min": "Min",
       "MinHint": "A penalty stops at this rank (rank 0 stays 0)",
       "Cancelled": "Advantage and disadvantage cancel",
       "Kinds": {
         "checkDie": "Check die",
         "healthStat": "Health stat",
+        "healthSlotValue": "Health Bar slot value",
         "statCap": "Stat cap",
         "skillCap": "Skill cap 20",
         "skillRankBonus": "Skill rank bonus",
@@ -863,6 +870,7 @@
         "surprise": "Surprise (mobs)",
         "mana": "Max Mana (crawlers)",
         "hotlist": "Hotlist slots (crawlers)",
+        "healthSlots": "Health Bar slots",
         "actions": "Actions per round",
         "seeValues": "Can see item values",
         "sortValue": "Can sort by value",

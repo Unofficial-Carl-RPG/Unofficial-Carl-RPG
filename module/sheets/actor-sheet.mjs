@@ -605,12 +605,12 @@ export class CarlRPGActorSheet extends ActorSheetBase {
     // the percentage of health it represents underneath, and carries its slice
     // of the red-to-green gradient spread across the whole bar.
     if (['crawler', 'mob', 'pet'].includes(this.actor.type)) {
-      const { value: remaining, max, perBox } = this.actor.system.health;
+      const { value: remaining, max, perBox, slots } = this.actor.system.health;
       const total = Math.max(1, Math.floor(max));
       context.healthColumns = Math.min(total, 20);
       context.healthBoxes = Array.from({ length: total }, (_, i) => ({
         value: i + 1,
-        label: `${perBox}`,
+        label: `${slots?.[i] ?? perBox}`,
         percent: `${Math.round(((i + 1) / total) * 100)}%`,
         filled: i + 1 <= remaining,
         bgSize: total * 100,

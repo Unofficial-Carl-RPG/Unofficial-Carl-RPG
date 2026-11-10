@@ -5,6 +5,7 @@ import { defeatMob } from '../helpers/defeat.mjs';
 import { canDie, cancelDying, hurtWhileDying, startDying } from '../helpers/dying.mjs';
 import { clearTempDR, tempDRTotal } from '../helpers/roll-mods.mjs';
 import { healthRollData } from '../helpers/health-data.mjs';
+import { boxesLost } from '../helpers/health-slots.mjs';
 
 export class CarlRPGActor extends Actor {
   /**
@@ -140,10 +141,11 @@ export class CarlRPGActor extends Actor {
     // (Crawlers and pets have the 10 box health bar; mobs have set health.)
     if (this.type === 'mob') {
       // Mobs: their Damage Resistance (a set value plus the Floor) is taken off,
-      // and what is left comes off their health, a point for each box.
+      // and what is left comes off their health boxes (slot by slot, like a crawler's).
       const dr = ignoreDR ? 0 : (this.system.drTotal ?? 0) + tempDRTotal(this);
       const net = Math.max(amount - dr, 0);
-      const value = Math.max(this.system.health.value - net, 0);
+      const boxes = boxesLost(net, this.system.health, CONFIG.CARL_RPG.damageRounding);
+      const value = Math.max(this.system.health.value - boxes, 0);
       await this.update({ 'system.health.value': value });
       // A Roll Modifier's DR bonus is used up by this damage.
       await clearTempDR(this);
@@ -156,20 +158,19 @@ export class CarlRPGActor extends Actor {
             name: this.name,
             amount,
             dr,
-            boxes: net,
+            boxes,
             value,
           })
         ),
       });
-      if (net > 0) await hurtWhileDying(this);
-      if (net > 0) runActorEvents(this, 'takesDamage', { amount: net });
-      return { amount, dr, net, boxes: net, value };
+      if (boxes > 0) await hurtWhileDying(this);
+      if (boxes > 0) runActorEvents(this, 'takesDamage', { amount: boxes });
+      return { amount, dr, net, boxes, value };
     }
 
     const dr = ignoreDR ? 0 : this.system.dr.total + tempDRTotal(this);
     const net = Math.max(amount - dr, 0);
-    const roundFn = Math[CONFIG.CARL_RPG.damageRounding] ?? Math.ceil;
-    const boxes = roundFn(net / this.system.health.perBox);
+    const boxes = boxesLost(net, this.system.health, CONFIG.CARL_RPG.damageRounding);
     const value = Math.max(this.system.health.value - boxes, 0);
     await this.update({ 'system.health.value': value });
     // A Roll Modifier's DR bonus is used up by this damage.
