@@ -749,6 +749,8 @@ export class CarlRPGItemSheet extends ItemSheetBase {
           ? `${effective.splashDelta > 0 ? '+' : '-'}${Math.abs(effective.splashDelta)}`
           : '',
         rankChanged: (system.rankBonus ?? 0) !== 0,
+        // (a Skill rank bonus minimum that is holding the rank up)
+        rankMin: system.rankMin ?? 0,
       };
       // A Damage Effect's cooldown, for the Attributes tab (hours left, or used this round).
       if (this.item.type === 'skill' && system.damageEffect?.enabled) {

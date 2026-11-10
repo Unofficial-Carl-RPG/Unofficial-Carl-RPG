@@ -5,10 +5,13 @@ import CarlRPGFeature from '../module/data/item-feature.mjs';
 import {
   applyEffectiveRank,
   effectiveRankOf,
+  rankFloorOf,
   rankOf,
   skillRankBonusOf,
+  skillRankModsOf,
 } from '../module/helpers/skill-rank.mjs';
-import { buildModsOf, cleanBuildRow, hasAmount, isScopedKind } from '../module/helpers/build-mods.mjs';
+import { buildModsOf, cleanBuildRow, hasAmount, isScopedKind, kindFields } from '../module/helpers/build-mods.mjs';
+import { skillCapOf } from '../module/helpers/skill-cap.mjs';
 import { lockedRankFor, levelOf } from '../module/helpers/upgrades.mjs';
 import { rankDamageOf } from '../module/helpers/rank-damage.mjs';
 import { resolveMods } from '../module/helpers/roll-mods.mjs';
@@ -31,11 +34,12 @@ async function owned({
   effects = [],
   type = 'skill',
   actorType = 'crawler',
+  stat = 'str',
 }) {
   const system = Object.create(CarlRPGFeature.prototype);
   Object.assign(system, {
     rank,
-    stat: 'str',
+    stat,
     identifier,
     tags,
     upgrades,
@@ -230,4 +234,156 @@ test('Skill rank bonus rows are scoped like Skill cap and hold an amount', () =>
     value: '',
     amount: -2,
   });
+});
+
+// --- By stat scope and the minimum ---
+
+const statRow = (amount, stats, extra = {}, kind = 'skillRankBonus') =>
+  makeEffect({ flags: { buildMods: [{ kind, target: 'stat', value: '', amount, stats, ...extra }] } });
+
+test('a By stat row covers every skill and spell whose stat is ticked', async () => {
+  const effects = [statRow(-3, ['dex', 'str'])];
+  const str = await owned({ rank: 6, stat: 'str', effects });
+  assert.equal(str.system.effectiveRank, 3);
+  const dexSpell = await owned({ rank: 6, stat: 'dex', type: 'spell', effects });
+  assert.equal(dexSpell.system.effectiveRank, 3);
+  const int = await owned({ rank: 6, stat: 'int', effects });
+  assert.deepEqual([int.system.rankBonus, int.system.effectiveRank], [0, 6]);
+  // No stat ticked: the row covers nothing.
+  const none = await owned({ rank: 6, effects: [statRow(-3, [])] });
+  assert.equal(none.system.effectiveRank, 6);
+  const unset = await owned({
+    rank: 6,
+    effects: [makeEffect({ flags: { buildMods: [{ kind: 'skillRankBonus', target: 'stat', amount: -3 }] } })],
+  });
+  assert.equal(unset.system.effectiveRank, 6);
+  // Without a skill to judge, a By stat row covers nothing.
+  assert.equal(skillRankBonusOf(str.actor, null), 0);
+});
+
+test('a By stat row can be narrowed to skills or to spells', async () => {
+  const skillsOnly = [statRow(-2, ['str'], { skillKind: 'skill' })];
+  assert.equal((await owned({ rank: 5, effects: skillsOnly })).system.effectiveRank, 3);
+  assert.equal((await owned({ rank: 5, type: 'spell', effects: skillsOnly })).system.effectiveRank, 5);
+  const spellsOnly = [statRow(-2, ['str'], { skillKind: 'spell' })];
+  assert.equal((await owned({ rank: 5, effects: spellsOnly })).system.effectiveRank, 5);
+  assert.equal((await owned({ rank: 5, type: 'spell', effects: spellsOnly })).system.effectiveRank, 3);
+});
+
+test('the By stat scope works for the other scoped benefits (Skill cap 20)', async () => {
+  const cap = makeEffect({ flags: { buildMods: [{ kind: 'skillCap', target: 'stat', value: '', stats: ['dex'] }] } });
+  const dex = await owned({ rank: 15, stat: 'dex', effects: [cap, row(2, 'all')] });
+  assert.equal(skillCapOf(dex.actor, dex.item), 20);
+  assert.equal(dex.system.effectiveRank, 17);
+  const str = await owned({ rank: 15, stat: 'str', effects: [cap, row(2, 'all')] });
+  assert.equal(skillCapOf(str.actor, str.item), 15);
+  assert.equal(str.system.effectiveRank, 15);
+});
+
+test('a minimum stops a penalty, but only for a stored rank of 1 or more', () => {
+  assert.equal(effectiveRankOf(6, -3, Infinity, 1), 3); // not reached
+  assert.equal(effectiveRankOf(4, -3, Infinity, 1), 1);
+  assert.equal(effectiveRankOf(2, -3, Infinity, 1), 1);
+  assert.equal(effectiveRankOf(1, -3, Infinity, 1), 1);
+  assert.equal(effectiveRankOf(0, -3, Infinity, 1), 0); // no ranks: stays 0
+  assert.equal(effectiveRankOf(4, -3, Infinity, 2), 2);
+  assert.equal(effectiveRankOf(1, -3, Infinity, 2), 1); // never lifted above the stored rank
+  assert.equal(effectiveRankOf(4, -6, Infinity, 0), 0); // no minimum: as before
+  assert.equal(effectiveRankOf(4, 2, 15, 9), 6); // a bonus ignores the minimum
+  assert.equal(effectiveRankOf(4, 0, 15, 9), 4);
+  assert.equal(rankFloorOf(4, -3, 1), 1);
+  assert.equal(rankFloorOf(1, -3, 2), 1);
+  assert.equal(rankFloorOf(0, -3, 1), 0);
+  assert.equal(rankFloorOf(4, 3, 1), 0);
+  assert.equal(rankFloorOf(4, -3, 0), 0);
+});
+
+test("Boring Ol' Mage: -3 ranks in Dexterity and Strength skills, to a minimum of 1", async () => {
+  const dexRow = statRow(-3, ['dex'], { min: 1, skillKind: 'skill' });
+  const strRow = statRow(-3, ['str'], { min: 1, skillKind: 'skill' });
+  const effects = [dexRow, strRow];
+  const read = ({ system }) => [system.rank, system.effectiveRank, system.rankBonus, system.rankChange, system.rankMin];
+
+  // [stored, effective, the rows' total, the real change, the minimum holding it]
+  assert.deepEqual(read(await owned({ rank: 5, stat: 'dex', effects })), [5, 2, -3, -3, 0]);
+  assert.deepEqual(read(await owned({ rank: 4, stat: 'str', effects })), [4, 1, -3, -3, 0]);
+  assert.deepEqual(read(await owned({ rank: 2, stat: 'dex', effects })), [2, 1, -3, -1, 1]);
+  assert.deepEqual(read(await owned({ rank: 1, stat: 'str', effects })), [1, 1, -3, 0, 1]);
+  assert.deepEqual(read(await owned({ rank: 0, stat: 'dex', effects })), [0, 0, -3, 0, 0]);
+  assert.deepEqual(read(await owned({ rank: 5, stat: 'int', effects })), [5, 5, 0, 0, 0]);
+  // (these rows are skills only)
+  assert.deepEqual(read(await owned({ rank: 5, stat: 'dex', type: 'spell', effects })), [5, 5, 0, 0, 0]);
+
+  // The held rank is the one everything reads; switched off, the stored rank is back.
+  const held = await owned({ rank: 2, stat: 'dex', effects });
+  assert.equal(held.system.formula, '1d20 + @dex.mod + 1');
+  assert.equal(rankOf(held.system), 1);
+  dexRow.disabled = true;
+  held.prepare();
+  assert.deepEqual(read(held), [2, 2, 0, 0, 0]);
+  dexRow.disabled = false;
+});
+
+test('the minimum is a floor on the total of every covering row', async () => {
+  const mage = statRow(-3, ['str'], { min: 1 });
+  // A debuff without a minimum is held by the Mage row's.
+  const both = await owned({ rank: 4, effects: [mage, row(-2, 'all')] });
+  assert.deepEqual(skillRankModsOf(both.actor, both.item), { bonus: -5, min: 1 });
+  assert.deepEqual([both.system.effectiveRank, both.system.rankChange, both.system.rankMin], [1, -3, 1]);
+  // A bonus elsewhere softens the penalty; the minimum is not reached.
+  const softened = await owned({ rank: 4, effects: [mage, row(2, 'all')] });
+  assert.deepEqual([softened.system.effectiveRank, softened.system.rankMin], [3, 0]);
+  // The highest minimum of the covering rows wins; a row that does not cover it is ignored.
+  const two = await owned({
+    rank: 6,
+    effects: [mage, statRow(-4, ['str'], { min: 2 }), statRow(-1, ['dex'], { min: 5 })],
+  });
+  assert.deepEqual([two.system.effectiveRank, two.system.rankMin], [2, 2]);
+  // A total that is not a penalty ignores the minimum (the rank is never lifted to it).
+  const lifted = await owned({ rank: 1, effects: [statRow(-1, ['str'], { min: 3 }), row(2, 'all')] });
+  assert.deepEqual([lifted.system.effectiveRank, lifted.system.rankMin], [2, 0]);
+  // The minimum works on the other scopes too.
+  const all = await owned({ rank: 2, effects: [makeEffect({ flags: { buildMods: [{ kind: 'skillRankBonus', target: 'all', value: '', amount: -5, min: 1 }] } })] });
+  assert.deepEqual([all.system.effectiveRank, all.system.rankMin], [1, 1]);
+});
+
+test('By stat rows and the minimum are tidied for saving', () => {
+  const order = Object.keys(CONFIG.CARL_RPG.abilities);
+  const asked = { kind: 'skillRankBonus', target: 'stat', amount: -3, min: '1', stats: ['dex', 'luck', 'str'], skillKind: 'skill' };
+  const saved = cleanBuildRow(asked, null);
+  assert.deepEqual(saved, {
+    kind: 'skillRankBonus',
+    target: 'stat',
+    value: '',
+    amount: -3,
+    stats: order.filter((key) => ['dex', 'str'].includes(key)),
+    skillKind: 'skill',
+    min: 1,
+  });
+  assert.deepEqual(cleanBuildRow(saved, saved), saved);
+  // Nothing ticked yet, an unknown kind, no minimum.
+  const fresh = cleanBuildRow({ kind: 'skillRankBonus', target: 'stat', skillKind: 'gear', min: '' }, null);
+  assert.deepEqual(fresh, { kind: 'skillRankBonus', target: 'stat', value: '', amount: 1, stats: [], skillKind: '' });
+  assert.equal('min' in cleanBuildRow({ ...asked, min: -2 }, saved), false);
+  assert.equal(cleanBuildRow({ ...asked, min: 2.9 }, saved).min, 2);
+  // Another scope drops the stats; the minimum stays with the Skill rank bonus.
+  assert.deepEqual(cleanBuildRow({ ...saved, target: 'all' }, saved), {
+    kind: 'skillRankBonus',
+    target: 'all',
+    value: '',
+    amount: -3,
+    min: 1,
+  });
+  // Another kind drops the minimum and keeps the By stat scope.
+  assert.deepEqual(cleanBuildRow({ ...saved, kind: 'skillCap' }, saved), {
+    kind: 'skillCap',
+    target: 'stat',
+    value: '',
+    stats: saved.stats,
+    skillKind: 'skill',
+  });
+  assert.deepEqual(kindFields({ kind: 'skillRankBonus', min: 3 }), { min: 3 });
+  assert.deepEqual(kindFields({ kind: 'skillRankBonus' }), {});
+  assert.deepEqual(kindFields({ kind: 'skillCap', min: 3 }), {});
+  assert.ok('stat' in CONFIG.CARL_RPG.skillCapScopes);
 });

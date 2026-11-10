@@ -2,7 +2,7 @@
  * The skill rank cap: the most ranks a skill or spell can reach. A crawler's cap is
  * 15, or 20 for the skills and spells a "Skill cap 20" build benefit covers (an
  * effect's build benefits, see build-mods.mjs). A row covers all skills and spells,
- * one by its Identifier, every one with a tag, or the ones the player picked. Pets have no cap. Advancement and
+ * one by its Identifier, every one with a tag, every one of a stat, or the ones the player picked. Pets have no cap. Advancement and
  * the Grant a skill event both stop at it.
  */
 import { buildModsOf } from './build-mods.mjs';
@@ -27,6 +27,14 @@ export function skillCapRowCovers(row, item) {
       );
     case 'tag':
       return !!item && itemHasTag(item, value);
+    case 'stat': {
+      // Every skill and spell whose own Stat is one of the ticked stats (none ticked: nothing),
+      // narrowed to skills or spells by `skillKind`.
+      const kind = String(row.skillKind ?? '').trim();
+      return (
+        !!item && (!kind || item.type === kind) && (row.stats ?? []).includes(item.system?.stat)
+      );
+    }
     case 'pick': {
       // The skills the player picked, by Identifier (see helpers/picks.mjs).
       const identifier = String(item?.system?.identifier ?? '').trim().toLowerCase();

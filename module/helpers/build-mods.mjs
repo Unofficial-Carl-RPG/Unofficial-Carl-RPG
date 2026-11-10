@@ -17,9 +17,11 @@
  *  - statCap     `value` is the most `target` can enhance up to (the lowest wins)
  *  - skillCap    raises the rank cap of skills and spells from 15 to 20 (see skill-cap.mjs);
  *                `target` is the scope: `all`, `skill` (`value` is its Identifier, `name`
- *                its name for display) or `tag` (`value` is the tag)
+ *                its name for display), `tag` (`value` is the tag) or `stat` (every skill and
+ *                spell using one of `stats`; `skillKind` narrows it to skills or spells)
  *  - skillRankBonus   adds `amount` (a whole number, negative allowed) to the effective rank of
- *                the skills it covers, same scope as Skill cap (see skill-rank.mjs); rows add together
+ *                the skills it covers, same scope as Skill cap (see skill-rank.mjs); rows add together.
+ *                `min` (optional): a penalty does not drop a stored rank of 1 or more below it
  *  - statSplit   `points` for the player to split between the stats in `stats` (all five when
  *                empty); `split` holds the player's answer, `repick` ('floor': can be redone
  *                once per floor) and `usedFloor` the floor it was last redone on (see picks.mjs)
@@ -99,6 +101,15 @@ function cleanPickFields(row, before) {
   };
 }
 
+/** The fields of a scoped row whose scope is By stat, tidied: the stats ticked, and its kind. */
+function cleanScopeStats(row) {
+  const skillKind = String(row.skillKind ?? '').trim();
+  return {
+    stats: abilityKeys().filter((key) => (row.stats ?? []).includes(key)),
+    skillKind: skillKind in CONFIG.CARL_RPG.pickKinds ? skillKind : '',
+  };
+}
+
 /** The stats a Stat split row offers: the ones listed, else all five. */
 export function splitStats(row) {
   const listed = abilityKeys().filter((key) => (row?.stats ?? []).includes(key));
@@ -167,10 +178,14 @@ function cleanStatFields(row) {
   };
 }
 
+/** The minimum rank a Skill rank bonus row holds: a whole number, 0 for none. */
+export const rankMinOf = (row) => Math.max(0, Math.trunc(Number(row?.min)) || 0);
+
 /** The extra fields a scoped row of this kind keeps (none for the other kinds). */
 export function kindFields(row) {
   if (row?.kind === 'damageDice') return cleanDiceFields(row);
   if (row?.kind === 'damageStat') return cleanStatFields(row);
+  if (row?.kind === 'skillRankBonus') return rankMinOf(row) ? { min: rankMinOf(row) } : {};
   return {};
 }
 
@@ -189,7 +204,7 @@ export function cleanBuildRow(row, before = null) {
   if (isScopedKind(kind)) {
     const scope = row.target in CONFIG.CARL_RPG.skillCapScopes ? row.target : 'all';
     const same = isScopedKind(before?.kind) && before.target === scope;
-    const value = scope === 'all' || scope === 'pick' || !same ? '' : text;
+    const value = ['all', 'pick', 'stat'].includes(scope) || !same ? '' : text;
     const name = scope === 'skill' && value ? String(row.name ?? '').trim() : '';
     return {
       kind,
@@ -198,6 +213,7 @@ export function cleanBuildRow(row, before = null) {
       ...(name ? { name } : {}),
       ...(hasAmount(kind) ? { amount: amountOf(row.amount) } : {}),
       ...(scope === 'pick' ? cleanPickFields(row, same ? before : null) : {}),
+      ...(scope === 'stat' ? cleanScopeStats(row) : {}),
       ...kindFields(row),
     };
   }

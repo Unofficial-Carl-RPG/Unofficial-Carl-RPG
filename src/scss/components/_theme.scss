@@ -689,7 +689,8 @@ nav.tabs {
     min-width: 0;
   }
 
-  .build-mod-amount {
+  .build-mod-amount,
+  .build-mod-min {
     flex: 0 0 70px;
     text-align: center;
   }
@@ -1127,7 +1128,8 @@ prose-mirror,
   text-align: left;
 }
 // The stats an "any skill of a stat" prerequisite accepts: small tick boxes in a row.
-.event-row .prereq-stats {
+.event-row .prereq-stats,
+.build-mod-row .prereq-stats {
   display: flex;
   flex-wrap: wrap;
   gap: 2px 8px;

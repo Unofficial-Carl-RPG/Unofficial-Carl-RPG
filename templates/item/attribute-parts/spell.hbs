@@ -41,7 +41,7 @@
     {{/if}}
   </div>
   {{#if effective.rankChanged}}
-    <p class='upgrade-now'><i class='fas fa-arrow-up'></i> {{localize 'CARL_RPG.Upgrades.NowRank' value=effective.rank}}</p>
+    <p class='upgrade-now'><i class='fas fa-arrow-up'></i> {{#if effective.rankMin}}{{localize 'CARL_RPG.Upgrades.NowRankMin' value=effective.rank min=effective.rankMin}}{{else}}{{localize 'CARL_RPG.Upgrades.NowRank' value=effective.rank}}{{/if}}</p>
   {{/if}}
   {{#if effective.rollBonus}}
     <p class='upgrade-now'><i class='fas fa-arrow-up'></i> {{localize 'CARL_RPG.Upgrades.NowRollBonus' value=(numberFormat effective.rollBonus decimals=0 sign=true)}}</p>

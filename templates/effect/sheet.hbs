@@ -212,8 +212,25 @@
             </select>
             {{#if mod.pickedNames}}<div class='build-picked'>{{localize 'CARL_RPG.Picks.Picked'}}: {{mod.pickedNames}}</div>{{/if}}
           {{/if}}
+          {{#if mod.scopeStat}}
+            {{! Every skill and spell that uses one of the ticked stats, or only skills or spells }}
+            <span class='prereq-stats'>
+              {{#each mod.scopeStatBoxes as |b|}}
+                <label class='prereq-stat'>
+                  <input type='checkbox' class='build-mod-scope-stat' value='{{b.key}}' {{checked b.checked}} />
+                  {{localize b.label}}
+                </label>
+              {{/each}}
+            </span>
+            <select class='build-mod-scope-kind'>
+              {{selectOptions @root.pickKindOptions selected=mod.skillKind localize=true}}
+            </select>
+          {{/if}}
           {{#if mod.hasAmount}}
             <input class='build-mod-amount' type='number' step='1' value='{{mod.amount}}' data-tooltip='{{localize "CARL_RPG.Build.Amount"}}' />
+          {{/if}}
+          {{#if mod.hasMin}}
+            <input class='build-mod-min' type='number' min='0' step='1' value='{{mod.minValue}}' placeholder='{{localize "CARL_RPG.Build.Min"}}' data-tooltip='{{localize "CARL_RPG.Build.MinHint"}}' />
           {{/if}}
           {{#if mod.isDice}}
             {{! Bonus damage dice: dice, an optional damage type (and a second), and when it applies }}

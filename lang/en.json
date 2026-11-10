@@ -134,6 +134,8 @@
       "Remove": "Remove",
       "Value": "Die or number",
       "Amount": "Whole number, can be negative",
+      "Min": "Min",
+      "MinHint": "A penalty stops at this rank (rank 0 stays 0)",
       "Cancelled": "Advantage and disadvantage cancel",
       "Kinds": {
         "checkDie": "Check die",
@@ -151,6 +153,7 @@
         "all": "All skills and spells",
         "skill": "One skill or spell",
         "tag": "With a tag",
+        "stat": "By stat",
         "pick": "Player picks"
       },
       "DropSkill": "Drop a skill or spell",
@@ -1452,7 +1455,9 @@
       "NowTarget": "Now rolls against: {value}",
       "NowRollBonus": "Roll bonus from upgrades: {value}",
       "NowRank": "Rank now: {value}",
+      "NowRankMin": "Rank now: {value} (min {min})",
       "RankTip": "Rank {stored}, {bonus} from effects",
+      "RankTipMin": "Rank {stored}, {bonus} from effects (min {min})",
       "NowMana": "Now: {value} Mana",
       "NowShape": "Now: {value}",
       "NowShapes": "Also: {value}",

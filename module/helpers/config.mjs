@@ -744,6 +744,7 @@ CARL_RPG.skillCapScopes = {
   all: 'CARL_RPG.Build.Scopes.all',
   skill: 'CARL_RPG.Build.Scopes.skill',
   tag: 'CARL_RPG.Build.Scopes.tag',
+  stat: 'CARL_RPG.Build.Scopes.stat',
   pick: 'CARL_RPG.Build.Scopes.pick',
 };
 

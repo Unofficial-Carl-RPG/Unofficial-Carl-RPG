@@ -6,7 +6,14 @@ import {
   saveEventField,
 } from '../helpers/event-editor.mjs';
 
-import { cleanBuildRow, hasAmount, isScopedKind, kindFields, splitStats } from '../helpers/build-mods.mjs';
+import {
+  cleanBuildRow,
+  hasAmount,
+  isScopedKind,
+  kindFields,
+  rankMinOf,
+  splitStats,
+} from '../helpers/build-mods.mjs';
 import { diceRowProblem, swapRowProblem } from '../helpers/build-damage.mjs';
 import { damageTypeOptions } from '../helpers/damage-types.mjs';
 import { whenOptionsFor } from '../helpers/roll-mods.mjs';
@@ -120,6 +127,16 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
       scopeSkill: isScopedKind(row.kind) && row.target === 'skill',
       scopeTag: isScopedKind(row.kind) && row.target === 'tag',
       scopePick: isScopedKind(row.kind) && row.target === 'pick',
+      // By stat: one tick box per stat, as on the skill-by-stat prerequisite.
+      scopeStat: isScopedKind(row.kind) && row.target === 'stat',
+      scopeStatBoxes: Object.keys(CONFIG.CARL_RPG.abilities).map((key) => ({
+        key,
+        label: CONFIG.CARL_RPG.abilityAbbreviations[key],
+        checked: (row.stats ?? []).includes(key),
+      })),
+      // A Skill rank bonus can hold a minimum rank (blank: none).
+      hasMin: row.kind === 'skillRankBonus',
+      minValue: rankMinOf(row) || '',
       isDice: row.kind === 'damageDice',
       isSwap: row.kind === 'damageStat',
       isWithin: row.kind === 'damageDice' && row.when === 'within',
@@ -324,11 +341,16 @@ export default class CarlRPGEffectSheet extends HandlebarsApplicationMixin(
           count: row.querySelector('.build-mod-count')?.value,
           tag: row.querySelector('.build-mod-pick-tag')?.value,
           stat: row.querySelector('.build-mod-pick-stat')?.value,
-          skillKind: row.querySelector('.build-mod-pick-kind')?.value,
+          skillKind: row.querySelector('.build-mod-pick-kind, .build-mod-scope-kind')?.value,
+          // Skill rank bonus: the minimum rank a penalty leaves
+          min: row.querySelector('.build-mod-min')?.value,
           // Stat split: the points, the stats offered and whether it can be redone
           points: row.querySelector('.build-mod-points')?.value,
-          stats: row.querySelector('.build-mod-points')
-            ? Array.from(row.querySelectorAll('.build-mod-stat-box:checked')).map((el) => el.value)
+          // (and the stats a By stat scope covers)
+          stats: row.querySelector('.build-mod-points, .build-mod-scope-kind')
+            ? Array.from(
+                row.querySelectorAll('.build-mod-stat-box:checked, .build-mod-scope-stat:checked')
+              ).map((el) => el.value)
             : undefined,
           repick: row.querySelector('.build-mod-repick')?.value,
         },
