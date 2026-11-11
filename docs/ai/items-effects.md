@@ -27,6 +27,7 @@
 - note: item-sheet.mjs _configureRenderOptions: every sheet has header, tabs, description (a Limited viewer gets only those). Then the parts below. Every type EXCEPT background also gets 'events' (events + requirements). Attribute parts are templates/item/attribute-parts/<type>.hbs.
 - skill: attributesFeature, tags, effects, upgrades
 - spell: attributesSpell, effects, upgrades
+- spellScroll: attributesSpell (uses and costs hidden, spell drop box and Rank shown), upgrades (no effects tab)
 - gear: attributesGear, skills, effects
 - item: attributesItem, skills, effects
 - mobAbility: attributesMobAbility, effects
@@ -52,6 +53,17 @@
 ## spell
 - model: extends skill
 - extra: Mana cost is just a costs row; derived manaCost = least Mana cost. Hotlist-only rule can block casting.
+
+## spellScroll
+- model: CarlRPGSpellScroll extends spell (data/item-spell-scroll.mjs); pure rules in helpers/spell-scroll.mjs (isSpellLike, isScroll, scrollBlock, systemFrom, assignment, lookFrom)
+- fields: everything a spell has, plus quantity int>=0 (default 1, in the sheet header; a Quantity stays at 0 once used up), rank int>=0 (default 1; read-only for non-GM), spellSource{uuid, name, identifier, img} (the spell the copy came from; blank = no spell yet)
+- assign: GM only. Drop a spell on the drop box on the Attributes tab (ItemSheetScroll._onDropScrollSpell, drop-target data-accept=spellScroll); the X clears spellSource only (the copied settings stay but the scroll can't be used). The copy is a snapshot, never follows later edits to the spell. Copies (COPIED_FIELDS): description, shortDescription, tags, interrupt, check, damage, damageType, damageTypeAlso, armorPiercing, targeting, events, stat, passive, upgrades. Not copied: identifier, value, effects, rollMod/damageEffect. Costs, requirements and uses are emptied (a scroll is free to read). The scroll's rank is kept.
+- name: while still default (blank, 'New Spell Scroll', or the 'Scroll of <earlier spell>' it was given) the name becomes 'Scroll of <spell>' and the picture the spell's picture (while default or the earlier spell's); anything the GM changed is kept
+- use: rolls like a spell (modsFor, roll pop-up extras, Roll Modifiers by the spell's name/Identifier via skill-list keys, targeting, events, upgrades at its own rank); card kind is 'spell'. No cost of any kind; in combat one action as usual. Needs a spell and Quantity >= 1, else a warning and nothing happens. One comes off Quantity once the cast is committed (after pop-up, targets, ammo/mana step), not on cancel.
+- rank: exact. fixedRank (feature model getter, true here): effectiveRank = rank (no skillRankBonus rows, no cap, no pet floor), and rankDamageOf ignores the owner's rankDamageBonus/Step rows (the scroll's own upgrades still apply).
+- hotlist: with hotlistOnlySpells on, the scroll itself must be on the hotlist (hotlist dropdown lists scrolls under Inventory; quick bar shows rank and Quantity left)
+- lists: shown in the Inventory tab (and its filter chips as spell kind), stackable in stores (STACKABLE), Observers can use it (relay allows Quantity going down)
+- events tab: shown; skill/spell-only triggers offered. Events that point at an effect by UUID still find the effect on the original spell; events that toggle an effect the spell owns by name won't (effects aren't copied)
 
 ## gear
 - fields: weapon bool (counts as a weapon: Weapon filter chip; migrated from old gear that had a skill check or damage), overrideDamage bool (only meaningful for a weapon with a Skill check action; see weapon rules), derived skillDamageOnly = weapon && action skill && !overrideDamage (hides the Damage formula field, badge and journal row), slot (gearSlots), twoHanded bool (Hands slot only; cleared when the slot changes; derived isTwoHanded = slot hands && twoHanded), equipped bool, dr int>=0, quantity int>=1, skills [skill UUIDs it grants], rollSkill (one of skills; '' = first) , action{type none|stat|skill|custom, stat, modifier, formula}, formula derived

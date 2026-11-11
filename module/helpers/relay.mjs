@@ -58,9 +58,9 @@ const ALLOWED = {
       doc.system.uses?.max > 0 &&
       value === doc.system.uses.spent + 1 &&
       value <= doc.system.uses.max,
-    // Spending ammunition: an inventory item's Quantity going down (never up).
+    // Spending ammunition, or reading a Spell Scroll: an inventory item's Quantity going down (never up).
     'system.quantity': (doc, value) =>
-      doc.type === 'item' &&
+      ['item', 'spellScroll'].includes(doc.type) &&
       Number.isInteger(value) &&
       value >= 0 &&
       value < doc.system.quantity,

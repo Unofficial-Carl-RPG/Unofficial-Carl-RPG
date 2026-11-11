@@ -266,6 +266,7 @@ Hooks.once('init', function () {
     gear: models.CarlRPGGear,
     skill: models.CarlRPGFeature,
     spell: models.CarlRPGSpell,
+    spellScroll: models.CarlRPGSpellScroll,
     item: models.CarlRPGGenericItem,
     mobAbility: models.CarlRPGMobAbility,
     lootBox: models.CarlRPGLootBox,

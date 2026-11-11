@@ -33,6 +33,7 @@ import { hasChoices, isPickRow } from '../helpers/picks.mjs';
 import { ItemSheetUpgrades } from './item-sheet-upgrades.mjs';
 import { ItemSheetStoreQuestLoot } from './item-sheet-store-quest-loot.mjs';
 import { ItemSheetDrops } from './item-sheet-drops.mjs';
+import { ItemSheetScroll } from './item-sheet-scroll.mjs';
 
 const { api, sheets } = foundry.applications;
 const DragDrop = foundry.applications.ux.DragDrop;
@@ -47,6 +48,7 @@ const ItemSheetBase = [
   ItemSheetUpgrades,
   ItemSheetStoreQuestLoot,
   ItemSheetDrops,
+  ItemSheetScroll,
 ].reduce((Base, mixin) => mixin(Base), api.HandlebarsApplicationMixin(sheets.ItemSheetV2));
 
 /**
@@ -112,6 +114,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       removeChange: this._removeChange,
       resetCooldown: this._resetCooldown,
       removeRequirement: this._removeRequirement,
+      clearScrollSpell: this._clearScrollSpell,
     },
     form: {
       submitOnChange: true,
@@ -228,6 +231,10 @@ export class CarlRPGItemSheet extends ItemSheetBase {
         break;
       case 'spell':
         options.parts.push('attributesSpell', 'effects', 'upgrades');
+        break;
+      case 'spellScroll':
+        // The spell it holds (a copy) and its upgrades; it has no effects of its own to give.
+        options.parts.push('attributesSpell', 'upgrades');
         break;
       case 'item':
         options.parts.push('attributesItem', 'skills', 'effects');
@@ -414,6 +421,9 @@ export class CarlRPGItemSheet extends ItemSheetBase {
     // Quantity always goes in the header, for every kind of item that has one
     // (gear, plain items and loot boxes).
     context.headerQuantity = 'quantity' in this.item.system;
+    // A Spell Scroll: the GM puts its spell on it (a drop box on the Attributes tab).
+    context.isScroll = this.item.type === 'spellScroll';
+    context.scrollEditable = context.isScroll && this.isEditable && game.user.isGM;
     // The damage types, for the item's damage type menu.
     context.damageTypeOptions = damageTypeOptions();
     // The gold value: the GM always sees and sets it; a crawler sees it (read only)
@@ -571,7 +581,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
           !cfg.eventTriggersEffectOnly.includes(key) &&
           (this.item.type === 'gear' || !cfg.eventTriggersGearOnly.includes(key)) &&
           (this.item.type === 'lootBox' || !cfg.eventTriggersLootOnly.includes(key)) &&
-          (['skill', 'spell'].includes(this.item.type) ||
+          (['skill', 'spell', 'spellScroll'].includes(this.item.type) ||
             !cfg.eventTriggersSkillOnly.includes(key))
       );
       context.eventOptions = buildEventOptions(allowedTriggers);
@@ -594,12 +604,14 @@ export class CarlRPGItemSheet extends ItemSheetBase {
 
     // Skills and spells: their upgrades, for the Upgrades tab (and the lists of
     // what the skill does at its current rank on the other tabs).
-    if (['skill', 'spell'].includes(this.item.type)) {
+    if (['skill', 'spell', 'spellScroll'].includes(this.item.type)) {
       const cfg = CONFIG.CARL_RPG;
       const system = this.item.system;
       const isSpell = this.item.type === 'spell';
       const rank = rankOf(system);
       context.isFeature = true;
+      // Rank is per character, so a spell shows it only on an actor; a scroll always does.
+      context.showRank = !!this.item.isEmbedded || this.item.type === 'spellScroll';
       // A pet's skills use the current floor as their rank, so there's no rank to edit.
       context.rankIsFloor = this.item.parent?.type === 'pet';
       // (A Damage Effect's changes are only offered on a skill that is one.)
@@ -1148,11 +1160,11 @@ export class CarlRPGItemSheet extends ItemSheetBase {
         : '';
     const content = `<div class="carl-rpg item-chat-card">${itemCardHeader(item)}<div class="item-chat-short">${shortHtml}</div>${more}</div>`;
     // Skills, spells, gear and items get the same card look as when they are used.
-    const headed = ['skill', 'spell', 'gear', 'item'].includes(item.type);
+    const headed = ['skill', 'spell', 'spellScroll', 'gear', 'item'].includes(item.type);
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker(item.parent ? { actor: item.parent } : {}),
       content,
-      ...(headed ? { flags: { 'carl-rpg': { card: { kind: item.type, header: true } } } } : {}),
+      ...(headed ? { flags: { 'carl-rpg': { card: { kind: item.type === 'spellScroll' ? 'spell' : item.type, header: true } } } } : {}),
     });
   }
 

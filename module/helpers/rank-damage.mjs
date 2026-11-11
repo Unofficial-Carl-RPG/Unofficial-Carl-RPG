@@ -30,7 +30,7 @@ const HAS_TOKEN = /@rankDamage(?![\w.])/;
 const TOKEN = /@rankDamage(?![\w.])/g;
 
 /** The item types whose own rank `@rankDamage` reads. */
-const RANKED = ['skill', 'spell', 'mobAbility'];
+const RANKED = ['skill', 'spell', 'spellScroll', 'mobAbility'];
 
 const whole = (n) => Math.trunc(Number(n)) || 0;
 
@@ -80,7 +80,8 @@ export function rankDamageOf(item) {
   if (!item || !RANKED.includes(item.type)) return '';
   const system = item.system ?? {};
   const effective = system.effective ?? {};
-  const actor = rankDamageMods(item.actor ?? item.parent ?? null, item);
+  // (a Spell Scroll's rank is exact: its owner's rank damage rows don't reach it)
+  const actor = system.fixedRank ? { bonus: 0, step: 0 } : rankDamageMods(item.actor ?? item.parent ?? null, item);
   return rankDamageFormula(rankOf(system), {
     bonus: whole(effective.rankBonus) + actor.bonus,
     step: whole(effective.rankStep) + actor.step,

@@ -3,7 +3,7 @@
 - stylePrinciples:
   - Sheets fit the default size (680x760) or scroll.
   - Drop boxes at the END of lists, visible only when editable (actor sheets: only in edit mode). Dropping onto the sheet always works.
-  - Quantity lives in the item sheet header for every type that has one (gear, item, lootBox).
+  - Quantity lives in the item sheet header for every type that has one (gear, item, spellScroll, lootBox).
   - Buttons follow the theme (all caps).
   - Item hover info uses the shared tooltip: any element with data-item-tip="<item uuid>".
   - In-UI hint/tooltip text must be short; obvious settings get none.

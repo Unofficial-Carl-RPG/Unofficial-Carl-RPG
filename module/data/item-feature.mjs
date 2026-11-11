@@ -87,16 +87,21 @@ export default class CarlRPGFeature extends CarlRPGItemBase {
     return super.migrateData(source);
   }
 
+  /** Whether the rank is exact: no owner's rank bonuses, no pet floor (a Spell Scroll's is). */
+  get fixedRank() {
+    return false;
+  }
+
   prepareDerivedData() {
     // A pet's skills have no rank of their own: the current floor takes its place
     // everywhere (the roll bonus, upgrades, ...), and follows the floor as it changes.
-    if (this.parent?.parent?.type === 'pet') {
+    if (!this.fixedRank && this.parent?.parent?.type === 'pet') {
       this.rank = CONFIG.CARL_RPG.getFloor();
     }
 
     // The rank everything reads: the stored rank moved by Skill rank bonus build
     // benefits on the owner's effects (never stored; see helpers/skill-rank.mjs).
-    applyEffectiveRank(this, this.parent, this.parent?.parent);
+    applyEffectiveRank(this, this.parent, this.fixedRank ? null : this.parent?.parent);
 
     // What this skill uses at its current rank, with its upgrades applied
     // (never stored: the skill's own fields stay as they were typed).

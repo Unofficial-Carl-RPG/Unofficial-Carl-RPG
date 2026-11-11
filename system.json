@@ -35,6 +35,9 @@
         "spell": {
             "htmlFields": ["description"]
         },
+        "spellScroll": {
+            "htmlFields": ["description"]
+        },
         "item": {
             "htmlFields": ["description"]
         },

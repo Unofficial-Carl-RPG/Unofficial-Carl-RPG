@@ -112,6 +112,9 @@ export const ItemSheetEvents = (Base) => class ItemSheetEvents extends Base {
     // The item an Ammunition cost spends (see ItemSheetCosts).
     if (zone.dataset.accept === 'ammo') return this._onDropAmmo(zone, data);
 
+    // The spell on a Spell Scroll (see ItemSheetScroll).
+    if (zone.dataset.accept === 'spellScroll') return this._onDropScrollSpell(data);
+
     // A quest's reward achievement, or an achievement's reward box (below, by field).
     if (zone.dataset.accept === 'achievement') {
       const dropped = data.type === 'Item' && data.uuid ? await fromUuid(data.uuid) : null;

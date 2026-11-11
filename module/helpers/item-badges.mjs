@@ -70,7 +70,7 @@ export function describeBadges(item) {
   }
 
   // Skills and spells: the stat, the type, the damage, mana and targets.
-  if (['skill', 'spell'].includes(item.type)) {
+  if (['skill', 'spell', 'spellScroll'].includes(item.type)) {
     const eff = sys.effective ?? {};
     const labels = costLabelsOf(item);
     if (hasStat(sys.stat)) badges.push(loc(CONFIG.CARL_RPG.abilities[sys.stat] ?? sys.stat));
@@ -81,6 +81,10 @@ export function describeBadges(item) {
     if (eff.damage) badges.push(`${loc('CARL_RPG.Badges.Damage')} ${eff.damage}`);
     if (item.type === 'spell') {
       badges.push(`${loc('CARL_RPG.Badges.Mana')} ${labels.mana || 0}`);
+    }
+    // A Spell Scroll casts at its own rank and costs nothing.
+    if (item.type === 'spellScroll') {
+      badges.push(`${loc('CARL_RPG.Badges.Rank')} ${sys.effectiveRank ?? sys.rank ?? 0}`);
     }
     const target = eff.target ?? sys.check?.target;
     if (target && CONFIG.CARL_RPG.checkTargets[target]) {

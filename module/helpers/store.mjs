@@ -15,7 +15,7 @@ const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
 const windows = new Map();
 
 /** Items a crawler can buy and sell in stacks (they have a quantity). */
-const STACKABLE = ['gear', 'item'];
+const STACKABLE = ['gear', 'item', 'spellScroll'];
 
 /** A Short Description as plain text, for a tooltip (no markup, no line breaks). */
 export function plainText(html) {

@@ -22,7 +22,7 @@ function plainText(html) {
 export function chipsFor(item) {
   const sys = item.system ?? {};
   const chips = [];
-  if (['skill', 'spell'].includes(item.type)) {
+  if (['skill', 'spell', 'spellScroll'].includes(item.type)) {
     const key = sys.passive ? 'passive' : sys.check?.target === 'evade' ? 'attack' : 'utility';
     const label = { passive: 'CARL_RPG.Badges.Passive', attack: 'CARL_RPG.Badges.Attack', utility: 'CARL_RPG.Badges.Utility' }[key];
     chips.push({ group: 'kind', key, label });
@@ -93,7 +93,7 @@ function sortOptions(items, canSortValue = false) {
   if (items.some((i) => i.type !== items[0].type || ['gear', 'mobAbility'].includes(i.type))) {
     options.push({ value: 'type', label: 'CARL_RPG.Filter.Sort.Type' });
   }
-  if (items.some((i) => ['skill', 'spell'].includes(i.type))) {
+  if (items.some((i) => ['skill', 'spell', 'spellScroll'].includes(i.type))) {
     options.push({ value: 'rank', label: 'CARL_RPG.Filter.Sort.Rank' });
   }
   if (items.some((i) => i.type === 'spell')) {

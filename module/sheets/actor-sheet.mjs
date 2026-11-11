@@ -294,7 +294,8 @@ export class CarlRPGActorSheet extends ActorSheetBase {
         ['item', 'CARL_RPG.Actor.Tabs.Inventory'],
       ].map(([type, label]) => ({
         label: game.i18n.localize(label),
-        items: [...this.actor.itemTypes[type]].sort((a, b) =>
+        // (Spell Scrolls are listed with the inventory)
+        items: [...this.actor.itemTypes[type], ...(type === 'item' ? this.actor.itemTypes.spellScroll : [])].sort((a, b) =>
           a.name.localeCompare(b.name)
         ),
       }));
@@ -785,8 +786,8 @@ export class CarlRPGActorSheet extends ActorSheetBase {
       else if (i.type === 'spell') {
         spells.push(i);
       }
-      // Append to inventory.
-      else if (i.type === 'item') {
+      // Append to inventory (Spell Scrolls too).
+      else if (i.type === 'item' || i.type === 'spellScroll') {
         inventory.push(i);
       }
       // Append to mob abilities.
@@ -911,7 +912,7 @@ export class CarlRPGActorSheet extends ActorSheetBase {
     if (keys.length) {
       html += `<div class="row-keys">${keys.map(esc).join(' · ')}</div>`;
     }
-    if (['skill', 'spell'].includes(item.type)) {
+    if (['skill', 'spell', 'spellScroll'].includes(item.type)) {
       const upgrades = describeUpgrades(item);
       if (upgrades.length) {
         const level = game.i18n.localize('CARL_RPG.Upgrades.Level');

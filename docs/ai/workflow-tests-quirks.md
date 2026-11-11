@@ -46,11 +46,11 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 596).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 629).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 596 pass)
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 629 pass)
 - stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node. The Actor stub's getRollData returns its system, like Foundry's, so CarlRPGActor.prototype.getRollData can run on a stub actor (a crawler stub needs its data model's getRollData attached for the top-level stats, see health-roll-data.test.mjs)
 
 ## files
@@ -95,6 +95,7 @@
 - roll-mods.test.mjs: Roll Modifier rules per rank, conditions, skill lists and self, rank bonus, damage dice, held DR, Roll Modifier scope build rows (Aiming for ranged single-target ice spells, other crawlers and a switched off effect, Identifier match and unusable rows, the single-target tick and area casts, count formulas, entries by name/#tag/item tag, spells offered the modifiers whose list names them)
 - recap.test.mjs: recap counting
 - species.test.mjs: species
+- spell-scroll.test.mjs: Spell Scrolls: spell-like types, scrollBlock (no spell, none left), Quantity after reading, the snapshot copy (what is copied, costs/requirements/uses emptied, no shared references), source record, name/picture only while default, assignment keeps rank, exact rank through the real model (bonuses, penalties, pet floor, rank damage rows), formula, Roll Modifier lists matching the source spell, Hotlist-only rule for scrolls
 - summon.test.mjs: token placement cells
 - survival.test.mjs: dying, rests, injuries, mana/health clamps
 

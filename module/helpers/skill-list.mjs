@@ -52,7 +52,13 @@ const tagsOf = (doc) =>
  */
 export function listAccepts(entries, skill, item = null, { skip = [] } = {}) {
   if (!skill) return false;
-  const keys = [norm(skill.name), norm(skill.system?.identifier)].filter(Boolean);
+  // (a Spell Scroll also answers to the spell it holds, by name or Identifier)
+  const keys = [
+    norm(skill.name),
+    norm(skill.system?.identifier),
+    norm(skill.system?.spellSource?.name),
+    norm(skill.system?.spellSource?.identifier),
+  ].filter(Boolean);
   const have = new Set([...tagsOf(skill), ...tagsOf(item)]);
   return entries.some((entry) => {
     if (skip.includes(entry)) return false;

@@ -12,7 +12,7 @@ import { hideItemTip } from './item-tooltip.mjs';
 const NS = 'carl-rpg';
 const KEYED = 10;
 const MIN_SLOTS = 10;
-const SLOT_TYPES = ['skill', 'spell', 'gear', 'item'];
+const SLOT_TYPES = ['skill', 'spell', 'spellScroll', 'gear', 'item'];
 
 const t = (key, data) => (data ? game.i18n.format(key, data) : game.i18n.localize(key));
 
@@ -65,8 +65,11 @@ function slotButton(item, index) {
   name.textContent = item.name;
 
   const detail = [];
-  if (item.type === 'skill' || item.type === 'spell') {
+  if (item.type === 'skill' || item.type === 'spell' || item.type === 'spellScroll') {
     detail.push(`${t('CARL_RPG.QuickBar.Rank')} ${rankOf(item.system)}`);
+  }
+  if (item.type === 'spellScroll') {
+    detail.push(t('CARL_RPG.QuickBar.UsesLeft', { n: item.system.quantity }));
   }
   if (item.type === 'spell') {
     detail.push(`${t('CARL_RPG.QuickBar.Mana')} ${item.costLabels?.().mana || 0}`);

@@ -5,15 +5,15 @@
 - order:
   - 1 Mob ability in Mobs Declare phase (depth 0, not declared, no Shift): declareInsteadOfUsing -> stored as a declaration, returns
   - 2 Dying actor cannot act (warn)
-  - 3 hotlistOnlySpells setting: spell must be on hotlist (depth 0, GM exempt)
-  - 4 checkRequirements(item): warns every unmet requirement
+  - 3 hotlistOnlySpells setting: spell must be on hotlist (depth 0, GM exempt); a Spell Scroll must itself be on the hotlist
+  - 4 checkRequirements(item): warns every unmet requirement; a Spell Scroll then needs a spell on it and Quantity >= 1 (scrollBlock, warns)
   - 5 uses: needs spans.uses.min uses left
   - 6 roll pop-up (click only; Shift skips; not for events/macros/mobs): extra bonus (number|dice), stat change, advantage/disadvantage, Damage Effect (see damageEffects), Roll Modifier menu + Surprise tick (see rollMods), Damage stat menu and the Surprise/melee ticks Bonus damage dice rows ask for (see buildDamage), amount to pay for ranged costs (capped at what user has; Shift pays least), Area shape menu when upgrades give an Area item more than one shape (also opens for an item that doesn't roll; Shift uses the first); a Count item whose reached upgrades add a shape gets the same menu with 'Single target' first, then each shape with its size ('Cone 15 ft'); Shift = single target (see targeting countArea)
   - 7 build benefits (advantage, per-stat skill bonus) applied to every roll
   - 8 chooseTargets(item, costData) for non-mob depth 0 (mode count/area; self = no prompt)
   - 9 claim an action in combat (passive skills and depth>0 free; none left -> confirm 'use anyway')
   - 10 weapon whose skill is gone cannot roll (whispers GM)
-  - 11 ammunition planned first (asks, spends nothing): several matching stacks with enough -> pick one; none with enough -> 'use anyway' spends what is left of the largest stack; cancel stops the use. Then pay Mana/Junk (short -> confirm; 'anyway' spends all remaining, never below 0), then the planned ammunition is spent (item Quantity goes down, stays at 0; Observer via the GM relay)
+  - 11 ammunition planned first (asks, spends nothing): several matching stacks with enough -> pick one; none with enough -> 'use anyway' spends what is left of the largest stack; cancel stops the use. Then pay Mana/Junk (short -> confirm; 'anyway' spends all remaining, never below 0), then the planned ammunition is spent (item Quantity goes down, stays at 0; Observer via the GM relay). A Spell Scroll has no Mana/Junk/Uses/ammo cost at all (costSpans, costLabels, ammoSpans ignore its costs and upgrade cost changes); reading it takes one off its Quantity right after the uses step (#spendScroll, stays at 0, Observer via the GM relay) and the card says so
   - 12 spend the action; Interrupt in react phase sets combatant flag interruptUsed
   - 13 spend uses
   - 14 _rollCore: card with item header (image, name, badges), short description (full expander), reached upgrades; roll posted; AI Favor reroll offered (not on nat 20/1, not to non-crawlers)
@@ -201,6 +201,6 @@
 
 - tags: helpers/tags.mjs: sameTag/itemHasTag/classHasTag, case-insensitive; used by prerequisites (classTag), item requirements, event conditions, skillCap scope, wizard skill pool. Tag manager/suggestions read world AND compendium items.
 - damageTypes: helpers/damage-types.mjs: world setting damageTypes (comma list). Items carry damageType + damageTypeAlso + armorPiercing (upgrades can set). Effects carry damageMods.
-- hotlistOnlySpells: optional world rule: crawlers may only directly cast spells on their hotlist (GM and event/macro casts exempt; skills and items unaffected)
+- hotlistOnlySpells: optional world rule: crawlers may only directly cast spells on their hotlist, and only read Spell Scrolls that are on it (GM and event/macro casts exempt; skills and other items unaffected)
 - aiFavor: crawler resource. Spend 1 to reroll a d20 before the result shows (item rolls, stat checks, defending rolls; not nat 20/1; shows the roll but not success). Or buy an action. GM award: Dungeon Info Award AI Favor, /aifavor, game.carlRpg.macros.giveAiFavor, event action. Popularity (no rule uses it) is granted the same ways (see actors.md).
 - skillGrants: Skills an item added record flags.carl-rpg.grantedBy [item ids] and raised. On item removal a granted skill is removed only if no other item still grants it and its rank is not above what it was given (raised flag). Whisper notice to owner+GM. Grant a skill action and advancement set raised (permanent).

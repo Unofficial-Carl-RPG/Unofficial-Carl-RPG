@@ -1,9 +1,12 @@
 /**
  * The optional "Hotlist-only spells" rule: with the world setting on, a crawler can
- * only cast a spell that is on their hotlist. Skills and items are never affected.
+ * only cast a spell that is on their hotlist, and only read a Spell Scroll that is on it.
+ * Skills and other items are never affected.
  * The GM is not held to it, and neither are spells another item or event casts
  * (only a direct use is blocked, see Item#roll).
  */
+import { isSpellLike } from './spell-scroll.mjs';
+
 const NS = 'carl-rpg';
 export const HOTLIST_ONLY_SETTING = 'hotlistOnlySpells';
 
@@ -37,7 +40,7 @@ export function onHotlist(item) {
 
 /** Whether the rule stops this item being cast right now. */
 export function castBlockedByHotlist(item) {
-  if (item.type !== 'spell' || game.user?.isGM || !hotlistOnlySpells()) return false;
+  if (!isSpellLike(item) || game.user?.isGM || !hotlistOnlySpells()) return false;
   if (item.parent?.type !== 'crawler') return false;
   return !onHotlist(item);
 }

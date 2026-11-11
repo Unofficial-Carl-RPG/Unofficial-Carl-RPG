@@ -646,6 +646,13 @@
         },
         "PassiveHint": "A passive spell doesn't use an action, but still costs mana."
       },
+      "SpellScroll": {
+        "FIELDS": {
+          "quantity": {"label": "Quantity"},
+          "rank": {"label": "Rank"},
+          "spellSource": {"label": "Spell"}
+        }
+      },
       "Item": {
         "FIELDS": {
           "quantity": {"label": "Quantity"},
@@ -1293,7 +1300,8 @@
       "Range": "Range",
       "Splash": "Splash",
       "Ammo": "Ammo",
-      "AlsoGrants": "Also grants"
+      "AlsoGrants": "Also grants",
+      "Rank": "Rank"
     },
     "Summon": {
       "Fades": "{name} fades away ({spell}).",
@@ -1948,6 +1956,15 @@
       "DropReward": "Drop a loot box here to set the reward",
       "NoReward": "No reward"
     },
+    "SpellScroll": {
+      "Name": "Scroll of {spell}",
+      "GMOnly": "Only the GM can put a spell on a scroll.",
+      "OnlySpells": "Only a spell can be dropped here.",
+      "NoSpell": "{name} has no spell on it.",
+      "NoSpellShort": "No spell yet",
+      "NoneLeft": "{name}: none left to read.",
+      "Used": "Scroll used up ({left} left)."
+    },
     "Spell": {
       "NotEnoughMana": {
         "Title": "Not enough mana",
@@ -1961,6 +1978,7 @@
     "Drop": {
       "skill": "Drop a skill here to add it",
       "spell": "Drop a spell here to add it",
+      "scrollSpell": "Drop a spell here",
       "gear": "Drop gear here to add it",
       "inventory": "Drop an item here to add it",
       "mobAbility": "Drop a mob ability here to add it",
@@ -2341,6 +2359,7 @@
       "gear": "Gear",
       "skill": "Skill",
       "spell": "Spell",
+      "spellScroll": "Spell Scroll",
       "item": "Item",
       "mobAbility": "Mob Ability",
       "lootBox": "Loot Box",

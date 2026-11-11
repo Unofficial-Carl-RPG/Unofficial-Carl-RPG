@@ -4,6 +4,7 @@ import { CarlRPGActiveEffect } from './active-effect.mjs';
 import { checkRequirements, runEvents } from '../helpers/events.mjs';
 import { damageOfTarget, rollNumbers } from '../helpers/event-roll.mjs';
 import { castBlockedByHotlist } from '../helpers/hotlist-rule.mjs';
+import { afterReading, isScroll, isSpellLike, scrollBlock } from '../helpers/spell-scroll.mjs';
 import { applyBenefits, rollBenefits } from '../helpers/build-mods.mjs';
 import { damageDiceFor, diceNeeds, statSwapsFor } from '../helpers/build-damage.mjs';
 import { grantLoot } from '../helpers/loot.mjs';
@@ -990,7 +991,7 @@ export class CarlRPGItem extends Item {
   async #defaultRollStat() {
     return this.usesSkillAction
       ? ((await this.rollingSkill())?.system.stat ?? 'str')
-      : this.system.stat === NO_STAT && ['skill', 'spell'].includes(this.type)
+      : this.system.stat === NO_STAT && ['skill', 'spell', 'spellScroll'].includes(this.type)
         ? NO_STAT
         : this.system.stat && this.system.formula.includes(`@${this.system.stat}.mod`)
         ? this.system.stat
@@ -1015,6 +1016,8 @@ export class CarlRPGItem extends Item {
    */
   costSpans() {
     const none = { min: 0, max: 0, known: true, ranged: false };
+    // A Spell Scroll is free to read: no Mana, Junk or Uses, whatever its upgrades change.
+    if (isScroll(this)) return { mana: none, junk: none, uses: none };
     const data = this.costData();
     const costs = this.system.costs;
     const mob = this.actor?.type === 'mob';
@@ -1037,6 +1040,7 @@ export class CarlRPGItem extends Item {
 
   /** What each resource costs as text: "2", "1-3", or the formula itself when it can't be worked out yet. */
   costLabels() {
+    if (isScroll(this)) return { mana: '', junk: '', uses: '' };
     const data = this.costData();
     const costs = this.system.costs;
     const effective = effectiveOf(this);
@@ -1054,7 +1058,7 @@ export class CarlRPGItem extends Item {
    * @returns {object[]}
    */
   ammoSpans() {
-    if (this.actor?.type !== 'crawler') return [];
+    if (this.actor?.type !== 'crawler' || isScroll(this)) return [];
     const data = this.costData();
     return ammoRows(this.system.costs).map(({ row, index }) => ({
       key: ammoKey(index),
@@ -1071,7 +1075,7 @@ export class CarlRPGItem extends Item {
    */
   get ammoSummary() {
     const rows = ammoRows(this.system?.costs);
-    if (!rows.length || this.type === 'mobAbility') return [];
+    if (!rows.length || this.type === 'mobAbility' || isScroll(this)) return [];
     const data = this.costData();
     const items = this.actor?.type === 'crawler' ? this.actor.itemTypes.item : null;
     return rows.map(({ row }) => ({
@@ -1145,6 +1149,16 @@ export class CarlRPGItem extends Item {
     }
     // The item can be blocked from being used (not enough mana, ...).
     if (!checkRequirements(this)) return null;
+    // A Spell Scroll needs a spell on it and one left to read (see helpers/spell-scroll.mjs).
+    const scrollProblem = scrollBlock(this);
+    if (scrollProblem) {
+      ui.notifications.warn(
+        game.i18n.format(`CARL_RPG.SpellScroll.${scrollProblem}`, {
+          name: Handlebars.escapeExpression(this.name),
+        })
+      );
+      return null;
+    }
     // An item with a limit on its uses needs one left (see helpers/uses.mjs).
     const spans = this.costSpans();
     const usesNeeded = spans.uses.min;
@@ -1181,7 +1195,7 @@ export class CarlRPGItem extends Item {
     // The Roll Modifiers that can be chosen (see helpers/roll-mods.mjs): the crawler's own,
     // listing the skill the roll uses. A skill that lists itself modifies its own use, pop-up
     // or not. A spell is its own skill here (Damage Effects above still skip spells).
-    const modsFor = modSkill ?? (this.type === 'spell' && this.actor?.type !== 'mob' ? this : null);
+    const modsFor = modSkill ?? (isSpellLike(this) && this.actor?.type !== 'mob' ? this : null);
     const mods = rollPopup && modsFor ? availableMods(this.actor, modsFor, this, { data: this.costData() }) : [];
     const selfMod = selfModOf(modSkill);
     // Build benefits that add damage dice (a race's) can ask for the Surprise and melee ticks too.
@@ -1383,12 +1397,14 @@ export class CarlRPGItem extends Item {
       }
     }
     await spendUse(this, paid.uses);
+    // A Spell Scroll is used up by the cast (one from its Quantity).
+    const scrollNotes = await this.#spendScroll();
     // DR the modifiers give waits for the next damage this actor takes.
     const drGrants = drGrantsOf(modResult);
     await grantTempDR(this.actor, drGrants);
     const rolling = await this.#useRollingSkill();
     const result = await this._rollCore(event, {
-      costs: [...mana.notes, ...ammoNotes, ...drNotes(drGrants), ...swapNotes],
+      costs: [...mana.notes, ...ammoNotes, ...scrollNotes, ...drNotes(drGrants), ...swapNotes],
       options: rollOptions,
     });
     // A mistyped bonus: nothing was rolled, and nothing further happens.
@@ -1516,7 +1532,7 @@ export class CarlRPGItem extends Item {
    */
   async #claimAction(depth, declared = false) {
     const actor = this.parent;
-    const types = ['skill', 'spell', 'gear', 'item', 'mobAbility'];
+    const types = ['skill', 'spell', 'spellScroll', 'gear', 'item', 'mobAbility'];
     if (depth > 0 || !(actor instanceof Actor) || !types.includes(this.type)) {
       return { combatant: null };
     }
@@ -1648,6 +1664,18 @@ export class CarlRPGItem extends Item {
   }
 
   /**
+   * Reading a Spell Scroll uses it up: one comes off its Quantity (it stays in the list at 0).
+   * An Observer's change goes through the GM's client.
+   * @returns {Promise<string[]>}  a line for the card, or none for anything else
+   */
+  async #spendScroll() {
+    if (!isScroll(this)) return [];
+    const left = afterReading(this);
+    await updateWithRelay(this, { 'system.quantity': left });
+    return [game.i18n.format('CARL_RPG.SpellScroll.Used', { left })];
+  }
+
+  /**
    * What the item spends from its user when used: the Mana and Misc Junk amounts picked (uses are
    * spent separately). If the user doesn't have enough of one, a pop-up asks whether
    * to use it anyway; using it anyway spends all they have left (it never goes below
@@ -1723,7 +1751,7 @@ export class CarlRPGItem extends Item {
     // Skills, spells, gear and items head their card with their image, name and badges
     // (see itemCardHeader). Other kinds put their name in the flavor line and show a badge
     // naming the kind (helpers/chat-cards.mjs).
-    const headed = ['skill', 'spell', 'gear', 'item'].includes(this.type);
+    const headed = ['skill', 'spell', 'spellScroll', 'gear', 'item'].includes(this.type);
     const header = headed ? itemCardHeader(this) : '';
     const label = headed ? undefined : this.name;
     // The card also remembers what was used and, for a weapon, the skill it rolled
@@ -1732,7 +1760,8 @@ export class CarlRPGItem extends Item {
     const cardFlags = {
       'carl-rpg': {
         card: {
-          kind: this.type,
+          // (a Spell Scroll's card is a spell's)
+          kind: isSpellLike(this) ? 'spell' : this.type,
           name: this.name,
           ...(rolledSkill ? { skill: rolledSkill } : {}),
           ...(headed ? { header: true } : {}),
