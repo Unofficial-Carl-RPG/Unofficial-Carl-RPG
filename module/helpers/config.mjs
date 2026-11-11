@@ -206,6 +206,7 @@ CARL_RPG.eventConditions = {
   lootGold: 'CARL_RPG.Events.Conditions.lootGold',
   classTag: 'CARL_RPG.Events.Conditions.classTag',
   effect: 'CARL_RPG.Events.Conditions.effect',
+  hasSkill: 'CARL_RPG.Events.Conditions.hasSkill',
   inCombat: 'CARL_RPG.Events.Conditions.inCombat',
   floor: 'CARL_RPG.Events.Conditions.floor',
   floorExact: 'CARL_RPG.Events.Conditions.floorExact',

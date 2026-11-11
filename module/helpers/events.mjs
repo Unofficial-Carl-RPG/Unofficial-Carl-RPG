@@ -455,6 +455,17 @@ async function checkCondition(condition, ctx, item) {
         (e) => !e.disabled && CarlRPGActiveEffect.matches(e, template)
       );
     }
+    case 'hasSkill': {
+      // Does the actor have this skill or spell, at any rank? (identifier else name, same item type)
+      const wanted = condition.uuid ? await fromUuid(condition.uuid) : null;
+      if (!wanted || !actor || !['skill', 'spell'].includes(wanted.type)) return false;
+      const identifier = wanted.system?.identifier?.trim();
+      return actor.items.some(
+        (i) =>
+          i.type === wanted.type &&
+          (identifier ? i.system?.identifier?.trim() === identifier : i.name === wanted.name)
+      );
+    }
     case 'inCombat':
       return !!combatantOf(actor);
     case 'floor':
@@ -633,13 +644,14 @@ const HANDLERS = {
   },
 
   /**
- * Give the target a skill at a rank, or raise one it has by a number of ranks.
+ * Give the target a skill or spell at a rank, or raise one it has by a number of ranks
+ * (a skill matches skills only, a spell spells only).
  * Permanent: nothing takes it back. It stops at the skill rank cap (see
  * skill-cap.mjs). The owner and the GM get a whisper.
  */
   async grantSkill({ item, action, actor, ctx }) {
     const doc = await fromUuid(action.uuid);
-    if (!doc || doc.documentName !== 'Item' || doc.type !== 'skill') {
+    if (!doc || doc.documentName !== 'Item' || !['skill', 'spell'].includes(doc.type)) {
       return warn('CARL_RPG.Events.Warn.ItemMissing');
     }
     const ranks = await rollAmount(action.amount || '1', eventData(item, ctx), item);
@@ -647,7 +659,7 @@ const HANDLERS = {
     const cap = skillCapOf(actor, doc);
     const identifier = doc.system?.identifier?.trim();
     const existing = actor.items.find(
-      (i) => i.type === 'skill' && (identifier ? i.system.identifier?.trim() === identifier : i.name === doc.name)
+      (i) => i.type === doc.type && (identifier ? i.system.identifier?.trim() === identifier : i.name === doc.name)
     );
     let rank;
     if (existing) {

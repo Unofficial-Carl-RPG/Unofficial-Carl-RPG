@@ -60,6 +60,9 @@ export async function summarizeCondition(c) {
     case 'effect':
       text = t(`${S}effect`, { name: await nameOf(c.uuid) });
       break;
+    case 'hasSkill':
+      text = t(`${S}hasSkill`, { name: await nameOf(c.uuid) });
+      break;
     case 'floor':
       text = t(`${S}floor`, { value: c.value });
       break;

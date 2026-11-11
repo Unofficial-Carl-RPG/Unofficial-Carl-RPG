@@ -220,7 +220,7 @@ export async function buildEventRows(events, base) {
             showPhase: c.type === 'phase',
             showDegree: c.type === 'degree',
             showTag: c.type === 'classTag',
-            showDrop: ['lootItem', 'effect'].includes(c.type),
+            showDrop: ['lootItem', 'effect', 'hasSkill'].includes(c.type),
             dropAccept: c.type === 'effect' ? 'effect' : 'item',
             dropHint: c.type === 'effect' ? 'CARL_RPG.Events.Drop.effect' : 'CARL_RPG.Events.Drop.item',
             showTargetKind: c.type === 'targetKind',

@@ -3,7 +3,7 @@
  * 15, or 20 for the skills and spells a "Skill cap 20" build benefit covers (an
  * effect's build benefits, see build-mods.mjs). A row covers all skills and spells,
  * one by its Identifier, every one with a tag, every one of a stat, or the ones the player picked. Pets have no cap. Advancement and
- * the Grant a skill event both stop at it.
+ * the Grant a skill or spell event both stop at it.
  */
 import { buildModsOf } from './build-mods.mjs';
 import { itemHasTag } from './tags.mjs';

@@ -46,11 +46,11 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 629).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 643).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 629 pass)
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 643 pass)
 - stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node. The Actor stub's getRollData returns its system, like Foundry's, so CarlRPGActor.prototype.getRollData can run on a stub actor (a crawler stub needs its data model's getRollData attached for the top-level stats, see health-roll-data.test.mjs)
 
 ## files
@@ -78,6 +78,7 @@
 - typed-bonus.test.mjs: bonus dice with their own damage type: row types, even split of mixed types, damage parts, resist/immune/vulnerable per part, DR after the sum, untyped rows unchanged
 - delayed-damage.test.mjs: planning the action (@rankDamage, wait formula, bad amounts), the combat-flag queue, a hit event queuing for the target that was hit (no combat = warning), the round-end tick through applyDamage (DR, ignore DR, resist/immune/vulnerable, mobs, dead targets, a failing entry), the hit target group and the editor default
 - distance.test.mjs: token distance (edge to edge squares, diagonals, big tokens, feet per square, no token), the Within N ft rows (validity, per-target multiplier, Roll Modifier dice and multiplier rows) and the distance event condition
+- grant-skill.test.mjs: Grant a skill or spell action (a Spell Book giving a spell at rank 1, amount as rank, raising a held one, the rank cap, whisper to owner + GM, skills unchanged, skill and spell of one name kept apart, other item types refused) and the hasSkill condition (any rank, identifier before name, same item type only, missing/other types false, Not has + grant skipping a known spell)
 - events.test.mjs: triggers, conditions, formulas over roll data (incl. @roll.margin/bonus/mod/rank, @damage.*, @rankDamage in amounts, a weapon's rolled skill), actions, trust, add-token, approval, target groups (targeted vs burst)
 - event-roll.test.mjs: rollNumbers, marginOf, damageNumbers, damageOfTarget (the numbers a use hands to events)
 - weapon-damage.test.mjs: weapon damage rules (skill damage only, Override replaces the base and keeps upgrades, blank override, non-weapon adds), migrateWeapon, Weapon filter chip

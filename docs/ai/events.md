@@ -52,6 +52,7 @@
 - lootItem / lootGold: opening included item (identifier else name) / gold >= value
 - classTag: actor class (or combo) has tag
 - effect: actor has the effect (by identifier else name) switched on
+- hasSkill: uuid skill or spell; actor has one of the same item type (identifier else name) at any rank; negate for "doesn't know it" (a Spell Book skips a spell already known); false for any other dropped type
 - inCombat: actor is a combatant
 - floor: floor >= value
 - floorExact: floor == value (used by floor rules for one floor)
@@ -80,7 +81,7 @@
   - relay: players run raise or limited summons through the GM client (eventRelay, anchorUuid; needs trusted events); the GM recomputes the plan.
 - awardAchievement: uuid achievement; once (held = skip); reward box pays on grant
 - revive: dead crawler back with 1 health box, no Dying, not put back in combat
-- grantSkill: uuid skill; amount = ranks; absent -> added at that rank, present -> raised; permanent (flag raised); stops at skill cap; whisper to owner+GM
+- grantSkill ("Grant a skill or spell"): uuid skill or spell; amount = ranks (default 1); matches the owned one of the same item type; absent -> added at that rank, present -> raised; permanent (flag raised); stops at skill cap; whisper to owner+GM
 - removeItem: selfItem or uuid; amount reduces quantity else deletes
 - mana: mode spend|restore; amount; not on mobs; spend warns if short
 - health: mode damage (through applyDamage: DR, CON, damage types; ignoreDR) | heal (add boxes, up to max) | remove (take boxes off directly: no DR/CON/damage type, no takesDamage trigger; reaching 0 starts Dying/defeat through the normal actor update hook)
