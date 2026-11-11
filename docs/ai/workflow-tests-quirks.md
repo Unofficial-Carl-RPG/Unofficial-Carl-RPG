@@ -46,11 +46,11 @@
 - watch: npm run watch
 
 - foundrySource: E:\Tools\Foundry Portable\App\resources\app (v13.351) for API checks; repo foundry/ is a gitignored link
-- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 658).
+- sessionStarter: claude/carl-rpg-session-starter.md (in the Claude project) is the paste-in prompt; its '98 rule tests' figure is stale (now 659).
 
 # tests
 
-- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 658 pass)
+- run: npm test (node tests/run.mjs: one node --test process per *.test.mjs, 659 pass)
 - stubs: tests/stubs.mjs fakes Foundry globals (settings, Actor/Item shapes, i18n, Roll) so helpers import under plain Node. The Actor stub's getRollData returns its system, like Foundry's, so CarlRPGActor.prototype.getRollData can run on a stub actor (a crawler stub needs its data model's getRollData attached for the top-level stats, see health-roll-data.test.mjs)
 
 ## files
@@ -75,7 +75,7 @@
 - damage-multiply.test.mjs: damageMultiply upgrade change (validity, rank unlock, the reference skills), roll/degree conditions, highest row wins, base vs total, typed parts resisted after multiplying, Roll Modifier rows
 - damage-effects.test.mjs: Damage Effect rules per rank, per-target filters, damage maths, who can choose what, cooldowns
 - damage-types.test.mjs: damage types and modes
-- damage-type-registry.test.mjs: starter types with icon/color/description, old comma list fallback, saved list order and empty list, rename keeps id, normalizing (slug id, class-only icon, hex color), module registry (register/replace/unregister, after the GM's types, GM id wins), GM overrides and hide (hidden leaves menus, still valid and named), list problems, saving tidy overrides
+- damage-type-registry.test.mjs: starter types with icon/color/description (Psionic apart from Psychic), old comma list fallback, saved list order and empty list, rename keeps id, normalizing (slug id, class-only icon, hex color), module registry (register/replace/unregister, after the GM's types, GM id wins), GM overrides and hide (hidden leaves menus, still valid and named), list problems, saving tidy overrides
 - typed-bonus.test.mjs: bonus dice with their own damage type: row types, even split of mixed types, damage parts, resist/immune/vulnerable per part, DR after the sum, untyped rows unchanged
 - delayed-damage.test.mjs: planning the action (@rankDamage, wait formula, bad amounts), the combat-flag queue, a hit event queuing for the target that was hit (no combat = warning), the round-end tick through applyDamage (DR, ignore DR, resist/immune/vulnerable, mobs, dead targets, a failing entry), the hit target group and the editor default
 - distance.test.mjs: token distance (edge to edge squares, diagonals, big tokens, feet per square, no token), the Within N ft rows (validity, per-target multiplier, Roll Modifier dice and multiplier rows) and the distance event condition

@@ -37,6 +37,13 @@ test('the starter types all have an icon, a colour and a description, and match 
   assert.equal(CONFIG.CARL_RPG.defaultDamageTypes, list.map((d) => d.label).join(', '));
 });
 
+test('Psionic is a starter type of its own, apart from Psychic', () => {
+  const list = defaultDamageTypeList();
+  assert.ok(ids(list).includes('psionic'));
+  assert.ok(ids(list).includes('psychic'));
+  assert.notEqual(list.find((d) => d.id === 'psionic').color, list.find((d) => d.id === 'psychic').color);
+});
+
 test('a world with nothing saved gets the starter types, with their icons', () => {
   const fire = damageTypes().find((d) => d.id === 'fire');
   assert.equal(fire.label, 'Fire');

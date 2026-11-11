@@ -432,6 +432,7 @@ CARL_RPG.damageTypeDefaults = [
   { label: 'Acid', icon: 'fa-solid fa-flask', color: '#a9d230', description: 'Corrosive fluids.' },
   { label: 'Necrotic', icon: 'fa-solid fa-skull', color: '#6b4f7a', description: 'Decay and death magic.' },
   { label: 'Psychic', icon: 'fa-solid fa-brain', color: '#e64980', description: 'Attacks on the mind.' },
+  { label: 'Psionic', icon: 'fa-solid fa-hand-sparkles', color: '#be4bdb', description: 'Mind powers: not the same as Psychic.' },
   { label: 'Sonic', icon: 'fa-solid fa-volume-high', color: '#4dabf7', description: 'Sound and shock waves.' },
 ];
 
