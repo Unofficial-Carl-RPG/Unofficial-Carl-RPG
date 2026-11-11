@@ -997,6 +997,8 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       case 'attributesSponsor':
       case 'attributesClub':
       case 'attributesPersonalSpace':
+        case 'attributesStore':
+        case 'attributesQuest':
         case 'attributesOrigin':
         case 'attributesBackground':
         case 'attributesSpecies':
