@@ -60,7 +60,8 @@
 - checkTargets: unopposed, evade, str, int, con, dex, cha, size
 - attackDegrees: critHit, amazing, success, nearMiss, fail, majorFail, critFail
 - damageRounding: floor
-- defaultDamageTypes: Physical, Slashing, Piercing, Bludgeoning, Fire, Force, Holy, Cold, Ice, Lightning, Poison, Acid, Necrotic, Psychic, Sonic
+- damageTypeDefaults: rows {label, icon, color, description} for Physical, Slashing, Piercing, Bludgeoning, Fire, Force, Holy, Cold, Ice, Lightning, Poison, Acid, Necrotic, Psychic, Sonic (the form's Reset to defaults and the starter list)
+- defaultDamageTypes: the same labels as a comma string (the old setting's default)
 - damageModes: resist, immune, vulnerable
 
 ## rests

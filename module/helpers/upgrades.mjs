@@ -1,5 +1,5 @@
 import { manaCostOf } from '../data/costs.mjs';
-import { damageTypeLabel, damageTypes, rowTypes, rowTypesProblem } from './damage-types.mjs';
+import { allDamageTypes, damageTypeLabel, rowTypes, rowTypesProblem } from './damage-types.mjs';
 import { validAmount } from './amounts.mjs';
 /**
  * Skill, spell and pet upgrades.
@@ -155,7 +155,7 @@ export function changeProblem(change) {
       return value === '' || !validAmount(value);
     case 'damageType':
     case 'damageTypeAlso':
-      return !damageTypes().some((d) => d.id === value);
+      return !allDamageTypes().some((d) => d.id === value);
     case 'damageMultiply':
       return (
         value === '' ||
@@ -571,14 +571,14 @@ export function summarizeChanges(upgrade, effectNames = [], grantNames = []) {
       case 'damageType':
         parts.push(
           t('CARL_RPG.Upgrades.Summary.damageType', {
-            type: damageTypes().find((d) => d.id === value)?.label ?? value,
+            type: damageTypeLabel(value),
           })
         );
         break;
       case 'damageTypeAlso':
         parts.push(
           t('CARL_RPG.Upgrades.Summary.damageTypeAlso', {
-            type: damageTypes().find((d) => d.id === value)?.label ?? value,
+            type: damageTypeLabel(value),
           })
         );
         break;

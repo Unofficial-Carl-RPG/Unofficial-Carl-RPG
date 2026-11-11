@@ -16,7 +16,8 @@
   - key=playersCanLevel; type=bool; default=false; visible=true
   - key=hotlistOnlySpells; type=bool; default=false; visible=true
   - key=speciesInCreation; type=bool; default=false; visible=true
-  - key=damageTypes; type=string (comma list); default=Physical, Slashing, Piercing, Bludgeoning, Fire, Force, Holy, Cold, Ice, Lightning, Poison, Acid, Necrotic, Psychic, Sonic; visible=true
+  - key=damageTypeConfig; type=object {list: [{id, label, icon, color, description}], modules: {id: {label?, icon?, color?, description?, hidden?}}}; default={}; visible=false; use=edited by menu damageTypes; list unsaved = fall back to the old damageTypes comma list; modules = the GM's overrides of module-registered types
+  - key=damageTypes; type=string (comma list); default=starter names; visible=false; use=OLD list, read only while damageTypeConfig.list is unsaved (migration 0.1.1 still appends Slashing/Piercing/Bludgeoning to it)
   - key=sponsorLimit; type=number; default=3; visible=true; use=-1 unlimited
   - key=subclassFloor; type=number; default=6; visible=true
   - key=journalStyle; type=bool; default=true; visible=true
@@ -33,7 +34,7 @@
   - key=holdResultCards; type=bool; default=true
   - key=soundVolume; type=int 0..100; default=100
   - key=soundMuted; type=bool; default=false
-- menus: compendiumSources (CarlRPGSourcesSettings), creationSetup (CarlRPGCreationSettings), validateWorld (Validate World Items, last)
+- menus: compendiumSources (CarlRPGSourcesSettings), damageTypes (CarlRPGDamageTypesSettings), creationSetup (CarlRPGCreationSettings), validateWorld (Validate World Items, last)
 - keybindings: quickBar1..quickBar10 on Digit1..Digit9, Digit0 (rebindable)
 
 # api
@@ -43,6 +44,7 @@
 - game.carlRpg.macros: rest(kind 'short'|'long'|'full') -> confirmRest; levelUp(); advance() (asks which advanceable skill). All act on the selected token's crawler, else the user's character, else the first owned crawler.
 - game.carlRpg.macros (GM only): giveAiFavor(crawler, amount) and givePopularity(crawler, amount); crawler = Actor, id or name; minus takes away; floor 0; posts the card; returns the new total. Both go through helpers/grants.mjs grantNumber(actor, field, amount), which Dungeon Info and the chat commands use too.
 - CONFIG.CARL_RPG: all constants; CONFIG.CARL_RPG.getFloor()
+- CONFIG.CARL_RPG.damageTypes (also game.carlRpg.damageTypes): the damage type registry for modules (helpers/damage-types.mjs damageTypeRegistry). register({id?, label, icon?, color?, description?, source?}) (id from label when blank; throws without either; same id replaces; returns the type), unregister(id), get(id), list(). Call from the module's init hook (the system's init runs first) or later; nothing is cached, menus read it on render. A module type follows the GM's own types, shows its source in the Damage Types form, and the GM can hide it or override its label/icon/color/description but not its id; if the GM's list has the same id the GM's type is used.
 - caution: two namespaces with different casing (carlrpg vs carlRpg); see quirks
 
 - hooks:

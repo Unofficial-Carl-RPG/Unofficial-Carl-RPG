@@ -1,0 +1,56 @@
+{{! Damage types (opened from the system settings) }}
+<div class='creation-settings-body damage-types-body'>
+  <p class='hint'>{{localize 'CARL_RPG.Damage.Menu.Intro'}}</p>
+
+  <section class='gm-section'>
+    <h4>{{localize 'CARL_RPG.Damage.Menu.Own'}}</h4>
+    {{#each rows as |row|}}
+      <div class='damage-type-row'>
+        <span class='dt-swatch' {{#if row.color}}style='color: {{row.color}}'{{/if}}><i class='{{row.icon}}'></i></span>
+        <input type='text' class='dt-input' data-field='label' data-index='{{row.index}}' value='{{row.label}}' placeholder='{{localize "CARL_RPG.Damage.Menu.LabelField"}}' />
+        <input type='text' class='dt-input dt-id' data-field='id' data-index='{{row.index}}' value='{{row.id}}' placeholder='{{localize "CARL_RPG.Damage.Menu.Id"}}' data-tooltip='{{localize "CARL_RPG.Damage.Menu.IdTip"}}' />
+        <input type='color' class='dt-input dt-color' data-field='color' data-index='{{row.index}}' value='{{row.colorValue}}' data-tooltip='{{localize "CARL_RPG.Damage.Menu.Color"}}' />
+        <span class='dt-controls'>
+          {{#unless row.first}}<a class='item-control' data-action='moveType' data-dir='up' data-index='{{row.index}}' data-tooltip='{{localize "CARL_RPG.Damage.Menu.MoveUp"}}'><i class='fas fa-arrow-up'></i></a>{{/unless}}
+          {{#unless row.last}}<a class='item-control' data-action='moveType' data-dir='down' data-index='{{row.index}}' data-tooltip='{{localize "CARL_RPG.Damage.Menu.MoveDown"}}'><i class='fas fa-arrow-down'></i></a>{{/unless}}
+          <a class='item-control' data-action='removeType' data-index='{{row.index}}' data-tooltip='{{localize "CARL_RPG.Damage.Menu.Remove"}}'><i class='fas fa-trash'></i></a>
+        </span>
+        <input type='text' class='dt-input dt-icon' data-field='icon' data-index='{{row.index}}' value='{{row.icon}}' placeholder='{{localize "CARL_RPG.Damage.Menu.Icon"}}' />
+        <input type='text' class='dt-input dt-description' data-field='description' data-index='{{row.index}}' value='{{row.description}}' placeholder='{{localize "CARL_RPG.Damage.Menu.Description"}}' />
+      </div>
+    {{/each}}
+    <div class='dt-buttons'>
+      <button type='button' data-action='addType'><i class='fas fa-plus'></i> {{localize 'CARL_RPG.Damage.Menu.Add'}}</button>
+      <button type='button' data-action='resetDefaults'><i class='fas fa-rotate-left'></i> {{localize 'CARL_RPG.Damage.Menu.Reset'}}</button>
+    </div>
+  </section>
+
+  {{#if moduleRows.length}}
+    <section class='gm-section'>
+      <h4>{{localize 'CARL_RPG.Damage.Menu.Modules'}}</h4>
+      <p class='hint'>{{localize 'CARL_RPG.Damage.Menu.ModulesHint'}}</p>
+      {{#each moduleRows as |row|}}
+        <div class='damage-type-row module-type {{#if row.hidden}}is-hidden{{/if}}'>
+          <span class='dt-swatch' {{#if row.color}}style='color: {{row.color}}'{{/if}}><i class='{{row.icon}}'></i></span>
+          <input type='text' class='dt-mod-input' data-field='label' data-id='{{row.id}}' value='{{row.label}}' placeholder='{{row.baseLabel}}' />
+          <span class='dt-source'><code>{{row.id}}</code> <small>{{row.sourceTitle}}</small></span>
+          <input type='color' class='dt-mod-input dt-color' data-field='color' data-id='{{row.id}}' value='{{row.colorValue}}' data-tooltip='{{localize "CARL_RPG.Damage.Menu.Color"}}' />
+          <span class='dt-controls'>
+            <label class='event-option' data-tooltip='{{localize "CARL_RPG.Damage.Menu.HideTip"}}'>
+              <input type='checkbox' class='dt-mod-input' data-field='hidden' data-id='{{row.id}}' {{checked row.hidden}} />
+              {{localize 'CARL_RPG.Damage.Menu.Hide'}}
+            </label>
+            {{#if row.changed}}<a class='item-control' data-action='clearOverride' data-id='{{row.id}}' data-tooltip='{{localize "CARL_RPG.Damage.Menu.ClearOverride"}}'><i class='fas fa-rotate-left'></i></a>{{/if}}
+          </span>
+          <input type='text' class='dt-mod-input dt-icon' data-field='icon' data-id='{{row.id}}' value='{{row.icon}}' placeholder='{{localize "CARL_RPG.Damage.Menu.Icon"}}' />
+          <input type='text' class='dt-mod-input dt-description' data-field='description' data-id='{{row.id}}' value='{{row.description}}' placeholder='{{localize "CARL_RPG.Damage.Menu.Description"}}' />
+        </div>
+      {{/each}}
+    </section>
+  {{/if}}
+
+  <footer class='creation-buttons'>
+    <button type='button' data-action='save'><i class='fas fa-save'></i> {{localize 'CARL_RPG.Damage.Menu.Save'}}</button>
+    <button type='button' data-action='cancel'>{{localize 'Cancel'}}</button>
+  </footer>
+</div>

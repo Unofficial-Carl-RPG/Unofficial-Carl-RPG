@@ -26,6 +26,7 @@ import { registerMigration, runMigration } from './helpers/migration.mjs';
 import { registerCreationSetting } from './helpers/creation.mjs';
 import { CarlRPGCreationSettings } from './sheets/creation-settings.mjs';
 import { CarlRPGSourcesSettings } from './sheets/sources-settings.mjs';
+import { CarlRPGDamageTypesSettings } from './sheets/damage-types-settings.mjs';
 import { registerSourcesSetting } from './helpers/sources.mjs';
 import { installFromUuid, registerGMDocs } from './helpers/gm-docs.mjs';
 import { CarlRPGCreationWizard } from './sheets/creation-wizard.mjs';
@@ -215,6 +216,16 @@ Hooks.once('init', function () {
     hint: 'CARL_RPG.Sources.Menu.Hint',
     icon: 'fa-solid fa-book-atlas',
     type: CarlRPGSourcesSettings,
+    restricted: true,
+  });
+  // The damage types: the GM's list, edited in a form (modules add theirs through
+  // CONFIG.CARL_RPG.damageTypes.register, see helpers/damage-types.mjs).
+  game.settings.registerMenu('carl-rpg', 'damageTypes', {
+    name: 'CARL_RPG.Damage.Menu.Name',
+    label: 'CARL_RPG.Damage.Menu.Label',
+    hint: 'CARL_RPG.Damage.Menu.Hint',
+    icon: 'fa-solid fa-burst',
+    type: CarlRPGDamageTypesSettings,
     restricted: true,
   });
   game.settings.registerMenu('carl-rpg', 'creationSetup', {

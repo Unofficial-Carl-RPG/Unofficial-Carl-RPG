@@ -412,9 +412,31 @@ CARL_RPG.rankDamage = [
   { from: 20, formula: '2d10' },
 ];
 
-/** The damage types a new world starts with (the GM edits the list in the settings). */
-CARL_RPG.defaultDamageTypes =
-  'Physical, Slashing, Piercing, Bludgeoning, Fire, Force, Holy, Cold, Ice, Lightning, Poison, Acid, Necrotic, Psychic, Sonic';
+/**
+ * The damage types a new world starts with. The GM edits the list in the Damage Types form
+ * (system settings); modules add their own with CONFIG.CARL_RPG.damageTypes.register (see
+ * helpers/damage-types.mjs). `icon` is a Font Awesome class string, `color` a hex colour.
+ */
+CARL_RPG.damageTypeDefaults = [
+  { label: 'Physical', icon: 'fa-solid fa-hand-fist', color: '#9e9e9e', description: 'Plain force: fists, falls, anything with no other type.' },
+  { label: 'Slashing', icon: 'fa-solid fa-slash', color: '#b0b7c3', description: 'Blades and claws.' },
+  { label: 'Piercing', icon: 'fa-solid fa-bullseye', color: '#c9b79c', description: 'Points: arrows, spears, fangs.' },
+  { label: 'Bludgeoning', icon: 'fa-solid fa-hammer', color: '#8d6e63', description: 'Blunt blows: clubs, hammers, fists.' },
+  { label: 'Fire', icon: 'fa-solid fa-fire', color: '#e8590c', description: 'Flames and heat.' },
+  { label: 'Force', icon: 'fa-solid fa-burst', color: '#7e57c2', description: 'Raw magical force.' },
+  { label: 'Holy', icon: 'fa-solid fa-sun', color: '#f2c94c', description: 'Divine radiance.' },
+  { label: 'Cold', icon: 'fa-solid fa-snowflake', color: '#74c0fc', description: 'Frost and chill.' },
+  { label: 'Ice', icon: 'fa-solid fa-icicles', color: '#a5d8ff', description: 'Solid ice: shards and spikes.' },
+  { label: 'Lightning', icon: 'fa-solid fa-bolt', color: '#ffd43b', description: 'Electricity.' },
+  { label: 'Poison', icon: 'fa-solid fa-skull-crossbones', color: '#69a84f', description: 'Toxins and venom.' },
+  { label: 'Acid', icon: 'fa-solid fa-flask', color: '#a9d230', description: 'Corrosive fluids.' },
+  { label: 'Necrotic', icon: 'fa-solid fa-skull', color: '#6b4f7a', description: 'Decay and death magic.' },
+  { label: 'Psychic', icon: 'fa-solid fa-brain', color: '#e64980', description: 'Attacks on the mind.' },
+  { label: 'Sonic', icon: 'fa-solid fa-volume-high', color: '#4dabf7', description: 'Sound and shock waves.' },
+];
+
+/** The same names as the old comma-separated setting (still read by worlds that never saved the form). */
+CARL_RPG.defaultDamageTypes = CARL_RPG.damageTypeDefaults.map((d) => d.label).join(', ');
 
 /** How an effect can treat a damage type (see helpers/damage-types.mjs). */
 CARL_RPG.damageModes = {

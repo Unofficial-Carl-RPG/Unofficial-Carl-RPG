@@ -1,8 +1,18 @@
 /**
  * Damage types.
  *
- * The GM keeps one list of damage types (a world setting, a comma-separated
- * list). An item can deal one of them (`system.damageType`, blank for none) and can
+ * The GM keeps one list of damage types, edited in the Damage Types form (system settings):
+ * each has an id, a label, an icon (a Font Awesome class string), a colour and a description.
+ * Modules add their own with `CONFIG.CARL_RPG.damageTypes.register({ id, label, icon, color,
+ * description, source })` (also `game.carlRpg.damageTypes`); call it from your module's `init`
+ * hook or later. A module type is listed after the GM's own, shows its source, and the GM can
+ * hide it or override its label, icon, colour and description, but not its id. If the GM's list
+ * already has that id, the GM's type is the one used.
+ *
+ * Saved as the world setting `damageTypeConfig`: `{ list: [type], modules: { id: overrides } }`.
+ * A world that never saved it still reads the old comma-separated `damageTypes` setting.
+ *
+ * An item can deal one of them (`system.damageType`, blank for none) and can
  * be Armor-Piercing (`system.armorPiercing`: the damage ignores Damage Resistance).
  * An upgrade can change both (see helpers/upgrades.mjs).
  *
@@ -12,22 +22,10 @@
  * used when damage is applied (see Actor#applyDamage).
  */
 const NS = 'carl-rpg';
+/** The old setting: a comma-separated list of names. Read only while the config below is unsaved. */
 export const DAMAGE_TYPES_SETTING = 'damageTypes';
-
-/** The world setting: the GM's list of damage types. */
-export function registerDamageTypes() {
-  game.settings.register(NS, DAMAGE_TYPES_SETTING, {
-    name: 'CARL_RPG.Damage.TypesName',
-    hint: 'CARL_RPG.Damage.TypesHint',
-    scope: 'world',
-    config: true,
-    type: String,
-    default: CONFIG.CARL_RPG.defaultDamageTypes,
-  });
-}
-
-/** Types added to the starter list after some worlds had already saved their own. */
-export const ADDED_DAMAGE_TYPES = ['Slashing', 'Piercing', 'Bludgeoning'];
+/** The GM's damage types and their overrides of module types. */
+export const DAMAGE_TYPE_CONFIG_SETTING = 'damageTypeConfig';
 
 /** The id an item stores for a damage type name ("Cold Iron" is "cold-iron"). */
 export const damageTypeId = (label) =>
@@ -37,33 +35,169 @@ export const damageTypeId = (label) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+
 /**
- * The damage types, in the order the GM wrote them.
- * @returns {{id: string, label: string}[]}
+ * A damage type with every field tidied: the id is a slug (made from the label when blank),
+ * the icon keeps only class-name characters, the colour is a #rrggbb hex or blank.
+ * @param {object} raw
+ * @returns {{id: string, label: string, icon: string, color: string, description: string}}
  */
-export function damageTypes() {
-  let raw;
-  try {
-    raw = game.settings.get(NS, DAMAGE_TYPES_SETTING);
-  } catch (err) {
-    raw = undefined;
+export function normalizeDamageType(raw) {
+  const label = String(raw?.label ?? '').trim();
+  const id = damageTypeId(raw?.id || label);
+  const color = String(raw?.color ?? '').trim().toLowerCase();
+  return {
+    id,
+    label: label || id,
+    icon: String(raw?.icon ?? '')
+      .toLowerCase()
+      .replace(/[^a-z0-9 -]+/g, '')
+      .replace(/\s+/g, ' ')
+      .trim(),
+    color: HEX_COLOR.test(color) ? color : '',
+    description: String(raw?.description ?? '').trim(),
+  };
+}
+
+/** The starter list, as rows (a copy the form can edit). */
+export const defaultDamageTypeList = () =>
+  CONFIG.CARL_RPG.damageTypeDefaults.map((d) => normalizeDamageType(d));
+
+/* -------------------------------------------- */
+/*  The registry modules add types to           */
+/* -------------------------------------------- */
+
+const registered = new Map();
+
+/** What a module calls: CONFIG.CARL_RPG.damageTypes and game.carlRpg.damageTypes. */
+export const damageTypeRegistry = {
+  /**
+   * Add (or replace) a damage type.
+   * @param {object} entry  {id?, label, icon?, color?, description?, source?}; the id is made
+   *   from the label when blank; `source` is the module id, shown in the GM's form
+   * @returns {object} The type as it is kept
+   */
+  register(entry) {
+    const type = normalizeDamageType(entry);
+    if (!type.id) throw new TypeError('carl-rpg | A damage type needs a label or an id.');
+    registered.set(type.id, { ...type, source: String(entry?.source ?? '').trim() });
+    return { ...registered.get(type.id) };
+  },
+  /** Take a type back out; true if it was there. */
+  unregister(id) {
+    return registered.delete(damageTypeId(id));
+  },
+  /** One registered type (not the GM's own), or undefined. */
+  get(id) {
+    const type = registered.get(damageTypeId(id));
+    return type ? { ...type } : undefined;
+  },
+  /** Every registered type, in the order they were added. */
+  list() {
+    return [...registered.values()].map((type) => ({ ...type }));
+  },
+  /** Empty the registry (for tests). */
+  _clear() {
+    registered.clear();
+  },
+};
+
+/** The world settings, and the registry for modules. */
+export function registerDamageTypes() {
+  // The old comma-separated list: no longer shown, read only until the form is first saved.
+  game.settings.register(NS, DAMAGE_TYPES_SETTING, {
+    name: 'CARL_RPG.Damage.TypesName',
+    scope: 'world',
+    config: false,
+    type: String,
+    default: CONFIG.CARL_RPG.defaultDamageTypes,
+  });
+  game.settings.register(NS, DAMAGE_TYPE_CONFIG_SETTING, {
+    name: 'CARL_RPG.Damage.TypesName',
+    scope: 'world',
+    config: false,
+    type: new foundry.data.fields.ObjectField({ initial: {} }),
+    default: {},
+  });
+  game.carlRpg ??= {};
+  game.carlRpg.damageTypes = damageTypeRegistry;
+}
+
+/** Types added to the starter list after some worlds had already saved their own. */
+export const ADDED_DAMAGE_TYPES = ['Slashing', 'Piercing', 'Bludgeoning'];
+
+/**
+ * The damage types as they stand: the GM's list in order, then the module types the GM's list
+ * lacks (with the GM's overrides). Pure: the settings and the registry are passed in.
+ * @param {object} [p]
+ * @param {object} [p.config]  The saved `damageTypeConfig`
+ * @param {string} [p.legacy]  The old comma-separated list, used while `config.list` is unsaved
+ * @param {object[]} [p.registered]  The registry's types
+ * @returns {{id, label, icon, color, description, module: boolean, hidden: boolean, source: string}[]}
+ */
+export function resolveDamageTypes({ config, legacy, registered: reg = damageTypeRegistry.list() } = {}) {
+  const saved = config && typeof config === 'object' ? config : {};
+  let own;
+  if (Array.isArray(saved.list)) {
+    own = saved.list.map(normalizeDamageType);
+  } else {
+    const names = typeof legacy === 'string' ? legacy : CONFIG.CARL_RPG.defaultDamageTypes;
+    own = names.split(',').map((name) => {
+      const type = normalizeDamageType({ label: name });
+      const starter = defaultDamageTypeList().find((d) => d.id === type.id);
+      return starter ? { ...type, icon: starter.icon, color: starter.color, description: starter.description } : type;
+    });
   }
-  if (typeof raw !== 'string') raw = CONFIG.CARL_RPG.defaultDamageTypes;
   const seen = new Set();
   const list = [];
-  for (const part of raw.split(',')) {
-    const label = part.trim();
-    const id = damageTypeId(label);
-    if (!id || seen.has(id)) continue;
-    seen.add(id);
-    list.push({ id, label });
+  for (const type of own) {
+    if (!type.id || seen.has(type.id)) continue;
+    seen.add(type.id);
+    list.push({ ...type, module: false, hidden: false, source: '' });
+  }
+  const overrides = saved.modules && typeof saved.modules === 'object' ? saved.modules : {};
+  for (const entry of reg) {
+    if (seen.has(entry.id)) continue;
+    seen.add(entry.id);
+    const over = overrides[entry.id] ?? {};
+    const type = normalizeDamageType({
+      id: entry.id,
+      label: over.label || entry.label,
+      icon: over.icon || entry.icon,
+      color: over.color || entry.color,
+      description: over.description || entry.description,
+    });
+    list.push({ ...type, module: true, hidden: !!over.hidden, source: entry.source ?? '' });
   }
   return list;
 }
 
+const readSetting = (key) => {
+  try {
+    return game.settings.get(NS, key);
+  } catch (err) {
+    return undefined;
+  }
+};
+
+/**
+ * Every damage type, the ones the GM hid included (so an item or effect that already uses one
+ * still has its name and stays valid).
+ * @returns {{id, label, icon, color, description, module: boolean, hidden: boolean, source: string}[]}
+ */
+export const allDamageTypes = () =>
+  resolveDamageTypes({
+    config: readSetting(DAMAGE_TYPE_CONFIG_SETTING),
+    legacy: readSetting(DAMAGE_TYPES_SETTING),
+  });
+
+/** The damage types to offer in menus: all but the hidden ones, in the GM's order. */
+export const damageTypes = () => allDamageTypes().filter((d) => !d.hidden);
+
 /** A type's name for display (the id itself if it has since left the list). */
 export const damageTypeLabel = (id) =>
-  damageTypes().find((d) => d.id === id)?.label ?? String(id ?? '');
+  allDamageTypes().find((d) => d.id === id)?.label ?? String(id ?? '');
 
 /** The types for a menu, with "None" first. */
 export function damageTypeOptions() {
@@ -71,6 +205,48 @@ export function damageTypeOptions() {
     '': game.i18n.localize('CARL_RPG.Damage.NoType'),
     ...Object.fromEntries(damageTypes().map((d) => [d.id, d.label])),
   };
+}
+
+/**
+ * What is wrong with a list the form is about to save, as a key under CARL_RPG.Damage.Menu.Problem
+ * (null when it is fine): a blank label or id, or an id used twice.
+ * @param {{id: string, label: string}[]} list
+ * @returns {'EmptyLabel'|'EmptyId'|'DuplicateId'|null}
+ */
+export function damageTypeListProblem(list) {
+  const seen = new Set();
+  for (const type of list) {
+    if (!String(type?.label ?? '').trim()) return 'EmptyLabel';
+    const id = damageTypeId(type.id);
+    if (!id) return 'EmptyId';
+    if (seen.has(id)) return 'DuplicateId';
+    seen.add(id);
+  }
+  return null;
+}
+
+/**
+ * Save the GM's list and their overrides of module types.
+ * @param {{list: object[], modules: object}} data
+ */
+export async function saveDamageTypes({ list, modules }) {
+  const keep = (value) => (value === '' || value === false || value == null ? undefined : value);
+  const overrides = {};
+  for (const [id, over] of Object.entries(modules ?? {})) {
+    const row = {
+      label: keep(String(over?.label ?? '').trim()),
+      icon: keep(normalizeDamageType({ label: 'x', icon: over?.icon }).icon),
+      color: keep(normalizeDamageType({ label: 'x', color: over?.color }).color),
+      description: keep(String(over?.description ?? '').trim()),
+      hidden: keep(!!over?.hidden),
+    };
+    const clean = Object.fromEntries(Object.entries(row).filter(([, v]) => v !== undefined));
+    if (Object.keys(clean).length) overrides[id] = clean;
+  }
+  await game.settings.set(NS, DAMAGE_TYPE_CONFIG_SETTING, {
+    list: list.map(normalizeDamageType),
+    modules: overrides,
+  });
 }
 
 /**
@@ -131,7 +307,7 @@ export function rowTypesProblem(change) {
   const first = String(change?.bonusType ?? '').trim();
   const second = String(change?.bonusAlso ?? '').trim();
   if (second && !first) return true;
-  const known = damageTypes().map((d) => d.id);
+  const known = allDamageTypes().map((d) => d.id);
   return [first, second].some((id) => id && !known.includes(id));
 }
 

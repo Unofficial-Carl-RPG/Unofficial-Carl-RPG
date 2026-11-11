@@ -949,3 +949,64 @@
     font-family: var(--dcc-font-system);
   }
 }
+
+// Damage types form (opened from the system settings).
+.creation-settings .damage-types-body {
+  .damage-type-row {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1.3fr) minmax(0, 1fr) 40px auto;
+    gap: 4px 6px;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--dcc-border);
+
+    &.is-hidden {
+      opacity: 0.6;
+    }
+
+    .dt-swatch {
+      text-align: center;
+      font-size: 1.1em;
+    }
+
+    .dt-id,
+    .dt-source {
+      font-size: 0.85em;
+    }
+
+    .dt-source small {
+      color: var(--dcc-text-dim);
+    }
+
+    input[type='color'] {
+      width: 36px;
+      height: 24px;
+      padding: 0;
+    }
+
+    .dt-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .dt-icon {
+      grid-column: 2;
+    }
+
+    .dt-description {
+      grid-column: 3 / 6;
+    }
+  }
+
+  .dt-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+
+    button {
+      width: auto;
+    }
+  }
+}
