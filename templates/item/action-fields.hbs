@@ -33,8 +33,18 @@
       <p class='hint'>{{localize 'CARL_RPG.Check.Hint'}}</p>
     </div>
     <div class='action-extra'>
-      <label class='resource-label' for='system.damage'>{{localize 'CARL_RPG.Item.base.FIELDS.damage.label'}}</label>
-      <input type='text' name='system.damage' value='{{system.damage}}' placeholder='1d6+@str.mod' />
+      {{#if system.weapon}}{{#if (eq system.action.type 'skill')}}
+        <label class='resource-label' data-tooltip='{{localize "CARL_RPG.Item.Gear.OverrideHint"}}'>
+          <input type='checkbox' name='system.overrideDamage' {{#if system.overrideDamage}}checked{{/if}}{{#unless @root.editable}} disabled{{/unless}} />
+          {{localize 'CARL_RPG.Item.Gear.FIELDS.overrideDamage.label'}}
+        </label>
+      {{/if}}{{/if}}
+      {{#if system.skillDamageOnly}}
+        <p class='hint'>{{localize 'CARL_RPG.Item.Gear.SkillDamageHint'}}</p>
+      {{else}}
+        <label class='resource-label' for='system.damage'>{{localize 'CARL_RPG.Item.base.FIELDS.damage.label'}}</label>
+        <input type='text' name='system.damage' value='{{system.damage}}' placeholder='1d6+@str.mod' />
+      {{/if}}
       <div class='damage-extra'>
         <label class='resource-label' for='system.damageType'>{{localize 'CARL_RPG.Damage.Type'}}</label>
         <select name='system.damageType'>
@@ -49,7 +59,7 @@
           {{localize 'CARL_RPG.Damage.ArmorPiercing'}}
         </label>
       </div>
-      <p class='hint'>{{localize 'CARL_RPG.Attack.DamageHint'}}</p>
+      {{#unless system.skillDamageOnly}}<p class='hint'>{{localize 'CARL_RPG.Attack.DamageHint'}}</p>{{/unless}}
     </div>
   {{/unless}}
 </div>

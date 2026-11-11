@@ -1,6 +1,7 @@
 import CarlRPGItemBase from './base-item.mjs';
 import { actionFormula, actionSchema, migrateAction } from './action.mjs';
 import { isTwoHanded } from '../helpers/gear-slots.mjs';
+import { migrateWeapon } from '../helpers/weapon-damage.mjs';
 
 export default class CarlRPGGear extends CarlRPGItemBase {
   static LOCALIZATION_PREFIXES = [
@@ -21,6 +22,16 @@ export default class CarlRPGGear extends CarlRPGItemBase {
 
     // The skill (one of the skills above) a weapon rolls with. Blank means the first.
     schema.rollSkill = new fields.StringField({ blank: true, initial: '' });
+
+    // Whether this gear counts as a weapon (filters, tooltips). A weapon with a Skill
+    // check action rolls the skill's damage; Override damage swaps in its own formula
+    // for the skill's base damage (see helpers/weapon-damage.mjs).
+    schema.weapon = new fields.BooleanField({ required: true, nullable: false, initial: false });
+    schema.overrideDamage = new fields.BooleanField({
+      required: true,
+      nullable: false,
+      initial: false,
+    });
 
     // Whether the gear is currently equipped (see CarlRPGItem#toggleEquipped).
     schema.equipped = new fields.BooleanField({
@@ -71,12 +82,14 @@ export default class CarlRPGGear extends CarlRPGItemBase {
   /** @inheritdoc */
   static migrateData(source) {
     super.migrateData(source);
-    return migrateAction(source, 'gear');
+    return migrateWeapon(migrateAction(source, 'gear'));
   }
 
   prepareDerivedData() {
     this.formula = actionFormula(this.action);
     // Derived: two-handed only counts in the Hands slot.
     this.isTwoHanded = isTwoHanded(this);
+    // Derived: a weapon that rolls a skill uses the skill's damage unless it overrides it.
+    this.skillDamageOnly = !!this.weapon && this.action?.type === 'skill' && !this.overrideDamage;
   }
 }

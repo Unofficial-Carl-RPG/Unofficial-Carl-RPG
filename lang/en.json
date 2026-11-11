@@ -780,12 +780,17 @@
           "quantity": {"label": "Quantity"},
           "slot": {"label": "Slot"},
           "twoHanded": {"label": "Two-Handed"},
+          "weapon": {"label": "Weapon"},
+          "overrideDamage": {"label": "Override damage"},
           "dr": {"label": "Damage Resistance"},
           "equipped": {"label": "Equipped"}
         },
         "DRShort": "DR",
         "DRHint": "Added to the crawler's Armor while equipped.",
         "TwoHandedHint": "Uses both hands.",
+        "WeaponHint": "Counts as a weapon.",
+        "OverrideHint": "Use this damage instead of the skill's base damage. Skill upgrades still apply.",
+        "SkillDamageHint": "Uses the skill's damage.",
         "Equip": {
           "Equip": "Equip",
           "Unequip": "Unequip",

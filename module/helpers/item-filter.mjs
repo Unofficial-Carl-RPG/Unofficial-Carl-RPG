@@ -42,7 +42,7 @@ export function chipsFor(item) {
       key: sys.equipped ? 'equipped' : 'notEquipped',
       label: sys.equipped ? 'CARL_RPG.Filter.Equipped' : 'CARL_RPG.Filter.NotEquipped',
     });
-    const weapon = !!sys.damage;
+    const weapon = !!sys.weapon;
     const armor = (sys.dr ?? 0) > 0;
     if (weapon) chips.push({ group: 'category', key: 'weapon', label: 'CARL_RPG.Filter.Weapon' });
     if (armor) chips.push({ group: 'category', key: 'armor', label: 'CARL_RPG.Filter.Armor' });

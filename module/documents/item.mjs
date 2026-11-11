@@ -34,6 +34,7 @@ import {
 } from '../helpers/roll-mods.mjs';
 import { describeUpgrades, effectiveOf } from '../helpers/upgrades.mjs';
 import { expandRankDamage } from '../helpers/rank-damage.mjs';
+import { rolledDamageText } from '../helpers/weapon-damage.mjs';
 import { needsMelee, resolveMultipliers } from '../helpers/damage-multiply.mjs';
 import { badgeRowHtml, itemCardHeader, shortTextOf } from '../helpers/item-badges.mjs';
 import { offerAiFavor } from '../helpers/ai-favor.mjs';
@@ -843,7 +844,7 @@ export class CarlRPGItem extends Item {
 
   /**
    * Set up a roll with the weapon's skill: the formula takes that skill's stat,
-   * its rank and roll bonus, and its damage is added to the weapon's damage.
+   * its rank and roll bonus, and its damage is used (see helpers/weapon-damage.mjs).
    * @returns {Promise<{skill: Item, restore: Function}|null>}  null if no skill
    */
   async #useRollingSkill() {
@@ -857,12 +858,8 @@ export class CarlRPGItem extends Item {
       skillRollFormula(skill.system.stat, rank, bonus),
       sys.action?.modifier
     );
-    const skillDamage = (skill.system.effective?.damage ?? '').trim();
     // @rankDamage in the weapon's damage or in the skill's reads the skill's rank.
-    sys.damage = expandRankDamage(
-      [String(saved.damage ?? '').trim(), skillDamage].filter(Boolean).join(' + '),
-      skill
-    );
+    sys.damage = expandRankDamage(rolledDamageText(sys, skill.system), skill);
     return {
       skill,
       restore: () => {

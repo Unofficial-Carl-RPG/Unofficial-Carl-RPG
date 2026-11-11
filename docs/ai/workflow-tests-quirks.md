@@ -80,6 +80,7 @@
 - distance.test.mjs: token distance (edge to edge squares, diagonals, big tokens, feet per square, no token), the Within N ft rows (validity, per-target multiplier, Roll Modifier dice and multiplier rows) and the distance event condition
 - events.test.mjs: triggers, conditions, formulas over roll data (incl. @roll.margin/bonus/mod/rank, @damage.*, @rankDamage in amounts, a weapon's rolled skill), actions, trust, add-token, approval, target groups (targeted vs burst)
 - event-roll.test.mjs: rollNumbers, marginOf, damageNumbers, damageOfTarget (the numbers a use hands to events)
+- weapon-damage.test.mjs: weapon damage rules (skill damage only, Override replaces the base and keeps upgrades, blank override, non-weapon adds), migrateWeapon, Weapon filter chip
 - gear-slots.test.mjs: slot room, two-handed gear, what comes off when equipping
 - item-badges.test.mjs: describeBadges builds for gear/skills with count or area targeting and a splash (regression: undefined `eff` stopped weapon skills opening)
 - health-slots.test.mjs: Health Bar slots: the slot count modifier (1..100, clamped not rewritten), slot value rows from the top and bottom, damage slot by slot (even slots equal floor(net / perBox), Tough Guy Tattoo, uneven slots, overkill), Selfie Stick, crawler and mob derived slots, mob damage by CON mod

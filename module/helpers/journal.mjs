@@ -256,7 +256,7 @@ function embedNumbers(doc) {
   }
   if (doc.type === 'spell') rows.push([loc('Mana'), doc.costLabels?.().mana || 0]);
   if (doc.type === 'gear') rows.push([loc('DR'), doc.system.dr ?? 0]);
-  if (doc.system?.damage) rows.push([loc('Damage'), doc.system.damage]);
+  if (doc.system?.damage && !doc.system?.skillDamageOnly) rows.push([loc('Damage'), doc.system.damage]);
   if (isGM() && doc.system?.value !== undefined) rows.push([loc('Value'), doc.system.value]);
   return rows;
 }

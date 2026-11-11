@@ -110,7 +110,7 @@ export function describeBadges(item) {
   }
 
   // Anything with a damage formula (gear and items) shows it.
-  if (['gear', 'item'].includes(item.type) && sys.damage) {
+  if (['gear', 'item'].includes(item.type) && sys.damage && !sys.skillDamageOnly) {
     badges.push(`${loc('CARL_RPG.Badges.Damage')} ${sys.damage}`);
   }
 

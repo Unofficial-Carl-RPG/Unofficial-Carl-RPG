@@ -24,6 +24,12 @@
     </div>
   {{/if}}
   <div class='resource'>
+    <label class='resource-label' data-tooltip='{{localize "CARL_RPG.Item.Gear.WeaponHint"}}'>
+      <input type='checkbox' name='system.weapon' {{#if system.weapon}}checked{{/if}}{{#unless @root.editable}} disabled{{/unless}} />
+      {{localize 'CARL_RPG.Item.Gear.FIELDS.weapon.label'}}
+    </label>
+  </div>
+  <div class='resource'>
     <label class='resource-label' for='system.dr'>{{localize 'CARL_RPG.Item.Gear.FIELDS.dr.label'}}</label>
     <input type='number' name='system.dr' value='{{system.dr}}' min='0' step='1' data-dtype='Number' />
     <p class='hint'>{{localize 'CARL_RPG.Item.Gear.DRHint'}}</p>
