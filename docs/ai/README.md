@@ -18,7 +18,7 @@ source: branch carl-rpg @ d84882d. Read from module/ (data models, documents, he
 - NS: the flag/setting namespace 'carl-rpg'
 
 ## Status
-- tests: npm test -> 659 rule tests pass (node --test, stubs in tests/stubs.mjs stand in for Foundry)
+- tests: npm test -> 680 rule tests pass (node --test, stubs in tests/stubs.mjs stand in for Foundry)
 - foundryRun: NEVER run in Foundry. Every runtime behaviour below is verified only by code reading and stub tests. Playtesting is done by the user.
 - openWork: system.json url/manifest/download/bugs are placeholders. Everything else in the plan is built or dropped.
 - commits: 367
@@ -31,7 +31,7 @@ source: branch carl-rpg @ d84882d. Read from module/ (data models, documents, he
 | actors.md | actors | crawler, mob, pet, mount, lootPile fields, derived values, sheet tabs |
 | items-effects.md | items, effects | every item type (fields, rules, sheet tabs), effect flags, modifiers, build benefits |
 | events.md | events | triggers, conditions, actions, summons and minions (Summon action), trust/approval, library, floor rules |
-| rules.md | rules | item use flow, checks/degrees, damage, typed bonus dice (damage parts), build damage (bonus dice, stat swap), mob attacks, combat phases, dying, rests, leveling, upgrades, targeting |
+| rules.md | rules | item use flow, checks/degrees, damage, the damage window (Roll Damage button), typed bonus dice (damage parts), build damage (bonus dice, stat swap), mob attacks, combat phases, dying, rests, leveling, upgrades, targeting |
 | systems.md | systems | creation wizard, origins, loot boxes, mob loot, stores, quests, Dungeon Info, announcements, recap, journals, sources |
 | ui.md | ui | style rules, filters, tooltips, quick bar, chat cards, sounds, tokens |
 | settings-api-flags.md | settings, api, flags, visibility | setting keys, globals, hooks, chat commands, flag keys, who sees what |

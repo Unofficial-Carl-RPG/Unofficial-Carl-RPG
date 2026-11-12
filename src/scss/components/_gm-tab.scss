@@ -547,6 +547,17 @@
     margin: 0;
     padding: 1px 6px;
   }
+
+  // The Roll Damage button under the targets of an attack whose damage is still to roll.
+  .attack-roll-damage {
+    margin: 4px 0 2px;
+
+    button {
+      width: 100%;
+      margin: 0;
+      padding: 2px 6px;
+    }
+  }
 }
 // Degrees of success on an attack card.
 .carl-attack-card {

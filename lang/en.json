@@ -1175,6 +1175,25 @@
         "Failed": "Character creation failed. See the console for details."
       }
     },
+    "DamageDialog": {
+      "Roll": "Roll damage",
+      "Button": "Roll Damage",
+      "ButtonTip": "Shift: skip the window",
+      "Flavor": "{name}: damage",
+      "Bonus": "Bonus damage",
+      "BonusPlaceholder": "2, 1d4",
+      "BonusName": "Bonus damage",
+      "Multiplier": "Multiplier",
+      "MultiplierPlaceholder": "x1",
+      "Type": "Damage type",
+      "Also": "Second type",
+      "NoAlso": "None",
+      "AsWritten": "As written",
+      "AsWrittenType": "As written ({type})",
+      "IgnoreDR": "Ignore DR",
+      "WaitingForRolls": "Waiting for the defending rolls.",
+      "Invalid": "\"{bonus}\" is not a valid bonus."
+    },
     "RollDialog": {
       "Bonus": "Extra bonus",
       "BonusPlaceholder": "+2, -1 or 1d4",

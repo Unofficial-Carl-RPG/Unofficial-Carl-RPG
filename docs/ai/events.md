@@ -62,7 +62,7 @@
 - distance: the owner's token (helpers/summon.mjs findAnchor, no targets) is within value feet of ctx.targetToken, edge to edge (helpers/distance.mjs: touching tokens are 5 ft apart on a 5 ft grid, one empty square between is 10 ft, a diagonal counts like a straight line). value is a formula like the other value conditions. False when either token is missing or they are on different scenes; offered on used|hit|miss events but only hit and miss bring a targetToken, so on used it is never true. Not carried by a relayed request (conditions are checked on the client that triggered the event)
 - targetKind: text: crawler|pet|mob|basic|elite|boss
 - restKind: text: short|long|full, 'at least' (long counts as short)
-- damageOption: @trigger.option > 0, i.e. the roll pop-up's instead-of-damage tick of a Damage Effect; offered on used|hit|miss events (a Damage Effect's own used/hit events get it)
+- damageOption: @trigger.option > 0, i.e. the damage window's instead-of-damage tick of a Damage Effect; offered on used|hit|miss events (a Damage Effect's own used/hit events get it)
 
 ## actions
 - useItem: uuid of an item the owner has; item.roll() at depth+1 (no action cost, no target prompt)

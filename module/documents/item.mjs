@@ -18,7 +18,9 @@ import {
   shiftSpan,
 } from '../data/costs.mjs';
 import { getFloor } from '../helpers/floor.mjs';
-import { resolveCheck } from '../helpers/attacks.mjs';
+import { resolveCheck, rollAttackDamage } from '../helpers/attacks.mjs';
+import { bonusFormula } from '../helpers/damage-options.mjs';
+import { damageTypes } from '../helpers/damage-types.mjs';
 import { availableEffects, startCooldown } from '../helpers/damage-effects.mjs';
 import {
   addRankBonus,
@@ -43,6 +45,7 @@ import { isLimited, spendUse, usesLeft } from '../helpers/uses.mjs';
 import { declareInsteadOfUsing } from '../helpers/declarations.mjs';
 import { updateWithRelay } from '../helpers/relay.mjs';
 import {
+  promptDamage,
   promptRoll,
   buildFormula,
   optionsParts,
@@ -1186,44 +1189,23 @@ export class CarlRPGItem extends Item {
     for (const a of ammo) paid[a.key] = a.min;
     const asks = [...this.#costChoices(spans), ...this.#ammoChoices(ammo)];
     const rollPopup = !!event && !event.shiftKey && depth === 0 && rolls;
-    // The Damage Effects that can be chosen for this attack (see helpers/damage-effects.mjs):
-    // the crawler's own, listing the skill the roll uses (by name or a #tag of the skill or
-    // this item), off cooldown. Shift skips the choice.
+    // The skill the roll uses (a weapon's), for the Roll Modifiers and the build benefits' dice.
+    // (The Damage Effects, the Damage stat and the melee tick are asked about when the damage is
+    // rolled: see rollDamage.)
     const modSkill =
       this.actor?.type === 'mob' ? null : this.type === 'skill' ? this : await this.rollingSkill();
-    const effects = rollPopup && modSkill ? availableEffects(this.actor, modSkill, this) : [];
     // The Roll Modifiers that can be chosen (see helpers/roll-mods.mjs): the crawler's own,
     // listing the skill the roll uses. A skill that lists itself modifies its own use, pop-up
     // or not. A spell is its own skill here (Damage Effects above still skip spells).
     const modsFor = modSkill ?? (isSpellLike(this) && this.actor?.type !== 'mob' ? this : null);
     const mods = rollPopup && modsFor ? availableMods(this.actor, modsFor, this, { data: this.costData() }) : [];
     const selfMod = selfModOf(modSkill);
-    // Build benefits that add damage dice (a race's) can ask for the Surprise and melee ticks too.
+    // Build benefits that add damage dice (a race's) can ask for the Surprise tick too.
     const diceTicks = rollPopup ? diceNeeds(this.actor, this, modSkill) : { surprise: false, melee: false };
     const surpriseOption = diceTicks.surprise || [...mods, selfMod].some((mod) => mod && needsSurprise(mod));
     // The damage multipliers this use can reach: the item's own and those of the skill it rolls
-    // with. One that needs melee range shows its tick in the pop-up (helpers/damage-multiply.mjs).
-    const multiplierRows = [
-      ...(effectiveOf(this).multipliers ?? []),
-      ...(modSkill && modSkill !== this ? (effectiveOf(modSkill).multipliers ?? []) : []),
-    ];
-    const meleeOption =
-      rollPopup &&
-      (diceTicks.melee ||
-        needsMelee(multiplierRows) ||
-        [...mods, selfMod].some((mod) => mod && needsMeleeMod(mod)));
-    // Build benefits that swap the stat the damage adds (Cha for Str): a menu in the pop-up, for
-    // the formulas that have that stat in them (the item's, plus the skill a weapon rolls with).
-    const damageText = [
-      effectiveOf(this).damage,
-      modSkill && modSkill !== this ? effectiveOf(modSkill).damage : '',
-    ]
-      .filter(Boolean)
-      .join(' + ');
-    const swaps = rollPopup ? statSwapsFor(this.actor, this, modSkill, damageText) : [];
-    let chosenSwap = null;
-    let chosenEffect = null;
-    let effectOption = false;
+    // with (helpers/damage-multiply.mjs). A use with no damage window (Shift, an event) reads them now.
+    const multiplierRows = this.#multiplierRows(modSkill);
     let chosenMod = null;
     let surprise = false;
     let melee = false;
@@ -1272,15 +1254,8 @@ export class CarlRPGItem extends Item {
         tip: shortTextOf(this),
         costs: asks,
         rolls: rollPopup,
-        damageEffects: effects.map((effect) => ({
-          id: effect.id,
-          name: effect.name,
-          stun: !!effect.system.damageRules?.stunOption,
-        })),
         rollMods: mods.map((mod) => ({ id: mod.id, name: mod.name })),
         surpriseOption,
-        meleeOption,
-        damageStats: swaps,
         shapes: shapeChoices,
       });
       if (!chosen) return null;
@@ -1290,12 +1265,8 @@ export class CarlRPGItem extends Item {
         // A mistyped bonus is caught now, before any action or mana is spent.
         if (buildFormula(this.system.formula, chosen) === null) return null;
         rollOptions = chosen;
-        chosenEffect = effects.find((effect) => effect.id === chosen.damageEffect) ?? null;
-        effectOption = !!(chosenEffect && chosen.option);
         chosenMod = mods.find((mod) => mod.id === chosen.rollMod) ?? null;
         surprise = !!chosen.surprise;
-        melee = !!chosen.melee;
-        chosenSwap = swaps.find((swap) => swap.id === chosen.damageStat) ?? null;
       }
     }
     // A modifier only a single-target scope row covers does not work on an area version of the
@@ -1343,13 +1314,6 @@ export class CarlRPGItem extends Item {
       surprise,
       melee,
     });
-    const swapNotes = chosenSwap
-      ? [
-          game.i18n.format('CARL_RPG.RollDialog.DamageStatNote', {
-            stat: game.i18n.localize(CONFIG.CARL_RPG.abilities[chosenSwap.to]),
-          }),
-        ]
-      : [];
     // The damage multipliers whose condition on the roll holds (degree conditions are read per
     // target): the item's and rolled skill's own, and those of the Roll Modifiers in play.
     const multipliers = [
@@ -1404,7 +1368,7 @@ export class CarlRPGItem extends Item {
     await grantTempDR(this.actor, drGrants);
     const rolling = await this.#useRollingSkill();
     const result = await this._rollCore(event, {
-      costs: [...mana.notes, ...ammoNotes, ...scrollNotes, ...drNotes(drGrants), ...swapNotes],
+      costs: [...mana.notes, ...ammoNotes, ...scrollNotes, ...drNotes(drGrants)],
       options: rollOptions,
     });
     // A mistyped bonus: nothing was rolled, and nothing further happens.
@@ -1418,6 +1382,27 @@ export class CarlRPGItem extends Item {
     // helpers/attacks.mjs).
     // Tokens only in the splash of an area (see helpers/splash.mjs). Unless the item's splash
     // applies effects, its events reach only the targets inside the area.
+    // What events read about the roll (@roll.margin, @roll.bonus ...), worked out before the damage
+    // is, since a deferred damage roll runs the hit events later with the same numbers.
+    const rolledNumbers = roll
+      ? rollNumbers({
+          options: rollOptions,
+          data: this.actor?.getRollData?.() ?? {},
+          defaultStat,
+          rank: rankOf((rolling?.skill ?? this).system),
+        })
+      : {};
+    // A click (or a mob's use) leaves the damage for the card's Roll Damage button, with its own
+    // window. Shift, events and macros roll it now, with the defaults.
+    const deferDamage =
+      depth === 0 && (this.actor?.type === 'mob' || rollPopup)
+        ? {
+            mode: rollOptions.mode ?? 'normal',
+            surprise,
+            rollModUuid: chosenMod?.uuid ?? null,
+            rolled: rolledNumbers,
+          }
+        : null;
     const splash = depth === 0 ? takeSplash(this.uuid) : [];
     const targeted =
       splash.length && !this.system.targeting?.splashEffects
@@ -1427,23 +1412,14 @@ export class CarlRPGItem extends Item {
             .filter(Boolean)
         : undefined;
     const attack = await resolveCheck(this, roll, {
-      damageEffect: chosenEffect ? { item: chosenEffect, option: effectOption } : null,
       modDice: [...modResult.dice, ...buildDice],
-      statSwap: chosenSwap,
       splash,
       paid,
       multipliers,
+      deferDamage,
     });
     rolling?.restore();
     // What events can read about the roll and the damage (@roll.margin, @damage.total ...).
-    const rolledNumbers = roll
-      ? rollNumbers({
-          options: rollOptions,
-          data: this.actor?.getRollData?.() ?? {},
-          defaultStat,
-          rank: rankOf((rolling?.skill ?? this).system),
-        })
-      : {};
     const usedExtra = {
       check: { ...rolledNumbers, margin: attack?.margin },
       damage: attack?.damage ?? undefined,
@@ -1465,14 +1441,8 @@ export class CarlRPGItem extends Item {
       targeted,
       ...usedExtra,
     });
-    // A Damage Effect that changed the attack goes on cooldown, and its own events run
-    // (they see whether the "instead of damage" option was ticked).
-    const effectCtx = { roll, paid, depth, option: effectOption ? 1 : 0, collect: fired, targeted, ...usedExtra };
-    if (chosenEffect && attack?.effectApplied) {
-      await startCooldown(chosenEffect);
-      await runEvents(chosenEffect, 'used', { ...effectCtx, degrees: attack?.degrees });
-    }
-    // Each target that was hit runs the "an attack hits a target" events.
+    // Each target that was hit runs the "an attack hits a target" events. (A use whose damage
+    // waits for the Roll Damage button has none yet: they run once it is rolled, see rollDamage.)
     for (const hit of attack?.hits ?? []) {
       // (this target's margin and damage)
       const hitExtra = {
@@ -1490,16 +1460,6 @@ export class CarlRPGItem extends Item {
         collect: fired,
         ...hitExtra,
       });
-      if (chosenEffect && hit.effect) {
-        await runEvents(chosenEffect, 'hit', {
-          ...effectCtx,
-          target: hit.actor,
-          targetToken: hit.token,
-          degree: hit.degree,
-          attackMessage: attack?.message,
-          ...hitExtra,
-        });
-      }
     }
     // Each target that was missed runs the "an attack misses a target" events.
     for (const miss of attack?.misses ?? []) {
@@ -1520,6 +1480,183 @@ export class CarlRPGItem extends Item {
       await attack.message.update({ 'flags.carl-rpg.attack.fired': fired });
     }
     return result;
+  }
+
+  /** The damage multipliers this use can reach: the item's own and those of the skill it rolls with. */
+  #multiplierRows(modSkill) {
+    return [
+      ...(effectiveOf(this).multipliers ?? []),
+      ...(modSkill && modSkill !== this ? (effectiveOf(modSkill).multipliers ?? []) : []),
+    ];
+  }
+
+  /**
+   * Roll the damage of an attack this item made (the card's Roll Damage button). A window asks
+   * for bonus damage, a multiplier, a damage type, Ignore DR, a Damage Effect, a different
+   * Damage stat and the melee tick; Shift skips it. The damage is rolled with the Roll Modifier
+   * chosen for the attack, then each target's damage goes on the card and the events that wait
+   * for it run: the hits, and the chosen Damage Effect's (see helpers/attacks.mjs).
+   * @param {ChatMessage} message  The attack card
+   * @param {{shift?: boolean}} [options]  Shift rolls with the defaults, without the window
+   * @returns {Promise<void>}
+   */
+  async rollDamage(message, { shift = false } = {}) {
+    const attack = message.getFlag('carl-rpg', 'attack');
+    const pending = attack?.pending;
+    if (!pending || !attack.damagePending) return;
+    // (A weapon's damage joins its skill's while this runs.)
+    const rolling = await this.#useRollingSkill();
+    try {
+      const modSkill =
+        this.actor?.type === 'mob' ? null : this.type === 'skill' ? this : await this.rollingSkill();
+      const chosenMod = pending.rollModUuid ? ((await fromUuid(pending.rollModUuid)) ?? null) : null;
+      const selfMod = selfModOf(modSkill);
+      const mode = pending.mode ?? 'normal';
+      const surprise = !!pending.surprise;
+      const multiplierRows = this.#multiplierRows(modSkill);
+      const modsInPlay = [chosenMod, selfMod].filter(Boolean);
+      const current = {
+        type: effectiveOf(this).damageType ?? '',
+        also: effectiveOf(this).damageTypeAlso ?? '',
+        armorPiercing: !!effectiveOf(this).armorPiercing,
+      };
+
+      // The choices: the Damage Effects the crawler owns that list the skill, the build's stat
+      // swaps, and the melee tick a multiplier or bonus dice row can need.
+      const effects = !shift && modSkill ? availableEffects(this.actor, modSkill, this) : [];
+      const damageText = [
+        effectiveOf(this).damage,
+        modSkill && modSkill !== this ? effectiveOf(modSkill).damage : '',
+      ]
+        .filter(Boolean)
+        .join(' + ');
+      const swaps = !shift ? statSwapsFor(this.actor, this, modSkill, damageText) : [];
+      const meleeOption =
+        !shift &&
+        (diceNeeds(this.actor, this, modSkill).melee ||
+          needsMelee(multiplierRows) ||
+          modsInPlay.some((mod) => needsMeleeMod(mod)));
+      let chosen = null;
+      let manual = null;
+      if (!shift) {
+        chosen = await promptDamage({
+          title: this.name,
+          tip: shortTextOf(this),
+          damageEffects: effects.map((effect) => ({
+            id: effect.id,
+            name: effect.name,
+            stun: !!effect.system.damageRules?.stunOption,
+          })),
+          damageStats: swaps,
+          meleeOption,
+          types: damageTypes().map((d) => ({ id: d.id, label: d.label })),
+          current,
+        });
+        if (!chosen) return;
+        // A mistyped bonus is caught before anything is rolled.
+        const bonus = bonusFormula(chosen.bonus);
+        if (bonus?.error) {
+          ui.notifications.warn(
+            game.i18n.format('CARL_RPG.DamageDialog.Invalid', { bonus: chosen.bonus })
+          );
+          return;
+        }
+        manual = {
+          bonus,
+          multiplier: chosen.multiplier,
+          type: chosen.type,
+          also: chosen.also,
+          ignoreDR: chosen.ignoreDR,
+        };
+      }
+      const melee = !!chosen?.melee;
+      const chosenEffect = effects.find((effect) => effect.id === chosen?.damageEffect) ?? null;
+      const effectOption = !!(chosenEffect && chosen?.option);
+      const chosenSwap = swaps.find((swap) => swap.id === chosen?.damageStat) ?? null;
+
+      // What the attack's Roll Modifiers and the build give the damage, judged on the attack's
+      // mode and Surprise tick and the melee tick asked for now.
+      const modResult = resolveMods(modsInPlay, { mode, surprise, melee });
+      const buildDice = damageDiceFor(this.actor, this, modSkill, { mode, surprise, melee });
+      const multipliers = [
+        ...resolveMultipliers(multiplierRows, { mode, surprise, melee }),
+        ...modResult.multipliers,
+      ];
+      const notes = chosenSwap
+        ? [
+            game.i18n.format('CARL_RPG.RollDialog.DamageStatNote', {
+              stat: game.i18n.localize(CONFIG.CARL_RPG.abilities[chosenSwap.to]),
+            }),
+          ]
+        : [];
+      const result = await rollAttackDamage(message, this, {
+        damageEffect: chosenEffect ? { item: chosenEffect, option: effectOption } : null,
+        modDice: [...modResult.dice, ...buildDice],
+        multipliers,
+        statSwap: chosenSwap,
+        manual,
+        notes,
+      });
+      if (!result) return;
+
+      // The events that waited for the damage. The numbers are those of the attack roll.
+      const { pending: made, attack: card, hits, damage, effectApplied } = result;
+      const roll =
+        made.rollTotal != null
+          ? { total: made.rollTotal, dice: [{ results: [{ result: made.natural }] }] }
+          : undefined;
+      const paid = made.paid ?? {};
+      const fired = [];
+      const splashEffects = !!this.system.targeting?.splashEffects;
+      const degrees = card.targets.length
+        ? card.targets.filter((row) => !row.splash || splashEffects).map((row) => row.degree)
+        : card.degree
+          ? [card.degree]
+          : [];
+      const usedExtra = { check: { ...(made.rolled ?? {}) }, damage: damage ?? undefined };
+      // A Damage Effect that changed the attack goes on cooldown, and its own events run
+      // (they see whether the "instead of damage" option was ticked).
+      const effectCtx = { roll, paid, depth: 0, option: effectOption ? 1 : 0, collect: fired, ...usedExtra };
+      if (chosenEffect && effectApplied) {
+        await startCooldown(chosenEffect);
+        await runEvents(chosenEffect, 'used', { ...effectCtx, degrees });
+      }
+      // Each target that was hit runs the "an attack hits a target" events.
+      for (const hit of hits) {
+        const hitExtra = {
+          check: { ...(made.rolled ?? {}), margin: hit.margin },
+          damage: damageOfTarget(damage, hit.damage),
+        };
+        await runEvents(this, 'hit', {
+          roll,
+          paid,
+          depth: 0,
+          target: hit.actor,
+          targetToken: hit.token,
+          degree: hit.degree,
+          attackMessage: message,
+          collect: fired,
+          ...hitExtra,
+        });
+        if (chosenEffect && hit.effect) {
+          await runEvents(chosenEffect, 'hit', {
+            ...effectCtx,
+            target: hit.actor,
+            targetToken: hit.token,
+            degree: hit.degree,
+            attackMessage: message,
+            ...hitExtra,
+          });
+        }
+      }
+      if (fired.length) {
+        await message.update({
+          'flags.carl-rpg.attack.fired': [...(message.getFlag('carl-rpg', 'attack')?.fired ?? []), ...fired],
+        });
+      }
+    } finally {
+      rolling?.restore();
+    }
   }
 
   /**

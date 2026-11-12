@@ -41,9 +41,10 @@ import { damageNumbers, marginOf } from './event-roll.mjs';
 import { expandRankDamage } from './rank-damage.mjs';
 import { damageRollData, withCost } from './cost-damage.mjs';
 import { swapStat } from './build-damage.mjs';
-import { damageTypeLabel, partsLabel, partsTotal, scaleParts } from './damage-types.mjs';
+import { damageTypeLabel, damageTypes, partsLabel, partsTotal, scaleParts } from './damage-types.mjs';
+import { bonusFormula, chosenTypes, manualMultiplier } from './damage-options.mjs';
 import { offerAiFavor } from './ai-favor.mjs';
-import { promptRoll, buildFormula, optionsNote } from './roll-dialog.mjs';
+import { promptRoll, promptDamage, buildFormula, optionsNote } from './roll-dialog.mjs';
 import { applyBenefits, rollBenefits } from './build-mods.mjs';
 import { badgeRowHtml } from './item-badges.mjs';
 import { appliesTo, diceSumOf, hasFilters, healthPercentOf } from './damage-effects.mjs';
@@ -80,8 +81,9 @@ const HITS = ['critHit', 'amazing', 'success'];
 const hasDamage = (item) => !!effectiveOf(item).damage?.trim();
 
 /** The heading of a damage roll: the damage, its type and whether it is Armor-Piercing. */
-function damageHeading(item, damage, parts = null) {
-  const { damageType, armorPiercing } = effectiveOf(item);
+function damageHeading(item, damage, parts = null, over = null) {
+  // (`over` holds the type and Armor-Piercing a damage roll used when the window changed them)
+  const { damageType, armorPiercing } = over ?? effectiveOf(item);
   let text = t('CARL_RPG.Attack.Damage', { damage });
   // Typed bonus dice: the damage by type instead of the attack's one type.
   if (parts) text += ` (${partsLabel(parts)})`;
@@ -161,64 +163,63 @@ export function degreeOf(natural, total, dc) {
 }
 
 /**
- * Resolve an item's check: work out the degree of success against each target
- * (or against the Floor for an unopposed check), roll the damage if the item
- * has any, and post the result card.
+ * Roll an attack's damage and put each target's numbers on the card's rows (the rows are
+ * changed in place). Used when an attack resolves with its damage already rolled, and when the
+ * card's Roll Damage button rolls it later (see rollAttackDamage).
  * @param {Item} item
- * @param {Roll|null} roll  The roll (null if the item doesn't roll: any damage simply hits)
- * @param {{damageEffect?: {item: Item, option: boolean}|null, modDice?: object[], splash?: string[],
- *   paid?: object}} [options]
- *   The Damage Effect the roller chose (see helpers/damage-effects.mjs); its option trades the
- *   damage away. modDice are the damage dice Roll Modifiers add (see helpers/roll-mods.mjs).
- *   splash lists the token UUIDs that are only in the splash of an area (helpers/splash.mjs);
- *   paid is what the use cost, which damage formulas read as @cost (helpers/cost-damage.mjs).
- *   multipliers are the damage multipliers in play (helpers/damage-multiply.mjs);
- *   statSwap is {from, to}: the damage formula adds the `to` stat's modifier in place of the
- *   `from` stat's (a build benefit, helpers/build-damage.mjs)
- * @returns {Promise<{degrees: string[], margin?: number, damage: object|null, hits: Array<{actor: Actor, degree: string, margin?: number, damage: number|null}>}|null>}
- *   null if there is nothing to resolve. margin is an unopposed check's; damage the use's numbers
- *   for events (see helpers/event-roll.mjs); each hit and miss has its own margin, a hit its damage.
+ * @param {object} c
+ * @param {Actor|null} c.owner
+ * @param {{doc: TokenDocument|null, actor: Actor|null, row: object}[]} c.entries  Each target with
+ *   its card row (the degree is already on it, a row only in the splash is marked `splash`)
+ * @param {number|null} c.natural  The natural d20
+ * @param {boolean} c.crit
+ * @param {string} c.type  The kind of check ('unopposed', 'attack' or 'opposed')
+ * @param {string|null} c.unopposedDegree
+ * @param {{item: Item, option: boolean}|null} [c.damageEffect]
+ * @param {object[]} [c.modDice]  The bonus dice (Roll Modifiers, build benefits)
+ * @param {object} [c.paid]  What the use paid (damage formulas read it as @cost)
+ * @param {object[]} [c.multipliers]
+ * @param {{from: string, to: string}|null} [c.statSwap]
+ * @param {{bonus?: {formula: string}|null, multiplier?: string|number, type?: string, also?: string,
+ *   ignoreDR?: boolean}|null} [c.manual]  What the damage window changed (see damage-options.mjs)
+ * @returns {Promise<object|null>}  The rolls and numbers for the card; null if the damage could
+ *   not be rolled (a warning was shown)
  */
-export async function resolveCheck(
-  item,
-  roll,
-  { damageEffect = null, modDice = [], splash = [], paid = {}, multipliers = [], statSwap = null } = {}
-) {
-  // Mobs never roll a d20: a crawler rolls against the mob's number instead.
-  if (item.actor?.type === 'mob') return resolveMobCheck(item, splash);
-  // An item whose action is No Roll has no check or damage to resolve.
-  if (item.system.action?.type === 'none') return null;
-
-  // A Damage Effect the roller chose. Its "instead of damage" option (Iron Punch's stun)
-  // means no damage is rolled at all.
+async function rollRowsDamage(item, c) {
+  const {
+    owner,
+    entries,
+    natural,
+    crit,
+    type,
+    unopposedDegree,
+    damageEffect = null,
+    modDice = [],
+    paid = {},
+    multipliers = [],
+    statSwap = null,
+    manual = null,
+  } = c;
   const effectItem = damageEffect?.item ?? null;
   const rules = effectItem?.system?.damageRules ?? null;
-  const skipDamage = !!(rules?.stunOption && damageEffect?.option);
-  const damaging = hasDamage(item) && !skipDamage;
-  if (!roll && !damaging) return null;
-
-  const owner = item.actor;
   // (what damage formulas read: the owner's stats and @cost, what this use cost)
   const rollData = damageRollData(owner?.getRollData(), paid);
-  const targetKey = effectiveOf(item).target;
-  const type = checkKind(targetKey);
-  const natural = naturalD20(roll);
-  const crit = natural === 20;
   // A multiplier for a Critical Hit takes the place of the critical's x2 on the item's own dice.
   const critReplaced = crit && critReplaces(multipliers);
-
-  // The targets as they are right now.
-  const targets = [...game.user.targets]
-    .map((token) => ({ doc: token.document, actor: token.actor }))
-    .filter((x) => x.actor);
-
-  // An attack or an opposed check needs a target to compare with; without one
-  // there is nothing to show unless it has damage to apply.
-  const noResult = (degrees) => ({ degrees, hits: [], misses: [] });
-  const fromNatural = crit ? ['critHit'] : natural === 1 ? ['critFail'] : [];
-  if (type !== 'unopposed' && !targets.length && !damaging) {
-    return noResult(fromNatural);
-  }
+  // What the damage window changed: bonus dice join the Roll Modifiers' (always, untyped), a
+  // multiplier multiplies the item's own, the types replace the item's, Ignore DR is Armor-Piercing.
+  const dice = [
+    ...modDice,
+    ...(manual?.bonus?.formula
+      ? [{ item: null, name: t('CARL_RPG.DamageDialog.BonusName'), formula: manual.bonus.formula, when: '', types: [] }]
+      : []),
+  ];
+  const manualMult = manualMultiplier(manual?.multiplier);
+  const { damageType: ownType, damageTypeAlso: alsoType } = chosenTypes(manual ?? {}, {
+    type: effectiveOf(item).damageType ?? '',
+    also: effectiveOf(item).damageTypeAlso ?? '',
+  });
+  const armorPiercing = manual ? !!manual.ignoreDR : !!effectiveOf(item).armorPiercing;
 
   // The damage is rolled once. On a natural 20 the dice are doubled; stats and
   // other flat modifiers are left alone.
@@ -232,63 +233,59 @@ export async function resolveCheck(
   const modRolled = [];
   // The effect's dice that carry a damage type of their own, once rolled.
   const effectTyped = [];
-  if (damaging) {
-    try {
-      damageRoll = new Roll(
-        withCost(expandRankDamage(swapStat(effectiveOf(item).damage, statSwap), item)),
-        rollData
-      );
-      if (crit && !critReplaced) damageRoll = damageRoll.alter(2, 0);
-      await damageRoll.evaluate();
-      damage = Math.max(0, Math.floor(damageRoll.total));
-      diceSum = diceSumOf(damageRoll);
-      const extraFormulas = (rules?.addDice ?? [])
-        .map((formula) => withCost(expandRankDamage(formula, effectItem)))
-        .filter(Boolean);
-      if (extraFormulas.length) {
-        extraRoll = new Roll(extraFormulas.join(' + '), rollData);
-        if (crit) extraRoll = extraRoll.alter(2, 0);
-        await extraRoll.evaluate();
-        extra = Math.max(0, Math.floor(extraRoll.total));
-      }
-      // Its dice with a damage type of their own are rolled once each, apart from the base.
-      for (const row of rules?.typedDice ?? []) {
-        const formula = withCost(expandRankDamage(row.formula, effectItem));
-        if (!formula) continue;
-        let typedRoll = new Roll(formula, rollData);
-        if (crit) typedRoll = typedRoll.alter(2, 0);
-        await typedRoll.evaluate();
-        effectTyped.push({
-          types: row.types,
-          roll: typedRoll,
-          total: Math.max(0, Math.floor(typedRoll.total)),
-        });
-      }
-      // Each Roll Modifier row is rolled once (a natural 20 doubles it like the damage) and
-      // added to the targets its condition allows.
-      for (const entry of modDice) {
-        const formula = withCost(expandRankDamage(entry.formula, entry.item));
-        if (!formula) continue;
-        let modRoll = new Roll(formula, rollData);
-        if (crit) modRoll = modRoll.alter(2, 0);
-        await modRoll.evaluate();
-        modRolled.push({ ...entry, roll: modRoll, total: Math.max(0, Math.floor(modRoll.total)) });
-      }
-    } catch (err) {
-      ui.notifications.warn(t('CARL_RPG.Attack.BadDamage', { name: item.name }));
-      return null;
+  try {
+    damageRoll = new Roll(
+      withCost(expandRankDamage(swapStat(effectiveOf(item).damage, statSwap), item)),
+      rollData
+    );
+    if (crit && !critReplaced) damageRoll = damageRoll.alter(2, 0);
+    await damageRoll.evaluate();
+    damage = Math.max(0, Math.floor(damageRoll.total));
+    diceSum = diceSumOf(damageRoll);
+    const extraFormulas = (rules?.addDice ?? [])
+      .map((formula) => withCost(expandRankDamage(formula, effectItem)))
+      .filter(Boolean);
+    if (extraFormulas.length) {
+      extraRoll = new Roll(extraFormulas.join(' + '), rollData);
+      if (crit) extraRoll = extraRoll.alter(2, 0);
+      await extraRoll.evaluate();
+      extra = Math.max(0, Math.floor(extraRoll.total));
     }
+    // Its dice with a damage type of their own are rolled once each, apart from the base.
+    for (const row of rules?.typedDice ?? []) {
+      const formula = withCost(expandRankDamage(row.formula, effectItem));
+      if (!formula) continue;
+      let typedRoll = new Roll(formula, rollData);
+      if (crit) typedRoll = typedRoll.alter(2, 0);
+      await typedRoll.evaluate();
+      effectTyped.push({
+        types: row.types,
+        roll: typedRoll,
+        total: Math.max(0, Math.floor(typedRoll.total)),
+      });
+    }
+    // Each Roll Modifier row is rolled once (a natural 20 doubles it like the damage) and
+    // added to the targets its condition allows.
+    for (const entry of dice) {
+      const formula = withCost(expandRankDamage(entry.formula, entry.item));
+      if (!formula) continue;
+      let modRoll = new Roll(formula, rollData);
+      if (crit) modRoll = modRoll.alter(2, 0);
+      await modRoll.evaluate();
+      modRolled.push({ ...entry, roll: modRoll, total: Math.max(0, Math.floor(modRoll.total)) });
+    }
+  } catch (err) {
+    ui.notifications.warn(t('CARL_RPG.Attack.BadDamage', { name: item.name }));
+    return null;
   }
   // Splash: a target only in the splash of an area takes the splash damage instead of the
   // damage (rolled once; a natural 20 doubles its dice). No formula means no damage.
-  const splashIds = new Set(splash);
   const splashEffects = !!item.system.targeting?.splashEffects;
   let splashRoll = null;
   let splashDamage = null;
   if (
-    damaging &&
     hasSplashDamage(item.system.targeting?.splashDamage) &&
-    targets.some((x) => splashIds.has(x.doc.uuid))
+    entries.some((x) => x.row.splash)
   ) {
     try {
       splashRoll = new Roll(
@@ -305,13 +302,6 @@ export async function resolveCheck(
   }
   const floor = getFloor();
   const effectRank = rankOf(effectItem?.system);
-
-  // An unopposed check has one number to reach, whoever is targeted.
-  const unopposedDC = type === 'unopposed' ? checkDC(item, null) : null;
-  const unopposedDegree =
-    type === 'unopposed' && roll
-      ? degreeOf(natural, roll.total, unopposedDC)
-      : null;
 
   // What the Roll Modifiers' dice add for a degree of success. The headline counts them as for
   // a hit (or the unopposed result), as there is no target yet to read a degree from.
@@ -333,12 +323,15 @@ export async function resolveCheck(
       .filter((d) => !untyped(d) && targetMet(d, { degree, feet }))
       .map((d) => ({ types: d.types, amount: d.total })),
   ];
-  const ownType = effectiveOf(item).damageType ?? '';
-  const alsoType = effectiveOf(item).damageTypeAlso ?? '';
+  // The multipliers (helpers/damage-multiply.mjs) read for a degree of success; the one typed in
+  // the damage window multiplies the total on top of them.
+  const multFor = (degree, feet) => {
+    const found = multiplierFor(multipliers, degree, feet);
+    return { base: found.base, total: found.total * manualMult };
+  };
   // A target's damage: the number, and the parts by type when typed dice are in it (the
-  // parts are what resistances read; with none, damage works exactly as it always did). The
-  // multipliers (helpers/damage-multiply.mjs) are read for the degree of success. `feet` is how
-  // far the target is from the attacker, for the "within" conditions.
+  // parts are what resistances read; with none, damage works exactly as it always did). `feet`
+  // is how far the target is from the attacker, for the "within" conditions.
   const damageFor = (degree, applies, { bonus = 0, multDegree = degree, feet = null } = {}) =>
     targetDamage({
       damage,
@@ -352,7 +345,7 @@ export async function resolveCheck(
       typed: typedFor(degree, applies, feet),
       ownType,
       alsoType,
-      mult: multiplierFor(multipliers, multDegree, feet),
+      mult: multFor(multDegree, feet),
     });
   // With no filters the effect works against everyone, so the card's headline shows it.
   const headlineApplies = !!rules && !hasFilters(rules);
@@ -362,33 +355,193 @@ export async function resolveCheck(
   // How far each target is from the attacker (null when it can't be measured: no token). The
   // headline has no target of its own, so it counts the nearest one.
   const attackerDoc = attackerToken(owner);
-  const feetTo = (doc) => tokenDistanceFeet(attackerDoc, doc);
-  const reaches = targets.map(({ doc }) => feetTo(doc)).filter((feet) => feet !== null);
+  const feetTo = (doc) => (doc ? tokenDistanceFeet(attackerDoc, doc) : null);
+  const reaches = entries.map(({ doc }) => feetTo(doc)).filter((feet) => feet !== null);
   const headlineFeet = reaches.length ? Math.min(...reaches) : null;
-  const headlineDamage = damaging
-    ? damageFor(unopposedDegree ?? 'success', headlineApplies, {
-        multDegree: headlineMult,
-        feet: headlineFeet,
-      })
-    : null;
-  const headline = headlineDamage ? headlineDamage.damage : damage;
+  const headlineDamage = damageFor(unopposedDegree ?? 'success', headlineApplies, {
+    multDegree: headlineMult,
+    feet: headlineFeet,
+  });
 
-  const rows = targets.map(({ doc, actor }) => {
-    const dc = type === 'unopposed' ? unopposedDC : checkDC(item, actor);
-    // With no roll every target is simply hit.
-    const degree = roll ? degreeOf(natural, roll.total, dc) : 'success';
+  for (const { doc, actor, row } of entries) {
     // Whether the Damage Effect works against this target (see damage-effects.mjs).
     const applies =
       !!rules &&
+      !!actor &&
       appliesTo(rules, {
         attackerSize: owner ? sizeClassOf(owner) : 0,
         targetSize: sizeClassOf(actor),
         healthPct: healthPercentOf(actor),
       });
     // An Amazing Success adds the Floor to the damage.
-    const dealt = damaging
-      ? damageFor(degree, applies, { bonus: degree === 'amazing' ? floor : 0, feet: feetTo(doc) })
+    const dealt = damageFor(row.degree, applies, {
+      bonus: row.degree === 'amazing' ? floor : 0,
+      feet: feetTo(doc),
+    });
+    row.damage = dealt.damage;
+    // The damage by type, when typed bonus dice are in it (resistances read each part).
+    if (dealt.parts) row.parts = dealt.parts;
+    else delete row.parts;
+    row.effectApplied = applies;
+  }
+
+  // A target in the splash takes the splash damage (no Damage Effect or Roll Modifier dice),
+  // plus the Floor on an Amazing Success when there is splash damage. Its effects are not
+  // worked against (see evented for the events).
+  for (const { row } of entries) {
+    if (!row.splash) continue;
+    row.effectApplied = false;
+    delete row.parts; // (splash damage takes no bonus dice)
+    row.damage = splashDamage == null ? 0 : splashDamage + (row.degree === 'amazing' ? floor : 0);
+  }
+
+  const usedNames = [effectItem?.name, ...new Set(modRolled.map((d) => d.name))].filter(Boolean);
+  return {
+    headline: headlineDamage.damage,
+    headlineDamage,
+    headlineMult,
+    // The multipliers the card heading names (the item's own and the one typed in the window).
+    headlineMultNote: multiplierNote(multFor(headlineMult, headlineFeet)),
+    base: damage,
+    diceSum,
+    damageType: ownType,
+    armorPiercing,
+    usedEffect: usedNames.length ? ` (${usedNames.join(', ')})` : '',
+    rolls: [
+      damageRoll,
+      ...(extraRoll ? [extraRoll] : []),
+      ...effectTyped.map((d) => d.roll),
+      ...modRolled.map((d) => d.roll),
+      ...(splashRoll ? [splashRoll] : []),
+    ],
+    // Whether the Damage Effect changed the attack: it worked against a target that was hit
+    // (or, with no targets, it has no filters). That is what starts its cooldown.
+    effectApplied:
+      !!rules &&
+      (entries.length
+        ? entries.some(({ row }) => row.effectApplied && row.hit)
+        : !hasFilters(rules)),
+    splashEffects,
+  };
+}
+
+/**
+ * The targets an attack's events run for: the hits (with their damage) and the misses. A
+ * target only in the splash of an area counts only when the item's splash applies effects.
+ */
+function eventLists(entries, rollTotal, splashEffects) {
+  const evented = (row) => !row.splash || splashEffects;
+  const marginFor = (row) => (rollTotal != null ? marginOf(rollTotal, row.dc) : undefined);
+  return {
+    evented,
+    hits: entries.flatMap(({ actor, doc, row }) =>
+      row.hit && evented(row)
+        ? [
+            {
+              actor,
+              token: doc,
+              degree: row.degree,
+              effect: row.effectApplied,
+              margin: marginFor(row),
+              damage: row.damage,
+            },
+          ]
+        : []
+    ),
+    misses: entries.flatMap(({ actor, doc, row }) =>
+      row.hit || !evented(row)
+        ? []
+        : [{ actor, token: doc, degree: row.degree, margin: marginFor(row) }]
+    ),
+  };
+}
+
+/**
+ * Resolve an item's check: work out the degree of success against each target
+ * (or against the Floor for an unopposed check), roll the damage if the item
+ * has any, and post the result card.
+ *
+ * With `deferDamage` (a click on the item) the damage is not rolled yet: the card shows the
+ * degrees and a Roll Damage button, and rollAttackDamage rolls it from the damage window.
+ * @param {Item} item
+ * @param {Roll|null} roll  The roll (null if the item doesn't roll: any damage simply hits)
+ * @param {{damageEffect?: {item: Item, option: boolean}|null, modDice?: object[], splash?: string[],
+ *   paid?: object, deferDamage?: object|null}} [options]
+ *   The Damage Effect the roller chose (see helpers/damage-effects.mjs); its option trades the
+ *   damage away. modDice are the damage dice Roll Modifiers add (see helpers/roll-mods.mjs).
+ *   splash lists the token UUIDs that are only in the splash of an area (helpers/splash.mjs);
+ *   paid is what the use cost, which damage formulas read as @cost (helpers/cost-damage.mjs).
+ *   multipliers are the damage multipliers in play (helpers/damage-multiply.mjs);
+ *   statSwap is {from, to}: the damage formula adds the `to` stat's modifier in place of the
+ *   `from` stat's (a build benefit, helpers/build-damage.mjs).
+ *   deferDamage holds what the damage roll needs to remember of this use (mode, surprise,
+ *   rollModUuid, rolled: the numbers events read); null rolls the damage now.
+ * @returns {Promise<{degrees: string[], margin?: number, damage: object|null, hits: Array<{actor: Actor, degree: string, margin?: number, damage: number|null}>}|null>}
+ *   null if there is nothing to resolve. margin is an unopposed check's; damage the use's numbers
+ *   for events (see helpers/event-roll.mjs); each hit and miss has its own margin, a hit its damage.
+ *   A deferred use has `deferred: true`, no damage and no hits (they run once the damage is rolled).
+ */
+export async function resolveCheck(
+  item,
+  roll,
+  {
+    damageEffect = null,
+    modDice = [],
+    splash = [],
+    paid = {},
+    multipliers = [],
+    statSwap = null,
+    deferDamage = null,
+  } = {}
+) {
+  // Mobs never roll a d20: a crawler rolls against the mob's number instead.
+  if (item.actor?.type === 'mob') return resolveMobCheck(item, splash, { deferDamage });
+  // An item whose action is No Roll has no check or damage to resolve.
+  if (item.system.action?.type === 'none') return null;
+
+  // A Damage Effect the roller chose. Its "instead of damage" option (Iron Punch's stun)
+  // means no damage is rolled at all.
+  const effectItem = damageEffect?.item ?? null;
+  const rules = effectItem?.system?.damageRules ?? null;
+  const skipDamage = !!(rules?.stunOption && damageEffect?.option);
+  const damaging = hasDamage(item) && !skipDamage;
+  if (!roll && !damaging) return null;
+  const deferred = damaging && !!deferDamage;
+
+  const owner = item.actor;
+  const targetKey = effectiveOf(item).target;
+  const type = checkKind(targetKey);
+  const natural = naturalD20(roll);
+  const crit = natural === 20;
+
+  // The targets as they are right now.
+  const targets = [...game.user.targets]
+    .map((token) => ({ doc: token.document, actor: token.actor }))
+    .filter((x) => x.actor);
+
+  // An attack or an opposed check needs a target to compare with; without one
+  // there is nothing to show unless it has damage to apply.
+  const noResult = (degrees) => ({ degrees, hits: [], misses: [] });
+  const fromNatural = crit ? ['critHit'] : natural === 1 ? ['critFail'] : [];
+  if (type !== 'unopposed' && !targets.length && !damaging) {
+    return noResult(fromNatural);
+  }
+
+  const floor = getFloor();
+  const splashIds = new Set(splash);
+  const splashEffects = !!item.system.targeting?.splashEffects;
+
+  // An unopposed check has one number to reach, whoever is targeted.
+  const unopposedDC = type === 'unopposed' ? checkDC(item, null) : null;
+  const unopposedDegree =
+    type === 'unopposed' && roll
+      ? degreeOf(natural, roll.total, unopposedDC)
       : null;
+
+  const rows = targets.map(({ doc, actor }) => {
+    const dc = type === 'unopposed' ? unopposedDC : checkDC(item, actor);
+    // With no roll every target is simply hit.
+    const degree = roll ? degreeOf(natural, roll.total, dc) : 'success';
     return {
       tokenUuid: doc.uuid,
       actorUuid: actor.uuid,
@@ -398,63 +551,75 @@ export async function resolveCheck(
       isMob: actor.type === 'mob',
       degree,
       hit: HITS.includes(degree),
-      damage: dealt ? dealt.damage : null,
-      // The damage by type, when typed bonus dice are in it (resistances read each part).
-      ...(dealt?.parts ? { parts: dealt.parts } : {}),
-      effectApplied: applies,
+      damage: null,
+      effectApplied: false,
       applied: false,
+      // (a token only in the splash of an area)
+      ...(splashIds.has(doc.uuid) ? { splash: true } : {}),
     };
   });
+  const entries = targets.map((x, i) => ({ ...x, row: rows[i] }));
 
-  // A target in the splash takes the splash damage (no Damage Effect or Roll Modifier dice),
-  // plus the Floor on an Amazing Success when there is splash damage. Its effects are not
-  // worked against (see evented below for the events).
-  for (const row of rows) {
-    if (!splashIds.has(row.tokenUuid)) continue;
-    row.splash = true;
-    row.effectApplied = false;
-    delete row.parts; // (splash damage takes no bonus dice)
-    if (damaging) {
-      row.damage = splashDamage == null ? 0 : splashDamage + (row.degree === 'amazing' ? floor : 0);
-    }
+  // The damage, unless it waits for the Roll Damage button.
+  let dmg = null;
+  if (damaging && !deferred) {
+    dmg = await rollRowsDamage(item, {
+      owner,
+      entries,
+      natural,
+      crit,
+      type,
+      unopposedDegree,
+      damageEffect,
+      modDice,
+      paid,
+      multipliers,
+      statSwap,
+    });
+    if (!dmg) return null;
   }
 
   // What an opposed check is against, in words: a stat or the Size Class.
   const targetLabel = t(CONFIG.CARL_RPG.checkTargets[targetKey] ?? '');
-  const usedNames = [effectItem?.name, ...new Set(modRolled.map((d) => d.name))].filter(Boolean);
-  const usedEffect = usedNames.length ? ` (${usedNames.join(', ')})` : '';
+  const usedNames = [effectItem?.name].filter(Boolean);
+  const usedEffect = dmg ? dmg.usedEffect : usedNames.length ? ` (${usedNames.join(', ')})` : '';
   const heading =
-    (damaging
-      ? damageHeading(item, headline, headlineDamage?.parts ?? null) +
-        multiplierNote(multiplierFor(multipliers, headlineMult))
+    (dmg
+      ? damageHeading(item, dmg.headline, dmg.headlineDamage?.parts ?? null, dmg) + dmg.headlineMultNote
       : t(`CARL_RPG.Check.Header.${type}`, { stat: targetLabel })) + usedEffect;
   const check = {
     itemName: item.name,
     type,
-    damage: headline,
-    ...(headlineDamage?.parts ? { parts: headlineDamage.parts } : {}),
-    damageType: effectiveOf(item).damageType ?? '',
-    armorPiercing: !!effectiveOf(item).armorPiercing,
+    damage: dmg ? dmg.headline : null,
+    ...(dmg?.headlineDamage?.parts ? { parts: dmg.headlineDamage.parts } : {}),
+    damageType: dmg ? dmg.damageType : (effectiveOf(item).damageType ?? ''),
+    armorPiercing: dmg ? dmg.armorPiercing : !!effectiveOf(item).armorPiercing,
     floor,
     natural,
     crit,
     dc: unopposedDC,
     degree: unopposedDegree,
     targets: rows,
+    // The damage waits for the card's Roll Damage button; this is what it needs to remember.
+    ...(deferred
+      ? {
+          damagePending: true,
+          pending: {
+            ...deferDamage,
+            itemUuid: item.uuid,
+            paid,
+            splash: [...splashIds],
+            natural,
+            rollTotal: roll?.total ?? null,
+          },
+        }
+      : {}),
   };
   const message = await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: owner }),
-    rolls: damageRoll
-      ? [
-          damageRoll,
-          ...(extraRoll ? [extraRoll] : []),
-          ...effectTyped.map((d) => d.roll),
-          ...modRolled.map((d) => d.roll),
-          ...(splashRoll ? [splashRoll] : []),
-        ]
-      : [],
-    content: checkHeadingHtml(heading, damaging),
-    sound: damageRoll ? CONFIG.sounds.dice : undefined,
+    rolls: dmg ? dmg.rolls : [],
+    content: checkHeadingHtml(heading, !!dmg),
+    sound: dmg ? CONFIG.sounds.dice : undefined,
     flags: { [NS]: { attack: check } },
   });
 
@@ -462,9 +627,9 @@ export async function resolveCheck(
   // of an unopposed check, or, with nothing to compare, what the natural roll
   // alone decides.
   // (A target in the splash runs the events only when the item says its splash does.)
-  const evented = (row) => !row.splash || splashEffects;
-  const degrees = rows.some(evented)
-    ? rows.filter(evented).map((row) => row.degree)
+  const lists = eventLists(entries, roll?.total ?? null, splashEffects);
+  const degrees = rows.some(lists.evented)
+    ? rows.filter(lists.evented).map((row) => row.degree)
     : unopposedDegree
       ? [unopposedDegree]
       : fromNatural;
@@ -472,43 +637,134 @@ export async function resolveCheck(
     degrees,
     // What events read as @roll.margin (unopposed) and @damage.* (see helpers/event-roll.mjs).
     margin: unopposedDC !== null && roll ? marginOf(roll.total, unopposedDC) : undefined,
-    damage: damaging ? damageNumbers({ base: damage, dice: diceSum }, headline) : null,
-    // Whether the Damage Effect changed the attack: it worked against a target that was hit
-    // (or, with no targets, it has no filters). That is what starts its cooldown.
-    effectApplied:
-      !!rules &&
-      (rows.length
-        ? rows.some((row) => row.effectApplied && row.hit)
-        : !hasFilters(rules)),
-    hits: targets.flatMap(({ actor, doc }, i) =>
-      rows[i].hit && evented(rows[i])
-        ? [
-            {
-              actor,
-              token: doc,
-              degree: rows[i].degree,
-              effect: rows[i].effectApplied,
-              margin: roll ? marginOf(roll.total, rows[i].dc) : undefined,
-              damage: rows[i].damage,
-            },
-          ]
-        : []
-    ),
+    damage: dmg ? damageNumbers({ base: dmg.base, dice: dmg.diceSum }, dmg.headline) : null,
+    effectApplied: !!dmg?.effectApplied,
+    // The hits wait for the damage when it does (see rollAttackDamage).
+    hits: deferred ? [] : lists.hits,
     // The targets it didn't hit, for the "an attack misses a target" events.
-    misses: targets.flatMap(({ actor, doc }, i) =>
-      rows[i].hit || !evented(rows[i])
-        ? []
-        : [
-            {
-              actor,
-              token: doc,
-              degree: rows[i].degree,
-              margin: roll ? marginOf(roll.total, rows[i].dc) : undefined,
-            },
-          ]
-    ),
+    misses: lists.misses,
+    deferred,
     // The attack card, where effects the events offer are shown (see helpers/events.mjs).
     message,
+  };
+}
+
+/**
+ * Roll the damage of an attack whose card is waiting for it (the card's Roll Damage button, see
+ * resolveCheck's deferDamage): the damage is rolled with what the damage window changed, each
+ * target's damage goes on the card, and the numbers the events need are handed back.
+ * @param {ChatMessage} message  The attack card
+ * @param {Item} item  The item that made the attack (a weapon already set up with its skill)
+ * @param {{damageEffect?: {item: Item, option: boolean}|null, modDice?: object[],
+ *   multipliers?: object[], statSwap?: object|null, manual?: object|null, notes?: string[]}} [options]
+ *   notes are short lines the damage roll's message mentions (the Damage stat that was used)
+ * @returns {Promise<{attack: object, pending: object, hits: object[], damage: object|null,
+ *   effectApplied: boolean}|null>}  null if the damage was already rolled or could not be
+ */
+export async function rollAttackDamage(
+  message,
+  item,
+  { damageEffect = null, modDice = [], multipliers = [], statSwap = null, manual = null, notes = [] } = {}
+) {
+  const attack = foundry.utils.deepClone(message.getFlag(NS, 'attack'));
+  const pending = attack?.pending;
+  if (!pending || !attack.damagePending) return null;
+  const owner = item.actor;
+  const rules = damageEffect?.item?.system?.damageRules ?? null;
+  // The Damage Effect's "instead of damage" option (a stun): nothing is rolled.
+  const skipDamage = !!(rules?.stunOption && damageEffect?.option);
+
+  const entries = attack.targets.map((row) => ({
+    doc: fromUuidSync(row.tokenUuid) ?? null,
+    actor: actorOfRow(row),
+    row,
+  }));
+  const crit = pending.natural === 20;
+  let dmg = null;
+  if (!skipDamage) {
+    dmg = await rollRowsDamage(item, {
+      owner,
+      entries,
+      natural: pending.natural ?? null,
+      crit,
+      type: attack.type,
+      unopposedDegree: attack.degree ?? null,
+      damageEffect,
+      modDice,
+      paid: pending.paid ?? {},
+      multipliers,
+      statSwap,
+      manual,
+    });
+    if (!dmg) return null;
+  }
+
+  // With the stun option no damage is rolled, but the effect still works against its targets.
+  let stunApplied = false;
+  if (skipDamage) {
+    for (const { actor, row } of entries) {
+      row.effectApplied =
+        !!actor &&
+        appliesTo(rules, {
+          attackerSize: owner ? sizeClassOf(owner) : 0,
+          targetSize: sizeClassOf(actor),
+          healthPct: healthPercentOf(actor),
+        });
+    }
+    stunApplied = entries.length
+      ? entries.some(({ row }) => row.effectApplied && row.hit)
+      : !hasFilters(rules);
+  }
+
+  // Claim the roll before anything is shown (a second click on the button finds it gone).
+  const fresh = message.getFlag(NS, 'attack');
+  if (!fresh?.damagePending) return null;
+  attack.damagePending = false;
+  if (dmg) {
+    attack.damage = dmg.headline;
+    if (dmg.headlineDamage?.parts) attack.parts = dmg.headlineDamage.parts;
+    else attack.parts = null;
+    attack.damageType = dmg.damageType;
+    attack.armorPiercing = dmg.armorPiercing;
+  }
+  const targetLabel = t(CONFIG.CARL_RPG.checkTargets[effectiveOf(item).target] ?? '');
+  const usedEffect = dmg
+    ? dmg.usedEffect
+    : damageEffect?.item
+      ? ` (${damageEffect.item.name})`
+      : '';
+  const heading =
+    (dmg
+      ? damageHeading(item, dmg.headline, dmg.headlineDamage?.parts ?? null, dmg) + dmg.headlineMultNote
+      : t(`CARL_RPG.Check.Header.${attack.type}`, { stat: targetLabel })) + usedEffect;
+  await message.update({
+    content: checkHeadingHtml(heading, !!dmg),
+    flags: { [NS]: { attack } },
+  });
+
+  // The dice get a message of their own, so they roll on everyone's screen.
+  if (dmg) {
+    const rolls = dmg.rolls;
+    const html = (await Promise.all(rolls.map((r) => r.render()))).join('');
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: owner }),
+      flavor:
+        t('CARL_RPG.DamageDialog.Flavor', { name: item.name }) +
+        (notes.length ? ` (${notes.map(esc).join('; ')})` : ''),
+      content: html,
+      rolls,
+      sound: CONFIG.sounds.dice,
+    });
+  }
+
+  const lists = eventLists(entries, pending.rollTotal ?? null, !!item.system.targeting?.splashEffects);
+  return {
+    attack,
+    pending,
+    hits: lists.hits,
+    damage: dmg ? damageNumbers({ base: dmg.base, dice: dmg.diceSum }, dmg.headline) : null,
+    effectApplied: !!dmg?.effectApplied || stunApplied,
+    skipped: skipDamage,
   };
 }
 
@@ -584,10 +840,12 @@ const splashMobDamage = (base, degree, floor) => (base == null ? 0 : mobDamage(b
  *  - Unopposed: the mob's number is compared with 10 + (Floor x 2).
  * @param {Item} item
  */
-async function resolveMobCheck(item, splash = []) {
+async function resolveMobCheck(item, splash = [], { deferDamage = null } = {}) {
   const targetKey = effectiveOf(item).target;
   const type = checkKind(targetKey);
   const damaging = hasDamage(item);
+  // The damage waits for the card's Roll Damage button (see rollMobDamage).
+  const deferred = damaging && !!deferDamage;
   const owner = item.actor;
   // A mob pinned to its own Floor uses that for its numbers (see the mob data model).
   const floor = owner?.type === 'mob' ? owner.system.floor : getFloor();
@@ -595,7 +853,7 @@ async function resolveMobCheck(item, splash = []) {
 
   let damageRoll = null;
   let damage = null;
-  if (damaging) {
+  if (damaging && !deferred) {
     try {
       damageRoll = await new Roll(
         withCost(expandRankDamage(effectiveOf(item).damage, item)),
@@ -619,6 +877,7 @@ async function resolveMobCheck(item, splash = []) {
   let splashDamage = null;
   if (
     damaging &&
+    !deferred &&
     hasSplashDamage(item.system.targeting?.splashDamage) &&
     targets.some((x) => splashIds.has(x.doc.uuid))
   ) {
@@ -656,7 +915,7 @@ async function resolveMobCheck(item, splash = []) {
         state: 'pending',
         degree: null,
         hit: null,
-        damage: inSplash ? (splashDamage ?? 0) : damage,
+        damage: deferred ? null : inSplash ? (splashDamage ?? 0) : damage,
       };
     }
     // Everyone else: the numbers are simply compared.
@@ -668,9 +927,11 @@ async function resolveMobCheck(item, splash = []) {
       dc,
       degree,
       hit: HITS.includes(degree),
-      damage: inSplash
-        ? splashMobDamage(splashDamage, degree, floor)
-        : mobDamage(damage, degree, floor),
+      damage: deferred
+        ? null
+        : inSplash
+          ? splashMobDamage(splashDamage, degree, floor)
+          : mobDamage(damage, degree, floor),
     };
   });
 
@@ -691,14 +952,18 @@ async function resolveMobCheck(item, splash = []) {
     dc: unopposedDC,
     degree: unopposedDegree,
     targets: rows,
+    ...(deferred
+      ? { damagePending: true, pending: { itemUuid: item.uuid, splash: [...splashIds] } }
+      : {}),
   };
-  const heading = damaging
-    ? damageHeading(item, damage)
-    : t(`CARL_RPG.Check.Header.${type}`, { stat: defenseLabel(targetKey) });
+  const heading =
+    damaging && !deferred
+      ? damageHeading(item, damage)
+      : t(`CARL_RPG.Check.Header.${type}`, { stat: defenseLabel(targetKey) });
   await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: owner }),
     rolls: [damageRoll, splashRoll].filter(Boolean),
-    content: checkHeadingHtml(heading, damaging),
+    content: checkHeadingHtml(heading, damaging && !deferred),
     sound: damageRoll ? CONFIG.sounds.dice : undefined,
     flags: { [NS]: { attack: check } },
   });
@@ -709,9 +974,12 @@ async function resolveMobCheck(item, splash = []) {
   const degrees = rows.filter(evented).flatMap((row) => (row.degree ? [row.degree] : []));
   return {
     degrees: degrees.length || !unopposedDegree ? degrees : [unopposedDegree],
-    hits: targets.flatMap(({ actor }, i) =>
-      rows[i].hit && evented(rows[i]) ? [{ actor, degree: rows[i].degree }] : []
-    ),
+    // (a deferred attack runs its hit events once the damage is rolled)
+    hits: deferred
+      ? []
+      : targets.flatMap(({ actor }, i) =>
+          rows[i].hit && evented(rows[i]) ? [{ actor, degree: rows[i].degree }] : []
+        ),
   };
 }
 
@@ -754,9 +1022,11 @@ async function applyMobResult(
     state: 'resolved',
     degree,
     hit: HITS.includes(degree),
-    damage: row.splash
-      ? splashMobDamage(attack.splashDamage, degree, attack.floor)
-      : mobDamage(attack.damage, degree, attack.floor),
+    damage: attack.damagePending
+      ? null
+      : row.splash
+        ? splashMobDamage(attack.splashDamage, degree, attack.floor)
+        : mobDamage(attack.damage, degree, attack.floor),
     rolled,
     skipped,
     injury,
@@ -765,7 +1035,8 @@ async function applyMobResult(
 
   const actor = actorOfRow(row);
   if (injury && actor) await markInjury(actor, injury);
-  if (row.hit) {
+  // (a hit waits for the damage when that is still to be rolled: see rollMobDamage)
+  if (row.hit && !attack.damagePending) {
     const item = await fromUuid(attack.itemUuid);
     if (item && actor && (!row.splash || item.system.targeting?.splashEffects)) {
       await runEvents(item, 'hit', {
@@ -866,6 +1137,140 @@ async function resolveMobTarget(message, index, skip, shift = false) {
       },
     },
   });
+}
+
+/**
+ * Roll a mob attack's damage (the card's Roll Damage button; GM only, once every crawler has
+ * answered). The damage window can add bonus damage, multiply it, change its type or make it
+ * ignore DR. The dice are whispered to the GM, so players never see the numbers.
+ * @param {ChatMessage} message  The mob's attack card
+ * @param {{shift?: boolean}} [options]  Shift skips the window
+ */
+export async function rollMobDamage(message, { shift = false } = {}) {
+  if (!game.user.isGM) return;
+  const attack = foundry.utils.deepClone(message.getFlag(NS, 'attack'));
+  if (!attack?.damagePending || !attack.pending) return;
+  if (attack.targets.some((row) => row.state === 'pending')) {
+    ui.notifications.warn(t('CARL_RPG.DamageDialog.WaitingForRolls'));
+    return;
+  }
+  const item = await fromUuid(attack.pending.itemUuid);
+  if (!item) {
+    ui.notifications.warn(t('CARL_RPG.Attack.NotFound', { name: attack.itemName }));
+    return;
+  }
+  const current = {
+    type: effectiveOf(item).damageType ?? '',
+    also: '',
+    armorPiercing: !!effectiveOf(item).armorPiercing,
+  };
+  let manual = null;
+  if (!shift) {
+    const chosen = await promptDamage({
+      title: item.name,
+      types: damageTypes().map((d) => ({ id: d.id, label: d.label })),
+      current,
+      mob: true,
+    });
+    if (!chosen) return;
+    const bonus = bonusFormula(chosen.bonus);
+    if (bonus?.error) {
+      ui.notifications.warn(t('CARL_RPG.DamageDialog.Invalid', { bonus: chosen.bonus }));
+      return;
+    }
+    manual = { bonus, multiplier: chosen.multiplier, type: chosen.type, ignoreDR: chosen.ignoreDR };
+  }
+  const { damageType } = chosenTypes(manual ?? {}, { type: current.type, also: '' });
+  const armorPiercing = manual ? !!manual.ignoreDR : current.armorPiercing;
+  const multiplier = manualMultiplier(manual?.multiplier);
+  const owner = item.actor;
+  const floor = attack.floor;
+  const rollData = damageRollData(owner?.getRollData());
+
+  let damageRoll = null;
+  let bonusRoll = null;
+  let splashRoll = null;
+  let splashDamage = null;
+  try {
+    damageRoll = await new Roll(
+      withCost(expandRankDamage(effectiveOf(item).damage, item)),
+      rollData
+    ).evaluate();
+    if (manual?.bonus) bonusRoll = await new Roll(manual.bonus.formula, rollData).evaluate();
+  } catch (err) {
+    ui.notifications.warn(t('CARL_RPG.Attack.BadDamage', { name: item.name }));
+    return;
+  }
+  const base =
+    Math.max(0, Math.floor(damageRoll.total)) +
+    (bonusRoll ? Math.max(0, Math.floor(bonusRoll.total)) : 0);
+  // Splash (see resolveMobCheck): rolled once, no crits for a mob.
+  if (hasSplashDamage(item.system.targeting?.splashDamage) && attack.targets.some((row) => row.splash)) {
+    try {
+      splashRoll = await new Roll(
+        withCost(expandRankDamage(item.system.targeting.splashDamage, item)),
+        rollData
+      ).evaluate();
+      splashDamage = Math.max(0, Math.floor(splashRoll.total));
+    } catch (err) {
+      splashRoll = null;
+      ui.notifications.warn(t('CARL_RPG.Attack.BadDamage', { name: item.name }));
+    }
+  }
+
+  // Claim the roll before anything is shown (a second click on the button finds it gone).
+  if (!message.getFlag(NS, 'attack')?.damagePending) return;
+  for (const row of attack.targets) {
+    // (a splash row is not multiplied, like the splash of any attack)
+    row.damage = row.splash
+      ? splashMobDamage(splashDamage, row.degree, floor)
+      : Math.floor(mobDamage(base, row.degree, floor) * multiplier);
+  }
+  Object.assign(attack, { damage: base, splashDamage, damageType, armorPiercing, damagePending: false });
+  const heading =
+    damageHeading(item, base, null, { damageType, armorPiercing }) +
+    multiplierNote({ base: 1, total: multiplier });
+  await message.update({
+    content: checkHeadingHtml(heading, true),
+    flags: { [NS]: { attack } },
+  });
+  const rolls = [damageRoll, bonusRoll, splashRoll].filter(Boolean);
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor: owner }),
+    whisper: ChatMessage.getWhisperRecipients('GM').map((u) => u.id),
+    flavor: t('CARL_RPG.DamageDialog.Flavor', { name: item.name }),
+    content: (await Promise.all(rolls.map((r) => r.render()))).join(''),
+    rolls,
+    sound: CONFIG.sounds.dice,
+  });
+
+  // The hits run the item's events now that there is damage (a splash row only when the
+  // item's splash applies effects).
+  for (const row of attack.targets) {
+    if (!row.hit || (row.splash && !item.system.targeting?.splashEffects)) continue;
+    const actor = actorOfRow(row);
+    if (!actor) continue;
+    await runEvents(item, 'hit', {
+      target: actor,
+      degree: row.degree,
+      depth: 0,
+      attackMessage: message,
+      // (the mob rolled no d20: only the damage the target takes)
+      damage: { total: row.damage },
+    });
+  }
+}
+
+/** The card's Roll Damage button: the mob's, or the item's own (see CarlRPGItem#rollDamage). */
+async function rollDamageFromCard(message, shift) {
+  const attack = message.getFlag(NS, 'attack');
+  if (attack?.mob) return rollMobDamage(message, { shift });
+  const item = attack?.pending?.itemUuid ? await fromUuid(attack.pending.itemUuid) : null;
+  if (!item) {
+    ui.notifications.warn(t('CARL_RPG.Attack.NotFound', { name: attack?.itemName ?? '' }));
+    return;
+  }
+  return item.rollDamage(message, { shift });
 }
 
 /** On the GM's client: check a crawler's relayed roll, then record it. */
@@ -1259,12 +1664,35 @@ function renderAttackCard(message, html) {
       }
     }
   }
+  // The damage waits for a click: the Roll Damage button (a mob's once every defending roll is in).
+  if (attack.damagePending) {
+    const waiting = attack.targets.some((row) => row.state === 'pending');
+    const can = attack.mob ? isGM : isGM || message.canUserModify(game.user, 'update');
+    if (can && !waiting) {
+      body += `<div class="attack-roll-damage"><button type="button" class="carl-roll-damage" title="${esc(
+        t('CARL_RPG.DamageDialog.ButtonTip')
+      )}"><i class="fa-solid fa-burst"></i> ${esc(t('CARL_RPG.DamageDialog.Button'))}</button></div>`;
+    }
+  }
   // Events that fired for this attack: the GM sees them, one line each.
   if (isGM && attack.fired?.length) {
     body += attack.fired.map((line) => `<p class="attack-note attack-fired">${esc(line)}</p>`).join('');
   }
   list.innerHTML = body;
   host.append(list);
+
+  for (const el of list.querySelectorAll('.carl-roll-damage')) {
+    el.addEventListener('click', async (event) => {
+      event.preventDefault();
+      // Stop a second click while the window is open or the damage is being rolled.
+      el.disabled = true;
+      try {
+        await rollDamageFromCard(message, event.shiftKey);
+      } finally {
+        el.disabled = false;
+      }
+    });
+  }
 
   for (const el of list.querySelectorAll('.carl-mob-roll')) {
     el.addEventListener('click', async (event) => {
