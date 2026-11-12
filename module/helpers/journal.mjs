@@ -335,7 +335,8 @@ const mobWords = () => ({
   check: loc('Check'),
   damage: loc('Damage'),
   ignoresDr: loc('IgnoresDR'),
-  kind: (key) => t(CONFIG.CARL_RPG.mobTypes[key] ?? ''),
+  // A basic mob is just "Mob"; the other kinds keep their names.
+  kind: (key) => (key === 'basic' ? loc('MobKind') : t(CONFIG.CARL_RPG.mobTypes[key] ?? '')),
   size: (key) => t(CONFIG.CARL_RPG.sizes[key] ?? ''),
   target: (key) => t(CONFIG.CARL_RPG.checkTargets[key] ?? ''),
   damageType: damageTypeLabel,

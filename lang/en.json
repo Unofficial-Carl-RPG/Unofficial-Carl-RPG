@@ -123,6 +123,7 @@
       "Abilities": "Abilities",
       "IgnoresDR": "Ignores DR",
       "FloorShort": "F",
+      "MobKind": "Mob",
       "StepShort": "S",
       "Close": "Close",
       "Degree": {
