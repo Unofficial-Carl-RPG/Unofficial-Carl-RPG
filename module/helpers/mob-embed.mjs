@@ -4,7 +4,7 @@
  * numbers to anyone who can see the page.
  *
  * `words` carries the localized labels:
- *   level, evade, dr, move, surprise, check, damage, ignoresDr  strings
+ *   level, evade, dr, move, surprise, floor, step, check, damage, ignoresDr  strings
  *   kind(key), size(key)                                        functions
  *   target(key), damageType(id), stat(key)                      functions
  */
@@ -14,14 +14,17 @@ export function mobEmbedInfo(actor, words) {
     words.kind(system.mobType),
     system.race || '',
     words.size(actor.system.size),
-    `${words.level} ${system.attributes?.level?.value ?? 1}`,
   ].filter(Boolean);
 
-  const chips = [
-    [words.evade, system.evadeTotal ?? 0],
-    [words.dr, system.drTotal ?? 0],
-    [words.move, system.moveTotal ?? 0],
-    [words.surprise, system.surpriseTotal ?? 0],
+  // The stat block, as the book lays it out: a label over its value. Surprise, Evade and DR
+  // show the mob's own number with "+F" (the Floor is added on top); Move shows "+S".
+  const floor = system.floor ?? 0;
+  const stats = [
+    [words.level, `${system.attributes?.level?.value ?? 1}`],
+    [words.surprise, `${(system.surpriseTotal ?? 0) - floor}+${words.floor}`],
+    [words.evade, `${(system.evadeTotal ?? 0) - floor}+${words.floor}`],
+    [words.move, `${system.moveTotal ?? 0}+${words.step}`],
+    [words.dr, `${(system.drTotal ?? 0) - floor}+${words.floor}`],
   ];
 
   const attributes = Object.entries(system.abilities ?? {}).map(([key, data]) => ({
@@ -29,6 +32,7 @@ export function mobEmbedInfo(actor, words) {
     label: words.stat(key),
     value: data.value ?? 0,
     mod: data.mod ?? 0,
+    text: `${data.value ?? 0} (${(data.mod ?? 0) < 0 ? '' : '+'}${data.mod ?? 0})`,
   }));
 
   // The health bar as the mob sheet draws it: one box per point of max health, each showing the
@@ -39,7 +43,6 @@ export function mobEmbedInfo(actor, words) {
     percent: `${Math.round(((i + 1) / total) * 100)}%`,
   }));
 
-  const floor = system.floor ?? 0;
   const abilities = [...(actor.items ?? [])]
     .filter((item) => item.type === 'mobAbility')
     .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
@@ -56,5 +59,5 @@ export function mobEmbedInfo(actor, words) {
       return { item, name: item.name, img: item.img, chips: abilityChips };
     });
 
-  return { line, chips, attributes, health, abilities };
+  return { line, stats, attributes, health, abilities };
 }

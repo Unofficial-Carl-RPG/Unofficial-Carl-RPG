@@ -122,6 +122,8 @@
       "Surprise": "Surprise",
       "Abilities": "Abilities",
       "IgnoresDR": "Ignores DR",
+      "FloorShort": "F",
+      "StepShort": "S",
       "Close": "Close",
       "Degree": {
         "critHit": "Critical Hit",

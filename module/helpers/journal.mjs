@@ -330,6 +330,8 @@ const mobWords = () => ({
   dr: loc('DR'),
   move: loc('Move'),
   surprise: loc('Surprise'),
+  floor: loc('FloorShort'),
+  step: loc('StepShort'),
   check: loc('Check'),
   damage: loc('Damage'),
   ignoresDr: loc('IgnoresDR'),
@@ -352,8 +354,6 @@ async function appendMobSections(card, mob, options) {
   line.textContent = info.line.join(' \u00B7 ');
   card.append(line);
 
-  card.append(chipRow(info.chips));
-
   // Health as on the mob sheet: boxes holding their damage, the red-to-green gradient across the bar.
   const bar = document.createElement('div');
   bar.className = 'carl-embed-health';
@@ -374,14 +374,25 @@ async function appendMobSections(card, mob, options) {
   });
   card.append(bar);
 
-  const attributes = document.createElement('div');
-  attributes.className = 'carl-embed-attributes';
-  for (const a of info.attributes) {
-    const cell = document.createElement('span');
-    cell.textContent = `${a.label} ${a.value} (${a.mod})`;
-    attributes.append(cell);
-  }
-  card.append(attributes);
+  // Under the bar: a row of labels over values, then the five attributes the same way.
+  const statRow = (rows) => {
+    const row = document.createElement('div');
+    row.className = 'carl-embed-statrow';
+    for (const [label, value] of rows) {
+      const cell = document.createElement('div');
+      const name = document.createElement('strong');
+      name.textContent = label;
+      const number = document.createElement('span');
+      number.textContent = value;
+      cell.append(name, number);
+      row.append(cell);
+    }
+    return row;
+  };
+  const stats = document.createElement('div');
+  stats.className = 'carl-embed-stats';
+  stats.append(statRow(info.stats), statRow(info.attributes.map((a) => [a.label, a.text])));
+  card.append(stats);
 
   const body = document.createElement('div');
   body.className = 'carl-embed-body';
