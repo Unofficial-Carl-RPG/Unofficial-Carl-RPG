@@ -496,6 +496,65 @@ secret-block > section.secret {
     }
   }
 
+  // A mob embed: the kind line, attribute row and a small card per ability.
+  .carl-embed-line {
+    margin-top: 0.3em;
+    color: color-mix(in srgb, var(--embed-accent) 60%, #fff);
+    font-size: 0.85em;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .carl-embed-attributes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 12px;
+    margin: 0.3em 0;
+    font-size: 0.85em;
+    opacity: 0.9;
+  }
+
+  .carl-embed-abilities {
+    margin-top: 0.6em;
+    padding-top: 0.4em;
+    border-top: 1px solid color-mix(in srgb, var(--embed-accent) 45%, transparent);
+
+    > strong {
+      color: color-mix(in srgb, var(--embed-accent) 35%, #fff);
+      font-family: var(--dcc-font-display);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+  }
+
+  .carl-embed-ability {
+    margin-top: 0.5em;
+    padding: 4px 8px 6px;
+    border: 1px solid color-mix(in srgb, var(--embed-accent) 45%, #000);
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.25);
+    font-size: 0.9em;
+  }
+
+  .carl-embed-ability-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    img {
+      flex: 0 0 auto;
+      width: 24px;
+      height: 24px;
+      border: 1px solid var(--embed-accent);
+      border-radius: 3px;
+      object-fit: cover;
+    }
+
+    strong {
+      color: color-mix(in srgb, var(--embed-accent) 35%, #fff);
+    }
+  }
+
   // Buttons from @Check, @Gold, @Junk, @LootBox, @Effect and @Announce.
   .carl-enrich-button {
     display: inline-block;

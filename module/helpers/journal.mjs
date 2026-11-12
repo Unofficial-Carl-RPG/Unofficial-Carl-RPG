@@ -3,8 +3,10 @@ import { hasStat } from './stat-term.mjs';
 import { rankOf } from './skill-rank.mjs';
 import { getPartyName } from './party.mjs';
 import { CarlRPGDialog } from './dialog.mjs';
-import { degreeOf, naturalD20, evadeOf } from './attacks.mjs';
+import { degreeOf, naturalD20 } from './attacks.mjs';
 import { announceSystem, SYSTEM_KINDS } from './system-announcements.mjs';
+import { damageTypeLabel } from './damage-types.mjs';
+import { mobEmbedInfo } from './mob-embed.mjs';
 
 /*
  * Journal enrichers, typed into journal text, chat and item descriptions.
@@ -238,16 +240,9 @@ const ownsEmbed = (doc) =>
 /** The kind a card is coloured by: the item type, "effect" or "mob". */
 const embedKind = (doc) => (doc instanceof Actor ? 'mob' : doc instanceof ActiveEffect ? 'effect' : doc.type);
 
-/**
- * The key numbers an embed shows. Players see a mob's Evade and DR (they show on
- * the journal page); the GM also sees an item's value.
- */
+/** The key numbers an item or effect embed shows; the GM also sees an item's value. */
 function embedNumbers(doc) {
   const rows = [];
-  if (doc instanceof Actor) {
-    rows.push([loc('Evade'), evadeOf(doc)], [loc('DR'), doc.system.drTotal ?? 0]);
-    return rows;
-  }
   if (doc.type === 'skill') {
     rows.push(
       [loc('Stat'), hasStat(doc.system.stat) ? String(doc.system.stat).toUpperCase() : game.i18n.localize('CARL_RPG.Stat.None')],
@@ -261,30 +256,31 @@ function embedNumbers(doc) {
   return rows;
 }
 
-/**
- * A card for an embed: picture, name, key numbers and description. The description is
- * enriched like any other text, so links, inline rolls and other embeds typed into it
- * work. `options` are the enrichment options of the text the embed is in: they carry the
- * embed depth, which stops embeds that point back at each other.
- */
-async function embedCard(doc, label, options = {}) {
-  const card = document.createElement('div');
-  card.className = 'carl-embed';
-  card.dataset.kind = embedKind(doc);
+/** Enrich a document's text the way every embed does. */
+const enrichText = (html, doc, options) =>
+  html
+    ? foundry.applications.ux.TextEditor.implementation.enrichHTML(html, {
+        ...options,
+        secrets: doc.isOwner,
+        rollData: doc.getRollData?.() ?? {},
+        relativeTo: doc,
+      })
+    : '';
 
-  const head = document.createElement('div');
-  head.className = 'carl-embed-head';
-  if (doc.img) {
-    const img = document.createElement('img');
-    img.src = doc.img;
-    img.alt = '';
-    head.append(img);
+/** A row of chips: "Name value" each. */
+function chipRow(rows) {
+  const row = document.createElement('div');
+  row.className = 'carl-embed-numbers';
+  for (const [name, value] of rows) {
+    const cell = document.createElement('span');
+    cell.textContent = `${name} ${value ?? ''}`.trim();
+    row.append(cell);
   }
-  const title = document.createElement('strong');
-  title.textContent = label || doc.name;
-  head.append(title);
-  card.append(head);
+  return row;
+}
 
+/** Item and effect embeds: key numbers, description and upgrades. */
+async function appendItemSections(card, doc, options) {
   const numbers = embedNumbers(doc);
   if (numbers.length) {
     const row = document.createElement('div');
@@ -325,6 +321,110 @@ async function embedCard(doc, label, options = {}) {
     }
     card.append(list);
   }
+}
+
+/** The words a mob card is written in. */
+const mobWords = () => ({
+  level: loc('Level'),
+  evade: loc('Evade'),
+  dr: loc('DR'),
+  move: loc('Move'),
+  surprise: loc('Surprise'),
+  check: loc('Check'),
+  damage: loc('Damage'),
+  ignoresDr: loc('IgnoresDR'),
+  health: (n, v) => loc('Health', { n, v }),
+  kind: (key) => t(CONFIG.CARL_RPG.mobTypes[key] ?? ''),
+  size: (key) => t(CONFIG.CARL_RPG.sizes[key] ?? ''),
+  target: (key) => t(CONFIG.CARL_RPG.checkTargets[key] ?? ''),
+  damageType: damageTypeLabel,
+  stat: (key) => key.toUpperCase(),
+});
+
+/**
+ * Mob embeds: kind, race, size and level; Evade, DR, Move and Surprise; the five
+ * attributes and health; the biography; then every mob ability as a small card.
+ */
+async function appendMobSections(card, mob, options) {
+  const info = mobEmbedInfo(mob, mobWords());
+
+  const line = document.createElement('div');
+  line.className = 'carl-embed-line';
+  line.textContent = info.line.join(' \u00B7 ');
+  card.append(line);
+
+  card.append(chipRow([...info.chips, [info.health, '']]));
+
+  const attributes = document.createElement('div');
+  attributes.className = 'carl-embed-attributes';
+  for (const a of info.attributes) {
+    const cell = document.createElement('span');
+    cell.textContent = `${a.label} ${a.value} (${a.mod})`;
+    attributes.append(cell);
+  }
+  card.append(attributes);
+
+  const body = document.createElement('div');
+  body.className = 'carl-embed-body';
+  body.innerHTML = await enrichText(mob.system.biography ?? '', mob, options);
+  card.append(body);
+
+  if (!info.abilities.length) return;
+  const list = document.createElement('div');
+  list.className = 'carl-embed-abilities';
+  const heading = document.createElement('strong');
+  heading.textContent = loc('Abilities');
+  list.append(heading);
+  for (const ability of info.abilities) {
+    const entry = document.createElement('div');
+    entry.className = 'carl-embed-ability';
+    const head = document.createElement('div');
+    head.className = 'carl-embed-ability-head';
+    if (ability.img) {
+      const img = document.createElement('img');
+      img.src = ability.img;
+      img.alt = '';
+      head.append(img);
+    }
+    const name = document.createElement('strong');
+    name.textContent = ability.name;
+    head.append(name);
+    entry.append(head, chipRow(ability.chips));
+    const text = document.createElement('div');
+    text.className = 'carl-embed-body';
+    text.innerHTML = await enrichText(ability.item.system.description ?? '', ability.item, options);
+    entry.append(text);
+    list.append(entry);
+  }
+  card.append(list);
+}
+
+/**
+ * A card for an embed: picture, name, key numbers and description. The description is
+ * enriched like any other text, so links, inline rolls and other embeds typed into it
+ * work. `options` are the enrichment options of the text the embed is in: they carry the
+ * embed depth, which stops embeds that point back at each other.
+ */
+async function embedCard(doc, label, options = {}) {
+  const card = document.createElement('div');
+  card.className = 'carl-embed';
+  card.dataset.kind = embedKind(doc);
+
+  const head = document.createElement('div');
+  head.className = 'carl-embed-head';
+  if (doc.img) {
+    const img = document.createElement('img');
+    img.src = doc.img;
+    img.alt = '';
+    head.append(img);
+  }
+  const title = document.createElement('strong');
+  title.textContent = label || doc.name;
+  head.append(title);
+  card.append(head);
+
+  if (doc instanceof Actor) await appendMobSections(card, doc, options);
+  else await appendItemSections(card, doc, options);
   // Clicks are handled for every card together (see registerJournalEnrichers): a card
   // inside another card's description opens itself, and it still works after the text
   // around it has been rebuilt.
