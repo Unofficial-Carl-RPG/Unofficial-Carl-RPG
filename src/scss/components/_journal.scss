@@ -592,8 +592,15 @@ secret-block > section.secret {
 
   .carl-embed-ability-head {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 6px;
+    gap: 4px 6px;
+
+    // The chips start on the name's line and wrap under it when they run out of room.
+    .carl-embed-numbers {
+      flex: 1 1 0;
+      margin: 0;
+    }
 
     img {
       flex: 0 0 auto;

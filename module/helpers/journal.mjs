@@ -418,8 +418,8 @@ async function appendMobSections(card, mob, options) {
     }
     const name = document.createElement('strong');
     name.textContent = ability.name;
-    head.append(name);
-    entry.append(head, chipRow(ability.chips));
+    head.append(name, chipRow(ability.chips));
+    entry.append(head);
     const text = document.createElement('div');
     text.className = 'carl-embed-body';
     text.innerHTML = await enrichText(ability.item.system.description ?? '', ability.item, options);
