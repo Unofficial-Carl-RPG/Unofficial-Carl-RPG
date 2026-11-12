@@ -5,7 +5,7 @@
  *
  * `words` carries the localized labels:
  *   level, evade, dr, move, surprise, check, damage, ignoresDr  strings
- *   health(boxes, perBox), kind(key), size(key)                 functions
+ *   kind(key), size(key)                                        functions
  *   target(key), damageType(id), stat(key)                      functions
  */
 export function mobEmbedInfo(actor, words) {
@@ -31,7 +31,13 @@ export function mobEmbedInfo(actor, words) {
     mod: data.mod ?? 0,
   }));
 
-  const health = words.health(system.health?.max ?? 0, system.health?.perBox ?? 0);
+  // The health bar as the mob sheet draws it: one box per point of max health, each showing the
+  // damage it holds (a slot value row, else the CON modifier) over the share of health it is.
+  const total = Math.max(1, Math.floor(system.health?.max ?? 1));
+  const health = Array.from({ length: total }, (_, i) => ({
+    label: `${system.health?.slots?.[i] ?? system.health?.perBox ?? 0}`,
+    percent: `${Math.round(((i + 1) / total) * 100)}%`,
+  }));
 
   const floor = system.floor ?? 0;
   const abilities = [...(actor.items ?? [])]

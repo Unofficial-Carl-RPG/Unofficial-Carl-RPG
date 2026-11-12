@@ -122,7 +122,6 @@
       "Surprise": "Surprise",
       "Abilities": "Abilities",
       "IgnoresDR": "Ignores DR",
-      "Health": "Health {n} boxes, {v} each",
       "Close": "Close",
       "Degree": {
         "critHit": "Critical Hit",

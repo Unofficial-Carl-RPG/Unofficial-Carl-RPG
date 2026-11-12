@@ -333,7 +333,6 @@ const mobWords = () => ({
   check: loc('Check'),
   damage: loc('Damage'),
   ignoresDr: loc('IgnoresDR'),
-  health: (n, v) => loc('Health', { n, v }),
   kind: (key) => t(CONFIG.CARL_RPG.mobTypes[key] ?? ''),
   size: (key) => t(CONFIG.CARL_RPG.sizes[key] ?? ''),
   target: (key) => t(CONFIG.CARL_RPG.checkTargets[key] ?? ''),
@@ -353,7 +352,27 @@ async function appendMobSections(card, mob, options) {
   line.textContent = info.line.join(' \u00B7 ');
   card.append(line);
 
-  card.append(chipRow([...info.chips, [info.health, '']]));
+  card.append(chipRow(info.chips));
+
+  // Health as on the mob sheet: boxes holding their damage, the red-to-green gradient across the bar.
+  const bar = document.createElement('div');
+  bar.className = 'carl-embed-health';
+  bar.style.gridTemplateColumns = `repeat(${Math.min(info.health.length, 20)}, minmax(0, 1fr))`;
+  info.health.forEach((box, i) => {
+    const total = info.health.length;
+    const cell = document.createElement('div');
+    const face = document.createElement('span');
+    face.className = 'carl-embed-health-box';
+    face.textContent = box.label;
+    face.style.backgroundSize = `${total * 100}% 100%`;
+    face.style.backgroundPosition = `${total > 1 ? Number(((i / (total - 1)) * 100).toFixed(3)) : 0}% 0`;
+    const pct = document.createElement('span');
+    pct.className = 'carl-embed-health-pct';
+    pct.textContent = box.percent;
+    cell.append(face, pct);
+    bar.append(cell);
+  });
+  card.append(bar);
 
   const attributes = document.createElement('div');
   attributes.className = 'carl-embed-attributes';

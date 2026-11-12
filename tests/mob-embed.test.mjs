@@ -12,7 +12,6 @@ const words = {
   check: 'Check',
   damage: 'Damage',
   ignoresDr: 'Ignores DR',
-  health: (n, v) => `Health ${n} boxes, ${v} each`,
   kind: (key) => ({ elite: 'Elite', basic: 'Basic' })[key] ?? '',
   size: (key) => ({ large: 'Large' })[key] ?? '',
   target: (key) => ({ evade: 'Evade (attack)', str: 'Strength' })[key] ?? '',
@@ -43,8 +42,16 @@ test('mob embed: kind line and numbers', () => {
   const info = mobEmbedInfo(mob(), words);
   assert.deepEqual(info.line, ['Elite', 'Goblin', 'Large', 'Level 4']);
   assert.deepEqual(info.chips, [['Evade', 14], ['DR', 3], ['Move', 20], ['Surprise', 11]]);
-  assert.equal(info.health, 'Health 8 boxes, 3 each');
+  assert.equal(info.health.length, 8);
+  assert.deepEqual(info.health[0], { label: '3', percent: '13%' });
+  assert.deepEqual(info.health[7], { label: '3', percent: '100%' });
   assert.deepEqual(info.attributes.map((a) => [a.label, a.value, a.mod]), [['STR', 12, 1], ['DEX', 6, -2]]);
+});
+
+test('mob embed: a box with a slot value shows that value', () => {
+  const m = mob();
+  m.system.health = { max: 3, perBox: 2, slots: [2, 5, 2] };
+  assert.deepEqual(mobEmbedInfo(m, words).health.map((b) => b.label), ['2', '5', '2']);
 });
 
 test('mob embed: a blank race is left out of the line', () => {

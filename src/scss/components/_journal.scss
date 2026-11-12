@@ -505,6 +505,39 @@ secret-block > section.secret {
     text-transform: uppercase;
   }
 
+  // The mob's health bar, drawn like the sheet's: boxes with their damage inside and the percent under.
+  .carl-embed-health {
+    display: grid;
+    gap: 4px 2px;
+    margin: 0.4em 0;
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+  }
+
+  .carl-embed-health-box {
+    padding: 2px 0;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background-color: var(--dcc-health-mid);
+    background-image: linear-gradient(90deg, var(--dcc-health-low), var(--dcc-health-mid), var(--dcc-health-high));
+    color: #fff;
+    font-size: 10px;
+    text-align: center;
+    text-shadow: 0 1px 2px #000;
+  }
+
+  .carl-embed-health-pct {
+    overflow: hidden;
+    font-size: 9px;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+    opacity: 0.7;
+  }
+
   .carl-embed-attributes {
     display: flex;
     flex-wrap: wrap;
