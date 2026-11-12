@@ -17,6 +17,7 @@ import { mobEmbedInfo } from './mob-embed.mjs';
  *   @Effect[uuid]               GM only: apply an effect to a crawler
  *   @Announce[kind|text]        GM only: post a System announcement
  *   @Embed[uuid]                items, effects and mobs as a card (other embeds are Foundry's)
+ *   @Embed[uuid bio=false]      the same card without the description (a mob's Biography)
  * Players see plain text where a button is GM only.
  */
 
@@ -280,7 +281,7 @@ function chipRow(rows) {
 }
 
 /** Item and effect embeds: key numbers, description and upgrades. */
-async function appendItemSections(card, doc, options) {
+async function appendItemSections(card, doc, options, showBio = true) {
   const numbers = embedNumbers(doc);
   if (numbers.length) {
     const row = document.createElement('div');
@@ -295,7 +296,7 @@ async function appendItemSections(card, doc, options) {
 
   const body = document.createElement('div');
   body.className = 'carl-embed-body';
-  const description = doc.system?.description ?? '';
+  const description = showBio ? (doc.system?.description ?? '') : '';
   body.innerHTML = description
     ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(description, {
         ...options,
@@ -347,7 +348,7 @@ const mobWords = () => ({
  * Mob embeds: kind, race, size and level; Evade, DR, Move and Surprise; the five
  * attributes and health; the biography; then every mob ability as a small card.
  */
-async function appendMobSections(card, mob, options) {
+async function appendMobSections(card, mob, options, showBio = true) {
   const info = mobEmbedInfo(mob, mobWords());
 
   const line = document.createElement('div');
@@ -395,10 +396,12 @@ async function appendMobSections(card, mob, options) {
   stats.append(statRow(info.stats), statRow(info.attributes.map((a) => [a.label, a.text])));
   card.append(stats);
 
-  const body = document.createElement('div');
-  body.className = 'carl-embed-body';
-  body.innerHTML = await enrichText(mob.system.biography ?? '', mob, options);
-  card.append(body);
+  if (showBio) {
+    const body = document.createElement('div');
+    body.className = 'carl-embed-body';
+    body.innerHTML = await enrichText(mob.system.biography ?? '', mob, options);
+    card.append(body);
+  }
 
   if (!info.abilities.length) return;
   const list = document.createElement('div');
@@ -436,7 +439,7 @@ async function appendMobSections(card, mob, options) {
  * work. `options` are the enrichment options of the text the embed is in: they carry the
  * embed depth, which stops embeds that point back at each other.
  */
-async function embedCard(doc, label, options = {}) {
+async function embedCard(doc, label, options = {}, config = {}) {
   const card = document.createElement('div');
   card.className = 'carl-embed';
   card.dataset.kind = embedKind(doc);
@@ -454,8 +457,10 @@ async function embedCard(doc, label, options = {}) {
   head.append(title);
   card.append(head);
 
-  if (doc instanceof Actor) await appendMobSections(card, doc, options);
-  else await appendItemSections(card, doc, options);
+  // bio=false leaves out the description (a mob's Biography).
+  const showBio = config.bio !== false;
+  if (doc instanceof Actor) await appendMobSections(card, doc, options, showBio);
+  else await appendItemSections(card, doc, options, showBio);
   // Clicks are handled for every card together (see registerJournalEnrichers): a card
   // inside another card's description opens itself, and it still works after the text
   // around it has been rebuilt.
@@ -496,7 +501,7 @@ function installEmbedOverride() {
       if (options._embedDepth > CONST.TEXT_ENRICH_EMBED_MAX_DEPTH) {
         return original.call(this, match, options);
       }
-      return embedCard(doc, match.groups?.label, options);
+      return embedCard(doc, match.groups?.label, options, config);
     }
     return original.call(this, match, options);
   };
