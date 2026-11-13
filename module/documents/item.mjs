@@ -298,6 +298,12 @@ export class CarlRPGItem extends Item {
       return false;
     }
 
+    // An Effect Container only hands its effects to a sheet; it is never held.
+    if (this.type === 'effectContainer' && this.parent instanceof Actor) {
+      ui.notifications.warn(game.i18n.localize('CARL_RPG.EffectContainer.NotOnActors'));
+      return false;
+    }
+
     // A pet has no inventory: it can only have gear (which it wears), skills and
     // spells.
     if (

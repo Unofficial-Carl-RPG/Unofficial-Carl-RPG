@@ -279,6 +279,10 @@ export class CarlRPGItemSheet extends ItemSheetBase {
       case 'species':
         options.parts.push('attributesSpecies', 'grantedSkills', 'effects');
         break;
+      case 'effectContainer':
+        // A description, tags and the effects it hands to the sheet it is dropped on.
+        options.parts.push('tags', 'effects');
+        return;
       case 'background':
         // Just a description, the categories it is offered in and its skills.
         options.parts.push('attributesBackground', 'skills');
@@ -938,6 +942,7 @@ export class CarlRPGItemSheet extends ItemSheetBase {
         break;
       case 'effects':
         context.tab = context.tabs[partId];
+        context.isContainer = this.item.type === 'effectContainer';
         // Effects on an item are templates, copied to an actor with the item
         context.effectRows = this.item.effects.map((effect) => ({
           id: effect.id,

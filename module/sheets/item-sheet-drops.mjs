@@ -2,6 +2,7 @@
  * Item sheet: dragging and dropping onto and out of the sheet.
  */
 import { addLibraryPageToEvents } from '../helpers/event-editor.mjs';
+import { canHoldEffects, dropContainer, isEffectContainer } from '../helpers/effect-container.mjs';
 
 export const ItemSheetDrops = (Base) => class ItemSheetDrops extends Base {
   /**
@@ -114,6 +115,15 @@ export const ItemSheetDrops = (Base) => class ItemSheetDrops extends Base {
    */
   async _onDropItem(event, data) {
     if (!this.item.isOwner) return false;
+
+    // An Effect Container hands its effects to any sheet that can hold effects.
+    if (canHoldEffects(this.item)) {
+      const container = await Item.fromDropData(data);
+      if (isEffectContainer(container)) {
+        if (container.uuid !== this.item.uuid) await dropContainer(this.item, container);
+        return container;
+      }
+    }
 
     // Races and classes: skills dropped on the Skills tab are granted at rank 1.
     if (['race', 'class', 'subclass', 'species'].includes(this.item.type)) {

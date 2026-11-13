@@ -38,6 +38,7 @@
 - quest: attributesQuest
 - personalSpace: attributesPersonalSpace
 - club: attributesClub, effects
+- effectContainer: tags, effects (no events tab, no attributes tab)
 - deity: attributesDeity, skills, effects
 - race|class|subclass: attributesOrigin, grantedSkills, prerequisites, effects
 - species: attributesSpecies, grantedSkills, effects
@@ -132,6 +133,17 @@
 ## deity
 - fields: offering text, tithe 0..100 (default 5), tier 0..3 (GM sets on crawler's copy; 0 = none)
 - rules: One per crawler (new replaces old), dropped on sheet. Tier 1..3 sections of effects stack (effect flag tier). Make offering button posts the offering text to chat. Tithe: percent of loot-box and mob gold, rounded down, taken (nobody paid); prompt to pay or skip. Header Deity box only while held.
+
+## effectContainer
+- model: CarlRPGEffectContainer (data/item-effect-container.mjs), no fields beyond the base item. Logic in helpers/effect-container.mjs (pure planning + dropContainer); tests/effect-container.test.mjs.
+- purpose: a world or compendium item that only stores effects (plus description and tags). Never held by an actor: Item._preCreate refuses it with a notice on any actor (a dropped folder of items passes its containers through dropContainer instead).
+- drop targets (canHoldEffects): crawler, mob, pet actor sheets; item sheets of skill, spell, gear, item, mobAbility, club, deity, race, class, subclass, species, effectContainer. Not mount, lootPile, spellScroll or any item without an Effects tab. Item sheet: ItemSheetDrops._onDropItem (anywhere on the sheet, runs before the type-specific drops); actor sheet: ActorSheetDrops._onDropItem override and _onDropItemCreate (folders). A drop box ("Drop an effect or Effect Container here", Drop.effect) ends the item Effects list (editable only) and the actor Effects tab (edit mode).
+- copy: each effect is copied once at drop time (name, changes, flags, build/percent rows); the target keeps no link to the container (no origin, no source). planDrop pairs by CarlRPGActiveEffect.matches (identifier, else name); matching effects inside the container count once unless stacking buffs; each existing effect is replaced once.
+- replace: a match on the target is REPLACED in place (replaceUpdate): definition and flags come from the container, while disabled, origin, start, stacks, roundsLeft and sourceItems are kept; flags the container lacks are removed.
+- onActor: new effects get sourceItems [] and stacks 1, origin none, and start off for a buff, on otherwise (as when an item is granted); percent rows are settled by ActiveEffect._preCreate/_preUpdate against the actor. equipLinked stays as authored; with no gear as source nothing controls it.
+- onItem: effects land as templates (no runtime flags). A deity files a new one under tier 1 (a replaced one keeps its tier).
+- ownedItem: dropped on an item an actor holds, the touched effects also go to the actor as if the item had just been added: sourceItems [item id], origin the item, gear-tied ones follow equipped (putEffectsOnActor with source). A deity instead deletes the replaced copies and runs syncDeityTiers.
+- notice: one info notification, CARL_RPG.EffectContainer.Done ({name} to {target}: {added} added, {replaced} replaced). An empty container warns.
 
 ## store
 - fields: sellPercent 0..100 default 50, listings[{uuid, price|null=item value, quantity|null=unlimited, startStock|null, snapshot|null}]

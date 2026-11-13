@@ -858,6 +858,13 @@
         }
       }
     },
+    "EffectContainer": {
+      "Hint": "Its effects are copied to a sheet it is dropped on. No link is kept.",
+      "Done": "{name} to {target}: {added} added, {replaced} replaced.",
+      "Empty": "{name} has no effects.",
+      "NoEffects": "This sheet can't hold effects.",
+      "NotOnActors": "An Effect Container isn't kept on an actor. Drop it on a sheet to pass its effects."
+    },
     "Effect": {
       "Source": "Source",
       "Toggle": "Toggle Effect",
@@ -2041,7 +2048,7 @@
       "gear": "Drop gear here to add it",
       "inventory": "Drop an item here to add it",
       "mobAbility": "Drop a mob ability here to add it",
-      "effect": "Drop an effect here to add it",
+      "effect": "Drop an effect or Effect Container here",
       "embeddedSkill": "Drop a skill here to add it to this item",
       "rewards": "Drop an item here to add it to the random rewards",
       "store": "Drop an item here to add it to the store",
@@ -2434,7 +2441,8 @@
       "personalSpace": "Personal Space",
       "club": "Club",
       "deity": "Deity",
-      "species": "Species"
+      "species": "Species",
+      "effectContainer": "Effect Container"
     }
   }
 }

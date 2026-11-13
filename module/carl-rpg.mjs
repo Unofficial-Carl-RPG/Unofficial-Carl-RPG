@@ -290,6 +290,7 @@ Hooks.once('init', function () {
     sponsor: models.CarlRPGSponsor,
     personalSpace: models.CarlRPGPersonalSpace,
     club: models.CarlRPGClub,
+    effectContainer: models.CarlRPGEffectContainer,
     deity: models.CarlRPGDeity,
     store: models.CarlRPGStore,
     quest: models.CarlRPGQuest,

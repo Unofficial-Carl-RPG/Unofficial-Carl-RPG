@@ -80,6 +80,9 @@
         "club": {
             "htmlFields": ["description"]
         },
+        "effectContainer": {
+            "htmlFields": ["description"]
+        },
         "deity": {
             "htmlFields": ["description"]
         }

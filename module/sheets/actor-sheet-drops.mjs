@@ -2,6 +2,7 @@
  * Actor sheet: dropping things onto the sheet (items, actors, folders, effects).
  */
 import { dropTarget } from '../helpers/event-editor.mjs';
+import { dropContainer, isEffectContainer } from '../helpers/effect-container.mjs';
 
 export const ActorSheetDrops = (Base) => class ActorSheetDrops extends Base {
   /**
@@ -49,6 +50,16 @@ export const ActorSheetDrops = (Base) => class ActorSheetDrops extends Base {
       return;
     }
     return dropTarget.call(this, zone, data);
+  }
+
+  /**
+   * An Effect Container is never added to the actor: it hands its effects over.
+   * @override
+   */
+  async _onDropItem(event, item) {
+    if (!isEffectContainer(item)) return super._onDropItem(event, item);
+    if (!this.actor.isOwner) return null;
+    return (await dropContainer(this.actor, item)) ? item : null;
   }
 
   /**
@@ -169,6 +180,11 @@ export const ActorSheetDrops = (Base) => class ActorSheetDrops extends Base {
    */
   async _onDropItemCreate(itemData, event) {
     itemData = itemData instanceof Array ? itemData : [itemData];
+    // Effect Containers (from a dropped folder) hand over their effects instead.
+    const containers = itemData.filter((d) => isEffectContainer(d) && d.documentName === 'Item');
+    for (const container of containers) await dropContainer(this.actor, container);
+    itemData = itemData.filter((d) => !containers.includes(d));
+    if (!itemData.length) return [];
     // A deity starts at tier 1 on the crawler (the GM can change it after).
     for (const d of itemData) if (d.type === 'deity') foundry.utils.setProperty(d, 'system.tier', 1);
     // A crawler has one deity: a new one replaces the old.

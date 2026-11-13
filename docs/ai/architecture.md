@@ -21,7 +21,7 @@
 - grid: type 1, 5 ft
 
 - actorTypes: crawler, mob, pet, mount, lootPile
-- itemTypes: skill, spell, gear, item, mobAbility, lootBox, store, quest, achievement, race, class, subclass, species, background, sponsor, personalSpace, club, deity
+- itemTypes: skill, spell, gear, item, mobAbility, lootBox, store, quest, achievement, race, class, subclass, species, background, sponsor, personalSpace, club, deity, effectContainer
 - journalPageTypes: carlSystemMessage
 - repo: C:\Users\cawil\Git\Foundry Development\boilerplate
 
@@ -105,6 +105,7 @@
 - personalSpace: data/item-personal-space.mjs
 - club: data/item-club.mjs
 - deity: data/item-deity.mjs
+- effectContainer: data/item-effect-container.mjs (logic in helpers/effect-container.mjs)
 - store: data/item-store.mjs
 - quest: data/item-quest.mjs
 - carlSystemMessage: data/page-system-message.mjs
