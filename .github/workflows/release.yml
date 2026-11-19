@@ -1,0 +1,86 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, e.g. 0.2.0 (creates tag v0.2.0 on the selected branch)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Work out version
+        id: ver
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          RAW="${INPUT_VERSION:-$GITHUB_REF_NAME}"
+          VERSION="${RAW#v}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $RAW" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm test
+
+      - run: npm run pack
+
+      - name: Update system.json for this release
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+          TAG: ${{ steps.ver.outputs.tag }}
+          REPO: ${{ github.repository }}
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const file = 'build/carl-rpg/system.json';
+          const { VERSION, TAG, REPO } = process.env;
+          const base = `https://github.com/${REPO}`;
+          const json = JSON.parse(fs.readFileSync(file, 'utf8'));
+          json.version = VERSION;
+          json.url = base;
+          json.bugs = `${base}/issues`;
+          json.manifest = `${base}/releases/download/${TAG}/system.json`;
+          json.download = `${base}/releases/download/${TAG}/carl-rpg.zip`;
+          fs.writeFileSync(file, JSON.stringify(json, null, 2) + '\n');
+          NODE
+          cat build/carl-rpg/system.json | head -20
+
+      - name: Create zip
+        run: |
+          mkdir -p dist
+          (cd build/carl-rpg && zip -r -q "$GITHUB_WORKSPACE/dist/carl-rpg.zip" .)
+          cp build/carl-rpg/system.json dist/system.json
+          unzip -l dist/carl-rpg.zip | tail -3
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/system.json dist/carl-rpg.zip --clobber
+          else
+            gh release create "$TAG" dist/system.json dist/carl-rpg.zip \
+              --title "$TAG" --generate-notes --target "$GITHUB_SHA"
+          fi
