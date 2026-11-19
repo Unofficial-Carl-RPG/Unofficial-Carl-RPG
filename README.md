@@ -100,5 +100,7 @@ Bug reports are welcome on the GitHub issue tracker.
 
 ## Credits and license
 
+This project was built with AI assistance; see [AI-Disclosure.md](AI-Disclosure.md).
+
 Built on the [Boilerplate system](https://github.com/asacolips-projects/boilerplate-system) by
 Asacolips Projects, released under the MIT license (see `LICENSE.txt`).
