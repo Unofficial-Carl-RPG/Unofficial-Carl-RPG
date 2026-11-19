@@ -1,28 +1,104 @@
 # Carl RPG
 
-An unofficial FoundryVTT (v13) system for the Dungeon Crawler Carl RPG, built from the
-[Boilerplate system](https://github.com/asacolips-projects/boilerplate-system).
+An unofficial [FoundryVTT](https://foundryvtt.com/) (v13) game system for the **Dungeon Crawler Carl
+tabletop RPG**. It automates the book's rules: crawlers, mobs, loot boxes, the floor-by-floor
+progression of the Dungeon, and the combat phase cycle.
+
+> **Unofficial fan project.** Carl RPG is not affiliated with, endorsed by, or sponsored by
+> Renegade Game Studios, Matt Dinniman, or the Dungeon Crawler Carl books. You need your own copy of
+> the rulebook to play. All rights to the original game and setting belong to their owners.
 
 - Package id: `carl-rpg`
-- Display name: Carl RPG
+- Foundry compatibility: v13 (minimum and verified 13.339)
+- Source: <https://github.com/Unofficial-Carl-RPG/Unofficial-Carl-RPG>
 
-## Layout
+## Installation
 
-- `module/`: all system code (`carl-rpg.mjs` is the entry point; `data/`, `documents/`, `sheets/`, `helpers/`)
-- `templates/`: Handlebars templates for actor and item sheets
-- `css/`: compiled stylesheet (`carl-rpg.css`)
-- `src/scss/`: SCSS source for the stylesheet
-- `lang/`: localization (`CARL_RPG.*` keys)
+There is no manifest URL or packaged release yet, so install manually:
 
-## Compiling the CSS
+1. Clone or download the repository from GitHub.
+2. Run `npm install` and `npm run build` to compile the stylesheet (see [Development](#development)).
+3. Place the folder at `Data/systems/carl-rpg` in your Foundry data directory.
+4. Restart Foundry and create a world using the **Carl RPG** system.
+
+## What's in the system
+
+### Actors
+
+- **Crawler:** the player character. Five stats, a 10-box health bar, mana, gold, AI Favor,
+  Popularity, level, race and class, a hotlist, and kill tracking (Crawler Killer skulls and boss
+  stars). The sheet follows the official character sheet.
+- **Mob:** monsters, NPCs and bosses (Basic, Elite, Boss, Crawler). Mobs never roll a d20: their
+  attacks use fixed numbers plus the current floor, and the targeted crawler rolls to defend.
+- **Pet** and **Mount:** companions tied to a crawler.
+- **Loot Pile:** a lootable container created from defeated mobs or dropped items.
+
+### Items
+
+Skills, spells, spell scrolls, gear, generic items, mob abilities, loot boxes, stores, quests,
+achievements, races, classes, subclasses, species, backgrounds, sponsors, personal spaces,
+clubs, deities, and effect containers. Skills and spells have ranks and cumulative rank
+**upgrades**. Gear is equipped into slots, and equipping into a full slot prompts a swap.
+
+### Rules automation
+
+- **Rolls:** each rolling item targets Evade, a stat, Size Class or nothing (unopposed), with
+  degrees of success from Critical Hit down to Critical Fail. A roll pop-up offers bonuses and
+  advantage or disadvantage (Shift-click skips it).
+- **Damage:** health-box damage from CON, damage resistance, damage types, Critical Hit and Amazing
+  Success bonuses, and GM damage multiplier buttons on attack cards.
+- **Combat:** no initiative. Rounds run in phases (mobs declare, crawlers react, mob attacks
+  resolve, crawlers act) with generic per-combatant actions and Interrupts.
+- **Effects:** buffs (limited slots), debuffs and passives, with stacking, durations and
+  equipment links. Minor and Major Injuries are built in.
+- **Dying and rests:** dying crawlers, plus short, long and full rests that apply the right
+  healing and end the right effects.
+- **Events:** a menu-based event system on items (triggers, conditions, actions) for spending mana,
+  granting skills or items, running macros, and more, with GM approval for risky actions.
+
+### Progression and the Dungeon
+
+- **Character creation wizard:** stat assignment (standard array or rolled), backgrounds and
+  skills, a starter weapon and gear.
+- **Race and class** are chosen on floor 3, with prerequisites, race categories, race-class
+  combos, and level-up with banked points.
+- **Loot boxes** (Bronze through Celestial) with weighted rewards, guaranteed items, gold per
+  tier, and optional GM approval. Mobs, stores, quests and deity tithes are supported.
+- **Dungeon Info tab** (right sidebar): the current floor, party name and floor notes for
+  everyone. GM controls cover floor rules, safe rooms, encounters, awards, announcements, boss
+  battle banners, group checks, floor recaps, and party rests.
+- **Journals:** themed journal styling and enrichers such as `@Check`, `@Floor`, `@Gold` and
+  `@Embed` for quests and game-master notes.
+
+Settings let a GM tune most of this: loot approval, rest and loot rules outside safe rooms,
+damage types, compendium sources, and creation setup.
+
+## Development
 
 ```bash
 npm install
-npm run build   # one-off compile to css/carl-rpg.css
+npm run build   # compile src/scss to css/carl-rpg.css
 npm run watch   # recompile on change
+npm test        # rule tests (node --test, with Foundry stubs)
+npm run pack    # build, then assemble the distributable system into build/carl-rpg
 ```
 
-## Status
+Layout:
 
-Early work in progress. Character sheet fields follow the official character sheet; derived values
-that are marked `TODO` in `module/data/actor-crawler.mjs` are placeholders until checked against the rulebook.
+- `module/`: all system code (`carl-rpg.mjs` is the entry point)
+- `templates/`: Handlebars templates for sheets, the creation wizard and sidebar windows
+- `src/scss/`: stylesheet source. `css/` is generated and not tracked
+- `lang/`: localization (`CARL_RPG.*` keys)
+- `tests/`: unit tests for the rule logic
+- `docs/ai/`: detailed per-feature reference, indexed by `docs/ai/README.md`
+- `packs-source/`: ready-made macros to import into a compendium
+
+`build/` is generated by `npm run pack`; don't edit it by hand.
+
+The system has been verified with unit tests, but it needs more play-testing inside Foundry.
+Bug reports are welcome on the GitHub issue tracker.
+
+## Credits and license
+
+Built on the [Boilerplate system](https://github.com/asacolips-projects/boilerplate-system) by
+Asacolips Projects, released under the MIT license (see `LICENSE.txt`).
