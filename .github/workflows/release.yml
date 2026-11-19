@@ -60,7 +60,7 @@ jobs:
           json.version = VERSION;
           json.url = base;
           json.bugs = `${base}/issues`;
-          json.manifest = `${base}/releases/download/${TAG}/system.json`;
+          json.manifest = `${base}/releases/latest/download/system.json`;
           json.download = `${base}/releases/download/${TAG}/carl-rpg.zip`;
           fs.writeFileSync(file, JSON.stringify(json, null, 2) + '\n');
           NODE
