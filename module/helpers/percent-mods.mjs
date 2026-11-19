@@ -1,6 +1,6 @@
 /**
  * Percent modifiers. An effect can give a percent of a number (a stat, DR, Evade, Move,
- * Step or max Mana) instead of a flat amount, like Chesty Cheese Grater's +5% Constitution.
+ * Step or max Mana) instead of a flat amount, like a charm's +5% Constitution.
  *
  * The percent is worked out ONCE, when the effect lands on an actor (an item's effect when
  * the item is added, an effect made on the actor when it is saved), as the percent of the

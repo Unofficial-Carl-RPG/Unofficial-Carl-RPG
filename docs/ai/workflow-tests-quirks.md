@@ -60,12 +60,12 @@
 - prerequisites.test.mjs: race/class prerequisites: any skill or spell by stat(s) or tag at a stored rank, species held, existing types unchanged, hidden-until-met (optionVisible), en.json labels for every type
 - skill-list.test.mjs: #tag entries in Roll Modifier and Damage Effect skill lists
 - area-upgrades.test.mjs: area shape/size upgrade changes (replace, extra shapes with their own size and keep, size add/replace, splashAdd, bad values, no upgrades)
-- area-plan.test.mjs: splash distance by rank (Bad Faith, Earworm, Fear, Shotgun, Heal Others burst), areaSteps (Fireball circle and 80 ft line that keeps the blast), lasting area rounds by rank (Confusing Fog), a Count item's area version (Ice Blast cone, Lightning Bolt line, origin at the caster), singleTarget (Count mode and a count of 1)
+- area-plan.test.mjs: splash distance by rank (Dark Pact, Echo Song, Fear, Shotgun, Heal Others burst), areaSteps (Fireball circle and 80 ft line that keeps the blast), lasting area rounds by rank (Confusing Fog), a Count item's area version (Frost Bolt cone, Lightning Bolt line, origin at the caster), singleTarget (Count mode and a count of 1)
 - splash.test.mjs: distance to a circle/rectangle/polygon, the splash band, who is splash after several areas, splash around the chosen targets of a Count item
 - buff-slots.test.mjs: stacking buff groups and slot counting
-- percent-mods.test.mjs: percent modifiers: rounding down, totals read per actor type, settling rows (landing, edits, own old number), clearing on items, flat changes joining an actor effect once, the Cheese Grater / Wand / Hand Grips examples
+- percent-mods.test.mjs: percent modifiers: rounding down, totals read per actor type, settling rows (landing, edits, own old number), clearing on items, flat changes joining an actor effect once, the gear percent examples
 - build-mods.test.mjs: build benefits, caps, health stat, Roll Modifier scope row tidying
-- build-damage.test.mjs: Bonus damage dice and Damage stat build rows: saving them, which can be used, scopes (skill, tag, weapon rolling a skill), the melee and Surprise ticks, roll and per-target conditions, typed Ice parts, the stat swap and swapStat, Frost Maiden / Cat Girl / Rat Hooligan examples
+- build-damage.test.mjs: Bonus damage dice and Damage stat build rows: saving them, which can be used, scopes (skill, tag, weapon rolling a skill), the melee and Surprise ticks, roll and per-target conditions, typed Ice parts, the stat swap and swapStat, Frost Kin / Feline Kin / Rodent Kin examples
 - picks.test.mjs: player picks: filters and pools, granted-skills pick rows, Skill cap / rank bonus on picked skills, build row tidying, Stat splits (clamping, Enhanced value, redo once per floor), resetting
 - class-combo.test.mjs: Race+Class combos
 - combat.test.mjs: degrees, damage, phases, declarations
@@ -87,7 +87,7 @@
 - weapon-damage.test.mjs: weapon damage rules (skill damage only, Override replaces the base and keeps upgrades, blank override, non-weapon adds), migrateWeapon, Weapon filter chip
 - gear-slots.test.mjs: slot room, two-handed gear, what comes off when equipping
 - item-badges.test.mjs: describeBadges builds for gear/skills with count or area targeting and a splash (regression: undefined `eff` stopped weapon skills opening)
-- health-slots.test.mjs: Health Bar slots: the slot count modifier (1..100, clamped not rewritten), slot value rows from the top and bottom, damage slot by slot (even slots equal floor(net / perBox), Tough Guy Tattoo, uneven slots, overkill), Selfie Stick, crawler and mob derived slots, mob damage by CON mod
+- health-slots.test.mjs: Health Bar slots: the slot count modifier (1..100, clamped not rewritten), slot value rows from the top and bottom, damage slot by slot (even slots equal floor(net / perBox), a top-slot bonus, uneven slots, overkill), a shorter bar, crawler and mob derived slots, mob damage by CON mod
 - health-roll-data.test.mjs: @health.value/.max/.lost in actor roll data (helpers/health-data.mjs: crawler, pet, mob, read live, never negative), a Bonus damage dice row with a formula and Rage as one (valid row, saved as typed, melee tick, scope, beside other rows, typed, switched off, mob)
 - later-floor.test.mjs: later-floor starts
 - popularity.test.mjs: old Popularity text dropped by Crawler.migrateData (also from the oldest hotlist layout), a popularity number kept; grantNumber (award, remove to a floor of 0, chat line, AI favor too, mobs and zero amounts ignored); the Popularity event action

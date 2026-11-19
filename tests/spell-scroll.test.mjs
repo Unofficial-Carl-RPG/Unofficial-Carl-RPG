@@ -23,17 +23,17 @@ beforeEach(() => world.reset());
 
 const scrollOf = (system = {}) => ({
   type: 'spellScroll',
-  name: 'Scroll of Ice Blast',
-  system: { quantity: 2, spellSource: { name: 'Ice Blast' }, ...system },
+  name: 'Scroll of Frost Bolt',
+  system: { quantity: 2, spellSource: { name: 'Frost Bolt' }, ...system },
 });
 
 /** The spell a GM would drop on a scroll. */
 const iceBlast = () => ({
-  uuid: 'Item.ice-blast',
-  name: 'Ice Blast',
+  uuid: 'Item.frost-bolt',
+  name: 'Frost Bolt',
   img: 'icons/ice.svg',
   system: {
-    identifier: 'ice-blast',
+    identifier: 'frost-bolt',
     description: '<p>A bolt of ice.</p>',
     shortDescription: 'Cold.',
     tags: ['ice', 'ranged'],
@@ -132,9 +132,9 @@ test('the copy is a snapshot: changing it never changes the spell', () => {
 
 test('a scroll remembers which spell it came from', () => {
   assert.deepEqual(sourceOf(iceBlast()), {
-    uuid: 'Item.ice-blast',
-    name: 'Ice Blast',
-    identifier: 'ice-blast',
+    uuid: 'Item.frost-bolt',
+    name: 'Frost Bolt',
+    identifier: 'frost-bolt',
     img: 'icons/ice.svg',
   });
   assert.deepEqual(sourceOf({ name: 'Plain', system: {} }), {
@@ -158,25 +158,25 @@ test('a scroll takes its name and picture from the spell only while they are sti
   // fresh scroll
   assert.deepEqual(
     lookFrom({ name: 'New Spell Scroll', img: 'icons/svg/item-bag.svg' }, null, spell, defaults),
-    { name: 'Scroll of Ice Blast', img: 'icons/ice.svg' }
+    { name: 'Scroll of Frost Bolt', img: 'icons/ice.svg' }
   );
   // a blank name counts as default
-  assert.equal(lookFrom({ name: '  ', img: '' }, null, spell, defaults).name, 'Scroll of Ice Blast');
+  assert.equal(lookFrom({ name: '  ', img: '' }, null, spell, defaults).name, 'Scroll of Frost Bolt');
   // the GM named and pictured it: left alone
   assert.deepEqual(lookFrom({ name: 'Grandma\'s Spare', img: 'mine.png' }, null, spell, defaults), {});
 });
 
 test('swapping the spell renames only a scroll that still wears the earlier spell\'s look', () => {
   const fire = { name: 'Fireball', img: 'icons/fire.svg', system: {} };
-  const previous = { name: 'Ice Blast', img: 'icons/ice.svg' };
+  const previous = { name: 'Frost Bolt', img: 'icons/ice.svg' };
   assert.deepEqual(
-    lookFrom({ name: 'Scroll of Ice Blast', img: 'icons/ice.svg' }, previous, fire, defaults),
+    lookFrom({ name: 'Scroll of Frost Bolt', img: 'icons/ice.svg' }, previous, fire, defaults),
     { name: 'Scroll of Fireball', img: 'icons/fire.svg' }
   );
   assert.deepEqual(lookFrom({ name: 'Custom', img: 'icons/ice.svg' }, previous, fire, defaults), {
     img: 'icons/fire.svg',
   });
-  assert.deepEqual(lookFrom({ name: 'Scroll of Ice Blast', img: 'mine.png' }, previous, fire, defaults), {
+  assert.deepEqual(lookFrom({ name: 'Scroll of Frost Bolt', img: 'mine.png' }, previous, fire, defaults), {
     name: 'Scroll of Fireball',
   });
 });
@@ -191,16 +191,16 @@ test('a spell with no picture leaves the scroll\'s picture alone', () => {
 test('the whole assignment keeps the scroll rank and records the spell', () => {
   const scroll = { name: 'New Spell Scroll', img: 'icons/svg/item-bag.svg', system: { rank: 7 } };
   const update = assignment(scroll, iceBlast(), iceBlast().system, defaults);
-  assert.equal(update.name, 'Scroll of Ice Blast');
+  assert.equal(update.name, 'Scroll of Frost Bolt');
   assert.equal(update.img, 'icons/ice.svg');
   assert.equal(update.system.rank, 7);
-  assert.equal(update.system.spellSource.name, 'Ice Blast');
+  assert.equal(update.system.spellSource.name, 'Frost Bolt');
   assert.deepEqual(update.system.costs, []);
   // a scroll with no rank set yet starts at 1
   assert.equal(assignment({ name: '', system: {} }, iceBlast(), iceBlast().system, defaults).system.rank, 1);
   // swapping: the earlier spell is read from the scroll
   const swapped = assignment(
-    { name: 'Scroll of Ice Blast', img: 'icons/ice.svg', system: { rank: 2, spellSource: { name: 'Ice Blast', img: 'icons/ice.svg' } } },
+    { name: 'Scroll of Frost Bolt', img: 'icons/ice.svg', system: { rank: 2, spellSource: { name: 'Frost Bolt', img: 'icons/ice.svg' } } },
     { name: 'Fireball', img: 'icons/fire.svg', uuid: 'Item.fb', system: {} },
     {},
     defaults
@@ -221,7 +221,7 @@ async function owned(type, { rank = 5, effects = [] } = {}) {
   Object.assign(system, {
     rank,
     stat: 'int',
-    identifier: type === 'spell' ? 'ice-blast' : '',
+    identifier: type === 'spell' ? 'frost-bolt' : '',
     tags: ['ice'],
     upgrades: [],
     damage: '@rankDamage',
@@ -231,7 +231,7 @@ async function owned(type, { rank = 5, effects = [] } = {}) {
     damageType: '',
     armorPiercing: false,
   });
-  const item = makeItem({ type, name: type === 'spell' ? 'Ice Blast' : 'Scroll of Ice Blast', system });
+  const item = makeItem({ type, name: type === 'spell' ? 'Frost Bolt' : 'Scroll of Frost Bolt', system });
   system.parent = item;
   const actor = await makeCrawler({ items: [item], effects });
   system.prepareDerivedData();
@@ -281,9 +281,9 @@ test('the scroll formula uses its stat and rank', async () => {
 /* -------------------------------------------- */
 
 test('a Roll Modifier list that names the spell also covers a scroll of it', () => {
-  const scroll = { name: 'Scroll of Ice Blast', system: { identifier: '', tags: [], spellSource: { name: 'Ice Blast', identifier: 'ice-blast' } } };
-  assert.ok(listAccepts(listEntries('Ice Blast'), scroll));
-  assert.ok(listAccepts(listEntries('ice-blast'), scroll));
+  const scroll = { name: 'Scroll of Frost Bolt', system: { identifier: '', tags: [], spellSource: { name: 'Frost Bolt', identifier: 'frost-bolt' } } };
+  assert.ok(listAccepts(listEntries('Frost Bolt'), scroll));
+  assert.ok(listAccepts(listEntries('frost-bolt'), scroll));
   assert.ok(!listAccepts(listEntries('Fireball'), scroll));
   // tags work as they do for any item
   const tagged = { ...scroll, system: { ...scroll.system, tags: ['ice'] } };

@@ -280,7 +280,7 @@ test('the Surprise tick is offered by any modifier row that needs it', () => {
 /*  Roll Modifier scope (a build benefit)       */
 /* -------------------------------------------- */
 
-/** The Blizzardmancer's row: Aiming also covers ranged, single-target Ice spells. */
+/** The Ice Caster's row: Aiming also covers ranged, single-target Ice spells. */
 const ICE_ROW = {
   kind: 'rollModScope',
   target: 'skill',
@@ -301,16 +301,16 @@ const castable = (
     name,
     system: { identifier: name.toLowerCase().replace(/ /g, '-'), tags, targeting },
   });
-/** A crawler whose effect carries the rows (the Blizzardmancer's by default). */
+/** A crawler whose effect carries the rows (the Ice Caster's by default). */
 const withRows = (items, rows = [ICE_ROW], disabled = false) =>
   makeActor({ items, effects: [makeEffect({ name: 'Aiming for Ice', flags: { buildMods: rows }, disabled })] });
 /** The names of the modifiers offered for a spell cast. */
 const offered = (actor, spell) => availableMods(actor, spell, spell).map((m) => m.name);
 
 test('a scope row gives Aiming to ranged single-target ice spells and no others', () => {
-  const icicles = castable('Icicles');
-  const iceBlast = castable('Ice Blast');
-  const frostScar = castable('Frost Scar', { tags: ['spell', 'attack', 'melee', 'ice'] });
+  const icicles = castable('Ice Shards');
+  const iceBlast = castable('Frost Bolt');
+  const frostScar = castable('Frost Slash', { tags: ['spell', 'attack', 'melee', 'ice'] });
   const fireball = castable('Fireball', {
     tags: ['spell', 'attack', 'ranged', 'fire'],
     targeting: { mode: 'area', count: '1' },
@@ -326,11 +326,11 @@ test('a scope row gives Aiming to ranged single-target ice spells and no others'
 });
 
 test('other crawlers, and a switched off effect, still cannot use Aiming on spells', () => {
-  const none = makeActor({ items: [aimingSkill(), castable('Icicles')] });
+  const none = makeActor({ items: [aimingSkill(), castable('Ice Shards')] });
   assert.deepEqual(offered(none, none.items[1]), []);
-  const off = withRows([aimingSkill(), castable('Icicles')], [ICE_ROW], true);
+  const off = withRows([aimingSkill(), castable('Ice Shards')], [ICE_ROW], true);
   assert.deepEqual(offered(off, off.items[1]), []);
-  const on = withRows([aimingSkill(), castable('Icicles')]);
+  const on = withRows([aimingSkill(), castable('Ice Shards')]);
   assert.deepEqual(offered(on, on.items[1]), ['Aiming']);
 });
 
@@ -367,7 +367,7 @@ test('scope rows name one modifier by Identifier (any case); unusable rows are s
 });
 
 test('the single-target tick fails an area version of the cast; the modifier\'s own list does not', () => {
-  const icicles = castable('Icicles');
+  const icicles = castable('Ice Shards');
   assert.equal(scopeCovers(ICE_ROW, icicles, icicles), true);
   assert.equal(scopeCovers(ICE_ROW, icicles, icicles, { area: true }), false);
   assert.equal(scopeCovers({ ...ICE_ROW, single: false }, icicles, icicles, { area: true }), true);
@@ -389,8 +389,8 @@ test('the target count of a single-target check can read roll data', () => {
 });
 
 test('scope entries are names, identifiers and #tags; the item\'s tags count; self never matches', () => {
-  const row = { ...ICE_ROW, entries: 'Icicles, #thrown+#fire, self', single: false };
-  assert.equal(scopeCovers(row, castable('Icicles')), true);
+  const row = { ...ICE_ROW, entries: 'Ice Shards, #thrown+#fire, self', single: false };
+  assert.equal(scopeCovers(row, castable('Ice Shards')), true);
   assert.equal(scopeCovers(row, castable('Fireball', { tags: ['fire'] })), false);
   assert.equal(scopeCovers(row, makeItem({ name: 'self' })), false);
   const throwing = makeItem({ name: 'Throwing' });
@@ -401,9 +401,9 @@ test('scope entries are names, identifiers and #tags; the item\'s tags count; se
 });
 
 test('spells are offered the modifiers whose own list names them (a spell is its own skill)', () => {
-  const focus = mod('Frost Focus', 1, AIMING, '#ice, Frost Scar', { identifier: 'frost-focus' });
-  const icicles = castable('Icicles');
-  const frostScar = castable('Frost Scar', { tags: ['spell', 'melee'] });
+  const focus = mod('Frost Focus', 1, AIMING, '#ice, Frost Slash', { identifier: 'frost-focus' });
+  const icicles = castable('Ice Shards');
+  const frostScar = castable('Frost Slash', { tags: ['spell', 'melee'] });
   const fireball = castable('Fireball', { tags: ['spell', 'fire'] });
   const actor = makeActor({ items: [focus, icicles, frostScar, fireball] });
   assert.deepEqual(offered(actor, icicles), ['Frost Focus']);

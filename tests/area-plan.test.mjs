@@ -32,12 +32,12 @@ const reachAt = (targeting, upgrades, ranks) =>
 /* -------------------------------------------- */
 /*  Splash around a chosen target (Count)        */
 
-test('splash by rank: Bad Faith +5 ft at ranks 5 and 15', () => {
+test('splash by rank: Dark Pact +5 ft at ranks 5 and 15', () => {
   const upgrades = [up(5, splashAdd(5)), up(10), up(15, splashAdd(5))];
   assert.deepEqual(reachAt({ mode: 'count' }, upgrades, [1, 4, 5, 10, 14, 15, 20]), [0, 0, 5, 5, 5, 10, 10]);
 });
 
-test('splash by rank: Earworm +10 ft at 15, Shotgun +5 ft at 15', () => {
+test('splash by rank: Echo Song +10 ft at 15, Shotgun +5 ft at 15', () => {
   assert.deepEqual(reachAt({ mode: 'count' }, [up(15, splashAdd(10))], [1, 14, 15]), [0, 0, 10]);
   assert.deepEqual(reachAt({ mode: 'count' }, [up(15, splashAdd(5))], [1, 14, 15]), [0, 0, 5]);
 });
@@ -150,7 +150,7 @@ test('lasting area: a plain number, 0 (until removed) and bad values', () => {
 /*  A Count item that can also be an area        */
 
 const extra = (value, size, keep = false) => ({ type: 'areaShapeExtra', value, size, keep });
-// Ice Blast and Thunderlash: a 15 ft cone from rank 15. Lightning Bolt: a 100 ft line from rank 10.
+// Frost Bolt and Storm Whip: a 15 ft cone from rank 15. Lightning Bolt: a 100 ft line from rank 10.
 const iceBlast = [up(5), up(10), up(15, extra('cone', '15'))];
 const lightningBolt = [up(5), up(10, extra('ray', '100')), up(15)];
 
@@ -163,7 +163,7 @@ const countAt = (rank, chosen, upgrades, targeting = {}) => {
 const offeredAt = (rank, upgrades, targeting = { mode: 'count' }) =>
   countAreaShapes(spell(rank, targeting).targeting, computeEffective(spell(rank, targeting, upgrades)));
 
-test('count area: Ice Blast offers a 15 ft cone from rank 15, and acts as single target before', () => {
+test('count area: Frost Bolt offers a 15 ft cone from rank 15, and acts as single target before', () => {
   assert.deepEqual(offeredAt(14, iceBlast), []);
   assert.deepEqual(offeredAt(15, iceBlast), ['cone']);
   assert.deepEqual(countAt(14, 'cone', iceBlast), []);

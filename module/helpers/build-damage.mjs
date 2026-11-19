@@ -4,7 +4,7 @@
  * Two kinds of build row (see build-mods.mjs), both scoped like Skill cap (all skills and
  * spells, one by Identifier, every one with a tag, or the player's picks). A row covers a use
  * when it covers the item being used or the skill that item rolls with (a sword rolling Slice
- * Attack is covered by a row for the Slice Attack skill or for a tag either of them carries):
+ * Attack is covered by a row for the Blade Attack skill or for a tag either of them carries):
  *
  *  - damageDice   `dice` (a die, a number or a formula over the owner's roll data, like
  *                 `1d4 + @str.mod` or Rage's `@health.lost`, the Health Bar slots lost, see

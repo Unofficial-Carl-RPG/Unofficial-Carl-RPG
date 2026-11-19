@@ -127,7 +127,7 @@ test('a Health Bar slot value row from an effect that is on raises that slot', a
   assert.equal(off.system.health.capacity, 30);
 });
 
-test('Tough Guy Tattoo: a hit under the bigger 100% slot does nothing, a hit past it takes the slot', async () => {
+test('Top slot bonus: a hit under the bigger 100% slot does nothing, a hit past it takes the slot', async () => {
   const crawler = await makeCrawler({ abilities: { con: 6 }, effects: [mods(row('top', 1, 10))] });
   const small = await applyDamage(crawler, 12);
   assert.deepEqual([small.net, small.boxes, small.value], [12, 0, 10]);
@@ -136,7 +136,7 @@ test('Tough Guy Tattoo: a hit under the bigger 100% slot does nothing, a hit pas
   assert.equal(crawler.system.health.value, 8);
 });
 
-test('Selfie Stick: a slot taken off gives a shorter bar, and the damage already taken is only clamped', async () => {
+test('Shorter bar: a slot taken off gives a shorter bar, and the damage already taken is only clamped', async () => {
   const crawler = await makeCrawler({ abilities: { con: 6 }, bonuses: { healthSlots: -1 } });
   assert.equal(crawler.system.health.max, 9);
   assert.equal(crawler.system.health.value, 9); // full bar is clamped to the new max

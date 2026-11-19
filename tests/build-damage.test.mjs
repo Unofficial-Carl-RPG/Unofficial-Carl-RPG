@@ -20,7 +20,7 @@ beforeEach(() => world.reset());
 /** An effect holding build rows. */
 const effect = (name, ...rows) => makeEffect({ name, flags: { buildMods: rows } });
 
-/** Frost Maiden's row: +1d4 Ice on melee-tagged attacks, when the melee tick is on. */
+/** Frost Kin's row: +1d4 Ice on melee-tagged attacks, when the melee tick is on. */
 const frost = (extra = {}) => ({
   kind: 'damageDice',
   target: 'tag',
@@ -32,11 +32,11 @@ const frost = (extra = {}) => ({
   ...extra,
 });
 
-/** Cat Girl's row: Slice Attack adds Cha instead of Str. */
+/** Feline Kin's row: Blade Attack adds Cha instead of Str. */
 const swap = (extra = {}) => ({
   kind: 'damageStat',
   target: 'skill',
-  value: 'slice-attack',
+  value: 'blade-attack',
   from: 'str',
   to: 'cha',
   ...extra,
@@ -139,19 +139,19 @@ test('a stat swap needs two different known stats', () => {
 /* -------------------------------------------- */
 
 test('a row covers the item used or the skill it rolls with', () => {
-  const slice = skill('Slice Attack', 'slice-attack', ['melee']);
+  const slice = skill('Blade Attack', 'blade-attack', ['melee']);
   const bow = skill('Ranged Attacks', 'ranged-attacks', ['ranged']);
   const sword = makeItem({ type: 'gear', name: 'Sword', system: { tags: [] } });
   const spear = makeItem({ type: 'gear', name: 'Spear', system: { tags: ['melee'] } });
   const tagRow = { target: 'tag', value: 'melee' };
   assert.equal(rowCovers(tagRow, slice), true);
   assert.equal(rowCovers(tagRow, bow), false);
-  // A weapon rolling Slice Attack is covered by the skill's tag...
+  // A weapon rolling Blade Attack is covered by the skill's tag...
   assert.equal(rowCovers(tagRow, sword, slice), true);
   // ...and a melee weapon rolling an untagged skill by its own.
   assert.equal(rowCovers(tagRow, spear, bow), true);
   assert.equal(rowCovers(tagRow, sword, bow), false);
-  assert.equal(rowCovers({ target: 'skill', value: 'slice-attack' }, sword, slice), true);
+  assert.equal(rowCovers({ target: 'skill', value: 'blade-attack' }, sword, slice), true);
   assert.equal(rowCovers({ target: 'all' }, bow), true);
 });
 
@@ -159,11 +159,11 @@ test('a row covers the item used or the skill it rolls with', () => {
 /*  Bonus damage dice                           */
 /* -------------------------------------------- */
 
-test('Frost Maiden: +1d4 Ice on a melee attack, only with the melee tick', async () => {
-  const actor = await crawlerWith(effect('Frost Touch', frost()));
-  const slice = skill('Slice Attack', 'slice-attack', ['melee']);
+test('Frost Kin: +1d4 Ice on a melee attack, only with the melee tick', async () => {
+  const actor = await crawlerWith(effect('Cold Strikes', frost()));
+  const slice = skill('Blade Attack', 'blade-attack', ['melee']);
   assert.deepEqual(damageDiceFor(actor, slice, null, { melee: true }), [
-    { item: null, name: 'Frost Touch', formula: '1d4', when: 'melee', types: ['ice'] },
+    { item: null, name: 'Cold Strikes', formula: '1d4', when: 'melee', types: ['ice'] },
   ]);
   assert.deepEqual(damageDiceFor(actor, slice, null, { melee: false }), []);
   // Shift, events and macros never tick it.
@@ -171,17 +171,17 @@ test('Frost Maiden: +1d4 Ice on a melee attack, only with the melee tick', async
 });
 
 test('the dice reach only the attacks the scope covers', async () => {
-  const actor = await crawlerWith(effect('Frost Touch', frost()));
+  const actor = await crawlerWith(effect('Cold Strikes', frost()));
   const bow = skill('Ranged Attacks', 'ranged-attacks', ['ranged']);
   assert.deepEqual(damageDiceFor(actor, bow, null, { melee: true }), []);
   const sword = makeItem({ type: 'gear', name: 'Sword', system: { tags: [] } });
-  const slice = skill('Slice Attack', 'slice-attack', ['melee']);
+  const slice = skill('Blade Attack', 'blade-attack', ['melee']);
   assert.equal(damageDiceFor(actor, sword, slice, { melee: true }).length, 1);
 });
 
 test('the dice have the shape a Roll Modifier\'s dice have, so resolveCheck reads both', async () => {
-  const actor = await crawlerWith(effect('Frost Touch', frost()));
-  const slice = skill('Slice Attack', 'slice-attack', ['melee']);
+  const actor = await crawlerWith(effect('Cold Strikes', frost()));
+  const slice = skill('Blade Attack', 'blade-attack', ['melee']);
   const [mine] = damageDiceFor(actor, slice, null, { melee: true });
   const modifier = makeItem({
     type: 'skill',
@@ -207,17 +207,17 @@ test('the dice have the shape a Roll Modifier\'s dice have, so resolveCheck read
 });
 
 test('an unticked row, a switched-off effect, a mob and a bad row give nothing', async () => {
-  const slice = skill('Slice Attack', 'slice-attack', ['melee']);
+  const slice = skill('Blade Attack', 'blade-attack', ['melee']);
   const off = makeEffect({ name: 'Off', flags: { buildMods: [frost()] }, disabled: true });
   assert.deepEqual(damageDiceFor(await crawlerWith(off), slice, null, { melee: true }), []);
   const bad = await crawlerWith(effect('Bad', frost({ dice: '??' }), frost({ bonusType: 'unobtainium' })));
   assert.deepEqual(damageDiceFor(bad, slice, null, { melee: true }), []);
-  const mob = makeActor({ type: 'mob', effects: [effect('Frost Touch', frost())] });
+  const mob = makeActor({ type: 'mob', effects: [effect('Cold Strikes', frost())] });
   assert.deepEqual(damageDiceFor(mob, slice, null, { melee: true }), []);
 });
 
 test('conditions on the roll are checked now, degree and distance ones are kept for each target', async () => {
-  const slice = skill('Slice Attack', 'slice-attack', ['melee']);
+  const slice = skill('Blade Attack', 'blade-attack', ['melee']);
   const all = (when, extra = {}) => ({ kind: 'damageDice', target: 'all', dice: '1d6', when, ...extra });
   const actor = await crawlerWith(
     effect('Rows', all(''), all('advantage'), all('surprise'), all('hit'), all('within', { feet: 10 }))
@@ -231,13 +231,13 @@ test('conditions on the roll are checked now, degree and distance ones are kept 
 });
 
 test('a row can name two damage types', async () => {
-  const slice = skill('Slice Attack', 'slice-attack', ['melee']);
+  const slice = skill('Blade Attack', 'blade-attack', ['melee']);
   const actor = await crawlerWith(effect('Mixed', frost({ bonusAlso: 'fire', when: '' })));
   assert.deepEqual(damageDiceFor(actor, slice)[0].types, ['ice', 'fire']);
 });
 
 test('the pop-up ticks are offered only for the rows in reach', async () => {
-  const slice = skill('Slice Attack', 'slice-attack', ['melee']);
+  const slice = skill('Blade Attack', 'blade-attack', ['melee']);
   const bow = skill('Ranged Attacks', 'ranged-attacks', ['ranged']);
   const actor = await crawlerWith(
     effect('Rows', frost(), { kind: 'damageDice', target: 'all', dice: '1d4', when: 'surprise' })
@@ -261,9 +261,9 @@ test('the Ice dice are a part of their own, apart from the attack\'s slashing', 
 /*  Damage stat swaps                           */
 /* -------------------------------------------- */
 
-test('Cat Girl: Slice Attack offers Cha in place of Str, other skills do not', async () => {
+test('Feline Kin: Blade Attack offers Cha in place of Str, other skills do not', async () => {
   const actor = await crawlerWith(effect('Claws', swap()));
-  const slice = skill('Slice Attack', 'slice-attack', ['melee']);
+  const slice = skill('Blade Attack', 'blade-attack', ['melee']);
   const bite = skill('Bite', 'bite', ['melee'], '1d8 + @str.mod');
   assert.deepEqual(statSwapsFor(actor, slice, null, slice.system.damage), [
     { id: 'str>cha', from: 'str', to: 'cha' },
@@ -271,15 +271,15 @@ test('Cat Girl: Slice Attack offers Cha in place of Str, other skills do not', a
   assert.deepEqual(statSwapsFor(actor, bite, null, bite.system.damage), []);
 });
 
-test('Rat Hooligan: Bite offers Dex in place of Str', async () => {
-  const actor = await crawlerWith(effect('Sharp teeth', swap({ value: 'bite', to: 'dex' })));
+test('Rodent Kin: Bite offers Dex in place of Str', async () => {
+  const actor = await crawlerWith(effect('Fangs', swap({ value: 'bite', to: 'dex' })));
   const bite = skill('Bite', 'bite', ['melee'], '1d8 + @str.mod');
   assert.deepEqual(statSwapsFor(actor, bite, null, bite.system.damage).map((s) => s.id), ['str>dex']);
 });
 
 test('a weapon rolling the skill is covered too, and its joined damage is what is checked', async () => {
   const actor = await crawlerWith(effect('Claws', swap()));
-  const slice = skill('Slice Attack', 'slice-attack', ['melee']);
+  const slice = skill('Blade Attack', 'blade-attack', ['melee']);
   const sword = makeItem({ type: 'gear', name: 'Sword', system: { tags: [], damage: '1d6' } });
   assert.equal(statSwapsFor(actor, sword, slice, '1d6 + 1d4 + @str.mod').length, 1);
 });
@@ -288,7 +288,7 @@ test('a swap is not offered when the damage has no such stat, and equal swaps ar
   const actor = await crawlerWith(
     effect('Claws', swap(), swap({ target: 'all' }), swap({ target: 'tag', value: 'melee', to: 'dex' }))
   );
-  const slice = skill('Slice Attack', 'slice-attack', ['melee']);
+  const slice = skill('Blade Attack', 'blade-attack', ['melee']);
   assert.deepEqual(statSwapsFor(actor, slice, null, '1d4 + @int.mod'), []);
   // (str to cha twice is one choice; str to dex is another)
   assert.deepEqual(statSwapsFor(actor, slice, null, '1d4 + @str.mod').map((s) => s.id), ['str>cha', 'str>dex']);
@@ -297,7 +297,7 @@ test('a swap is not offered when the damage has no such stat, and equal swaps ar
 });
 
 test('a switched-off effect, a bad row and a mob give no swap', async () => {
-  const slice = skill('Slice Attack', 'slice-attack', ['melee']);
+  const slice = skill('Blade Attack', 'blade-attack', ['melee']);
   const off = makeEffect({ name: 'Off', flags: { buildMods: [swap()] }, disabled: true });
   assert.deepEqual(statSwapsFor(await crawlerWith(off), slice), []);
   assert.deepEqual(statSwapsFor(await crawlerWith(effect('Bad', swap({ to: 'str' }))), slice), []);

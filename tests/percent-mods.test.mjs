@@ -150,17 +150,17 @@ test('an effect on an item (a template) applies nothing', () => {
   assert.deepEqual(fx.changes, []);
 });
 
-test('the three carl-content examples: percent of the owner, rounded down, then flat', () => {
-  const grater = [{ stat: 'con', percent: 5, flat: null }];
-  const wand = [{ stat: 'con', percent: 10, flat: null }];
-  const grips = [{ stat: 'str', percent: 10, flat: null }];
+test('three example gear percents: percent of the owner, rounded down, then flat', () => {
+  const charm = [{ stat: 'con', percent: 5, flat: null }];
+  const staff = [{ stat: 'con', percent: 10, flat: null }];
+  const gloves = [{ stat: 'str', percent: 10, flat: null }];
   const owner = crawler(40, 25);
   const flats = (rows) => settlePercentRows(rows, { totalOf: (s) => totalOf(owner, s) })[0].flat;
-  assert.equal(flats(grater), 2);
-  assert.equal(flats(wand), 4);
-  assert.equal(flats(grips), 2);
+  assert.equal(flats(charm), 2);
+  assert.equal(flats(staff), 4);
+  assert.equal(flats(gloves), 2);
   // A smaller owner gets less, and a tiny 5% can round to nothing.
   const small = crawler(14, 10);
-  assert.equal(settlePercentRows(grater, { totalOf: (s) => totalOf(small, s) })[0].flat, 0);
-  assert.equal(settlePercentRows(wand, { totalOf: (s) => totalOf(small, s) })[0].flat, 1);
+  assert.equal(settlePercentRows(charm, { totalOf: (s) => totalOf(small, s) })[0].flat, 0);
+  assert.equal(settlePercentRows(staff, { totalOf: (s) => totalOf(small, s) })[0].flat, 1);
 });

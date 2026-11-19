@@ -37,8 +37,8 @@ const effect = (name, ...rows) => makeEffect({ name, flags: { buildMods: rows } 
 const slice = () =>
   makeItem({
     type: 'skill',
-    name: 'Slice Attack',
-    system: { identifier: 'slice-attack', tags: ['melee'], damage: '1d4 + @str.mod', damageType: 'slashing' },
+    name: 'Blade Attack',
+    system: { identifier: 'blade-attack', tags: ['melee'], damage: '1d4 + @str.mod', damageType: 'slashing' },
   });
 
 /* -------------------------------------------- */
@@ -159,13 +159,13 @@ test('Rage needs the melee tick, and the pop-up offers it only for attacks the r
 test('Rage can carry a damage type, and sits beside other rows on the effect', async () => {
   const frost = { kind: 'damageDice', target: 'tag', value: 'melee', dice: '1d4', bonusType: 'ice', bonusAlso: '', when: 'melee' };
   const actor = await makeCrawler({
-    effects: [effect('Rage', rage()), effect('Frost Touch', frost)],
+    effects: [effect('Rage', rage()), effect('Cold Strikes', frost)],
     system: { health: { value: 8 } },
   });
   const rows = damageDiceFor(actor, slice(), null, { melee: true });
   assert.deepEqual(rows.map((r) => [r.name, r.formula, r.types]), [
     ['Rage', '@health.lost', []],
-    ['Frost Touch', '1d4', ['ice']],
+    ['Cold Strikes', '1d4', ['ice']],
   ]);
   const typed = damageDiceFor(await makeCrawler({ effects: [effect('Fire Rage', rage({ bonusType: 'fire' }))] }), slice(), null, { melee: true });
   assert.deepEqual(typed[0].types, ['fire']);
